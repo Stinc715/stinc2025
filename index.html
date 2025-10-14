@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>星动体育俱乐部</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <nav class="nav">
+        <div class="logo">星动体育</div>
+        <button class="nav__toggle" aria-label="展开菜单" aria-expanded="false">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <ul class="nav__links">
+          <li><a href="#about">关于我们</a></li>
+          <li><a href="#programs">课程</a></li>
+          <li><a href="#schedule">课程表</a></li>
+          <li><a href="#coaches">教练团队</a></li>
+          <li><a href="#membership">会员计划</a></li>
+          <li><a href="#contact">联系我们</a></li>
+        </ul>
+      </nav>
+      <div class="hero__content">
+        <h1>点燃你的运动激情</h1>
+        <p>
+          无论你是初学者还是资深运动达人，星动体育俱乐部都能为你提供专业的指导与充满活力的社区。
+        </p>
+        <a class="btn" href="#membership">立即加入</a>
+      </div>
+    </header>
+
+    <main>
+      <section id="about" class="section about">
+        <div class="section__title">
+          <h2>关于星动体育</h2>
+          <p>打造城市中最具凝聚力与专业度的综合体育俱乐部。</p>
+        </div>
+        <div class="about__grid">
+          <div>
+            <h3>全龄段课程体系</h3>
+            <p>
+              我们提供篮球、羽毛球、体能训练、青少年体适能等多种项目，覆盖不同年龄和水平。
+            </p>
+          </div>
+          <div>
+            <h3>顶尖教练团队</h3>
+            <p>
+              由国家级教练与国际认证私教组成的教学团队，为每位会员定制训练计划。
+            </p>
+          </div>
+          <div>
+            <h3>完善的场馆设施</h3>
+            <p>
+              俱乐部配备专业地板、智能更衣系统、恢复理疗中心以及咖啡休闲区，训练和社交兼顾。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="programs" class="section programs">
+        <div class="section__title">
+          <h2>热门课程</h2>
+          <p>结合科学训练与趣味互动，满足你的训练目标。</p>
+        </div>
+        <div class="programs__list">
+          <article class="card">
+            <h3>爆发力体能营</h3>
+            <p>高强度间歇训练，提高速度、力量与耐力。</p>
+            <span class="tag">适合进阶会员</span>
+          </article>
+          <article class="card">
+            <h3>少年篮球精英班</h3>
+            <p>专项技术、战术配合与团队协作全面提升。</p>
+            <span class="tag">10-16 岁</span>
+          </article>
+          <article class="card">
+            <h3>晨曦瑜伽课</h3>
+            <p>以呼吸与流动唤醒身体，平衡压力与活力。</p>
+            <span class="tag">适合所有水平</span>
+          </article>
+          <article class="card">
+            <h3>羽毛球私教课</h3>
+            <p>一对一技术指导，快速纠正动作并提升竞技能力。</p>
+            <span class="tag">预约制</span>
+          </article>
+        </div>
+      </section>
+
+      <section id="schedule" class="section schedule">
+        <div class="section__title">
+          <h2>本周课程表</h2>
+          <p>根据日期筛选，找到最适合你的课程时间。</p>
+        </div>
+        <div class="schedule__controls">
+          <label for="day-select">选择日期：</label>
+          <select id="day-select" name="day-select">
+            <option value="all">全部</option>
+            <option value="monday">周一</option>
+            <option value="tuesday">周二</option>
+            <option value="wednesday">周三</option>
+            <option value="thursday">周四</option>
+            <option value="friday">周五</option>
+            <option value="saturday">周六</option>
+            <option value="sunday">周日</option>
+          </select>
+        </div>
+        <table class="schedule__table">
+          <thead>
+            <tr>
+              <th>时间</th>
+              <th>课程</th>
+              <th>教练</th>
+              <th>地点</th>
+              <th>日期</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-day="monday">
+              <td>07:30</td>
+              <td>晨曦瑜伽课</td>
+              <td>Linda</td>
+              <td>瑜伽馆 A</td>
+              <td>周一</td>
+            </tr>
+            <tr data-day="monday">
+              <td>18:30</td>
+              <td>爆发力体能营</td>
+              <td>陈教练</td>
+              <td>功能训练区</td>
+              <td>周一</td>
+            </tr>
+            <tr data-day="tuesday">
+              <td>16:00</td>
+              <td>少年篮球精英班</td>
+              <td>王教练</td>
+              <td>篮球馆</td>
+              <td>周二</td>
+            </tr>
+            <tr data-day="wednesday">
+              <td>19:00</td>
+              <td>羽毛球私教课</td>
+              <td>Alex</td>
+              <td>羽毛球馆</td>
+              <td>周三</td>
+            </tr>
+            <tr data-day="thursday">
+              <td>12:30</td>
+              <td>午间快闪燃脂</td>
+              <td>张教练</td>
+              <td>体能训练区</td>
+              <td>周四</td>
+            </tr>
+            <tr data-day="friday">
+              <td>20:00</td>
+              <td>夜跑社群</td>
+              <td>社群领队</td>
+              <td>户外跑道</td>
+              <td>周五</td>
+            </tr>
+            <tr data-day="saturday">
+              <td>09:00</td>
+              <td>家庭趣味运动会</td>
+              <td>教练团队</td>
+              <td>多功能场</td>
+              <td>周六</td>
+            </tr>
+            <tr data-day="sunday">
+              <td>15:00</td>
+              <td>身心恢复理疗</td>
+              <td>Rehab Team</td>
+              <td>恢复中心</td>
+              <td>周日</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="coaches" class="section coaches">
+        <div class="section__title">
+          <h2>教练团队</h2>
+          <p>经验丰富的教练帮助你安全、高效地实现目标。</p>
+        </div>
+        <div class="coaches__grid">
+          <article class="profile">
+            <h3>陈思远</h3>
+            <p class="profile__role">体能训练总监</p>
+            <p>
+              国家队前体能教练，擅长提升速度与爆发力，拥有 NSCA CSCS 资格。
+            </p>
+          </article>
+          <article class="profile">
+            <h3>Linda Lee</h3>
+            <p class="profile__role">瑜伽/身心导师</p>
+            <p>
+              国际瑜伽联盟认证导师，关注身心平衡与呼吸训练，课程注重安全与正位。
+            </p>
+          </article>
+          <article class="profile">
+            <h3>王子墨</h3>
+            <p class="profile__role">篮球主教练</p>
+            <p>
+              前 CBA 球员，带领青少年队伍多次获得市级冠军，擅长战术意识培养。
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="testimonials" class="section testimonials">
+        <div class="section__title">
+          <h2>会员反馈</h2>
+          <p>真实的声音，来自与我们一起挥汗的伙伴们。</p>
+        </div>
+        <div class="testimonials__list">
+          <figure class="quote">
+            <blockquote>
+              “加入星动之后，体能和自信都翻倍提升，课程安排很科学。”
+            </blockquote>
+            <figcaption>—— IT 产品经理，王欣</figcaption>
+          </figure>
+          <figure class="quote">
+            <blockquote>
+              “教练团队非常耐心，针对我的膝盖伤做了细致的恢复训练。”
+            </blockquote>
+            <figcaption>—— 自由插画师，李敏</figcaption>
+          </figure>
+          <figure class="quote">
+            <blockquote>
+              “孩子在篮球班里交到了很多朋友，比赛也越来越自信。”
+            </blockquote>
+            <figcaption>—— 家长，周先生</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section id="membership" class="section membership">
+        <div class="section__title">
+          <h2>会员计划</h2>
+          <p>灵活的套餐，满足不同训练频率与服务需求。</p>
+        </div>
+        <div class="membership__options">
+          <article class="card card--highlight">
+            <h3>活力月卡</h3>
+            <p class="price">￥499/月</p>
+            <ul>
+              <li>每周 3 次团课</li>
+              <li>体能评估 1 次</li>
+              <li>康复理疗 8 折</li>
+            </ul>
+            <button class="btn btn--outline">预约体验</button>
+          </article>
+          <article class="card">
+            <h3>进阶季卡</h3>
+            <p class="price">￥1299/季度</p>
+            <ul>
+              <li>每周 5 次团课</li>
+              <li>私教课 2 次</li>
+              <li>营养咨询 1 次</li>
+            </ul>
+            <button class="btn btn--outline">立即咨询</button>
+          </article>
+          <article class="card">
+            <h3>冠军年度卡</h3>
+            <p class="price">￥4599/年</p>
+            <ul>
+              <li>全年无限次团课</li>
+              <li>季度体能与健康评估</li>
+              <li>赛事参赛及装备支持</li>
+            </ul>
+            <button class="btn btn--outline">专属顾问</button>
+          </article>
+        </div>
+      </section>
+
+      <section id="contact" class="section contact">
+        <div class="section__title">
+          <h2>联系我们</h2>
+          <p>留下你的信息，我们将为你安排试训或提供方案。</p>
+        </div>
+        <form class="contact__form">
+          <div class="form__group">
+            <label for="name">姓名</label>
+            <input id="name" name="name" type="text" placeholder="请输入姓名" required />
+          </div>
+          <div class="form__group">
+            <label for="phone">联系电话</label>
+            <input id="phone" name="phone" type="tel" placeholder="138-0000-0000" required />
+          </div>
+          <div class="form__group">
+            <label for="interest">感兴趣的项目</label>
+            <select id="interest" name="interest">
+              <option value="basketball">篮球</option>
+              <option value="fitness">体能训练</option>
+              <option value="yoga">瑜伽</option>
+              <option value="badminton">羽毛球</option>
+              <option value="rehab">恢复理疗</option>
+            </select>
+          </div>
+          <div class="form__group form__group--full">
+            <label for="message">留言</label>
+            <textarea id="message" name="message" rows="4" placeholder="告诉我们你的目标或想法"></textarea>
+          </div>
+          <button class="btn" type="submit">提交信息</button>
+        </form>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>© 2025 星动体育俱乐部 | 让运动成为生活方式</p>
+      <div class="footer__links">
+        <a href="tel:400-123-4567">客服热线 400-123-4567</a>
+        <a href="mailto:hi@xingdongsports.com">hi@xingdongsports.com</a>
+      </div>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
