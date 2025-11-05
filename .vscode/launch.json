@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "打开 Chrome 调试 home.html",
+            "file": "${workspaceFolder}/home.html",
+            "webRoot": "${workspaceFolder}"
+        },
+        {
+            "type": "msedge",
+            "request": "launch",
+            "name": "打开 Edge 调试 home.html",
+            "file": "${workspaceFolder}/home.html",
+            "webRoot": "${workspaceFolder}"
+        }
+    ]
+}

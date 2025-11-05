@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Club Booking Portal</title>
+<style>
+  :root{
+    --bg:#f5f5f6;
+    --card:#fff;
+    --line:#e5e7eb;
+    --ink:#111827;
+    --muted:#6b7280;
+    --accent:#2563eb;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:var(--bg);
+    font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .card{
+    width:360px;
+    background:var(--card);
+    border:1px solid rgba(0,0,0,.03);
+    border-radius:18px;
+    box-shadow:0 16px 40px rgba(15,23,42,.06);
+    padding:28px 26px 26px;
+    position:relative;
+  }
+  h1{
+    text-align:center;
+    font-size:28px;
+    margin:0 0 22px;
+  }
+  .tabs{
+    display:flex;
+    gap:0;
+    border-bottom:1px solid #000;
+    margin-bottom:22px;
+  }
+  .tab{
+    flex:1;
+    text-align:center;
+    padding:10px 0;
+    font-weight:600;
+    cursor:pointer;
+    background:#eee;
+  }
+  .tab.active{
+    background:#fff;
+    border-bottom:2px solid #000;
+  }
+  label{
+    display:block;
+    font-size:14px;
+    margin:0 0 6px;
+    color:var(--ink);
+  }
+  input, select{
+    width:100%;
+    height:40px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:0 10px;
+    font-size:13px;
+  }
+  .mb-3{margin-bottom:14px}
+  .btn-row{
+    display:flex;
+    gap:12px;
+    margin-top:8px;
+  }
+  .btn{
+    flex:1;
+    height:40px;
+    border-radius:10px;
+    border:1px solid #000;
+    background:#111;
+    color:#fff;
+    font-size:16px;
+    cursor:pointer;
+  }
+  .btn.light{
+    background:#fff;
+    color:#000;
+  }
+  .link-btn{
+    background:none;
+    border:none;
+    color:#2563eb;
+    font-size:13px;
+    cursor:pointer;
+    padding:0;
+  }
+  .error{
+    font-size:12px;
+    color:#dc2626;
+    margin-top:4px;
+    display:none;
+  }
+  .success{
+    background:#ecfdf3;
+    border:1px solid #bbf7d0;
+    color:#166534;
+    font-size:12px;
+    border-radius:8px;
+    padding:6px 8px;
+    margin-bottom:12px;
+    display:none;
+  }
+  .role-toggle{
+    display:flex;
+    gap:8px;
+    margin-top:6px;
+  }
+  .role-btn{
+    flex:1;
+    border:1px solid #d1d5db;
+    background:#fff;
+    border-radius:999px;
+    height:34px;
+    font-size:13px;
+    cursor:pointer;
+    color:#374151;
+    transition:all .15s ease-out;
+  }
+  .role-btn.active{
+    background:#2563eb;
+    border-color:#2563eb;
+    color:#fff;
+    box-shadow:0 4px 14px rgba(37,99,235,.25);
+  }
+  .small-row{
+    display:flex;
+    justify-content:flex-end;
+    margin-bottom:10px;
+  }
+  /* overlay for reset */
+  #reset-panel{
+    position:fixed;
+    inset:0;
+    background:rgba(15,23,42,.28);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:999;
+  }
+  #reset-box{
+    width:320px;
+    background:#fff;
+    border-radius:16px;
+    box-shadow:0 20px 45px rgba(15,23,42,.12);
+    padding:20px 18px 16px;
+  }
+  #reset-box h3{
+    margin:0 0 6px;
+    font-size:16px;
+  }
+  #reset-box p{
+    margin:0 0 12px;
+    font-size:13px;
+    color:var(--muted);
+  }
+  #reset-msg{
+    font-size:12px;
+    color:#166534;
+    background:#ecfdf3;
+    border:1px solid #bbf7d0;
+    padding:6px 8px;
+    border-radius:8px;
+    display:none;
+    margin-bottom:10px;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Club Booking Portal</h1>
+
+    <div class="tabs">
+      <div id="tab-login" class="tab active">Login</div>
+      <div id="tab-register" class="tab">Register</div>
+    </div>
+
+    <div id="panel-login">
+      <div id="login-success" class="success">Registration successful! Please log in.</div>
+      <div class="mb-3">
+        <label for="login-email">Email</label>
+        <input id="login-email" type="email" placeholder="Enter your email" autocomplete="username" />
+        <div id="login-email-err" class="error">Please enter a valid email address.</div>
+      </div>
+      <div class="mb-3">
+        <label for="login-pass">Password</label>
+        <input id="login-pass" type="password" placeholder="Enter your password" autocomplete="current-password" />
+        <div id="login-pass-err" class="error">Password is required.</div>
+      </div>
+      <div class="small-row">
+        <button id="btnForgot" class="link-btn" type="button">Forgot password?</button>
+      </div>
+      <div class="btn-row">
+        <button id="btnLoginDo" class="btn" type="button">Login</button>
+        <button id="btnGoRegister" class="btn light" type="button">Create account</button>
+      </div>
+    </div>
+
+    <div id="panel-register" style="display:none">
+      <div class="mb-3">
+        <label>Account type</label>
+        <div class="role-toggle" id="roleToggle">
+          <button type="button" class="role-btn active" data-role="user">Normal user</button>
+          <button type="button" class="role-btn" data-role="club">Club account</button>
+        </div>
+        <input type="hidden" id="reg-role-value" value="user">
+        <div id="reg-role-err" class="error">Please select an account type.</div>
+      </div>
+
+      <div id="user-extra" class="mb-3">
+        <label for="reg-username">Your name / display name</label>
+        <input id="reg-username" type="text" placeholder="e.g. Kevin, Emma, Sun Hao" />
+        <div id="reg-username-err" class="error">Please enter your name.</div>
+      </div>
+
+      <div id="club-extra" style="display:none">
+        <div class="mb-3">
+          <label for="reg-clubname">Club name</label>
+          <input id="reg-clubname" type="text" placeholder="e.g. Hull Badminton Society" />
+          <div id="reg-clubname-err" class="error">Please enter club name.</div>
+        </div>
+        <div class="mb-3">
+          <label for="reg-clubtype">Club types</label>
+          <input id="reg-clubtype" type="text" placeholder="e.g. yoga, fitness, dance..." />
+          <div id="reg-clubtype-err" class="error">Please enter at least one club type.</div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="reg-email">Email</label>
+        <input id="reg-email" type="email" placeholder="Enter your email" autocomplete="email" />
+        <div id="reg-email-err" class="error">Please enter a valid email address.</div>
+      </div>
+      <div class="mb-3">
+        <label for="reg-pass">Password</label>
+        <input id="reg-pass" type="password" placeholder="Enter your password" autocomplete="new-password" />
+        <div id="reg-pass-err" class="error">Password is required.</div>
+      </div>
+      <div class="mb-3">
+        <label for="reg-pass2">Confirm password</label>
+        <input id="reg-pass2" type="password" placeholder="Re-enter your password" autocomplete="new-password" />
+        <div id="reg-pass2-err" class="error">Passwords do not match.</div>
+      </div>
+      <div class="btn-row">
+        <button id="btnRegisterDo" class="btn" type="button">Register</button>
+        <button id="btnBackLogin" class="btn light" type="button">Back to login</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- reset overlay -->
+  <div id="reset-panel">
+    <div id="reset-box">
+      <h3>Reset password</h3>
+      <p>Enter your email address, we'll send you a reset link.</p >
+      <div id="reset-msg">Email sent.</div>
+      <div class="mb-3">
+        <label for="reset-email">Email</label>
+        <input id="reset-email" type="email" placeholder="you@example.com" />
+        <div id="reset-email-err" class="error">Please enter a valid email address.</div>
+      </div>
+      <div class="btn-row">
+        <button id="btnResetSend" class="btn" type="button">Send link</button>
+        <button id="btnResetBack" class="btn light" type="button">Back</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const tabLogin = document.getElementById('tab-login');
+  const tabRegister = document.getElementById('tab-register');
+  const panelLogin = document.getElementById('panel-login');
+  const panelRegister = document.getElementById('panel-register');
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const userExtra = document.getElementById('user-extra');
+  const clubExtra = document.getElementById('club-extra');
+  const roleHidden = document.getElementById('reg-role-value');
+  const roleToggle = document.getElementById('roleToggle');
+
+  const resetPanel = document.getElementById('reset-panel');
+  const resetEmail = document.getElementById('reset-email');
+  const resetEmailErr = document.getElementById('reset-email-err');
+  const resetMsg = document.getElementById('reset-msg');
+
+  // --- simple local storage helpers for demo auth ---
+  function getAccounts(){
+    try { return JSON.parse(localStorage.getItem('accounts') || '[]') || []; }
+    catch(e){ return []; }
+  }
+  function saveAccounts(list){
+    localStorage.setItem('accounts', JSON.stringify(Array.isArray(list)?list:[]));
+  }
+
+  roleToggle.querySelectorAll('.role-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      roleToggle.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const role = btn.dataset.role;
+      roleHidden.value = role;
+      if(role === 'user'){
+        userExtra.style.display = 'block';
+        clubExtra.style.display = 'none';
+      }else{
+        userExtra.style.display = 'none';
+        clubExtra.style.display = 'block';
+      }
+    });
+  });
+
+  function switchToLogin(showSuccess){
+    tabLogin.classList.add('active');
+    tabRegister.classList.remove('active');
+    panelLogin.style.display = 'block';
+    panelRegister.style.display = 'none';
+    resetPanel.style.display = 'none';
+    if(showSuccess){
+      const succ = document.getElementById('login-success');
+      succ.style.display = 'block';
+      setTimeout(()=>{ succ.style.display = 'none'; }, 2000);
+    } else {
+      document.getElementById('login-success').style.display = 'none';
+    }
+    document.getElementById('login-email').value = '';
+    document.getElementById('login-pass').value = '';
+  }
+
+  function switchToRegister(){
+    tabRegister.classList.add('active');
+    tabLogin.classList.remove('active');
+    panelRegister.style.display = 'block';
+    panelLogin.style.display = 'none';
+    resetPanel.style.display = 'none';
+  }
+
+  tabLogin.addEventListener('click', ()=>switchToLogin(false));
+  tabRegister.addEventListener('click', switchToRegister);
+  document.getElementById('btnGoRegister').addEventListener('click', switchToRegister);
+  document.getElementById('btnBackLogin').addEventListener('click', ()=>switchToLogin(false));
+
+  function handleLogin(){
+    const email = document.getElementById('login-email').value.trim();
+    const pass  = document.getElementById('login-pass').value;
+    let ok = true;
+
+    if(!emailRe.test(email)){
+      document.getElementById('login-email-err').style.display = 'block';
+      ok = false;
+    } else document.getElementById('login-email-err').style.display = 'none';
+
+    if(!pass){
+      document.getElementById('login-pass-err').style.display = 'block';
+      ok = false;
+    } else document.getElementById('login-pass-err').style.display = 'none';
+
+    if(!ok) return;
+
+    // Lookup local account; if found, persist role and name for header
+    const list = getAccounts();
+    const found = list.find(a => (a.email||'').toLowerCase() === email.toLowerCase() && a.pass === pass);
+    const loggedUser = found
+      ? { email: found.email, name: found.name || (found.email||'').split('@')[0], type: found.type || 'user' }
+      : { email, name: (email||'').split('@')[0], type: 'user' };
+    localStorage.setItem('loggedUser', JSON.stringify(loggedUser));
+
+    window.location.href = "home.html";
+  }
+
+  function handleRegister(){
+    const email  = document.getElementById('reg-email').value.trim();
+    const pass   = document.getElementById('reg-pass').value;
+    const pass2  = document.getElementById('reg-pass2').value;
+    const role = document.getElementById('reg-role-value').value;
+    const username = document.getElementById('reg-username').value.trim();
+    const clubname = document.getElementById('reg-clubname').value.trim();
+    const clubtypes = document.getElementById('reg-clubtype').value.trim();
+
+    let ok = true;
+    if(!role){
+      document.getElementById('reg-role-err').style.display = 'block';
+      ok = false;
+    }else document.getElementById('reg-role-err').style.display = 'none';
+
+    if(role === 'user'){
+      if(!username){
+        document.getElementById('reg-username-err').style.display = 'block';
+        ok = false;
+      }else document.getElementById('reg-username-err').style.display = 'none';
+    } else if(role === 'club'){
+      if(!clubname){
+        document.getElementById('reg-clubname-err').style.display = 'block';
+        ok = false;
+      }else document.getElementById('reg-clubname-err').style.display = 'none';
+      if(!clubtypes){
+        document.getElementById('reg-clubtype-err').style.display = 'block';
+        ok = false;
+      }else document.getElementById('reg-clubtype-err').style.display = 'none';
+    }
+
+    if(!emailRe.test(email)){
+      document.getElementById('reg-email-err').style.display = 'block';
+      ok = false;
+    }else document.getElementById('reg-email-err').style.display = 'none';
+
+    if(!pass){
+      document.getElementById('reg-pass-err').style.display = 'block';
+      ok = false;
+    }else document.getElementById('reg-pass-err').style.display = 'none';
+
+    if(pass !== pass2){
+      document.getElementById('reg-pass2-err').style.display = 'block';
+      ok = false;
+    }else document.getElementById('reg-pass2-err').style.display = 'none';
+
+    if(!ok) return;
+
+    // Save account locally for demo login
+    const accounts = getAccounts().filter(a => (a.email||'').toLowerCase() !== email.toLowerCase());
+    accounts.push({ email, pass, type: role === 'club' ? 'club' : 'user', name: role === 'club' ? clubname : username });
+    saveAccounts(accounts);
+
+    switchToLogin(true);
+  }
+
+  document.getElementById('btnLoginDo').addEventListener('click', handleLogin);
+  document.getElementById('btnRegisterDo').addEventListener('click', handleRegister);
+
+  // forgot password inline panel
+  document.getElementById('btnForgot').addEventListener('click', function(){
+    resetPanel.style.display = 'flex';   // use flex to center
+    resetEmail.value = '';
+    resetEmailErr.style.display = 'none';
+    resetMsg.style.display = 'none';
+  });
+  document.getElementById('btnResetBack').addEventListener('click', function(){
+    resetPanel.style.display = 'none';
+  });
+  document.getElementById('btnResetSend').addEventListener('click', function(){
+    const em = resetEmail.value.trim();
+    if(!emailRe.test(em)){
+      resetEmailErr.style.display = 'block';
+      return;
+    }
+    resetEmailErr.style.display = 'none';
+    resetMsg.textContent = 'Reset link sent to: ' + em;
+    resetMsg.style.display = 'block';
+  });
+
+  // allow direct #register link
+  if(location.hash === '#register'){
+    switchToRegister();
+  }
+</script>
+</body>
+</html>

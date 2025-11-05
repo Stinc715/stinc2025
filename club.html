@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Club Booking System · Club Page</title>
+<style>
+  :root{ --bg:#f7f7f8; --card:#fff; --ink:#222; --muted:#6b7280; --line:#e5e7eb; --chip:#f3f4f6; --danger:#dc2626; }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(#fff,#fafafa);color:var(--ink);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  header,footer{border-bottom:1px solid var(--line);background:#fff;position:sticky;top:0;z-index:10}
+  header .wrap,footer .wrap,.wrap{max-width:1100px;margin:0 auto;padding:16px}
+  a{color:inherit;text-decoration:none}
+  h1{font-size:22px;margin:0}
+  h2{font-size:18px;margin:16px 0 12px}
+  h3{font-size:15px;margin:8px 0}
+  .btn{border:1px solid var(--line);background:#111;color:#fff;padding:8px 12px;border-radius:8px;font-size:13px;cursor:pointer}
+  .btn.ghost{background:#fff;color:#111}
+  .btn.blue{background:#2563eb;border-color:#2563eb}
+  .user-menu{position:relative;display:inline-block}
+  .user-menu .menu{position:absolute;top:calc(100% + 4px);right:0;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 28px rgba(15,23,42,.12);padding:6px 0;display:none;min-width:140px;z-index:20}
+  .user-menu .menu.open{display:block}
+  .user-menu .menu button{width:100%;background:none;border:none;padding:8px 14px;text-align:left;font-size:13px;color:var(--ink);cursor:pointer}
+  .user-menu .menu button:hover{background:#f3f4f6}
+  .btn.red{background:#b91c1c;border-color:#b91c1c}
+  .grid{display:grid;gap:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+  .card .pad{padding:16px}
+  .muted{color:var(--muted);font-size:12px}
+  .thumb{height:180px;background:#f3f4f6;border:1px dashed var(--line);border-radius:12px;color:var(--muted);display:flex;align-items:center;justify-content:center}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .chip{background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12px}
+  .kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .k{background:#f3f4f6;border:1px solid var(--line);border-radius:10px;padding:8px}
+  .k .num{font-size:18px;font-weight:700}
+  .table{width:100%;border-collapse:collapse;font-size:13px}
+  .table th,.table td{padding:10px;border-top:1px solid var(--line);text-align:left}
+  .crumbs{font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center}
+  .crumbs a{color:#2563eb}
+  select{height:36px;border:1px solid var(--line);border-radius:8px;padding:0 10px;background:#fff}
+  input[type="text"]{height:36px;border:1px solid var(--line);border-radius:8px;padding:0 10px}
+  .slot-ok{padding:6px;margin:8px;border:1px solid #bbf7d0;background:#dcfce7;border-radius:8px;text-align:center}
+  .slot-full{padding:6px;margin:8px;border:1px solid #d1d5db;background:#e5e7eb;border-radius:8px;text-align:center}
+  .pill{display:inline-flex;align-items:center;gap:6px;background:#f3f4f6;border:1px solid var(--line);padding:6px 10px;border-radius:999px;font-size:12px}
+  .pill button{border:none;background:transparent;color:#555;cursor:pointer}
+</style>
+</head>
+<body>
+  <header>
+    <div class="wrap" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <h1>Club Booking System</h1>
+      <div style="display:flex;gap:8px;align-items:center">
+        <a class="btn ghost" href="home.html">Back to Home</a>
+        <div id="userArea" style="display:flex;align-items:center;gap:8px">
+          <button id="btnLogin" class="btn" type="button">Login</button>
+          <button id="btnRegister" class="btn blue" type="button">Register</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="crumbs"><a href="home.html">Home</a> / <span>Badminton Club</span></div>
+
+    <div class="card"><div class="pad">
+      <div class="thumb">Club cover / banner</div>
+      <h2>Badminton Club</h2>
+      <p class="muted">Suitable for all levels; weekly trainings and friendlies. Rackets available and basic coaching provided. New members welcome.</p>
+      <div class="chips">
+        <span class="chip">🏸 Badminton</span>
+        <span class="chip">📍 Hall A</span>
+        <span class="chip">👥 120 members</span>
+        <span class="chip">🕒 Opening hours <span id="hoursLabel">08:00�?4:00</span></span>
+      </div>
+
+      <div class="kpi" style="margin-top:12px">
+        <div class="k"><div class="muted">This week</div><div class="num">3</div></div>
+        <div class="k"><div class="muted">Spots left</div><div class="num">18</div></div>
+        <div class="k"><div class="muted">Rating</div><div class="num">4.7</div></div>
+        <div class="k"><div class="muted">Followers</div><div class="num">256</div></div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn blue">Book now</button>
+        <button class="btn ghost">Add to favourites</button>
+        <button class="btn ghost">Contact admin</button>
+      </div>
+    </div></div>
+
+    <div class="card"><div class="pad">
+      <h3>Upcoming Schedule</h3>
+
+      <!-- Opening hours (start & end) -->
+      <div class="chips" style="margin-top:6px;gap:10px">
+        <span class="muted">Opening</span>
+        <select id="openHour" aria-label="Opening hour"></select>
+        <span class="muted">Closing</span>
+        <select id="closeHour" aria-label="Closing hour"></select>
+      </div>
+
+      <!-- Courts add/remove -->
+      <div class="chips" style="margin-top:6px;gap:10px">
+        <span class="muted">Courts</span>
+        <input id="courtName" type="text" placeholder="e.g. Court A" style="width:160px" />
+        <button id="addCourt" class="btn" type="button">Add</button>
+        <div id="courtList" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+      </div>
+
+      <div id="schedule" style="margin-top:8px"></div>
+    </div></div>
+
+    <div class="card"><div class="pad">
+      <h3>Members</h3>
+      <table class="table">
+        <thead>
+          <tr><th style="width:30%">Name</th><th>Role</th><th>Joined</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Alex Johnson</td><td>Member</td><td>2024-09-10</td><td><button class="btn ghost">Message</button></td></tr>
+          <tr><td>Emma Smith</td><td>Member</td><td>2024-09-15</td><td><button class="btn ghost">Message</button></td></tr>
+          <tr><td>Michael Chen</td><td>Admin</td><td>2024-08-20</td><td><button class="btn ghost">Manage</button></td></tr>
+        </tbody>
+      </table>
+    </div></div>
+
+    <div class="card"><div class="pad">
+      <h3>Danger zone</h3>
+      <p class="muted">Delete this club or reset schedule. This cannot be undone.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn red">Delete club</button>
+        <button class="btn ghost">Reset schedule</button>
+      </div>
+    </div></div>
+  </div>
+
+  <footer>
+    <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;margin-top:24px">
+      <span class="muted">© <span id="y"></span> Sports Club System</span>
+      <div style="display:flex;gap:8px"><span class="btn ghost">Privacy</span><span class="btn ghost">Terms</span><span class="btn ghost">Help</span></div>
+    </div>
+  </footer>
+
+  <script>
+    const userArea = document.getElementById('userArea');
+    if (userArea) {
+      let savedUser = null;
+      try {
+        savedUser = JSON.parse(localStorage.getItem('loggedUser') || 'null');
+      } catch (err) {
+        savedUser = null;
+        localStorage.removeItem('loggedUser');
+      }
+
+      if (savedUser) {
+        const isClub = (savedUser && savedUser.type) === 'club';
+        const targetHref = isClub ? 'club.html' : 'user.html';
+        const myLabel = isClub ? 'Club' : 'My';
+        userArea.innerHTML = `
+          <div class="user-menu">
+            <button id="btnMy" class="btn blue" type="button" aria-haspopup="true" aria-expanded="false">${myLabel}</button>
+            <div class="menu" id="myMenu" role="menu">
+              <button type="button" id="btnDetails" role="menuitem">Details</button>
+              <button type="button" id="btnLogout" role="menuitem">Logout</button>
+            </div>
+          </div>
+        `;
+
+        const myBtn = document.getElementById('btnMy');
+        const menuEl = document.getElementById('myMenu');
+        const detailsBtn = document.getElementById('btnDetails');
+        const logoutBtn = document.getElementById('btnLogout');
+
+        if (detailsBtn) {
+          detailsBtn.addEventListener('click', () => {
+            window.location.href = targetHref;
+          });
+        }
+
+        if (logoutBtn) {
+          logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('loggedUser');
+            location.reload();
+          });
+        }
+
+        if (myBtn && menuEl) {
+          let closeTimer = null;
+          const wrapper = userArea ? userArea.querySelector('.user-menu') : null;
+          const CLOSE_DELAY = 400;
+
+          const clearCloseTimer = () => {
+            if (closeTimer) {
+              clearTimeout(closeTimer);
+              closeTimer = null;
+            }
+          };
+
+          const openMenu = () => {
+            clearCloseTimer();
+            menuEl.classList.add('open');
+            myBtn.setAttribute('aria-expanded', 'true');
+          };
+
+          const closeMenu = () => {
+            clearCloseTimer();
+            menuEl.classList.remove('open');
+            myBtn.setAttribute('aria-expanded', 'false');
+          };
+
+          const scheduleClose = (delay = CLOSE_DELAY) => {
+            clearCloseTimer();
+            closeTimer = window.setTimeout(() => {
+              menuEl.classList.remove('open');
+              myBtn.setAttribute('aria-expanded', 'false');
+              closeTimer = null;
+            }, delay);
+          };
+
+          myBtn.addEventListener('click', (evt) => {
+            evt.preventDefault();
+            if (menuEl.classList.contains('open')) {
+              closeMenu();
+            } else {
+              openMenu();
+            }
+          });
+
+          myBtn.addEventListener('focus', openMenu);
+          myBtn.addEventListener('mouseenter', openMenu);
+          myBtn.addEventListener('keydown', (evt) => {
+            if (evt.key === 'Escape') {
+              closeMenu();
+              myBtn.blur();
+            }
+          });
+
+          menuEl.addEventListener('focusin', openMenu);
+          menuEl.addEventListener('mouseenter', openMenu);
+          menuEl.addEventListener('mouseleave', () => scheduleClose());
+          menuEl.addEventListener('keydown', (evt) => {
+            if (evt.key === 'Escape') {
+              closeMenu();
+              myBtn.focus();
+            }
+          });
+
+          if (wrapper) {
+            wrapper.addEventListener('mouseenter', openMenu);
+            wrapper.addEventListener('mouseleave', () => scheduleClose());
+          }
+
+          document.addEventListener('click', (evt) => {
+            if (wrapper && wrapper.contains(evt.target)) {
+              return;
+            }
+            closeMenu();
+          });
+        }
+      } else {
+        const loginBtn = document.getElementById('btnLogin');
+        const registerBtn = document.getElementById('btnRegister');
+        if (loginBtn) loginBtn.addEventListener('click', () => window.location.href = 'login.html#login');
+        if (registerBtn) registerBtn.addEventListener('click', () => window.location.href = 'login.html#register');
+      }
+    }
+
+    // Demo schedule data
+    const courts=['Court A','Court B','Court C'];
+    const scheduleData={};
+    const seed={
+      8:['ok','full','ok'],9:['ok','ok','ok'],10:['full','ok','ok'],11:['ok','ok','full'],
+      12:['ok','ok','ok'],13:['ok','full','ok'],14:['ok','ok','ok'],15:['full','ok','ok'],
+      16:['ok','ok','ok'],17:['ok','ok','full'],18:['ok','ok','ok'],19:['ok','full','ok'],
+      20:['ok','ok','ok'],21:['ok','ok','ok'],22:['ok','ok','ok'],23:['ok','ok','ok']
+    };
+    function ensureHour(hour){
+      if(!scheduleData[hour]) scheduleData[hour] = {};
+      courts.forEach((c,idx)=>{
+        if(!scheduleData[hour][c]){
+          const arr = seed[hour];
+          scheduleData[hour][c] = Array.isArray(arr) && idx < arr.length ? (arr[idx]==='full'?'full':'ok') : 'ok';
+        }
+      });
+      // Remove stale courts
+      Object.keys(scheduleData[hour]).forEach(c=>{ if(!courts.includes(c)) delete scheduleData[hour][c]; });
+    }
+
+    // --- DOM refs ---
+    const scheduleEl=document.getElementById('schedule');
+    const openHour=document.getElementById('openHour');
+    const closeHour=document.getElementById('closeHour');
+    const hoursLabel=document.getElementById('hoursLabel');
+    const courtNameEl=document.getElementById('courtName');
+    const addCourtBtn=document.getElementById('addCourt');
+    const courtListEl=document.getElementById('courtList');
+
+    function pad(n){return String(n).padStart(2,'0');}
+
+    function buildHourOptions(selectEl,defaultVal,max=24){
+      if(!selectEl) return;
+      selectEl.innerHTML='';
+      for(let i=0;i<=max;i++){
+        const opt=document.createElement('option');
+        opt.value=i; opt.textContent=`${i}:00`;
+        if(i===defaultVal) opt.selected=true;
+        selectEl.appendChild(opt);
+      }
+    }
+
+    function renderCourts(){
+      courtListEl.innerHTML='';
+      courts.forEach((c,idx)=>{
+        const pill=document.createElement('span');
+        pill.className='pill';
+        pill.innerHTML = `${c} <button title="Remove" aria-label="Remove ${c}" data-idx="${idx}">×</button>`;
+        pill.querySelector('button').addEventListener('click',()=>{
+          // Remove court and re-render schedule
+          courts.splice(idx,1);
+          renderCourts();
+          renderSchedule(+openHour.value,+closeHour.value);
+        });
+        courtListEl.appendChild(pill);
+      });
+    }
+
+    function renderSchedule(start,end){
+      if(end<=start){scheduleEl.innerHTML='<div class="muted" style="padding:12px">Closing hour must be later than opening hour.</div>';return;}
+      hoursLabel.textContent=`${pad(start)}:00�?{pad(end)}:00`;
+      // Ensure data
+      for(let h=start;h<end;h++) ensureHour(h);
+
+      // Header row: time + dynamic courts
+      let html=`<div class="grid" style="grid-template-columns:120px repeat(${courts.length},1fr);gap:0">`+
+        `<div class="muted" style="padding:10px 8px;border-right:1px solid var(--line);background:#f9fafb">Time</div>`+
+        courts.map((c,i)=>`<div style="padding:10px 8px;${i<courts.length-1?'border-right:1px solid var(--line);':''}background:#f9fafb">${c}</div>`).join('');
+
+      // Rows
+      for(let h=start; h<end; h++){
+        const next=h+1;
+        html += `<div class="muted" style="padding:10px 8px;border-top:1px solid var(--line);border-right:1px solid var(--line)">${pad(h)}:00�?{pad(next)}:00</div>`;
+        courts.forEach((c,i)=>{
+          const s = scheduleData[h]?.[c] || 'ok';
+          const cls = s==='ok' ? 'slot-ok' : 'slot-full';
+          const title = s==='ok' ? 'Available' : 'Full';
+          html += `<div class="${cls}" data-hour="${h}" data-court="${encodeURIComponent(c)}" title="${title}">${title}</div>`;
+        });
+      }
+      html+='</div>';
+      scheduleEl.innerHTML = html;
+
+      // Click to toggle state (ok/full) for demo purposes
+      scheduleEl.querySelectorAll('.slot-ok,.slot-full').forEach(cell=>{
+        cell.addEventListener('click',()=>{
+          const h = parseInt(cell.getAttribute('data-hour'),10);
+          const c = decodeURIComponent(cell.getAttribute('data-court'));
+          ensureHour(h);
+          scheduleData[h][c] = scheduleData[h][c] === 'ok' ? 'full' : 'ok';
+          renderSchedule(start,end);
+        });
+      });
+    }
+
+    // Init
+    buildHourOptions(openHour,8,23); // open 0..23
+    buildHourOptions(closeHour,24,24); // close 0..24 (24 allowed)
+    openHour.addEventListener('change',()=>renderSchedule(+openHour.value,+closeHour.value));
+    closeHour.addEventListener('change',()=>renderSchedule(+openHour.value,+closeHour.value));
+
+    addCourtBtn.addEventListener('click',()=>{
+      const name = (courtNameEl.value||'').trim();
+      if(!name) return;
+      if(courts.includes(name)) return;
+      courts.push(name);
+      courtNameEl.value='';
+      renderCourts();
+      renderSchedule(+openHour.value,+closeHour.value);
+    });
+
+    renderCourts();
+    renderSchedule(8,24);
+    document.getElementById('y').textContent=new Date().getFullYear();
+  </script>
+</body>
+</html>
