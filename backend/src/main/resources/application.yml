@@ -1,0 +1,16 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/club_portal?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
+    username: root
+    password: Sntc00715
+  jpa:
+    hibernate:
+      ddl-auto: none   
+    open-in-view: false
+
+google:
+  oauth:
+    client-id: "885940597719-mtcoo82k9bbksvuj786nsj7iombqtsli.apps.googleusercontent.com"
