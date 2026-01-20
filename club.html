@@ -5,52 +5,326 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Club Booking System · Club Page</title>
 <style>
-  :root{ --bg:#f7f7f8; --card:#fff; --ink:#222; --muted:#6b7280; --line:#e5e7eb; --chip:#f3f4f6; --danger:#dc2626; }
-  *{box-sizing:border-box}
-  body{margin:0;background:linear-gradient(#fff,#fafafa);color:var(--ink);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
-  header,footer{border-bottom:1px solid var(--line);background:#fff;position:sticky;top:0;z-index:10}
-  header .wrap,footer .wrap,.wrap{max-width:1100px;margin:0 auto;padding:16px}
-  a{color:inherit;text-decoration:none}
-  h1{font-size:22px;margin:0}
-  h2{font-size:18px;margin:16px 0 12px}
-  h3{font-size:15px;margin:8px 0}
-  .btn{border:1px solid var(--line);background:#111;color:#fff;padding:8px 12px;border-radius:8px;font-size:13px;cursor:pointer}
-  .btn.ghost{background:#fff;color:#111}
-  .btn.blue{background:#2563eb;border-color:#2563eb}
-  .user-menu{position:relative;display:inline-block}
-  .user-menu .menu{position:absolute;top:calc(100% + 4px);right:0;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 28px rgba(15,23,42,.12);padding:6px 0;display:none;min-width:140px;z-index:20}
-  .user-menu .menu.open{display:block}
-  .user-menu .menu button{width:100%;background:none;border:none;padding:8px 14px;text-align:left;font-size:13px;color:var(--ink);cursor:pointer}
-  .user-menu .menu button:hover{background:#f3f4f6}
-  .btn.red{background:#b91c1c;border-color:#b91c1c}
-  .grid{display:grid;gap:16px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
-  .card .pad{padding:16px}
-  .muted{color:var(--muted);font-size:12px}
-  .thumb{height:180px;background:#f3f4f6;border:1px dashed var(--line);border-radius:12px;color:var(--muted);display:flex;align-items:center;justify-content:center}
-  .chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-  .chip{background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12px}
-  .kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-  .k{background:#f3f4f6;border:1px solid var(--line);border-radius:10px;padding:8px}
-  .k .num{font-size:18px;font-weight:700}
-  .table{width:100%;border-collapse:collapse;font-size:13px}
-  .table th,.table td{padding:10px;border-top:1px solid var(--line);text-align:left}
-  .crumbs{font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center}
-  .crumbs a{color:#2563eb}
-  select{height:36px;border:1px solid var(--line);border-radius:8px;padding:0 10px;background:#fff}
-  input[type="text"]{height:36px;border:1px solid var(--line);border-radius:8px;padding:0 10px}
-  .slot-ok{padding:6px;margin:8px;border:1px solid #bbf7d0;background:#dcfce7;border-radius:8px;text-align:center}
-  .slot-full{padding:6px;margin:8px;border:1px solid #d1d5db;background:#e5e7eb;border-radius:8px;text-align:center}
-  .pill{display:inline-flex;align-items:center;gap:6px;background:#f3f4f6;border:1px solid var(--line);padding:6px 10px;border-radius:999px;font-size:12px}
-  .pill button{border:none;background:transparent;color:#555;cursor:pointer}
+  :root {
+    --bg: #f7f7f8;
+    --card: #fff;
+    --ink: #222;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --chip: #f3f4f6;
+    --danger: #dc2626;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: linear-gradient(#fff, #fafafa);
+    color: var(--ink);
+    font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  }
+
+  header,
+  footer {
+    border-bottom: 1px solid var(--line);
+    background: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  header .wrap,
+  footer .wrap,
+  .wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  h1 {
+    font-size: 22px;
+    margin: 0;
+  }
+
+  h2 {
+    font-size: 18px;
+    margin: 16px 0 12px;
+  }
+
+  h3 {
+    font-size: 15px;
+    margin: 8px 0;
+  }
+
+  .btn {
+    border: 1px solid var(--line);
+    background: #111;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .btn.ghost {
+    background: #fff;
+    color: #111;
+  }
+
+  .btn.blue {
+    background: #2563eb;
+    border-color: #2563eb;
+  }
+
+  .user-menu {
+    position: relative;
+    display: inline-block;
+  }
+
+  .user-menu .menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, .12);
+    padding: 6px 0;
+    display: none;
+    min-width: 140px;
+    z-index: 20;
+  }
+
+  .user-menu .menu.open {
+    display: block;
+  }
+
+  .user-menu .menu button {
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 8px 14px;
+    text-align: left;
+    font-size: 13px;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .user-menu .menu button:hover {
+    background: #f3f4f6;
+  }
+
+  .btn.red {
+    background: #b91c1c;
+    border-color: #b91c1c;
+  }
+
+  .grid {
+    display: grid;
+    gap: 16px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
+  }
+
+  .card .pad {
+    padding: 16px;
+  }
+
+  .muted {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .thumb {
+    height: 180px;
+    background: #f3f4f6;
+    border: 1px dashed var(--line);
+    border-radius: 12px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .chip {
+    background: var(--chip);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+
+  .kpi {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .k {
+    background: #f3f4f6;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 8px;
+  }
+
+  .k .num {
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .table th,
+  .table td {
+    padding: 10px;
+    border-top: 1px solid var(--line);
+    text-align: left;
+  }
+
+  .crumbs {
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .crumbs a {
+    color: #2563eb;
+  }
+
+  select {
+    height: 36px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 0 10px;
+    background: #fff;
+  }
+
+  input[type="text"] {
+    height: 36px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 0 10px;
+  }
+
+  .slot-ok {
+    padding: 6px;
+    margin: 8px;
+    border: 1px solid #bfdbfe;
+    background: #dbeafe;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .slot-full {
+    padding: 6px;
+    margin: 8px;
+    border: 1px solid #d1d5db;
+    background: #e5e7eb;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f3f4f6;
+    border: 1px solid var(--line);
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+  }
+
+  .pill button {
+    border: none;
+    background: transparent;
+    color: #555;
+    cursor: pointer;
+  }
+
+  .info-overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(10, 12, 16, 0.45);
+    z-index: 3000;
+  }
+
+  .info-overlay.open {
+    display: flex;
+  }
+
+  .info-card {
+    position: relative;
+    width: min(560px, 92vw);
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 24px 60px rgba(10, 12, 16, 0.25);
+    padding: 20px 20px 18px;
+  }
+
+  .info-card h3 {
+    margin: 0 0 8px;
+    font-size: 18px;
+  }
+
+  .info-body p {
+    margin: 0 0 10px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .info-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #fff;
+    cursor: pointer;
+    color: var(--muted);
+  }
 </style>
+
+  <link rel="stylesheet" href="theme.css">
 </head>
 <body>
+  <!-- 顶部导航栏：包含网站标题、返回首页链接和用户登录/注册入口 -->
   <header>
     <div class="wrap" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
       <h1>Club Booking System</h1>
       <div style="display:flex;gap:8px;align-items:center">
-        <a class="btn ghost" href="home.html">Back to Home</a>
+        <a class="link-back" href="home.html">Back to Home</a>
         <div id="userArea" style="display:flex;align-items:center;gap:8px">
           <button id="btnLogin" class="btn" type="button">Login</button>
           <button id="btnRegister" class="btn blue" type="button">Register</button>
@@ -60,37 +334,34 @@
   </header>
 
   <div class="wrap">
-    <div class="crumbs"><a href="home.html">Home</a> / <span>Badminton Club</span></div>
+    <!-- 面包屑导航：显示当前页面路径 -->
+    <div class="crumbs"><a href="home.html">Home</a> / <span>Loading...</span></div>
 
+    <!-- 俱乐部概况卡片：展示封面、描述、标签和关键指标 (KPI) -->
     <div class="card"><div class="pad">
       <div class="thumb">Club cover / banner</div>
-      <h2>Badminton Club</h2>
-      <p class="muted">Suitable for all levels; weekly trainings and friendlies. Rackets available and basic coaching provided. New members welcome.</p>
+      <h2>Loading...</h2>
+      <p class="muted">Loading club information...</p>
       <div class="chips">
-        <span class="chip">🏸 Badminton</span>
-        <span class="chip">📍 Hall A</span>
-        <span class="chip">👥 120 members</span>
-        <span class="chip">🕒 Opening hours <span id="hoursLabel">08:00�?4:00</span></span>
+        <!-- 由club.js动态填充 -->
       </div>
 
       <div class="kpi" style="margin-top:12px">
-        <div class="k"><div class="muted">This week</div><div class="num">3</div></div>
-        <div class="k"><div class="muted">Spots left</div><div class="num">18</div></div>
-        <div class="k"><div class="muted">Rating</div><div class="num">4.7</div></div>
-        <div class="k"><div class="muted">Followers</div><div class="num">256</div></div>
+        <!-- 由club.js动态填充 -->
       </div>
 
       <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-        <button class="btn blue">Book now</button>
-        <button class="btn ghost">Add to favourites</button>
-        <button class="btn ghost">Contact admin</button>
+        <button class="btn blue" onclick="handleBookNow()">Book now</button>
+        <button class="btn ghost" onclick="handleAddToFavourites()">Add to favourites</button>
+        <button class="btn ghost" onclick="handleContactAdmin()">Contact admin</button>
       </div>
     </div></div>
 
+    <!-- 排程管理卡片：包含营业时间设置、场地管理和排程网格 -->
     <div class="card"><div class="pad">
       <h3>Upcoming Schedule</h3>
 
-      <!-- Opening hours (start & end) -->
+      <!-- 开放时间（开始与结束） -->
       <div class="chips" style="margin-top:6px;gap:10px">
         <span class="muted">Opening</span>
         <select id="openHour" aria-label="Opening hour"></select>
@@ -98,7 +369,7 @@
         <select id="closeHour" aria-label="Closing hour"></select>
       </div>
 
-      <!-- Courts add/remove -->
+      <!-- 场地增删 -->
       <div class="chips" style="margin-top:6px;gap:10px">
         <span class="muted">Courts</span>
         <input id="courtName" type="text" placeholder="e.g. Court A" style="width:160px" />
@@ -109,6 +380,7 @@
       <div id="schedule" style="margin-top:8px"></div>
     </div></div>
 
+    <!-- 成员列表卡片：展示俱乐部成员及管理操作 -->
     <div class="card"><div class="pad">
       <h3>Members</h3>
       <table class="table">
@@ -123,6 +395,7 @@
       </table>
     </div></div>
 
+    <!-- 风险操作区：删除俱乐部或重置数据 -->
     <div class="card"><div class="pad">
       <h3>Danger zone</h3>
       <p class="muted">Delete this club or reset schedule. This cannot be undone.</p>
@@ -133,14 +406,31 @@
     </div></div>
   </div>
 
+  <!-- 页脚：包含版权信息和辅助链接 -->
   <footer>
     <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;margin-top:24px">
       <span class="muted">© <span id="y"></span> Sports Club System</span>
-      <div style="display:flex;gap:8px"><span class="btn ghost">Privacy</span><span class="btn ghost">Terms</span><span class="btn ghost">Help</span></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn ghost info-trigger" type="button" data-info="privacy">Privacy</button>
+        <button class="btn ghost info-trigger" type="button" data-info="terms">Terms</button>
+        <button class="btn ghost info-trigger" type="button" data-info="help">Help</button>
+      </div>
     </div>
   </footer>
 
+  <!-- 信息弹窗：用于显示隐私政策、服务条款等静态内容 -->
+  <div id="infoOverlay" class="info-overlay" aria-hidden="true">
+    <div class="info-card" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+      <button class="info-close" type="button" aria-label="Close">x</button>
+      <h3 id="infoTitle">Privacy</h3>
+      <div id="infoBody" class="info-body"></div>
+    </div>
+  </div>
+
   <script>
+    // 1. 用户会话管理
+    // 负责检查本地存储中的登录状态，并根据用户类型（普通用户或俱乐部管理员）渲染顶部导航栏的用户区域。
+    // 如果已登录，显示下拉菜单；如果未登录，显示登录/注册按钮。
     const userArea = document.getElementById('userArea');
     if (userArea) {
       let savedUser = null;
@@ -152,6 +442,7 @@
       }
 
       if (savedUser) {
+        // 已登录：渲染用户菜单（My/Club 按钮及下拉菜单）
         const isClub = (savedUser && savedUser.type) === 'club';
         const targetHref = isClub ? 'club.html' : 'user.html';
         const myLabel = isClub ? 'Club' : 'My';
@@ -170,12 +461,14 @@
         const detailsBtn = document.getElementById('btnDetails');
         const logoutBtn = document.getElementById('btnLogout');
 
+        // 绑定详情页跳转
         if (detailsBtn) {
           detailsBtn.addEventListener('click', () => {
             window.location.href = targetHref;
           });
         }
 
+        // 绑定登出逻辑
         if (logoutBtn) {
           logoutBtn.addEventListener('click', () => {
             localStorage.removeItem('loggedUser');
@@ -183,6 +476,7 @@
           });
         }
 
+        // 下拉菜单交互逻辑（点击、悬停、键盘支持）
         if (myBtn && menuEl) {
           let closeTimer = null;
           const wrapper = userArea ? userArea.querySelector('.user-menu') : null;
@@ -257,14 +551,21 @@
           });
         }
       } else {
+        // 未登录：绑定登录/注册按钮事件
         const loginBtn = document.getElementById('btnLogin');
         const registerBtn = document.getElementById('btnRegister');
-        if (loginBtn) loginBtn.addEventListener('click', () => window.location.href = 'login.html#login');
-        if (registerBtn) registerBtn.addEventListener('click', () => window.location.href = 'login.html#register');
+        const openAuth = (mode) => {
+          if (window.openAuthModal) return window.openAuthModal(mode);
+          window.location.href = mode === 'register' ? 'login.html#register' : 'login.html#login';
+        };
+        if (loginBtn) loginBtn.addEventListener('click', () => openAuth('login'));
+        if (registerBtn) registerBtn.addEventListener('click', () => openAuth('register'));
       }
     }
 
-    // Demo schedule data
+    // 2. 演示数据与状态管理
+    // 定义场地列表和初始排程数据（模拟后端数据）。
+    // seed 对象用于生成确定性的伪随机初始状态，以便演示时看起来有数据。
     const courts=['Court A','Court B','Court C'];
     const scheduleData={};
     const seed={
@@ -273,6 +574,8 @@
       16:['ok','ok','ok'],17:['ok','ok','full'],18:['ok','ok','ok'],19:['ok','full','ok'],
       20:['ok','ok','ok'],21:['ok','ok','ok'],22:['ok','ok','ok'],23:['ok','ok','ok']
     };
+    // 辅助函数：确保指定小时的数据存在，若不存在则从 seed 初始化
+    // 这是一个懒加载机制，只有当渲染某个时间段时，才生成该时间段的数据。
     function ensureHour(hour){
       if(!scheduleData[hour]) scheduleData[hour] = {};
       courts.forEach((c,idx)=>{
@@ -281,11 +584,12 @@
           scheduleData[hour][c] = Array.isArray(arr) && idx < arr.length ? (arr[idx]==='full'?'full':'ok') : 'ok';
         }
       });
-      // Remove stale courts
+      // 移除已删除的场地
       Object.keys(scheduleData[hour]).forEach(c=>{ if(!courts.includes(c)) delete scheduleData[hour][c]; });
     }
 
-    // --- DOM refs ---
+    // 3. DOM 元素引用与工具函数
+    // 缓存页面上的关键 DOM 元素，避免重复查询。
     const scheduleEl=document.getElementById('schedule');
     const openHour=document.getElementById('openHour');
     const closeHour=document.getElementById('closeHour');
@@ -296,6 +600,8 @@
 
     function pad(n){return String(n).padStart(2,'0');}
 
+    // 动态生成小时选择下拉框的选项
+    // 用于填充营业时间的开始和结束下拉框。
     function buildHourOptions(selectEl,defaultVal,max=24){
       if(!selectEl) return;
       selectEl.innerHTML='';
@@ -307,6 +613,9 @@
       }
     }
 
+    // 4. 场地管理逻辑
+    // 渲染已添加的场地标签（Pills），并绑定删除事件。
+    // 当场地列表发生变化时，会触发排程表的重新渲染。
     function renderCourts(){
       courtListEl.innerHTML='';
       courts.forEach((c,idx)=>{
@@ -314,7 +623,7 @@
         pill.className='pill';
         pill.innerHTML = `${c} <button title="Remove" aria-label="Remove ${c}" data-idx="${idx}">×</button>`;
         pill.querySelector('button').addEventListener('click',()=>{
-          // Remove court and re-render schedule
+          // 移除场地并重新渲染
           courts.splice(idx,1);
           renderCourts();
           renderSchedule(+openHour.value,+closeHour.value);
@@ -323,21 +632,26 @@
       });
     }
 
+    // 5. 排程表渲染核心逻辑
+    // 根据选定的营业时间范围（start 到 end），动态生成 CSS Grid 布局的排程表。
+    // 表格包含时间列和每个场地的状态列。
     function renderSchedule(start,end){
       if(end<=start){scheduleEl.innerHTML='<div class="muted" style="padding:12px">Closing hour must be later than opening hour.</div>';return;}
-      hoursLabel.textContent=`${pad(start)}:00�?{pad(end)}:00`;
-      // Ensure data
+      hoursLabel.textContent=`${pad(start)}:00 - ${pad(end)}:00`;
+      // 补齐数据
       for(let h=start;h<end;h++) ensureHour(h);
 
-      // Header row: time + dynamic courts
+      // 构建网格 HTML：表头（时间 + 动态场地名）
+      // 使用 grid-template-columns 动态计算列宽。
       let html=`<div class="grid" style="grid-template-columns:120px repeat(${courts.length},1fr);gap:0">`+
         `<div class="muted" style="padding:10px 8px;border-right:1px solid var(--line);background:#f9fafb">Time</div>`+
         courts.map((c,i)=>`<div style="padding:10px 8px;${i<courts.length-1?'border-right:1px solid var(--line);':''}background:#f9fafb">${c}</div>`).join('');
 
-      // Rows
+      // 构建网格 HTML：每一行的数据（时间段 + 各场地状态）
+      // 遍历每个小时，生成对应的时间标签和每个场地的状态单元格。
       for(let h=start; h<end; h++){
         const next=h+1;
-        html += `<div class="muted" style="padding:10px 8px;border-top:1px solid var(--line);border-right:1px solid var(--line)">${pad(h)}:00�?{pad(next)}:00</div>`;
+        html += `<div class="muted" style="padding:10px 8px;border-top:1px solid var(--line);border-right:1px solid var(--line)">${pad(h)}:00 - ${pad(next)}:00</div>`;
         courts.forEach((c,i)=>{
           const s = scheduleData[h]?.[c] || 'ok';
           const cls = s==='ok' ? 'slot-ok' : 'slot-full';
@@ -348,7 +662,8 @@
       html+='</div>';
       scheduleEl.innerHTML = html;
 
-      // Click to toggle state (ok/full) for demo purposes
+      // 绑定单元格点击事件：切换状态（演示用）
+      // 允许用户点击某个时段来切换 "Available" 和 "Full" 状态，模拟预订操作。
       scheduleEl.querySelectorAll('.slot-ok,.slot-full').forEach(cell=>{
         cell.addEventListener('click',()=>{
           const h = parseInt(cell.getAttribute('data-hour'),10);
@@ -360,12 +675,17 @@
       });
     }
 
-    // Init
-    buildHourOptions(openHour,8,23); // open 0..23
-    buildHourOptions(closeHour,24,24); // close 0..24 (24 allowed)
+    // 6. 初始化与事件绑定
+    // 初始化下拉菜单选项，设置默认的营业时间（08:00 - 24:00）。
+    buildHourOptions(openHour,8,23); // 开始 0..23
+    buildHourOptions(closeHour,24,24); // 结束 0..24（允许 24）
+    
+    // 监听时间选择器的变化，实时更新排程表。
     openHour.addEventListener('change',()=>renderSchedule(+openHour.value,+closeHour.value));
     closeHour.addEventListener('change',()=>renderSchedule(+openHour.value,+closeHour.value));
 
+    // 绑定添加场地按钮事件
+    // 验证输入不为空且不重复后，将新场地添加到列表并刷新视图。
     addCourtBtn.addEventListener('click',()=>{
       const name = (courtNameEl.value||'').trim();
       if(!name) return;
@@ -376,9 +696,68 @@
       renderSchedule(+openHour.value,+closeHour.value);
     });
 
+    // 初始渲染
     renderCourts();
     renderSchedule(8,24);
+
+    // 7. 信息弹窗逻辑 (Privacy, Terms, Help)
+    // 处理页脚辅助链接的点击事件，显示包含静态内容的模态框。
+    // 包含打开、关闭和点击遮罩层关闭的逻辑。
+    const infoOverlay = document.getElementById('infoOverlay');
+    const infoTitle = document.getElementById('infoTitle');
+    const infoBody = document.getElementById('infoBody');
+    const infoMap = {
+      privacy: {
+        title: 'Privacy',
+        body: `
+          <p>We only store the information needed to manage bookings and memberships.</p>
+          <p>Your account data is kept locally in this demo and is not shared with third parties.</p>
+          <p>You can request deletion at any time by contacting the admin.</p>
+        `
+      },
+      terms: {
+        title: 'Terms',
+        body: `
+          <p>Bookings are first-come, first-served and subject to club capacity.</p>
+          <p>Members must follow club rules and respect facility policies.</p>
+          <p>Repeated no-shows may result in booking restrictions.</p>
+        `
+      },
+      help: {
+        title: 'Help',
+        body: `
+          <p>Need assistance? Start by searching for a club and selecting a time slot.</p>
+          <p>If you cannot log in, double-check your email and password.</p>
+          <p>Contact support at support@example.com for further help.</p>
+        `
+      }
+    };
+
+    const openInfo = (key) => {
+      const data = infoMap[key];
+      if (!data || !infoOverlay) return;
+      if (infoTitle) infoTitle.textContent = data.title;
+      if (infoBody) infoBody.innerHTML = data.body;
+      infoOverlay.classList.add('open');
+      document.body.classList.add('no-scroll');
+    };
+
+    const closeInfo = () => {
+      if (!infoOverlay) return;
+      infoOverlay.classList.remove('open');
+      document.body.classList.remove('no-scroll');
+    };
+
+    document.querySelectorAll('.info-trigger').forEach((btn) => {
+      btn.addEventListener('click', () => openInfo(btn.dataset.info));
+    });
+    infoOverlay?.addEventListener('click', (evt) => { if (evt.target === infoOverlay) closeInfo(); });
+    infoOverlay?.querySelector('.info-close')?.addEventListener('click', closeInfo);
+
     document.getElementById('y').textContent=new Date().getFullYear();
   </script>
+
+  <script src="auth-modal.js" defer></script>
+  <script src="club.js"></script>
 </body>
 </html>

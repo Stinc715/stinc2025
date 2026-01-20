@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Club Booking System · Join Now</title>
+<style>
+  :root{ --bg:#f7f7f8; --card:#fff; --ink:#222; --muted:#6b7280; --line:#e5e7eb; --chip:#f3f4f6; --danger:#dc2626; }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(#fff,#fafafa);color:var(--ink);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  header,footer{border-bottom:1px solid var(--line);background:#fff;position:sticky;top:0;z-index:10}
+  footer{border-top:1px solid var(--line);border-bottom:none;margin-top:32px}
+  header .wrap,footer .wrap,.wrap{max-width:1100px;margin:0 auto;padding:16px}
+  a{color:inherit;text-decoration:none}
+  h1{font-size:22px;margin:0}
+  h2{font-size:20px;margin:0 0 8px}
+  h3{font-size:15px;margin:12px 0}
+  .btn{border:1px solid var(--line);background:#111;color:#fff;padding:8px 12px;border-radius:8px;font-size:13px;cursor:pointer}
+  .btn.ghost{background:#fff;color:#111}
+  .btn.blue{background:#2563eb;border-color:#2563eb}
+  .btn.red{background:#b91c1c;border-color:#b91c1c}
+  .user-menu{position:relative;display:inline-block}
+  .user-menu .menu{position:absolute;top:calc(100% + 4px);right:0;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 28px rgba(15,23,42,.12);padding:6px 0;display:none;min-width:140px;z-index:20}
+  .user-menu .menu.open{display:block}
+  .user-menu .menu button{width:100%;background:none;border:none;padding:8px 14px;text-align:left;font-size:13px;color:var(--ink);cursor:pointer}
+  .user-menu .menu button:hover{background:#f3f4f6}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+  .card .pad{padding:16px}
+  .muted{color:var(--muted);font-size:12px}
+  .thumb{height:180px;background:#f3f4f6;border:1px dashed var(--line);border-radius:12px;color:var(--muted);display:flex;align-items:center;justify-content:center}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .chip{background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12px;display:inline-flex;align-items:center;gap:6px}
+  .chip-hours{gap:10px;padding-right:16px}
+  .chip-divider{color:var(--line)}
+  .crumbs{font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center;margin-bottom:16px}
+  .crumbs a{color:#2563eb}
+  #schedule{overflow-x:auto}
+  .schedule-grid{display:grid;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .schedule-grid .cell{padding:10px 8px;border-top:1px solid var(--line)}
+  .schedule-grid .head{background:#f9fafb;font-weight:600}
+  .schedule-grid .time{background:#f9fafb;border-right:1px solid var(--line);color:var(--muted);font-size:12px}
+  .slot-ok{padding:8px 10px;margin:6px;border:1px solid #bfdbfe;background:#dbeafe;border-radius:10px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:44px}
+  .slot-full{padding:8px 10px;margin:6px;border:1px solid #d1d5db;background:#e5e7eb;border-radius:10px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:44px}
+  .slot-label{font-size:12px;font-weight:600}
+  .slot-full .slot-label{color:#6b7280}
+  .slot-price{font-size:11px;font-weight:600;color:#1d4ed8;background:#eff6ff;border:1px solid #bfdbfe;border-radius:999px;padding:2px 8px}
+  footer .wrap{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:12px;color:var(--muted)}
+  @media (max-width:720px){
+    header .wrap{flex-direction:column;align-items:flex-start}
+    .thumb{height:140px}
+  }
+</style>
+
+  <link rel="stylesheet" href="theme.css">
+</head>
+<body>
+  <!-- 顶部导航：返回首页与登录入口 -->
+  <header>
+    <div class="wrap" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <h1>Club Booking System</h1>
+      <div style="display:flex;gap:8px;align-items:center">
+        <a class="link-back" href="home.html">Back to Home</a>
+        <div id="userArea" style="display:flex;align-items:center;gap:8px">
+          <button id="btnLogin" class="btn" type="button">Login</button>
+          <button id="btnRegister" class="btn blue" type="button">Register</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="crumbs"><a href="home.html">Home</a> / <span id="crumbClub">Club</span></div>
+
+    <!-- 俱乐部信息卡片 -->
+    <div class="card" aria-live="polite"><div class="pad">
+      <div class="thumb">Club cover / banner</div>
+      <h2 id="clubTitle">Club</h2>
+      <p class="muted" id="clubDesc">Description</p>
+      <div class="chips" id="clubChips">
+        <span class="chip" id="chipSport">🏸 Sport</span>
+        <span class="chip" id="chipLocation">📍 Location</span>
+        <span class="chip chip-hours">
+          <span>🕒 Opening hours <span id="hoursLabel">--:-- - --:--</span></span>
+          <span class="chip-divider">|</span>
+          <span id="chipCourts">Courts: 0</span>
+        </span>
+      </div>
+    </div></div>
+
+    <!-- 预约时段面板 -->
+    <div class="card" style="margin-top:18px"><div class="pad">
+      <h3>Booking board</h3>
+      <p class="muted">Tap a slot to toggle between available and full (demo only).</p>
+      <div id="schedule" style="margin-top:12px"></div>
+    </div></div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="site-footer__wrap">
+      <span class="site-footer__text">&copy; 2026 Sports Club System</span>
+      <div class="site-footer__actions">
+        <button class="site-footer__btn info-trigger" type="button" data-info="privacy">Privacy</button>
+        <button class="site-footer__btn info-trigger" type="button" data-info="terms">Terms</button>
+        <button class="site-footer__btn info-trigger" type="button" data-info="help">Help</button>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // ---- 需要登录才能访问 ----
+    // 仅检查 loggedUser，保持与首页一致
+    let currentUser = null;
+    try {
+      currentUser = JSON.parse(localStorage.getItem('loggedUser') || 'null');
+    } catch(e) {
+      currentUser = null;
+    }
+    if (!currentUser) {
+      // 未登录，跳回首页
+      window.location.href = 'home.html';
+      return;
+    }
+
+    const fallbackClubs = [
+      { id:'badminton', name:'Badminton Club', tags:['badminton'], desc:'Suitable for all levels, regular evening training and friendlies.' },
+      { id:'basketball', name:'Basketball Club', tags:['basketball'], desc:'Varsity training + amateur matches, new members welcome.' },
+      { id:'football', name:'Football Club', tags:['football'], desc:'Weekly matches and local tournaments, join our squad!' },
+      { id:'yoga', name:'Yoga Club', tags:['yoga'], desc:'Relax and strengthen your body and mind, small group sessions.' },
+      { id:'tabletennis', name:'Table Tennis Club', tags:['table tennis'], desc:'Weekend open training, tables and equipment provided.' },
+      { id:'swimming', name:'Swimming Club', tags:['swimming'], desc:'Morning and evening sessions available, professional coach guidance.' },
+      { id:'running', name:'Running Club', tags:['running'], desc:'Morning jogs, half marathons, and social running events.' },
+      { id:'volleyball', name:'Volleyball Club', tags:['volleyball'], desc:'Indoor and beach volleyball activities for all skill levels.' },
+      { id:'cycling', name:'Cycling Club', tags:['cycling'], desc:'Weekend city rides and countryside cycling challenges.' },
+      { id:'tennis', name:'Tennis Club', tags:['tennis'], desc:'Book your court and join tournaments or casual games.' }
+    ];
+
+    const clubMeta = {
+      badminton: { location:'Hall A', members:120, courts:['Court A','Court B','Court C'], hours:{ open:8, close:24 }, rating:4.7, sessions:3 },
+      basketball: { location:'Arena 1', members:95, courts:['Court 1','Court 2'], hours:{ open:9, close:22 }, rating:4.4, sessions:4 },
+      football: { location:'Pitch West', members:80, courts:['Pitch 1','Pitch 2'], hours:{ open:7, close:21 }, rating:4.6, sessions:5 },
+      yoga: { location:'Studio B', members:60, courts:['Studio 1','Studio 2'], hours:{ open:6, close:20 }, rating:4.9, sessions:7 },
+      tennis: { location:'Outdoor Courts', members:110, courts:['Court A','Court B','Court C','Court D'], hours:{ open:8, close:23 }, rating:4.5, sessions:6 },
+      default: { location:'Main Hall', members:72, courts:['Court 1','Court 2'], hours:{ open:8, close:22 }, rating:4.5, sessions:4 }
+    };
+
+    // ----- 工具函数 -----
+    const slug = (s = '') => s.toLowerCase().replace(/[^a-z0-9]+/g, '');
+    const norm = (s = '') => s.toLowerCase().trim();
+
+    // 根据 URL 参数或缓存选中俱乐部
+    function pickClub() {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get('club');
+      let stored = null;
+      try {
+        stored = JSON.parse(localStorage.getItem('selectedClub') || 'null');
+      } catch {
+        stored = null;
+        localStorage.removeItem('selectedClub');
+      }
+
+      if (q && stored && stored.id !== q && slug(stored.id || '') !== slug(q)) {
+        stored = null;
+      }
+
+      if (q && !stored) {
+        stored = fallbackClubs.find(c => c.id === q || slug(c.name) === slug(q)) || null;
+      }
+
+      if (!stored) {
+        stored = fallbackClubs[0];
+      }
+      return stored;
+    }
+
+    const activeClub = pickClub();
+    const meta = clubMeta[activeClub.id] || clubMeta.default;
+
+    // ----- DOM 引用 -----
+    const crumbClub = document.getElementById('crumbClub');
+    const clubTitle = document.getElementById('clubTitle');
+    const clubDesc = document.getElementById('clubDesc');
+    const chipSport = document.getElementById('chipSport');
+    const chipLocation = document.getElementById('chipLocation');
+    const chipCourts = document.getElementById('chipCourts');
+    const hoursLabel = document.getElementById('hoursLabel');
+    const scheduleEl = document.getElementById('schedule');
+
+    const hours = { open: meta.hours?.open ?? 8, close: meta.hours?.close ?? 22 };
+    const state = {
+      courts: [...new Set(meta.courts && meta.courts.length ? meta.courts : [`${activeClub.name} Court 1`, `${activeClub.name} Court 2`])],
+      schedule: {},
+      seed: activeClub.id ? activeClub.id.split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0) : 42
+    };
+
+    crumbClub.textContent = activeClub.name;
+    clubTitle.textContent = activeClub.name;
+    document.title = `Join ${activeClub.name} · Club Booking System`;
+    clubDesc.textContent = activeClub.desc || 'Club details unavailable.';
+    chipSport.textContent = `# ${activeClub.tags?.[0] || 'sport'}`;
+    chipLocation.textContent = `📍 ${meta.location || 'Main hall'}`;
+    if (chipCourts) chipCourts.textContent = `Courts: ${state.courts.length}`;
+
+    const pad = (n) => String(n).padStart(2, '0');
+    const slotPrice = (hour, court) => {
+      const base = 6 + (state.seed % 5);
+      const peak = hour >= 18 ? 3 : 0;
+      const courtOffset = state.courts.indexOf(court) % 2;
+      return base + peak + courtOffset;
+    };
+    hoursLabel.textContent = `${pad(hours.open)}:00 - ${pad(hours.close)}:00`;
+
+    function ensureHour(hour) {
+      if (!state.schedule[hour]) state.schedule[hour] = {};
+      state.courts.forEach((court, idx) => {
+        if (!state.schedule[hour][court]) {
+          const hash = (hour * 37 + idx * 19 + state.seed) % 5;
+          state.schedule[hour][court] = hash === 0 ? 'full' : 'ok';
+        }
+      });
+
+      Object.keys(state.schedule[hour]).forEach((court) => {
+        if (!state.courts.includes(court)) delete state.schedule[hour][court];
+      });
+    }
+
+    // 生成时段网格并填充内容
+    function renderSchedule() {
+      const start = Number(hours.open);
+      const end = Number(hours.close);
+      if (!Number.isFinite(start) || !Number.isFinite(end)) {
+        scheduleEl.innerHTML = '<div class="muted" style="padding:12px">No schedule data.</div>';
+        return;
+      }
+      if (end <= start) {
+        scheduleEl.innerHTML = '<div class="muted" style="padding:12px">Closing hour must be later than opening hour.</div>';
+        return;
+      }
+      if (!state.courts.length) {
+        scheduleEl.innerHTML = '<div class="muted" style="padding:12px">Add at least one court or area to show the board.</div>';
+        return;
+      }
+      for (let h = start; h < end; h++) ensureHour(h);
+
+      const cols = state.courts.length + 1;
+      const template = `repeat(${cols}, minmax(120px, 1fr))`;
+
+      let html = `<div class="schedule-grid" style="grid-template-columns:${template}">`;
+      html += `<div class="cell head time">Time</div>`;
+      state.courts.forEach((court) => {
+        html += `<div class="cell head">${court}</div>`;
+      });
+
+      for (let hour = start; hour < end; hour++) {
+        const next = hour + 1;
+        html += `<div class="cell time">${pad(hour)}:00 - ${pad(next)}:00</div>`;
+        state.courts.forEach((court) => {
+          const status = state.schedule[hour]?.[court] || 'ok';
+          const cls = status === 'full' ? 'slot-full' : 'slot-ok';
+          if (status === 'full') {
+            html += `<div class="cell"><div class="${cls}" data-hour="${hour}" data-court="${encodeURIComponent(court)}" title="Fully booked"><div class="slot-label">Fully booked</div></div></div>`;
+            return;
+          }
+          const price = slotPrice(hour, court);
+          const priceLabel = `$${price}`;
+          html += `<div class="cell"><div class="${cls}" data-hour="${hour}" data-court="${encodeURIComponent(court)}" title="Available ${priceLabel}"><div class="slot-label">Available</div><div class="slot-price">${priceLabel}</div></div></div>`;
+        });
+      }
+
+      html += '</div>';
+      scheduleEl.innerHTML = html;
+
+      scheduleEl.querySelectorAll('.slot-ok,.slot-full').forEach((slot) => {
+        slot.addEventListener('click', () => {
+          const hour = Number(slot.getAttribute('data-hour'));
+          const court = decodeURIComponent(slot.getAttribute('data-court'));
+          ensureHour(hour);
+          state.schedule[hour][court] = state.schedule[hour][court] === 'ok' ? 'full' : 'ok';
+          renderSchedule();
+        });
+      });
+    }
+
+    renderSchedule();
+
+    // ---- 复用的用户菜单逻辑 ----
+    const userArea = document.getElementById('userArea');
+    let savedUser = null;
+    try {
+      savedUser = JSON.parse(localStorage.getItem('loggedUser') || 'null');
+    } catch {
+      savedUser = null;
+      localStorage.removeItem('loggedUser');
+    }
+
+    if (savedUser && userArea) {
+      const isClub = savedUser.type === 'club';
+      const targetHref = isClub ? 'club.html' : 'user.html';
+      const myLabel = isClub ? 'Club' : 'My';
+      userArea.innerHTML = `
+        <div class="user-menu">
+          <button id="btnMy" class="btn blue" type="button" aria-haspopup="true" aria-expanded="false">${myLabel}</button>
+          <div class="menu" id="myMenu" role="menu">
+            <button type="button" id="btnDetails" role="menuitem">Details</button>
+            <button type="button" id="btnLogout" role="menuitem">Logout</button>
+          </div>
+        </div>`;
+
+      const myBtn = document.getElementById('btnMy');
+      const menuEl = document.getElementById('myMenu');
+
+      document.getElementById('btnDetails')?.addEventListener('click', () => { window.location.href = targetHref; });
+      document.getElementById('btnLogout')?.addEventListener('click', () => { localStorage.removeItem('loggedUser'); location.reload(); });
+
+      const toggleMenu = (open) => {
+        const wantOpen = open ?? !menuEl.classList.contains('open');
+        menuEl.classList.toggle('open', wantOpen);
+        myBtn.setAttribute('aria-expanded', wantOpen ? 'true' : 'false');
+      };
+
+      myBtn.addEventListener('click', () => toggleMenu());
+      document.addEventListener('click', (e) => { if (!userArea.contains(e.target)) toggleMenu(false); });
+      [myBtn, menuEl].forEach(el => el.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') { toggleMenu(false); myBtn.focus(); }
+      }));
+    } else {
+      const openAuth = (mode) => {
+        if (window.openAuthModal) return window.openAuthModal(mode);
+        window.location.href = mode === 'register' ? 'login.html#register' : 'login.html#login';
+      };
+      document.getElementById('btnLogin')?.addEventListener('click', () => openAuth('login'));
+      document.getElementById('btnRegister')?.addEventListener('click', () => openAuth('register'));
+    }
+  });
+  </script>
+
+  <script src="auth-modal.js" defer></script>
+</body>
+</html>

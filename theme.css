@@ -1,0 +1,309 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Sora:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg: #f4f5f7;
+  --card: #ffffff;
+  --ink: #15171a;
+  --muted: #6b7280;
+  --line: rgba(21, 23, 26, 0.08);
+  --chip: rgba(21, 23, 26, 0.04);
+  --accent: #2f5dff;
+  --accent-strong: #1f3bb3;
+  --accent-2: #f97316;
+  --danger: #b91c1c;
+  --shadow-sm: 0 10px 24px rgba(21, 23, 26, 0.08);
+  --shadow: 0 22px 50px rgba(21, 23, 26, 0.12);
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --anim-base: cubic-bezier(.4, 0, .2, 1);
+  --primary-0: #2f5dff;
+  --primary-1: #1f3bb3;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: 'Sora', sans-serif;
+}
+
+body,
+input,
+button,
+select,
+textarea {
+  font-family: 'Sora', sans-serif;
+}
+
+body {
+  color: var(--ink);
+  background: linear-gradient(180deg, #f6f7fb 0%, #eef1f6 100%);
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  animation: pageIn .6s var(--anim-base) both;
+}
+
+
+h1, h2, h3 {
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  font-family: 'Playfair Display', 'Sora', serif;
+}
+
+.site-title {
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+}
+
+.no-scroll {
+  overflow: hidden;
+}
+
+a {
+  color: var(--accent-strong);
+}
+
+header,
+footer {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: var(--line);
+  backdrop-filter: blur(10px);
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  transition: transform .25s var(--anim-base), box-shadow .25s var(--anim-base);
+  animation: riseIn .7s var(--anim-base) both;
+  animation-delay: calc(var(--card-index, 0) * 60ms);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 22px 55px rgba(15, 23, 42, 0.16);
+}
+
+.btn {
+  border: 1px solid transparent;
+  color: #fff;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  box-shadow: 0 12px 24px rgba(47, 93, 255, 0.22);
+  transition: transform .2s var(--anim-base), box-shadow .2s var(--anim-base), filter .2s var(--anim-base);
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 30px rgba(47, 93, 255, 0.28);
+  filter: brightness(1.02);
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.btn.ghost {
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+
+.btn.blue {
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  border-color: transparent;
+}
+
+.btn.red {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  border-color: transparent;
+}
+
+.btn-join {
+  font-family: 'Sora', sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0;
+}
+
+.link-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--accent-strong);
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 18px rgba(29, 29, 31, 0.08);
+  transition: transform .2s var(--anim-base), box-shadow .2s var(--anim-base);
+}
+
+.link-back::before {
+  content: '<';
+}
+
+.link-back:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 22px rgba(29, 29, 31, 0.12);
+}
+
+.auth-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(10, 12, 16, 0.45);
+  z-index: 9999;
+  animation: overlayFade .2s ease both;
+}
+
+.auth-overlay.open {
+  display: flex;
+}
+
+.auth-dialog {
+  position: relative;
+  width: min(560px, 92vw);
+  height: min(520px, 88vh);
+  background: #fff;
+  border-radius: 22px;
+  box-shadow: 0 40px 90px rgba(10, 12, 16, 0.35);
+  overflow: hidden;
+  transform: none;
+  animation: dialogIn .25s ease both;
+}
+
+.auth-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #fff;
+}
+
+.auth-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--muted);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+  transition: transform .2s var(--anim-base), box-shadow .2s var(--anim-base);
+  z-index: 2;
+}
+
+.auth-close:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 22px rgba(15, 23, 42, 0.18);
+}
+
+@keyframes overlayFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes dialogIn {
+  from { opacity: 0; transform: translateY(18px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+.chip,
+.pill {
+  background: var(--chip);
+  border-color: var(--line);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+input,
+select,
+textarea {
+  border-color: var(--line);
+  border-radius: 10px;
+}
+
+.site-footer {
+  margin-top: 24px;
+  border-top: 1px solid var(--line);
+  border-bottom: none;
+  background: #fff;
+  position: static;
+  top: auto;
+  bottom: auto;
+  left: auto;
+  right: auto;
+  z-index: auto;
+  width: 100%;
+  text-align: left;
+}
+
+.site-footer__wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.site-footer__text {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.site-footer__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.site-footer__btn {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.site-footer__btn:hover {
+  background: #f8fafc;
+}
+
+@keyframes pageIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+}

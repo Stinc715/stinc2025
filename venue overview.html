@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Venue overview</title>
+  <link rel="stylesheet" href="theme.css">
+  <style>
+    body {
+      margin: 0;
+      background: #f7f8fb;
+      color: #0f172a;
+      font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    }
+    .wrap {
+      max-width: 980px;
+      margin: 40px auto 80px;
+      padding: 24px;
+    }
+    .hero {
+      background: #ffffff;
+      border-radius: 22px;
+      padding: 24px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+      display: grid;
+      gap: 8px;
+      position: relative;
+    }
+    .hero h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+    .hero p {
+      margin: 0;
+      color: #5b6476;
+    }
+    .back-btn {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      background: #ffffff;
+      color: #111111;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .panel {
+      margin-top: 24px;
+      background: #ffffff;
+      border-radius: 22px;
+      padding: 24px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+      display: grid;
+      gap: 16px;
+    }
+    .panel-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .panel-header h2 {
+      margin: 0 0 6px;
+      font-size: 20px;
+    }
+    .panel-header p {
+      margin: 0;
+      color: #6b7280;
+      font-size: 13px;
+    }
+    .slot-list {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+    .slot-card {
+      position: relative;
+      border-radius: 16px;
+      padding: 14px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background: #ffffff;
+      display: grid;
+      gap: 8px;
+    }
+    .slot-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(37, 99, 235, 0.12);
+      color: #1d4ed8;
+      font-weight: 600;
+      border: 1px solid rgba(37, 99, 235, 0.2);
+    }
+    .slot-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .slot-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .slot-input {
+      width: 100%;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      padding: 0 10px;
+      font-size: 13px;
+    }
+    .slot-sep {
+      font-size: 12px;
+      color: #6b7280;
+      white-space: nowrap;
+    }
+    .add-slot {
+      justify-self: start;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      background: #ffffff;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <a class="back-btn" href="club home.html">Back</a>
+      <h1>Venue overview</h1>
+      <p>Adjust time and positions per slot (placeholder only).</p>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <h2>Booking slots</h2>
+          <p>Each card represents one venue slot.</p>
+        </div>
+        <button id="addSlot" class="add-slot" type="button">Add slot</button>
+      </div>
+      <div id="slotList" class="slot-list"></div>
+    </section>
+  </main>
+
+  <script>
+    const slotList = document.getElementById('slotList');
+    const addSlotBtn = document.getElementById('addSlot');
+    let slotCount = 0;
+
+    const addSlotCard = () => {
+      if (!slotList) return;
+      slotCount += 1;
+
+      const card = document.createElement('div');
+      card.className = 'slot-card';
+
+      const badge = document.createElement('div');
+      badge.className = 'slot-badge';
+      badge.textContent = String(slotCount);
+
+      const timeLabel = document.createElement('div');
+      timeLabel.className = 'slot-label';
+      timeLabel.textContent = 'Time';
+
+      const timeRow = document.createElement('div');
+      timeRow.className = 'slot-row';
+
+      const startTime = document.createElement('input');
+      startTime.type = 'time';
+      startTime.className = 'slot-input';
+      startTime.value = '08:00';
+
+      const sep = document.createElement('span');
+      sep.className = 'slot-sep';
+      sep.textContent = 'to';
+
+      const endTime = document.createElement('input');
+      endTime.type = 'time';
+      endTime.className = 'slot-input';
+      endTime.value = '09:00';
+
+      timeRow.appendChild(startTime);
+      timeRow.appendChild(sep);
+      timeRow.appendChild(endTime);
+
+      const spotsLabel = document.createElement('div');
+      spotsLabel.className = 'slot-label';
+      spotsLabel.textContent = 'Positions';
+
+      const spotsInput = document.createElement('input');
+      spotsInput.type = 'number';
+      spotsInput.min = '1';
+      spotsInput.className = 'slot-input';
+      spotsInput.value = '1';
+
+      card.appendChild(badge);
+      card.appendChild(timeLabel);
+      card.appendChild(timeRow);
+      card.appendChild(spotsLabel);
+      card.appendChild(spotsInput);
+      slotList.appendChild(card);
+    };
+
+    addSlotBtn?.addEventListener('click', addSlotCard);
+    addSlotCard();
+  </script>
+</body>
+</html>

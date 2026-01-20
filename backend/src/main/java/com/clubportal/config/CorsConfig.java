@@ -13,8 +13,14 @@ public class CorsConfig {
       @Override
       public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-         .allowedOrigins("http://127.0.0.1:5500", "http://localhost:5500") // 用于 Live Server 或浏览器打开HTML
-          .allowedMethods("GET","POST","PUT","DELETE","PATCH","OPTIONS")
+          .allowedOriginPatterns(
+            "http://localhost:*",
+            "http://127.0.0.1:*",
+            "http://13.42.42.190:*",
+            "https://13.42.42.190:*",
+            "null"
+          )
+          .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
           .allowedHeaders("*")
           .allowCredentials(true);
       }

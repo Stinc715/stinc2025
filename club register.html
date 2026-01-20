@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Club Registration</title>
+  <link rel="stylesheet" href="theme.css">
+  <style>
+    body { margin: 0; }
+    .club-register-page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(160deg, #f6f7fb 0%, #eef1f6 40%, #e9eef6 100%);
+    }
+    .page-back {
+      position: fixed;
+      top: 20px;
+      left: 24px;
+      z-index: 10;
+    }
+    .club-register {
+      flex: 1;
+      display: grid;
+      grid-template-columns: minmax(280px, 1.1fr) minmax(320px, 0.9fr);
+      gap: 0;
+    }
+    .club-hero {
+      position: relative;
+      padding: clamp(36px, 6vw, 80px);
+      color: #0f172a;
+      overflow: hidden;
+    }
+    .club-hero::before {
+      content: "";
+      position: absolute;
+      inset: -40% 30% auto -30%;
+      width: 520px;
+      height: 520px;
+      background: radial-gradient(circle at 30% 30%, rgba(47, 93, 255, 0.2), rgba(47, 93, 255, 0));
+      opacity: 0.9;
+      pointer-events: none;
+    }
+    .club-hero::after {
+      content: "";
+      position: absolute;
+      bottom: -30%;
+      right: -10%;
+      width: 420px;
+      height: 420px;
+      background: radial-gradient(circle at 50% 50%, rgba(249, 115, 22, 0.18), rgba(249, 115, 22, 0));
+      pointer-events: none;
+    }
+    .hero-inner {
+      position: relative;
+      max-width: 520px;
+      z-index: 1;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .hero-title {
+      margin: 18px 0 12px;
+      font-size: clamp(32px, 4vw, 46px);
+    }
+    .hero-lead {
+      margin: 0 0 22px;
+      color: #475569;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .hero-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 12px;
+    }
+    .hero-list li {
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #334155;
+      box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+    }
+    .club-panel {
+      background: #fff;
+      border-left: 1px solid rgba(15, 23, 42, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(28px, 4vw, 56px) clamp(24px, 4vw, 60px);
+    }
+    .form-shell {
+      width: min(420px, 100%);
+    }
+    .top-link {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 18px;
+    }
+    .form-title {
+      margin: 0 0 6px;
+      font-size: 28px;
+    }
+    .form-lead {
+      margin: 0 0 18px;
+      color: #6b7280;
+      font-size: 13px;
+    }
+    label { display: block; font-size: 13px; margin: 0 0 6px; }
+    input {
+      width: 100%;
+      height: 42px;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      border-radius: 12px;
+      padding: 0 12px;
+      font-size: 13px;
+      background: #fff;
+    }
+    .mb-3 { margin-bottom: 14px; }
+    .btn-row { display: flex; gap: 12px; margin-top: 10px; }
+    .form-btn {
+      flex: 1;
+      height: 42px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+    }
+    .error {
+      font-size: 12px;
+      color: #dc2626;
+      margin-top: 4px;
+      display: none;
+    }
+    .status {
+      display: none;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(47, 93, 255, 0.25);
+      background: rgba(47, 93, 255, 0.08);
+      color: #1f3bb3;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+    .status.is-error {
+      border-color: rgba(239, 68, 68, 0.4);
+      background: rgba(239, 68, 68, 0.08);
+      color: #b91c1c;
+    }
+    .info-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(10, 12, 16, 0.45);
+      z-index: 3000;
+    }
+    .info-overlay.open {
+      display: flex;
+    }
+    .info-card {
+      position: relative;
+      width: min(560px, 92vw);
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 24px 60px rgba(10, 12, 16, 0.25);
+      padding: 20px 20px 18px;
+    }
+    .info-card h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+    .info-body p {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .info-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fff;
+      cursor: pointer;
+      color: var(--muted);
+    }
+    @media (max-width: 900px) {
+      .club-register { grid-template-columns: 1fr; }
+      .club-panel { border-left: none; border-top: 1px solid rgba(15, 23, 42, 0.08); }
+      .hero-inner { max-width: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="club-register-page">
+    <button id="pageBack" class="link-back page-back" type="button">Back</button>
+    <main class="club-register">
+      <section class="club-hero">
+        <div class="hero-inner">
+          <span class="hero-badge">Club Account</span>
+          <h1 class="hero-title">Start your club registration</h1>
+          <p class="hero-lead">Create a club profile to manage schedules, accept bookings, and share updates with members.</p>
+          <ul class="hero-list">
+            <li>Set availability and manage court schedules in minutes.</li>
+            <li>Highlight your club types so members find you faster.</li>
+            <li>Keep bookings organized with one shared dashboard.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="club-panel">
+        <div class="form-shell">
+          <h2 class="form-title">Club registration</h2>
+          <p class="form-lead">Fill in the details below to create your club account.</p>
+
+          <div id="statusMsg" class="status" role="status" aria-live="polite"></div>
+
+          <div class="mb-3">
+            <label for="clubEmail">Email</label>
+            <input id="clubEmail" type="email" placeholder="Enter your email" autocomplete="email" />
+            <div id="clubEmailErr" class="error">Please enter a valid email address.</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="clubPass">Password</label>
+            <input id="clubPass" type="password" placeholder="Enter your password" autocomplete="new-password" />
+            <div id="clubPassErr" class="error">Password is required.</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="clubPass2">Confirm password</label>
+            <input id="clubPass2" type="password" placeholder="Re-enter your password" autocomplete="new-password" />
+            <div id="clubPass2Err" class="error">Passwords do not match.</div>
+          </div>
+
+          <div class="btn-row">
+            <button id="clubRegisterBtn" class="btn form-btn" type="button">Next</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="site-footer__wrap">
+        <span class="site-footer__text">&copy; 2026 Sports Club System</span>
+        <div class="site-footer__actions">
+          <button class="site-footer__btn info-trigger" type="button" data-info="privacy">Privacy</button>
+          <button class="site-footer__btn info-trigger" type="button" data-info="terms">Terms</button>
+          <button class="site-footer__btn info-trigger" type="button" data-info="help">Help</button>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <div id="infoOverlay" class="info-overlay" aria-hidden="true">
+    <div class="info-card" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+      <button class="info-close" type="button" aria-label="Close">x</button>
+      <h3 id="infoTitle">Privacy</h3>
+      <div id="infoBody" class="info-body"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "http://13.40.74.21:8080/api";
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    const pageBack = document.getElementById('pageBack');
+    const infoOverlay = document.getElementById('infoOverlay');
+    const infoTitle = document.getElementById('infoTitle');
+    const infoBody = document.getElementById('infoBody');
+    const statusMsg = document.getElementById('statusMsg');
+    const clubEmail = document.getElementById('clubEmail');
+    const clubPass = document.getElementById('clubPass');
+    const clubPass2 = document.getElementById('clubPass2');
+
+    const clubEmailErr = document.getElementById('clubEmailErr');
+    const clubPassErr = document.getElementById('clubPassErr');
+    const clubPass2Err = document.getElementById('clubPass2Err');
+
+    const showStatus = (text, isError) => {
+      if (!statusMsg) return;
+      statusMsg.textContent = text;
+      statusMsg.classList.toggle('is-error', !!isError);
+      statusMsg.style.display = 'block';
+    };
+
+    const clearStatus = () => {
+      if (!statusMsg) return;
+      statusMsg.style.display = 'none';
+      statusMsg.classList.remove('is-error');
+      statusMsg.textContent = '';
+    };
+
+    const setErr = (el, show) => {
+      if (!el) return;
+      el.style.display = show ? 'block' : 'none';
+    };
+
+    document.getElementById('clubRegisterBtn')?.addEventListener('click', async () => {
+      clearStatus();
+      let ok = true;
+      const email = clubEmail.value.trim();
+      const pass = clubPass.value;
+      const pass2 = clubPass2.value;
+
+      setErr(clubEmailErr, !emailRe.test(email));
+      if (!emailRe.test(email)) ok = false;
+      setErr(clubPassErr, !pass);
+      if (!pass) ok = false;
+      setErr(clubPass2Err, pass !== pass2);
+      if (pass !== pass2) ok = false;
+
+      if (!ok) return;
+
+      const btn = document.getElementById('clubRegisterBtn');
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+
+      try {
+        const fullName = email.split('@')[0];
+        const res = await fetch(`${API_BASE}/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fullName, email, password: pass })
+        });
+
+        if (res.ok) {
+          let saved = null;
+          try { saved = await res.json(); } catch (e) { saved = null; }
+          const profileToSave = saved || { fullName, email };
+          localStorage.setItem('user', JSON.stringify(profileToSave));
+          localStorage.setItem('loggedUser', JSON.stringify({
+            email: profileToSave.email || email,
+            name: profileToSave.fullName || fullName,
+            type: 'club'
+          }));
+          showStatus('Registered successfully! Redirecting to onboarding...', false);
+          setTimeout(() => { window.location.href = 'onboarding.html'; }, 900);
+        } else if (res.status === 409) {
+          showStatus('Email already exists.', true);
+        } else {
+          const t = await res.text();
+          showStatus(t || 'Registration failed. Please try again.', true);
+        }
+      } catch (err) {
+        showStatus('Network error. Please try again.', true);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Next';
+      }
+    });
+
+    pageBack?.addEventListener('click', () => {
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.location.href = 'login.html#login';
+      }
+    });
+
+    const infoMap = {
+      privacy: {
+        title: 'Privacy',
+        body: `
+          <p>We only store the information needed to manage bookings and memberships.</p>
+          <p>Your account data is kept locally in this demo and is not shared with third parties.</p>
+          <p>You can request deletion at any time by contacting the admin.</p>
+        `
+      },
+      terms: {
+        title: 'Terms',
+        body: `
+          <p>Bookings are first-come, first-served and subject to club capacity.</p>
+          <p>Members must follow club rules and respect facility policies.</p>
+          <p>Repeated no-shows may result in booking restrictions.</p>
+        `
+      },
+      help: {
+        title: 'Help',
+        body: `
+          <p>Need assistance? Start by searching for a club and selecting a time slot.</p>
+          <p>If you cannot log in, double-check your email and password.</p>
+          <p>Contact support at support@example.com for further help.</p>
+        `
+      }
+    };
+
+    const openInfo = (key) => {
+      const data = infoMap[key];
+      if (!data || !infoOverlay) return;
+      if (infoTitle) infoTitle.textContent = data.title;
+      if (infoBody) infoBody.innerHTML = data.body;
+      infoOverlay.classList.add('open');
+      document.body.classList.add('no-scroll');
+    };
+
+    const closeInfo = () => {
+      if (!infoOverlay) return;
+      infoOverlay.classList.remove('open');
+      document.body.classList.remove('no-scroll');
+    };
+
+    document.querySelectorAll('.info-trigger').forEach((btn) => {
+      btn.addEventListener('click', () => openInfo(btn.dataset.info));
+    });
+    infoOverlay?.addEventListener('click', (evt) => { if (evt.target === infoOverlay) closeInfo(); });
+    infoOverlay?.querySelector('.info-close')?.addEventListener('click', closeInfo);
+  </script>
+</body>
+</html>

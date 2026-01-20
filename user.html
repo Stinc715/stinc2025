@@ -26,65 +26,373 @@
   .field{grid-column:span 12}
   .field label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
   .input{height:36px;border-radius:8px;border:1px solid var(--line);background:#fff}
+
+  .info-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(10,12,16,0.45);z-index:3000}
+  .info-overlay.open{display:flex}
+  .info-card{position:relative;width:min(560px,92vw);background:#fff;border-radius:16px;box-shadow:0 24px 60px rgba(10,12,16,0.25);padding:20px 20px 18px}
+  .info-card h3{margin:0 0 8px;font-size:18px}
+  .info-body p{margin:0 0 10px;color:var(--muted);font-size:13px}
+  .info-close{position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:999px;border:1px solid var(--line);background:#fff;cursor:pointer;color:var(--muted)}
 </style>
+
+  <link rel="stylesheet" href="theme.css">
 </head>
 <body>
   <header>
     <div class="wrap" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-      <h1>Sports Club System</h1>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <a class="link-back" href="home.html">Back to Home</a>
+        <h1><a href="home.html" style="text-decoration:none;color:inherit">Sports Club System</a></h1>
+      </div>
     </div>
   </header>
 
   <div class="wrap">
-    <h2>👤 User Profile</h2>
-
-    <div class="card"><div class="pad">
-      <h3>Personal Information</h3>
-      <div style="display:flex;gap:12px;align-items:center;margin-top:8px">
-        <div style="width:48px;height:48px;background:#eee;border-radius:50%"></div>
-        <div><div style="font-weight:600">John Doe</div><div class="muted">student@example.com</div></div>
-      </div>
-      <div class="fields" style="margin-top:10px">
-        <div class="field"><label>Display Name</label><div class="input"></div></div>
-        <div class="field"><label>Contact Number (Optional)</label><div class="input"></div></div>
-        <div class="field"><button class="btn">Save Profile</button></div>
-      </div>
-    </div></div>
-
-    <div class="card"><div class="pad">
-      <h3>Account Security</h3>
-      <div class="fields">
-        <div class="field"><label>Current Password</label><div class="input"></div></div>
-        <div class="field"><label>New Password</label><div class="input"></div></div>
-        <div class="field"><label>Confirm New Password</label><div class="input"></div></div>
-        <div class="field"><button class="btn">Update Password</button></div>
-      </div>
-      <p class="muted">Passwords are stored using bcrypt hashing.</p>
-    </div></div>
-
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 12px">
+      <h2 style="margin:0">User Profile</h2>
+      <button id="settingsBtn" class="btn ghost" type="button">Settings</button>
+    </div>
     <div class="card"><div class="pad">
       <h3>My Bookings</h3>
       <div class="grid" style="grid-template-columns:1fr;gap:8px;margin-top:8px">
-        <div class="card" style="padding:12px"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:600">Badminton Club</div><div class="muted">Friday 18:00 Training</div></div><div style="display:flex;gap:6px"><span class="btn ghost">Details</span><span class="btn ghost">Cancel</span><span class="btn ghost">Download .ics</span></div></div></div>
-        <div class="card" style="padding:12px"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:600">Yoga Club</div><div class="muted">Saturday 10:00 Class</div></div><div style="display:flex;gap:6px"><span class="btn ghost">Details</span><span class="btn ghost">Cancel</span><span class="btn ghost">Download .ics</span></div></div></div>
-        <div class="card" style="padding:12px"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:600">Basketball Club</div><div class="muted">Sunday 15:00 Match</div></div><div style="display:flex;gap:6px"><span class="btn ghost">Details</span><span class="btn ghost">Cancel</span><span class="btn ghost">Download .ics</span></div></div></div>
+        <div class="card" style="padding:12px"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:600">Badminton Club</div><div class="muted">Friday 18:00 Training</div></div><div style="display:flex;gap:6px"><span class="btn ghost">Details</span></div></div></div>
+        <div class="card" style="padding:12px"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:600">Yoga Club</div><div class="muted">Saturday 10:00 Class</div></div><div style="display:flex;gap:6px"><span class="btn ghost">Details</span></div></div></div>
+        <div class="card" style="padding:12px"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:600">Basketball Club</div><div class="muted">Sunday 15:00 Match</div></div><div style="display:flex;gap:6px"><span class="btn ghost">Details</span></div></div></div>
       </div>
-    </div></div>
-
-    <div class="card"><div class="pad">
-      <h3>Privacy and Data</h3>
-      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost">Export My Data (JSON)</button><button class="btn ghost">Delete My Account</button></div>
-      <p class="muted">Complies with principles of lawful, fair, and transparent processing; HTTPS encryption; minimal data collection; and right to deletion.</p>
     </div></div>
   </div>
 
-  <footer>
-    <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;margin-top:24px">
-      <span class="muted">© <span id="y"></span> Sports Club System</span>
-      <div style="display:flex;gap:8px"><span class="btn ghost">Privacy</span><span class="btn ghost">Terms</span><span class="btn ghost">Help</span></div>
+  <footer class="site-footer">
+    <div class="site-footer__wrap">
+      <span class="site-footer__text">&copy; 2026 Sports Club System</span>
+      <div class="site-footer__actions">
+        <button class="site-footer__btn info-trigger" type="button" data-info="privacy">Privacy</button>
+        <button class="site-footer__btn info-trigger" type="button" data-info="terms">Terms</button>
+        <button class="site-footer__btn info-trigger" type="button" data-info="help">Help</button>
+      </div>
     </div>
   </footer>
 
-  <script>document.getElementById('y').textContent=new Date().getFullYear();</script>
+  <!-- 璁剧疆寮瑰眰 -->
+  <div id="settingsModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:2000;align-items:center;justify-content:center">
+    <div style="background:#fff;border-radius:18px;box-shadow:0 25px 50px rgba(0,0,0,0.25);max-width:480px;width:90%;padding:28px;max-height:85vh;overflow-y:auto">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+        <h2 style="margin:0;font-size:20px">Settings</h2>
+        <button id="closeSettingsBtn" style="background:none;border:none;font-size:24px;cursor:pointer">✕</button>
+      </div>
+      
+      <!-- 閫夐」鍗″鑸?-->
+      <div style="display:flex;gap:0;border-bottom:1px solid #e5e7eb;margin-bottom:18px">
+        <button id="tabProfile" style="flex:1;background:none;border:none;padding:12px 0;font-weight:600;cursor:pointer;color:#2563eb;border-bottom:2px solid #2563eb">Profile</button>
+        <button id="tabSecurity" style="flex:1;background:none;border:none;padding:12px 0;font-weight:600;cursor:pointer;color:#6b7280;border-bottom:2px solid transparent">Security</button>
+      </div>
+
+      <!-- 閫夐」鍗?1锛氳祫鏂?-->
+      <div id="profileTab" style="display:block">
+        <h3 style="margin:16px 0 12px;font-size:16px">Personal Information</h3>
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px">
+          <div style="width:48px;height:48px;background:#eee;border-radius:50%"></div>
+          <div>
+            <div id="modalNameText" style="font-weight:600">Your name</div>
+            <div id="modalEmailText" style="color:#6b7280;font-size:13px">email@example.com</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:12px">
+          <label style="display:block;font-size:12px;color:#6b7280;margin:0 0 6px">Display Name</label>
+          <input id="modalNameInput" style="width:100%;height:36px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;padding:0 10px;font-size:14px" />
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:20px">
+          <button id="closeSettingsBtn2" class="btn ghost" style="flex:1">Cancel</button>
+          <button id="modalSaveBtn" class="btn blue" style="flex:1">Save</button>
+        </div>
+      </div>
+
+      <!-- 閫夐」鍗?2锛氬畨鍏?-->
+      <div id="securityTab" style="display:none">
+        <h3 style="margin:0 0 12px;font-size:16px">Change Password</h3>
+        
+        <div style="margin-bottom:12px">
+          <label style="display:block;font-size:12px;color:#6b7280;margin:0 0 6px">Current Password</label>
+          <input id="currentPassInput" type="password" style="width:100%;height:36px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;padding:0 10px;font-size:14px" />
+          <div id="currentPassErr" style="color:#dc2626;font-size:12px;margin-top:4px;display:none"></div>
+        </div>
+
+        <div style="margin-bottom:12px">
+          <label style="display:block;font-size:12px;color:#6b7280;margin:0 0 6px">New Password</label>
+          <input id="newPassInput" type="password" style="width:100%;height:36px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;padding:0 10px;font-size:14px" />
+          <div id="newPassErr" style="color:#dc2626;font-size:12px;margin-top:4px;display:none"></div>
+        </div>
+
+        <div style="margin-bottom:12px">
+          <label style="display:block;font-size:12px;color:#6b7280;margin:0 0 6px">Confirm New Password</label>
+          <input id="confirmPassInput" type="password" style="width:100%;height:36px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;padding:0 10px;font-size:14px" />
+          <div id="confirmPassErr" style="color:#dc2626;font-size:12px;margin-top:4px;display:none"></div>
+        </div>
+
+        <p style="color:#6b7280;font-size:13px;margin:12px 0 0">Passwords are stored using bcrypt hashing.</p>
+
+        <div style="display:flex;gap:8px;margin-top:20px">
+          <button id="closeSecurityBtn" class="btn ghost" style="flex:1">Cancel</button>
+          <button id="updatePassBtn" class="btn blue" style="flex:1">Update Password</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="infoOverlay" class="info-overlay" aria-hidden="true">
+    <div class="info-card" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+      <button class="info-close" type="button" aria-label="Close">x</button>
+      <h3 id="infoTitle">Privacy</h3>
+      <div id="infoBody" class="info-body"></div>
+    </div>
+  </div>
+
+  <script>
+
+    const infoOverlay = document.getElementById('infoOverlay');
+    const infoTitle = document.getElementById('infoTitle');
+    const infoBody = document.getElementById('infoBody');
+    const infoMap = {
+      privacy: {
+        title: 'Privacy',
+        body: `
+          <p>We only store the information needed to manage bookings and memberships.</p>
+          <p>Your account data is kept locally in this demo and is not shared with third parties.</p>
+          <p>You can request deletion at any time by contacting the admin.</p>
+        `
+      },
+      terms: {
+        title: 'Terms',
+        body: `
+          <p>Bookings are first-come, first-served and subject to club capacity.</p>
+          <p>Members must follow club rules and respect facility policies.</p>
+          <p>Repeated no-shows may result in booking restrictions.</p>
+        `
+      },
+      help: {
+        title: 'Help',
+        body: `
+          <p>Need assistance? Start by searching for a club and selecting a time slot.</p>
+          <p>If you cannot log in, double-check your email and password.</p>
+          <p>Contact support at support@example.com for further help.</p>
+        `
+      }
+    };
+
+    const openInfo = (key) => {
+      const data = infoMap[key];
+      if (!data || !infoOverlay) return;
+      if (infoTitle) infoTitle.textContent = data.title;
+      if (infoBody) infoBody.innerHTML = data.body;
+      infoOverlay.classList.add('open');
+      document.body.classList.add('no-scroll');
+    };
+
+    const closeInfo = () => {
+      if (!infoOverlay) return;
+      infoOverlay.classList.remove('open');
+      document.body.classList.remove('no-scroll');
+    };
+
+    document.querySelectorAll('.info-trigger').forEach((btn) => {
+      btn.addEventListener('click', () => openInfo(btn.dataset.info));
+    });
+    infoOverlay?.addEventListener('click', (evt) => { if (evt.target === infoOverlay) closeInfo(); });
+    infoOverlay?.querySelector('.info-close')?.addEventListener('click', closeInfo);
+  </script>
+  <script>
+    // 璁剧疆寮瑰眰涓庤祫鏂欑鐞?
+    (function(){
+      // 瀹夊叏瑙ｆ瀽 localStorage锛岄伩鍏?JSON 瑙ｆ瀽鎶ラ敊
+      function safeParse(key){
+        try{ return JSON.parse(localStorage.getItem(key) || 'null'); }catch(e){ return null; }
+      }
+
+      const settingsBtn = document.getElementById('settingsBtn');
+      const closeBtn1 = document.getElementById('closeSettingsBtn');
+      const closeBtn2 = document.getElementById('closeSettingsBtn2');
+      const closeSecurityBtn = document.getElementById('closeSecurityBtn');
+      const modal = document.getElementById('settingsModal');
+      const modalSaveBtn = document.getElementById('modalSaveBtn');
+      const updatePassBtn = document.getElementById('updatePassBtn');
+      
+      // 閫夐」鍗″厓绱?
+      const tabProfile = document.getElementById('tabProfile');
+      const tabSecurity = document.getElementById('tabSecurity');
+      const profileTab = document.getElementById('profileTab');
+      const securityTab = document.getElementById('securityTab');
+
+      // 璧勬枡琛ㄥ崟鍏冪礌
+      const modalNameText = document.getElementById('modalNameText');
+      const modalEmailText = document.getElementById('modalEmailText');
+      const modalNameInput = document.getElementById('modalNameInput');
+
+      // 瀹夊叏琛ㄥ崟鍏冪礌
+      const currentPassInput = document.getElementById('currentPassInput');
+      const newPassInput = document.getElementById('newPassInput');
+      const confirmPassInput = document.getElementById('confirmPassInput');
+      const currentPassErr = document.getElementById('currentPassErr');
+      const newPassErr = document.getElementById('newPassErr');
+      const confirmPassErr = document.getElementById('confirmPassErr');
+
+      // 浠?localStorage 璇诲彇璧勬枡
+      // 璇诲彇鏈湴璐﹀彿鏁版嵁锛屽悓姝ュ埌寮瑰眰
+      function loadAndDisplay(){
+        const profile = safeParse('profile');
+        const loggedUser = safeParse('loggedUser');
+        const userObj = safeParse('user');
+
+        const displayName = (profile && profile.displayName) || (loggedUser && loggedUser.name) || (userObj && (userObj.fullName || userObj.name)) || '';
+        const email = (loggedUser && loggedUser.email) || (userObj && userObj.email) || '';
+
+        // 濉厖寮瑰眰
+        if(modalNameText) modalNameText.textContent = displayName || 'Your name';
+        if(modalEmailText) modalEmailText.textContent = email || 'No email';
+        if(modalNameInput) modalNameInput.value = displayName || '';
+      }
+
+      // 閫夐」鍗″垏鎹?
+      const switchTab = (show, hide) => {
+        show.style.display = 'block';
+        hide.style.display = 'none';
+      };
+
+      if(tabProfile){
+        tabProfile.addEventListener('click', ()=>{
+          switchTab(profileTab, securityTab);
+          tabProfile.style.color = '#2563eb';
+          tabProfile.style.borderBottom = '2px solid #2563eb';
+          tabSecurity.style.color = '#6b7280';
+          tabSecurity.style.borderBottom = '2px solid transparent';
+        });
+      }
+
+      if(tabSecurity){
+        tabSecurity.addEventListener('click', ()=>{
+          switchTab(securityTab, profileTab);
+          tabSecurity.style.color = '#2563eb';
+          tabSecurity.style.borderBottom = '2px solid #2563eb';
+          tabProfile.style.color = '#6b7280';
+          tabProfile.style.borderBottom = '2px solid transparent';
+        });
+      }
+
+      // 鎵撳紑寮瑰眰
+      if(settingsBtn){
+        settingsBtn.addEventListener('click', ()=>{
+          loadAndDisplay();
+          modal.style.display = 'flex';
+          // 閲嶇疆鍒拌祫鏂欓〉
+          switchTab(profileTab, securityTab);
+          tabProfile.style.color = '#2563eb';
+          tabProfile.style.borderBottom = '2px solid #2563eb';
+          tabSecurity.style.color = '#6b7280';
+          tabSecurity.style.borderBottom = '2px solid transparent';
+        });
+      }
+
+      // 鍏抽棴寮瑰眰
+      const closeModal = ()=>{ 
+        modal.style.display = 'none';
+        // 娓呯┖瀵嗙爜杈撳叆
+        currentPassInput.value = '';
+        newPassInput.value = '';
+        confirmPassInput.value = '';
+        currentPassErr.style.display = 'none';
+        newPassErr.style.display = 'none';
+        confirmPassErr.style.display = 'none';
+      };
+      if(closeBtn1) closeBtn1.addEventListener('click', closeModal);
+      if(closeBtn2) closeBtn2.addEventListener('click', closeModal);
+      if(closeSecurityBtn) closeSecurityBtn.addEventListener('click', closeModal);
+
+      // 鐐瑰嚮鑳屾櫙鍏抽棴
+      modal.addEventListener('click', (e)=>{
+        if(e.target === modal) closeModal();
+      });
+
+      // 淇濆瓨璧勬枡
+      if(modalSaveBtn){
+        modalSaveBtn.addEventListener('click', ()=>{
+          const newName = (modalNameInput.value || '').trim();
+          
+          const profile = safeParse('profile') || {};
+          const loggedUser = safeParse('loggedUser') || {};
+          const userObj = safeParse('user') || {};
+
+          // 鍚屾鏇存柊涓変唤閿€间繚鎸佷竴鑷?
+          profile.displayName = newName;
+          loggedUser.name = newName;
+          userObj.fullName = newName;
+
+          try{
+            localStorage.setItem('profile', JSON.stringify(profile));
+            localStorage.setItem('loggedUser', JSON.stringify(loggedUser));
+            localStorage.setItem('user', JSON.stringify(userObj));
+          }catch(e){ console.error(e); }
+
+          // 鏇存柊寮瑰眰鏄剧ず
+          if(modalNameText) modalNameText.textContent = newName || 'Your name';
+          
+          // 鎻愮ず鍙嶉
+          modalSaveBtn.textContent = 'Saved';
+          setTimeout(()=>{ modalSaveBtn.textContent = 'Save'; }, 900);
+        });
+      }
+
+      // 鏇存柊瀵嗙爜
+      if(updatePassBtn){
+        updatePassBtn.addEventListener('click', ()=>{
+          // 娓呯┖鏃ч敊璇彁绀?
+          currentPassErr.style.display = 'none';
+          newPassErr.style.display = 'none';
+          confirmPassErr.style.display = 'none';
+
+          const currentPass = currentPassInput.value;
+          const newPass = newPassInput.value;
+          const confirmPass = confirmPassInput.value;
+
+          let valid = true;
+
+          if(!currentPass){
+            currentPassErr.textContent = 'Current password is required.';
+            currentPassErr.style.display = 'block';
+            valid = false;
+          }
+          if(!newPass){
+            newPassErr.textContent = 'New password is required.';
+            newPassErr.style.display = 'block';
+            valid = false;
+          }
+          if(newPass && confirmPass && newPass !== confirmPass){
+            confirmPassErr.textContent = 'Passwords do not match.';
+            confirmPassErr.style.display = 'block';
+            valid = false;
+          }
+
+          if(!valid) return;
+
+          // 寰呭姙锛氳皟鐢ㄥ悗绔牎楠屽綋鍓嶅瘑鐮佸苟鏇存柊
+          // 鐩墠浠呮樉绀烘垚鍔熸彁绀?
+          updatePassBtn.textContent = 'Password updated';
+          setTimeout(()=>{
+            updatePassBtn.textContent = 'Update Password';
+            currentPassInput.value = '';
+            newPassInput.value = '';
+            confirmPassInput.value = '';
+          }, 900);
+        });
+      }
+
+      // 鍒濆鍔犺浇
+      loadAndDisplay();
+    })();
+  </script>
+
+  <script src="auth-modal.js" defer></script>
 </body>
 </html>
+
+

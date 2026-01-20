@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Club Home</title>
+  <link rel="stylesheet" href="theme.css">
+  <style>
+    body {
+      margin: 0;
+      background: #f7f8fb;
+      color: #0f172a;
+      font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    }
+    .wrap {
+      max-width: 980px;
+      margin: 40px auto 80px;
+      padding: 24px;
+    }
+    .hero {
+      background: #ffffff;
+      border-radius: 22px;
+      padding: 24px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+      display: grid;
+      gap: 8px;
+      position: relative;
+    }
+    .hero h1 {
+      margin: 0;
+      font-size: 30px;
+    }
+    .hero p {
+      margin: 0;
+      color: #5b6476;
+    }
+    .logout-btn {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      background: #111111;
+      color: #ffffff;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .logout-btn:hover {
+      background: #000000;
+    }
+    .grid {
+      margin-top: 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .card-link {
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 16px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      min-height: 120px;
+    }
+    .card h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+    }
+    .card p {
+      margin: 0;
+      color: #6b7280;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <button id="logoutBtn" class="logout-btn" type="button">Logout</button>
+      <h1>Club Home</h1>
+      <p>This is a placeholder club dashboard page.</p>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <h3>Upcoming schedule</h3>
+        <p>Placeholder for sessions and events.</p>
+      </div>
+      <a class="card card-link" href="venue overview.html">
+        <h3>Venue overview</h3>
+        <p>Placeholder for venues and courts.</p>
+      </a>
+      <div class="card">
+        <h3>Member updates</h3>
+        <p>Placeholder for announcements.</p>
+      </div>
+    </section>
+  </main>
+  <script>
+    document.getElementById('logoutBtn')?.addEventListener('click', () => {
+      localStorage.removeItem('loggedUser');
+      localStorage.removeItem('user');
+      window.location.href = 'login.html';
+    });
+
+  </script>
+</body>
+</html>

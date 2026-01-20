@@ -15,6 +15,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const bodyEl = document.body;
   if (yEl) yEl.textContent = new Date().getFullYear();
 
+  // small helpers to reduce repetitive DOM checks
+  function on(id, ev, fn) {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener(ev, fn);
+  }
+
+  function isPrintableKey(evt) {
+    return evt.key && evt.key.length === 1 && !evt.ctrlKey && !evt.metaKey && !evt.altKey && !evt.repeat && /\S/.test(evt.key);
+  }
+
   // 2) 登录区域（与首页右上角的两个按钮配对）
   let logged = null;
   try {
@@ -129,10 +139,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   } else {
-    const btnLogin = document.getElementById('btnLogin');
-    const btnRegister = document.getElementById('btnRegister');
-    if (btnLogin) btnLogin.addEventListener('click', () => window.location.href = 'login.html#login');
-    if (btnRegister) btnRegister.addEventListener('click', () => window.location.href = 'login.html#register');
+    on('btnLogin', 'click', () => window.location.href = 'login.html#login');
+    on('btnRegister', 'click', () => window.location.href = 'login.html#register');
   }
 
   // 3) 数据来源
@@ -209,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <p class="muted">${c.desc || ''}</p >
         <div class="chips"><span class="chip"># ${sport}</span></div>
         <div class="toolbar">
-          <button class="btn">Join Now</button>
+          <button class="btn join-btn">Join Now</button>
           <button class="btn ghost">View Details</button>
         </div>
       </div>
@@ -228,12 +236,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function synchroniseInputs(value) {
-    if (kwEl && typeof kwEl.value === 'string' && kwEl.value !== value) {
-      kwEl.value = value;
-    }
-    if (kwOverlayEl && typeof kwOverlayEl.value === 'string' && kwOverlayEl.value !== value) {
-      kwOverlayEl.value = value;
-    }
+    if (kwEl && kwEl.value !== value) kwEl.value = value;
+    if (kwOverlayEl && kwOverlayEl.value !== value) kwOverlayEl.value = value;
   }
 
   // 搜索功能
@@ -454,8 +458,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const isPrintable = evt.key.length === 1 && !evt.ctrlKey && !evt.metaKey && !evt.altKey && !evt.repeat && /\S/.test(evt.key);
-    if (!overlayOpen && isPrintable) {
+    if (!overlayOpen && isPrintableKey(evt)) {
       evt.preventDefault();
       openSearchOverlay({ preset: evt.key, selectAll: false });
     }
@@ -463,4 +466,98 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 7) 初始化
   loadClubs();
+
+  // Join button handling: if not logged in, prompt to login; otherwise go to join page
+  function isUserLogged(){
+    try{
+      const l = JSON.parse(localStorage.getItem('loggedUser') || 'null');
+      const u = JSON.parse(localStorage.getItem('user') || 'null');
+      return !!(l || u);
+    }catch(e){ return false; }
+  }
+
+  function showLoginPrompt(clubId){
+    try{
+      const overlay = document.getElementById('loginPromptOverlay');
+      if(!overlay) return;
+      overlay.dataset.club = clubId || '';
+      overlay.classList.add('active');
+      // prevent background scroll
+      document.body.classList.add('no-scroll');
+    }catch(e){/* ignore */}
+  }
+
+  function hideLoginPrompt(){
+    const overlay = document.getElementById('loginPromptOverlay');
+    if(!overlay) return;
+    overlay.classList.remove('active');
+    document.body.classList.remove('no-scroll');
+    overlay.dataset.club = '';
+  }
+
+  // delegate clicks on join buttons
+  if (cardsEl) {
+    cardsEl.addEventListener('click', (evt) => {
+      const btn = evt.target.closest && evt.target.closest('button.join-btn');
+      if(!btn) return;
+      const card = btn.closest && btn.closest('.card');
+      const clubId = card ? card.getAttribute('data-id') : null;
+      if(!isUserLogged()){
+        showLoginPrompt(clubId);
+        return;
+      }
+      // logged in -> go to join page with selected club id
+      const target = clubId ? `join.html?club=${encodeURIComponent(clubId)}` : 'join.html';
+      window.location.href = target;
+    });
+  }
+
+  // login prompt buttons
+  (function(){
+    const overlay = document.getElementById('loginPromptOverlay');
+    if(!overlay) return;
+    overlay.addEventListener('click', (evt)=>{ if(evt.target === overlay) hideLoginPrompt(); });
+    const btnCancel = document.getElementById('loginPromptCancel');
+    const btnLogin = document.getElementById('loginPromptLogin');
+    if(btnCancel) btnCancel.addEventListener('click', hideLoginPrompt);
+    if(btnLogin) btnLogin.addEventListener('click', ()=>{
+      // optionally remember the desired club id so login flow can redirect back
+      try{
+        const club = overlay.dataset.club || '';
+        if(club) localStorage.setItem('selectedClub', club);
+      }catch(e){}
+      window.location.href = 'login.html';
+    });
+  })();
+});
+
+const API_BASE = "http://13.40.74.21:8080";
+
+async function apiLogin(email, password) {
+  const res = await fetch(`${API_BASE}/api/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password })
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Login failed: ${res.status} ${text}`);
+  }
+
+  return res.json(); // { id, email, role, fullName }
+}
+
+// 示例：按钮点击后登录（按你页面的 id 改一下）
+document.getElementById("loginBtn")?.addEventListener("click", async () => {
+  const email = document.getElementById("email")?.value?.trim();
+  const password = document.getElementById("password")?.value;
+
+  try {
+    const user = await apiLogin(email, password);
+    localStorage.setItem("user", JSON.stringify(user));
+    alert(`登录成功：${user.fullName} (${user.role})`);
+  } catch (e) {
+    alert(e.message);
+  }
 });
