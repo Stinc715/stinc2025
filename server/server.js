@@ -1,48 +1,48 @@
-const express = require('express');
-const cors = require('cors');
-const app = express();
-const port = 8080;
+import http from 'http';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-app.use(cors());
-app.use(express.json());
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const PORT = 5173;
+const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 
-app.get('/', (req, res) => res.send('stinc2025 mock backend is running'));
+const MIME_TYPES = {
+  '.html': 'text/html',
+  '.js': 'text/javascript',
+  '.css': 'text/css',
+  '.json': 'application/json',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon'
+};
 
-// POST /api/auth/google
-app.post('/api/auth/google', (req, res) => {
-  try {
-    const { credential } = req.body || {};
-    if (!credential) return res.status(400).json({ error: 'missing credential' });
+const server = http.createServer((req, res) => {
+  let filePath = req.url === '/' ? '/index.html' : req.url;
+  filePath = path.join(PUBLIC_DIR, filePath);
 
-    // Try to decode JWT payload (not verification) to extract email/name for mock response
-    let payload = null;
-    try {
-      const parts = credential.split('.');
-      if (parts.length >= 2) {
-        const b = Buffer.from(parts[1].replace(/-/g,'+').replace(/_/g,'/'), 'base64');
-        payload = JSON.parse(b.toString('utf8'));
+  const extname = String(path.extname(filePath)).toLowerCase();
+  const contentType = MIME_TYPES[extname] || 'application/octet-stream';
+
+  fs.readFile(filePath, (error, content) => {
+    if (error) {
+      if (error.code === 'ENOENT') {
+        res.writeHead(404, { 'Content-Type': 'text/html' });
+        res.end('<h1>404 - File Not Found</h1>', 'utf-8');
+      } else {
+        res.writeHead(500);
+        res.end(`Server Error: ${error.code}`, 'utf-8');
       }
-    } catch (e) {
-      payload = null;
+    } else {
+      res.writeHead(200, { 'Content-Type': contentType });
+      res.end(content, 'utf-8');
     }
-
-    const email = (payload && (payload.email || payload.sub)) || 'user@example.com';
-    const fullName = (payload && (payload.name)) || (email.split('@')[0]);
-
-    // Return a mock user object similar to backend expectation
-    const user = {
-      id: payload && payload.sub ? payload.sub : 'local-mock-' + Math.floor(Math.random()*100000),
-      fullName,
-      email,
-      role: 'USER'
-    };
-
-    console.log('[mock-backend] /api/auth/google ->', user.email);
-    return res.json(user);
-  } catch (err) {
-    console.error('[mock-backend] error', err);
-    return res.status(500).json({ error: 'internal error' });
-  }
+  });
 });
 
-app.listen(port, () => console.log(`Mock backend listening on http://localhost:${port}`));
+server.listen(PORT, () => {
+  console.log(`✅ Static server running at http://localhost:${PORT}/`);
+  console.log(`📁 Serving files from: ${PUBLIC_DIR}`);
+});

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Sports Club System</title>
+<title>Club Booking Portal</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@600;700&display=swap');
 
@@ -76,19 +76,30 @@
     font-size: 13px;
     cursor: pointer;
     transition:
-      transform .2s var(--anim-pop),
-      box-shadow .2s var(--anim-pop),
+      transform .15s ease,
       filter .2s var(--anim-pop);
+    box-shadow: none !important;
+    outline: none;
   }
 
   .btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(15, 23, 42, .18);
+    box-shadow: none !important;
   }
 
   .btn:active {
     transform: translateY(0);
-    box-shadow: none;
+    box-shadow: none !important;
+  }
+
+  .btn:focus {
+    outline: none;
+    box-shadow: none !important;
+  }
+
+  .btn:focus-visible {
+    outline: none;
+    box-shadow: none !important;
   }
 
   .btn.ghost {
@@ -104,6 +115,30 @@
   .user-menu {
     position: relative;
     display: inline-block;
+  }
+  .avatar-btn {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    cursor: pointer;
+    overflow: hidden;
+  }
+  .avatar-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .avatar-btn span {
+    font-size: 13px;
   }
 
   .user-menu .menu {
@@ -610,11 +645,11 @@
   <header id="top">
     <div class="wrap" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
       <h1 class="site-title" style="display:flex;align-items:center;">
-        <a class="site-title-link" href="#top">Sports Club System</a>
+        <a class="site-title-link" href="#top">Club Booking Portal</a>
       </h1>
       <div id="userArea" style="display:flex;align-items:center;gap:8px;margin-top:0">
-        <button id="btnLogin" class="btn" type="button">Login</button>
-        <button id="btnRegister" class="btn blue" type="button">Register</button>
+        <button id="btnLogin" class="btn" type="button" style="min-width:80px">Login</button>
+        <button id="btnRegister" class="btn blue" type="button" style="min-width:80px">Register</button>
       </div>
     </div>
   </header>
@@ -650,7 +685,7 @@
   <!-- 页脚：包含版权信息和辅助链接（隐私、条款、帮助） -->
   <footer class="site-footer">
     <div class="site-footer__wrap">
-      <span class="site-footer__text">&copy; 2026 Sports Club System</span>
+      <span class="site-footer__text">&copy; 2026 Club Booking Portal</span>
       <div class="site-footer__actions">
         <button class="site-footer__btn info-trigger" type="button" data-info="privacy">Privacy</button>
         <button class="site-footer__btn info-trigger" type="button" data-info="terms">Terms</button>
@@ -696,14 +731,30 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.removeItem('loggedUser');
   }
 
+  // TODO: Replace with real backend endpoint.
+  const fetchProfile = async () => {
+    try {
+      const res = await fetch('/api/profile', { credentials: 'include' });
+      if (res.ok) return await res.json();
+    } catch (err) {
+      console.error(err);
+    }
+    return null;
+  };
+
   // 如果用户已登录，渲染包含“我的/俱乐部”按钮和下拉菜单的用户区域
   if (savedUser && userArea) {
     const isClub = savedUser.type === 'club';
     const targetHref = isClub ? 'club.html' : 'user.html';
-    const myLabel = isClub ? 'Club' : 'My';
+    const avatarData = (() => {
+      try { return JSON.parse(localStorage.getItem('profileAvatar') || 'null'); } catch { return null; }
+    })();
+    const fallback = (savedUser.name || savedUser.email || (isClub ? 'C' : 'M')).trim().charAt(0).toUpperCase();
     userArea.innerHTML = `
       <div class="user-menu">
-        <button id="btnMy" class="btn blue" type="button" aria-haspopup="true" aria-expanded="false">${myLabel}</button>
+        <button id="btnMy" class="avatar-btn" type="button" aria-haspopup="true" aria-expanded="false">
+          ${avatarData ? `<img src="${avatarData}" alt="My profile">` : `<span>${fallback}</span>`}
+        </button>
         <div class="menu" id="myMenu" role="menu">
           <button type="button" id="btnDetails" role="menuitem">Details</button>
           <button type="button" id="btnLogout" role="menuitem">Logout</button>
@@ -712,6 +763,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const myBtn = document.getElementById('btnMy');
     const menuEl = document.getElementById('myMenu');
+
+    fetchProfile().then((profile) => {
+      if (!profile || !myBtn) return;
+      const avatarUrl = profile.avatarUrl || profile.avatar;
+      const displayName = profile.displayName || profile.name || '';
+      const email = profile.email || '';
+      const letter = (displayName || email || fallback).trim().charAt(0).toUpperCase();
+      if (avatarUrl) {
+        myBtn.innerHTML = `<img src="${avatarUrl}" alt="My profile">`;
+      } else if (letter) {
+        myBtn.innerHTML = `<span>${letter}</span>`;
+      }
+    });
 
     // 绑定下拉菜单中的按钮事件
     document.getElementById('btnDetails')?.addEventListener('click', () => { window.location.href = targetHref; });
@@ -755,8 +819,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }));
   } else {
     const openAuth = (mode) => {
-      if (window.openAuthModal) return window.openAuthModal(mode);
-      window.location.href = mode === 'register' ? 'login.html#register' : 'login.html#login';
+      // 等待 auth-modal.js 加载完成
+      if (window.openAuthModal && typeof window.openAuthModal === 'function') {
+        window.openAuthModal(mode);
+      } else {
+        window.location.href = mode === 'register' ? 'login.html#register' : 'login.html#login';
+      }
     };
     document.getElementById('btnLogin')?.addEventListener('click', () => openAuth('login'));
     document.getElementById('btnRegister')?.addEventListener('click', () => openAuth('register'));
@@ -786,7 +854,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { id:'tennis-advanced', name:'Club 19', tags:['tennis'], desc:'Advanced ladder matches and coaching clinics.' },
     { id:'tennis-social', name:'Club 20', tags:['tennis'], desc:'Casual doubles and weekend socials.' }
   ];
-  const CLUBS = LOCAL_CLUBS; 
+  let CLUBS = LOCAL_CLUBS; 
 
   // 4. 页面逻辑与渲染
   const cardsEl = document.getElementById('cards');
@@ -1026,7 +1094,33 @@ document.addEventListener('DOMContentLoaded', () => {
     render(list);
   };
 
-  renderFilterChips();
+  // TODO: Replace with backend data fetch.
+  // Expected shape: [{ id, name, desc, tags: [] }]
+  const loadClubs = async () => {
+    try {
+      const res = await fetch('/api/clubs', { credentials: 'include' });
+      if (!res.ok) throw new Error('network');
+      const data = await res.json();
+      if (Array.isArray(data) && data.length) {
+        CLUBS = data.map((c, idx) => ({
+          id: c.id || `club-${idx + 1}`,
+          name: c.name || `Club ${idx + 1}`,
+          desc: c.desc || c.description || '',
+          tags: Array.isArray(c.tags) && c.tags.length ? c.tags : ['sport']
+        }));
+        return;
+      }
+    } catch (err) {
+      // fallback to local
+    }
+    CLUBS = LOCAL_CLUBS;
+  };
+
+  const initData = async () => {
+    await loadClubs();
+    renderFilterChips();
+    filter();
+  };
 
   // 事件委托：处理卡片上的标签点击，快速筛选
   cardsEl?.addEventListener('click', (event) => {
@@ -1050,10 +1144,10 @@ document.addEventListener('DOMContentLoaded', () => {
   kwEl?.addEventListener('keydown', (e) => { if (e.key === 'Enter') filter(); });
 
   // 页面加载完成后执行一次初始筛选渲染
-  filter();
+  initData();
 });
   </script>
 
-  <script src="auth-modal.js" defer></script>
+  <script src="auth-modal.js"></script>
 </body>
 </html>

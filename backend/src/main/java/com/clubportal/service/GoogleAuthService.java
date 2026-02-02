@@ -3,6 +3,7 @@ package com.clubportal.service;
 import com.clubportal.dto.AuthResponse;
 import com.clubportal.model.UserAccount;
 import com.clubportal.repository.UserAccountRepository;
+import com.clubportal.util.PasswordEncryptionUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,23 +14,25 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
-import com.google.api.client.util.Base64;
-
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class GoogleAuthService {
 
     private final UserAccountRepository repo;
+    private final PasswordEncryptionUtil passwordUtil;
 
     // 从配置读取你在 Google Cloud 创建的 OAuth 客户端 ID
     @Value("${google.oauth.client-id}")
     private String googleClientId;
 
-    public GoogleAuthService(UserAccountRepository repo) {
+    public GoogleAuthService(UserAccountRepository repo, PasswordEncryptionUtil passwordUtil) {
         this.repo = repo;
+        this.passwordUtil = passwordUtil;
     }
 
     /**
@@ -130,12 +133,12 @@ public class GoogleAuthService {
             // Decode payload (第二部分)
             String payload = parts[1];
             // 添加 padding 如果需要
-            int padding = 4 - (payload.length() % 4);
-            if (padding != 4) {
-                payload += "=".repeat(padding);
+            int padding = payload.length() % 4;
+            if (padding != 0) {
+                payload += "=".repeat(4 - padding);
             }
 
-            byte[] decoded = Base64.decodeBase64(payload);
+            byte[] decoded = Base64.getUrlDecoder().decode(payload);
             String json = new String(decoded);
             System.out.println("Decoded JWT Payload: " + json);
 
@@ -156,6 +159,9 @@ public class GoogleAuthService {
      */
     @Transactional
     public AuthResponse loginWithGoogle(String fullName, String email, String googleSub) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Google account email is missing");
+        }
         UserAccount user = repo.findByEmail(email).orElseGet(() -> {
             UserAccount nu = new UserAccount();
             nu.setEmail(email);
@@ -168,6 +174,9 @@ public class GoogleAuthService {
             nu.setRole(UserAccount.Role.STUDENT);
             nu.setProvider("google");
             nu.setProviderId(googleSub);
+            // Google 登录用户不使用本地密码，填充随机哈希以满足非空约束
+            String placeholder = "google-oauth:" + (googleSub != null ? googleSub : UUID.randomUUID());
+            nu.setPasswordHash(passwordUtil.encodePassword(placeholder));
 
             return repo.save(nu);
         });

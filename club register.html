@@ -22,7 +22,7 @@
     .club-register {
       flex: 1;
       display: grid;
-      grid-template-columns: minmax(280px, 1.1fr) minmax(320px, 0.9fr);
+      grid-template-columns: minmax(280px, 1.2fr) minmax(300px, 0.8fr);
       gap: 0;
     }
     .club-hero {
@@ -93,7 +93,7 @@
       padding: 12px 14px;
       font-size: 13px;
       color: #334155;
-      box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+      box-shadow: none;
     }
     .club-panel {
       background: #fff;
@@ -105,33 +105,24 @@
     }
     .form-shell {
       width: min(420px, 100%);
+      padding: 0;
     }
     .top-link {
       display: flex;
       justify-content: flex-end;
-      margin-bottom: 18px;
+      margin-bottom: 14px;
     }
     .form-title {
-      margin: 0 0 6px;
+      margin: 0 0 4px;
       font-size: 28px;
     }
     .form-lead {
-      margin: 0 0 18px;
+      margin: 0 0 16px;
       color: #6b7280;
       font-size: 13px;
     }
-    label { display: block; font-size: 13px; margin: 0 0 6px; }
-    input {
-      width: 100%;
-      height: 42px;
-      border: 1px solid rgba(15, 23, 42, 0.12);
-      border-radius: 12px;
-      padding: 0 12px;
-      font-size: 13px;
-      background: #fff;
-    }
-    .mb-3 { margin-bottom: 14px; }
-    .btn-row { display: flex; gap: 12px; margin-top: 10px; }
+    .mb-3 { margin-bottom: 12px; }
+    .btn-row { display: flex; gap: 12px; margin-top: 8px; }
     .form-btn {
       flex: 1;
       height: 42px;
@@ -140,12 +131,71 @@
       align-items: center;
       justify-content: center;
       text-decoration: none;
+      border: none;
+      background: #2563eb;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      transition: transform 0.15s ease;
+      box-shadow: none !important;
+      outline: none;
+    }
+    .form-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: none !important;
+    }
+    .form-btn:active {
+      transform: translateY(0);
+      box-shadow: none !important;
+    }
+    .form-btn:focus,
+    .form-btn:focus-visible {
+      outline: none;
+      box-shadow: none !important;
     }
     .error {
       font-size: 12px;
       color: #dc2626;
       margin-top: 4px;
       display: none;
+    }
+    .strength-wrap {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .strength-wrap.is-visible {
+      display: flex;
+    }
+    .strength-label {
+      font-size: 12px;
+      color: #64748b;
+    }
+    .strength-pill {
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid transparent;
+      background: #f1f5f9;
+      color: #64748b;
+    }
+    .strength-pill.low {
+      background: #fee2e2;
+      color: #b91c1c;
+      border-color: #fecaca;
+    }
+    .strength-pill.medium {
+      background: #fef9c3;
+      color: #a16207;
+      border-color: #fde68a;
+    }
+    .strength-pill.high {
+      background: #dcfce7;
+      color: #15803d;
+      border-color: #bbf7d0;
     }
     .status {
       display: none;
@@ -180,7 +230,7 @@
       width: min(560px, 92vw);
       background: #fff;
       border-radius: 16px;
-      box-shadow: 0 24px 60px rgba(10, 12, 16, 0.25);
+      box-shadow: none;
       padding: 20px 20px 18px;
     }
     .info-card h3 {
@@ -203,6 +253,37 @@
       background: #fff;
       cursor: pointer;
       color: var(--muted);
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #0f172a;
+      font-size: 14px;
+    }
+    input[type="email"],
+    input[type="password"],
+    input[type="text"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid rgba(15, 23, 42, 0.1);
+      border-radius: 10px;
+      background: #fff;
+      font-size: 14px;
+      color: #0f172a;
+      box-shadow: none !important;
+      transition: border-color 0.2s ease;
+    }
+    input[type="email"]:focus,
+    input[type="password"]:focus,
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: none !important;
+    }
+    input:-webkit-autofill {
+      -webkit-box-shadow: 0 0 0 30px #fff inset !important;
+      box-shadow: 0 0 0 30px #fff inset !important;
     }
     @media (max-width: 900px) {
       .club-register { grid-template-columns: 1fr; }
@@ -243,8 +324,12 @@
 
           <div class="mb-3">
             <label for="clubPass">Password</label>
-            <input id="clubPass" type="password" placeholder="Enter your password" autocomplete="new-password" />
-            <div id="clubPassErr" class="error">Password is required.</div>
+            <input id="clubPass" type="password" placeholder="Enter your password" autocomplete="new-password" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+" title="Must include uppercase, lowercase, and a number." />
+            <div id="strengthWrap" class="strength-wrap" aria-live="polite">
+              <span class="strength-label">Strength:</span>
+              <span id="passStrength" class="strength-pill">Low</span>
+            </div>
+            <div id="clubPassErr" class="error">Password must include uppercase, lowercase, and a number.</div>
           </div>
 
           <div class="mb-3">
@@ -262,7 +347,7 @@
 
     <footer class="site-footer">
       <div class="site-footer__wrap">
-        <span class="site-footer__text">&copy; 2026 Sports Club System</span>
+        <span class="site-footer__text">&copy; 2026 Club Booking Portal</span>
         <div class="site-footer__actions">
           <button class="site-footer__btn info-trigger" type="button" data-info="privacy">Privacy</button>
           <button class="site-footer__btn info-trigger" type="button" data-info="terms">Terms</button>
@@ -282,7 +367,10 @@
 
   <script>
     const API_BASE = "http://13.40.74.21:8080/api";
+    // TODO: Replace with real backend endpoint for club registration.
+    const CLUB_REGISTER_ENDPOINT = `${API_BASE}/clubs/register`;
     const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const passRe = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/;
 
     const pageBack = document.getElementById('pageBack');
     const infoOverlay = document.getElementById('infoOverlay');
@@ -292,6 +380,8 @@
     const clubEmail = document.getElementById('clubEmail');
     const clubPass = document.getElementById('clubPass');
     const clubPass2 = document.getElementById('clubPass2');
+    const strengthWrap = document.getElementById('strengthWrap');
+    const passStrength = document.getElementById('passStrength');
 
     const clubEmailErr = document.getElementById('clubEmailErr');
     const clubPassErr = document.getElementById('clubPassErr');
@@ -316,6 +406,39 @@
       el.style.display = show ? 'block' : 'none';
     };
 
+    const getStrength = (value) => {
+      const v = String(value || '');
+      if (!v) return 'low';
+      const hasLower = /[a-z]/.test(v);
+      const hasUpper = /[A-Z]/.test(v);
+      const hasNumber = /\d/.test(v);
+      const longEnough = v.length >= 10;
+      const score = [hasLower, hasUpper, hasNumber, longEnough].filter(Boolean).length;
+      if (score >= 4) return 'high';
+      if (score >= 3) return 'medium';
+      return 'low';
+    };
+
+    const updateStrength = () => {
+      if (!passStrength) return;
+      const level = getStrength(clubPass.value);
+      if (strengthWrap) {
+        strengthWrap.classList.toggle('is-visible', clubPass.value.length > 0);
+      }
+      passStrength.textContent = level === 'high' ? 'High' : level === 'medium' ? 'Medium' : 'Low';
+      passStrength.classList.remove('low', 'medium', 'high');
+      passStrength.classList.add(level);
+    };
+
+    clubPass?.addEventListener('input', updateStrength);
+    updateStrength();
+
+    const resolveUserType = (role) => {
+      const r = String(role || '').toLowerCase();
+      if (r.includes('club') || r.includes('admin') || r.includes('leader')) return 'club';
+      return 'user';
+    };
+
     document.getElementById('clubRegisterBtn')?.addEventListener('click', async () => {
       clearStatus();
       let ok = true;
@@ -325,8 +448,9 @@
 
       setErr(clubEmailErr, !emailRe.test(email));
       if (!emailRe.test(email)) ok = false;
-      setErr(clubPassErr, !pass);
-      if (!pass) ok = false;
+      const passStrong = passRe.test(pass);
+      setErr(clubPassErr, !passStrong);
+      if (!passStrong) ok = false;
       setErr(clubPass2Err, pass !== pass2);
       if (pass !== pass2) ok = false;
 
@@ -338,7 +462,7 @@
 
       try {
         const fullName = email.split('@')[0];
-        const res = await fetch(`${API_BASE}/register`, {
+        const res = await fetch(CLUB_REGISTER_ENDPOINT, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ fullName, email, password: pass })
@@ -347,15 +471,16 @@
         if (res.ok) {
           let saved = null;
           try { saved = await res.json(); } catch (e) { saved = null; }
-          const profileToSave = saved || { fullName, email };
+          const profileToSave = saved || { fullName, email, role: 'club' };
+          const userType = resolveUserType(profileToSave.role || profileToSave.type);
           localStorage.setItem('user', JSON.stringify(profileToSave));
           localStorage.setItem('loggedUser', JSON.stringify({
             email: profileToSave.email || email,
             name: profileToSave.fullName || fullName,
-            type: 'club'
+            type: userType
           }));
-          showStatus('Registered successfully! Redirecting to onboarding...', false);
-          setTimeout(() => { window.location.href = 'onboarding.html'; }, 900);
+          showStatus('Registered successfully! Redirecting to club home...', false);
+          setTimeout(() => { window.location.href = 'club home.html'; }, 900);
         } else if (res.status === 409) {
           showStatus('Email already exists.', true);
         } else {

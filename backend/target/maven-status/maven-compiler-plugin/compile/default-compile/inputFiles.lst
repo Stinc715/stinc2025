@@ -1,0 +1,11 @@
+C:\Users\shenn\Desktop\stinc2025\backend\src\main\java\com\clubportal\dto\GoogleLoginRequest.java
+C:\Users\shenn\Desktop\stinc2025\backend\src\main\java\com\clubportal\repository\UserAccountRepository.java
+C:\Users\shenn\Desktop\stinc2025\backend\src\main\java\com\clubportal\service\GoogleAuthService.java
+C:\Users\shenn\Desktop\stinc2025\backend\src\main\java\com\clubportal\util\PasswordEncryptionUtil.java
+C:\Users\shenn\Desktop\stinc2025\backend\src\main\java\com\clubportal\dto\AuthResponse.java
+C:\Users\shenn\Desktop\stinc2025\backend\src\main\java\com\clubportal\ClubPortalApplication.java
+C:\Users\shenn\Desktop\stinc2025\backend\src\main\java\com\clubportal\controller\GoogleAuthController.java
+C:\Users\shenn\Desktop\stinc2025\backend\src\main\java\com\clubportal\dto\RegisterRequest.java
+C:\Users\shenn\Desktop\stinc2025\backend\src\main\java\com\clubportal\config\CorsConfig.java
+C:\Users\shenn\Desktop\stinc2025\backend\src\main\java\com\clubportal\controller\AuthController.java
+C:\Users\shenn\Desktop\stinc2025\backend\src\main\java\com\clubportal\model\UserAccount.java

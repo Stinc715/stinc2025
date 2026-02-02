@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Club Booking System · Club Page</title>
+<title>Club Booking Portal · Club Page</title>
+  <link rel="stylesheet" href="theme.css">
 <style>
   :root {
     --bg: #f7f7f8;
@@ -24,6 +25,16 @@
     background: linear-gradient(#fff, #fafafa);
     color: var(--ink);
     font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  }
+
+  .preview-banner {
+    background: #fef08a;
+    border-bottom: 2px solid #eab308;
+    padding: 12px 16px;
+    text-align: center;
+    font-weight: 600;
+    color: #854d0e;
+    font-size: 14px;
   }
 
   header,
@@ -164,16 +175,26 @@
     flex-wrap: wrap;
     align-items: center;
   }
-
   .chip {
     background: var(--chip);
     border: 1px solid var(--line);
     border-radius: 999px;
     padding: 4px 10px;
     font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
   }
 
-  .kpi {
+  .chip-hours {
+    gap: 10px;
+    padding-right: 16px;
+  }
+
+  .chip-divider {
+    color: var(--line);
+  }
+.kpi {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 12px;
@@ -231,22 +252,84 @@
     padding: 0 10px;
   }
 
+  #schedule {
+    overflow-x: auto;
+  }
+
+  .schedule-grid {
+    display: grid;
+    gap: 0;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .schedule-grid .cell {
+    padding: 10px 8px;
+    border-top: 1px solid var(--line);
+  }
+
+  .schedule-grid .head {
+    background: #f9fafb;
+    font-weight: 600;
+  }
+
+  .schedule-grid .time {
+    background: #f9fafb;
+    border-right: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 12px;
+  }
+
   .slot-ok {
-    padding: 6px;
-    margin: 8px;
+    padding: 8px 10px;
+    margin: 6px;
     border: 1px solid #bfdbfe;
     background: #dbeafe;
-    border-radius: 8px;
+    border-radius: 10px;
     text-align: center;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-height: 44px;
   }
 
   .slot-full {
-    padding: 6px;
-    margin: 8px;
+    padding: 8px 10px;
+    margin: 6px;
     border: 1px solid #d1d5db;
     background: #e5e7eb;
-    border-radius: 8px;
+    border-radius: 10px;
     text-align: center;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-height: 44px;
+  }
+
+  .slot-label {
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .slot-full .slot-label {
+    color: #6b7280;
+  }
+
+  .slot-price {
+    font-size: 11px;
+    font-weight: 600;
+    color: #1d4ed8;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 999px;
+    padding: 2px 8px;
   }
 
   .pill {
@@ -314,102 +397,74 @@
     cursor: pointer;
     color: var(--muted);
   }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #0066cc;
+    text-decoration: none;
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 8px 0;
+  }
 </style>
-
-  <link rel="stylesheet" href="theme.css">
 </head>
 <body>
+  <!-- 预览状态提示：显示这是上架前的预览版本 -->
+  <div class="preview-banner">
+    ⚠️ Preview: This is a preview before changes go live
+  </div>
+
   <!-- 顶部导航栏：包含网站标题、返回首页链接和用户登录/注册入口 -->
   <header>
-    <div class="wrap" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-      <h1>Club Booking System</h1>
-      <div style="display:flex;gap:8px;align-items:center">
-        <a class="link-back" href="home.html">Back to Home</a>
-        <div id="userArea" style="display:flex;align-items:center;gap:8px">
-          <button id="btnLogin" class="btn" type="button">Login</button>
-          <button id="btnRegister" class="btn blue" type="button">Register</button>
-        </div>
+    <div class="wrap" style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px">
+      <div style="display:flex;align-items:center;gap:16px">
+        <button class="back-link" onclick="window.location.href = 'club home.html'" type="button" aria-label="Back">← Back</button>
+      </div>
+      <h2 style="margin:0;font-size:18px;font-weight:600;justify-self:center">Public preview</h2>
+      <div style="display:flex;gap:8px;align-items:center;justify-self:end">
+        <button class="btn blue" type="button">Confirm</button>
       </div>
     </div>
   </header>
 
   <div class="wrap">
-    <!-- 面包屑导航：显示当前页面路径 -->
-    <div class="crumbs"><a href="home.html">Home</a> / <span>Loading...</span></div>
-
-    <!-- 俱乐部概况卡片：展示封面、描述、标签和关键指标 (KPI) -->
     <div class="card"><div class="pad">
       <div class="thumb">Club cover / banner</div>
-      <h2>Loading...</h2>
-      <p class="muted">Loading club information...</p>
+      <h2>Club 1</h2>
+      <p class="muted">Suitable for all levels, regular evening training and friendlies.</p>
       <div class="chips">
-        <!-- 由club.js动态填充 -->
-      </div>
-
-      <div class="kpi" style="margin-top:12px">
-        <!-- 由club.js动态填充 -->
-      </div>
-
-      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-        <button class="btn blue" onclick="handleBookNow()">Book now</button>
-        <button class="btn ghost" onclick="handleAddToFavourites()">Add to favourites</button>
-        <button class="btn ghost" onclick="handleContactAdmin()">Contact admin</button>
+        <span class="chip">&#x1F3F8; Badminton</span>
+        <span class="chip">&#x1F4CD; Hall A</span>
+        <span class="chip chip-hours">
+          <span>&#x1F552; Opening hours <span id="hoursLabel">08:00 - 24:00</span></span>
+          <span class="chip-divider">|</span>
+          <span>Courts: 3</span>
+        </span>
       </div>
     </div></div>
 
+
+    <!-- 俱乐部概况卡片：展示封面、描述、标签和关键指标 (KPI) -->
+    
+
     <!-- 排程管理卡片：包含营业时间设置、场地管理和排程网格 -->
-    <div class="card"><div class="pad">
-      <h3>Upcoming Schedule</h3>
-
-      <!-- 开放时间（开始与结束） -->
-      <div class="chips" style="margin-top:6px;gap:10px">
-        <span class="muted">Opening</span>
-        <select id="openHour" aria-label="Opening hour"></select>
-        <span class="muted">Closing</span>
-        <select id="closeHour" aria-label="Closing hour"></select>
-      </div>
-
-      <!-- 场地增删 -->
-      <div class="chips" style="margin-top:6px;gap:10px">
-        <span class="muted">Courts</span>
-        <input id="courtName" type="text" placeholder="e.g. Court A" style="width:160px" />
-        <button id="addCourt" class="btn" type="button">Add</button>
-        <div id="courtList" style="display:flex;gap:8px;flex-wrap:wrap"></div>
-      </div>
-
-      <div id="schedule" style="margin-top:8px"></div>
+        <div class="card"><div class="pad">
+      <h3>Booking board</h3>
+      <p class="muted">Tap a slot to toggle between available and full (demo only).</p>
+      <div id="schedule" style="margin-top:12px"></div>
     </div></div>
 
     <!-- 成员列表卡片：展示俱乐部成员及管理操作 -->
-    <div class="card"><div class="pad">
-      <h3>Members</h3>
-      <table class="table">
-        <thead>
-          <tr><th style="width:30%">Name</th><th>Role</th><th>Joined</th><th>Actions</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>Alex Johnson</td><td>Member</td><td>2024-09-10</td><td><button class="btn ghost">Message</button></td></tr>
-          <tr><td>Emma Smith</td><td>Member</td><td>2024-09-15</td><td><button class="btn ghost">Message</button></td></tr>
-          <tr><td>Michael Chen</td><td>Admin</td><td>2024-08-20</td><td><button class="btn ghost">Manage</button></td></tr>
-        </tbody>
-      </table>
-    </div></div>
-
-    <!-- 风险操作区：删除俱乐部或重置数据 -->
-    <div class="card"><div class="pad">
-      <h3>Danger zone</h3>
-      <p class="muted">Delete this club or reset schedule. This cannot be undone.</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn red">Delete club</button>
-        <button class="btn ghost">Reset schedule</button>
-      </div>
-    </div></div>
-  </div>
+<!-- 风险操作区：删除俱乐部或重置数据 -->
+</div>
 
   <!-- 页脚：包含版权信息和辅助链接 -->
   <footer>
     <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;margin-top:24px">
-      <span class="muted">© <span id="y"></span> Sports Club System</span>
+      <span class="site-footer__text">© <span id="y"></span> Club Booking Portal</span>
       <div style="display:flex;gap:8px">
         <button class="btn ghost info-trigger" type="button" data-info="privacy">Privacy</button>
         <button class="btn ghost info-trigger" type="button" data-info="terms">Terms</button>
@@ -461,8 +516,8 @@
         const detailsBtn = document.getElementById('btnDetails');
         const logoutBtn = document.getElementById('btnLogout');
 
-        // 绑定详情页跳转
-        if (detailsBtn) {
+        // 绑定详情按钮事件
+    if (detailsBtn) {
           detailsBtn.addEventListener('click', () => {
             window.location.href = targetHref;
           });
@@ -564,9 +619,48 @@
     }
 
     // 2. 演示数据与状态管理
+    // 预留后端接口：当接入真实数据时，将 DB_API_BASE 指向后端地址。
+    const DB_API_BASE = '';
+    const AVAILABILITY_ENDPOINT = '/api/club/availability';
+
+    const fetchAvailabilityFromApi = async () => {
+      if (!DB_API_BASE) return null;
+      try {
+        const response = await fetch(`${DB_API_BASE}${AVAILABILITY_ENDPOINT}`);
+        if (!response.ok) throw new Error(`API ${response.status}`);
+        return await response.json();
+      } catch (error) {
+        console.warn('[club] availability API error', error);
+        return null;
+      }
+    };
+
+    // 预期返回结构示例（后端接入后替换）：
+    // {
+    //   courts: ["Court A", "Court B"],
+    //   slots: [
+    //     { court: "Court A", start: "08:00", end: "09:00", status: "ok" },
+    //     { court: "Court B", start: "08:00", end: "09:00", status: "full" }
+    //   ]
+    // }
+    const hydrateScheduleFromApi = (payload) => {
+      if (!payload || !Array.isArray(payload.courts)) return;
+      courts = payload.courts.slice();
+      Object.keys(scheduleData).forEach((key) => delete scheduleData[key]);
+      if (Array.isArray(payload.slots)) {
+        payload.slots.forEach((slot) => {
+          if (!slot || !slot.court || !slot.start) return;
+          const hour = Number(String(slot.start).split(':')[0]);
+          if (Number.isNaN(hour)) return;
+          if (!scheduleData[hour]) scheduleData[hour] = {};
+          scheduleData[hour][slot.court] = slot.status === 'full' ? 'full' : 'ok';
+        });
+      }
+    };
+
     // 定义场地列表和初始排程数据（模拟后端数据）。
     // seed 对象用于生成确定性的伪随机初始状态，以便演示时看起来有数据。
-    const courts=['Court A','Court B','Court C'];
+    let courts=['Court A','Court B','Court C'];
     const scheduleData={};
     const seed={
       8:['ok','full','ok'],9:['ok','ok','ok'],10:['full','ok','ok'],11:['ok','ok','full'],
@@ -574,8 +668,7 @@
       16:['ok','ok','ok'],17:['ok','ok','full'],18:['ok','ok','ok'],19:['ok','full','ok'],
       20:['ok','ok','ok'],21:['ok','ok','ok'],22:['ok','ok','ok'],23:['ok','ok','ok']
     };
-    // 辅助函数：确保指定小时的数据存在，若不存在则从 seed 初始化
-    // 这是一个懒加载机制，只有当渲染某个时间段时，才生成该时间段的数据。
+    // �
     function ensureHour(hour){
       if(!scheduleData[hour]) scheduleData[hour] = {};
       courts.forEach((c,idx)=>{
@@ -588,20 +681,26 @@
       Object.keys(scheduleData[hour]).forEach(c=>{ if(!courts.includes(c)) delete scheduleData[hour][c]; });
     }
 
-    // 3. DOM 元素引用与工具函数
-    // 缓存页面上的关键 DOM 元素，避免重复查询。
+    // 3. DOM �
     const scheduleEl=document.getElementById('schedule');
     const openHour=document.getElementById('openHour');
     const closeHour=document.getElementById('closeHour');
     const hoursLabel=document.getElementById('hoursLabel');
-    const courtNameEl=document.getElementById('courtName');
-    const addCourtBtn=document.getElementById('addCourt');
-    const courtListEl=document.getElementById('courtList');
+      const courtNameEl=document.getElementById('courtName');
+      const addCourtBtn=document.getElementById('addCourt');
+      const courtListEl=document.getElementById('courtList');
 
-    function pad(n){return String(n).padStart(2,'0');}
+      function pad(n){return String(n).padStart(2,'0');}
+      const slotPrice = (hour, court) => {
+        const base = 7;
+        const peak = hour >= 18 ? 2 : 0;
+        const courtOffset = courts.indexOf(court) % 2;
+        return base + peak + courtOffset;
+      };
 
     // 动态生成小时选择下拉框的选项
-    // 用于填充营业时间的开始和结束下拉框。
+    // 用于填充开始时间和结束时间的选择器
+
     function buildHourOptions(selectEl,defaultVal,max=24){
       if(!selectEl) return;
       selectEl.innerHTML='';
@@ -617,6 +716,7 @@
     // 渲染已添加的场地标签（Pills），并绑定删除事件。
     // 当场地列表发生变化时，会触发排程表的重新渲染。
     function renderCourts(){
+        if(!courtListEl) return;
       courtListEl.innerHTML='';
       courts.forEach((c,idx)=>{
         const pill=document.createElement('span');
@@ -632,68 +732,82 @@
       });
     }
 
+    const initSchedule = async () => {
+      const payload = await fetchAvailabilityFromApi();
+      if (payload) {
+        hydrateScheduleFromApi(payload);
+      }
+      renderCourts();
+      renderSchedule(+openHour.value, +closeHour.value);
+    };
+
     // 5. 排程表渲染核心逻辑
-    // 根据选定的营业时间范围（start 到 end），动态生成 CSS Grid 布局的排程表。
-    // 表格包含时间列和每个场地的状态列。
+    // 根据选定的营业时间范围（start 至 end），动态生成 CSS Grid 布局的排程表。
+    // 表格包含表头（时间/场地）和时间槽单元格。
     function renderSchedule(start,end){
-      if(end<=start){scheduleEl.innerHTML='<div class="muted" style="padding:12px">Closing hour must be later than opening hour.</div>';return;}
-      hoursLabel.textContent=`${pad(start)}:00 - ${pad(end)}:00`;
-      // 补齐数据
-      for(let h=start;h<end;h++) ensureHour(h);
+        if(end<=start){
+          scheduleEl.innerHTML='<div class="muted" style="padding:12px">Closing hour must be later than opening hour.</div>';
+          return;
+        }
+        if(!courts.length){
+          scheduleEl.innerHTML='<div class="muted" style="padding:12px">Add at least one court or area to show the board.</div>';
+          return;
+        }
+        hoursLabel.textContent=`${pad(start)}:00 - ${pad(end)}:00`;
+        for(let h=start;h<end;h++) ensureHour(h);
 
-      // 构建网格 HTML：表头（时间 + 动态场地名）
-      // 使用 grid-template-columns 动态计算列宽。
-      let html=`<div class="grid" style="grid-template-columns:120px repeat(${courts.length},1fr);gap:0">`+
-        `<div class="muted" style="padding:10px 8px;border-right:1px solid var(--line);background:#f9fafb">Time</div>`+
-        courts.map((c,i)=>`<div style="padding:10px 8px;${i<courts.length-1?'border-right:1px solid var(--line);':''}background:#f9fafb">${c}</div>`).join('');
+        const cols = courts.length + 1;
+        const template = `repeat(${cols}, minmax(120px, 1fr))`;
+        let html = `<div class="schedule-grid" style="grid-template-columns:${template}">`;
+        html += `<div class="cell head time">Time</div>`;
+        courts.forEach((c)=>{ html += `<div class="cell head">${c}</div>`; });
 
-      // 构建网格 HTML：每一行的数据（时间段 + 各场地状态）
-      // 遍历每个小时，生成对应的时间标签和每个场地的状态单元格。
-      for(let h=start; h<end; h++){
-        const next=h+1;
-        html += `<div class="muted" style="padding:10px 8px;border-top:1px solid var(--line);border-right:1px solid var(--line)">${pad(h)}:00 - ${pad(next)}:00</div>`;
-        courts.forEach((c,i)=>{
-          const s = scheduleData[h]?.[c] || 'ok';
-          const cls = s==='ok' ? 'slot-ok' : 'slot-full';
-          const title = s==='ok' ? 'Available' : 'Full';
-          html += `<div class="${cls}" data-hour="${h}" data-court="${encodeURIComponent(c)}" title="${title}">${title}</div>`;
+        for(let h=start; h<end; h++){
+          const next=h+1;
+          html += `<div class="cell time">${pad(h)}:00 - ${pad(next)}:00</div>`;
+          courts.forEach((c)=>{
+            const s = scheduleData[h]?.[c] || 'ok';
+            const cls = s==='full' ? 'slot-full' : 'slot-ok';
+            if(s === 'full'){
+              html += `<div class="cell"><div class="${cls}" data-hour="${h}" data-court="${encodeURIComponent(c)}" title="Fully booked"><div class="slot-label">Fully booked</div></div></div>`;
+              return;
+            }
+            const price = slotPrice(h,c);
+            const priceLabel = `$${price}`;
+            html += `<div class="cell"><div class="${cls}" data-hour="${h}" data-court="${encodeURIComponent(c)}" title="Available ${priceLabel}"><div class="slot-label">Available</div><div class="slot-price">${priceLabel}</div></div></div>`;
+          });
+        }
+        html += '</div>';
+        scheduleEl.innerHTML = html;
+
+        scheduleEl.querySelectorAll('.slot-ok,.slot-full').forEach(cell=>{
+          cell.addEventListener('click',()=>{
+            const h = parseInt(cell.getAttribute('data-hour'),10);
+            const c = decodeURIComponent(cell.getAttribute('data-court'));
+            ensureHour(h);
+            scheduleData[h][c] = scheduleData[h][c] === 'ok' ? 'full' : 'ok';
+            renderSchedule(start,end);
+          });
         });
       }
-      html+='</div>';
-      scheduleEl.innerHTML = html;
 
-      // 绑定单元格点击事件：切换状态（演示用）
-      // 允许用户点击某个时段来切换 "Available" 和 "Full" 状态，模拟预订操作。
-      scheduleEl.querySelectorAll('.slot-ok,.slot-full').forEach(cell=>{
-        cell.addEventListener('click',()=>{
-          const h = parseInt(cell.getAttribute('data-hour'),10);
-          const c = decodeURIComponent(cell.getAttribute('data-court'));
-          ensureHour(h);
-          scheduleData[h][c] = scheduleData[h][c] === 'ok' ? 'full' : 'ok';
-          renderSchedule(start,end);
-        });
-      });
-    }
-
-    // 6. 初始化与事件绑定
+      // 6. 初始化与事件绑定
     // 初始化下拉菜单选项，设置默认的营业时间（08:00 - 24:00）。
-    buildHourOptions(openHour,8,23); // 开始 0..23
-    buildHourOptions(closeHour,24,24); // 结束 0..24（允许 24）
-    
+    buildHourOptions(openHour,8,23); // 开�?0..23
+    buildHourOptions(closeHour,24,24); // 结束 0..24（�
     // 监听时间选择器的变化，实时更新排程表。
-    openHour.addEventListener('change',()=>renderSchedule(+openHour.value,+closeHour.value));
-    closeHour.addEventListener('change',()=>renderSchedule(+openHour.value,+closeHour.value));
+    openHour?.addEventListener('change',()=>renderSchedule(+openHour.value,+closeHour.value));
+    closeHour?.addEventListener('change',()=>renderSchedule(+openHour.value,+closeHour.value));
 
     // 绑定添加场地按钮事件
-    // 验证输入不为空且不重复后，将新场地添加到列表并刷新视图。
-    addCourtBtn.addEventListener('click',()=>{
+    // 验证输入是否为空或重复
+    addCourtBtn?.addEventListener('click',()=>{
       const name = (courtNameEl.value||'').trim();
       if(!name) return;
       if(courts.includes(name)) return;
       courts.push(name);
       courtNameEl.value='';
-      renderCourts();
-      renderSchedule(+openHour.value,+closeHour.value);
+      initSchedule();
     });
 
     // 初始渲染
@@ -701,8 +815,7 @@
     renderSchedule(8,24);
 
     // 7. 信息弹窗逻辑 (Privacy, Terms, Help)
-    // 处理页脚辅助链接的点击事件，显示包含静态内容的模态框。
-    // 包含打开、关闭和点击遮罩层关闭的逻辑。
+    // 处理页脚链接点击事件，显示对应的信息弹窗
     const infoOverlay = document.getElementById('infoOverlay');
     const infoTitle = document.getElementById('infoTitle');
     const infoBody = document.getElementById('infoBody');
@@ -758,6 +871,4 @@
   </script>
 
   <script src="auth-modal.js" defer></script>
-  <script src="club.js"></script>
-</body>
-</html>
+  

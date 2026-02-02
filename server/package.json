@@ -1,15 +1,5 @@
-{
-  "name": "stinc2025-mock-backend",
+﻿{
+  "name": "club-portal-server",
   "version": "1.0.0",
-  "description": "Mock backend for local testing of Google Sign-In (POST /api/auth/google)",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
-  "author": "",
-  "license": "MIT",
-  "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^4.18.2"
-  }
+  "type": "module"
 }

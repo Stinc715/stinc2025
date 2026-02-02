@@ -1,0 +1,13 @@
+com\clubportal\config\CorsConfig.class
+com\clubportal\dto\GoogleLoginRequest.class
+com\clubportal\util\PasswordEncryptionUtil.class
+com\clubportal\controller\GoogleAuthController.class
+com\clubportal\ClubPortalApplication.class
+com\clubportal\model\UserAccount.class
+com\clubportal\repository\UserAccountRepository.class
+com\clubportal\controller\AuthController.class
+com\clubportal\dto\RegisterRequest.class
+com\clubportal\model\UserAccount$Role.class
+com\clubportal\config\CorsConfig$1.class
+com\clubportal\service\GoogleAuthService.class
+com\clubportal\dto\AuthResponse.class
