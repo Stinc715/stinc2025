@@ -1,0 +1,92 @@
+﻿﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Club onboarding - Set up your club profile</title>
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="onboarding.css">
+  <style>
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      color: #0066cc;
+      text-decoration: none;
+      border: none;
+      background: none;
+      cursor: pointer;
+      padding: 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <header style="position: sticky; top: 0; z-index: 10; border-bottom: 1px solid #e5e7eb; background: white; padding: 12px 0;">
+    <div class="wrap" style="max-width: 980px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px;">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <button class="back-link" onclick="window.location.href = 'club home.html'" type="button" aria-label="Back">← Back</button>
+      </div>
+      <h2 style="margin: 0; font-size: 18px; font-weight: 600; justify-self: center;">Club profile</h2>
+      <div></div>
+    </div>
+  </header>
+  <main class="wrap">
+    <header class="hero">
+      <span class="hero-kicker">Club setup</span>
+      <h1>Set up your club profile</h1>
+      <p class="lead">Add your club name and choose the sports your club offers so members can find you.</p>
+    </header>
+
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <h2>Profile details</h2>
+          <p>Finish in under a minute.</p>
+        </div>
+        <span class="panel-badge">Step 1 of 2</span>
+      </div>
+
+      <div class="form-block">
+        <label for="displayName" class="label">Club name</label>
+        <input id="displayName" type="text" placeholder="The name members will see" autocomplete="name">
+        <div class="field-hint">This appears on your public club page.</div>
+      </div>
+
+      <div class="form-block">
+        <div class="label">Club type</div>
+        <div class="field-hint">Pick any sports your club offers.</div>
+        <div id="sportsGrid" class="sports-grid" aria-label="Choose sports your club offers" role="list">
+          <!-- chips injected by onboarding.js -->
+        </div>
+        <div class="custom-type-block">
+          <div class="custom-type-title">Add your own type</div>
+          <div id="customTypeList" class="custom-type-list" aria-label="Add custom club types"></div>
+          <button id="addCustomType" class="btn ghost custom-type-add" type="button">Add another</button>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="btnSave" class="btn primary" type="button" disabled>Save and continue</button>
+      </div>
+
+      <div id="status" class="status" aria-live="polite"></div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__wrap">
+      <span class="site-footer__text">&copy; 2026 Club Booking Portal</span>
+      <div class="site-footer__actions">
+        <button class="site-footer__btn info-trigger" type="button" data-info="privacy">Privacy</button>
+        <button class="site-footer__btn info-trigger" type="button" data-info="terms">Terms</button>
+        <button class="site-footer__btn info-trigger" type="button" data-info="help">Help</button>
+      </div>
+    </div>
+  </footer>
+
+  <script src="onboarding.js" defer></script>
+  <script src="auth-modal.js" defer></script>
+</body>
+</html>

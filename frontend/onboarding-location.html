@@ -1,0 +1,61 @@
+﻿﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Club onboarding - Location details</title>
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="onboarding.css">
+</head>
+<body>
+  <main class="wrap">
+    <a class="link-back back-pill" href="onboarding.html">Back to profile</a>
+    <header class="hero">
+      <span class="hero-kicker">Club setup</span>
+      <h1>Location details</h1>
+      <p class="lead">Choose where your club operates and how many venues you manage.</p>
+    </header>
+
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <h2>Club location</h2>
+          <p>Placeholders only.</p>
+        </div>
+        <span class="panel-badge">Step 2 of 3</span>
+      </div>
+
+      <div class="form-block">
+        <label for="clubLocation" class="label">Club location</label>
+        <input id="clubLocationInput" type="text" placeholder="Type a UK city (placeholder)">
+        <div class="map-placeholder" aria-hidden="true">
+          <div class="map-placeholder__badge">Map placeholder</div>
+          <div class="map-placeholder__body">
+            Google Maps integration goes here.
+          </div>
+        </div>
+        <div class="field-hint">This will be shown on your public club page.</div>
+      </div>
+
+      <div class="actions">
+        <button id="btnBack" class="btn ghost" type="button">Back</button>
+        <button id="btnFinish" class="btn primary" type="button">Next</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__wrap">
+      <span class="site-footer__text">&copy; 2026 Club Booking Portal</span>
+      <div class="site-footer__actions">
+        <button class="site-footer__btn info-trigger" type="button" data-info="privacy">Privacy</button>
+        <button class="site-footer__btn info-trigger" type="button" data-info="terms">Terms</button>
+        <button class="site-footer__btn info-trigger" type="button" data-info="help">Help</button>
+      </div>
+    </div>
+  </footer>
+
+  <script src="onboarding-location.js" defer></script>
+  <script src="auth-modal.js" defer></script>
+</body>
+</html>

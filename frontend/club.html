@@ -1,0 +1,874 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Club Booking Portal · Club Page</title>
+  <link rel="stylesheet" href="theme.css">
+<style>
+  :root {
+    --bg: #f7f7f8;
+    --card: #fff;
+    --ink: #222;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --chip: #f3f4f6;
+    --danger: #dc2626;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: linear-gradient(#fff, #fafafa);
+    color: var(--ink);
+    font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  }
+
+  .preview-banner {
+    background: #fef08a;
+    border-bottom: 2px solid #eab308;
+    padding: 12px 16px;
+    text-align: center;
+    font-weight: 600;
+    color: #854d0e;
+    font-size: 14px;
+  }
+
+  header,
+  footer {
+    border-bottom: 1px solid var(--line);
+    background: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  header .wrap,
+  footer .wrap,
+  .wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  h1 {
+    font-size: 22px;
+    margin: 0;
+  }
+
+  h2 {
+    font-size: 18px;
+    margin: 16px 0 12px;
+  }
+
+  h3 {
+    font-size: 15px;
+    margin: 8px 0;
+  }
+
+  .btn {
+    border: 1px solid var(--line);
+    background: #111;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .btn.ghost {
+    background: #fff;
+    color: #111;
+  }
+
+  .btn.blue {
+    background: #2563eb;
+    border-color: #2563eb;
+  }
+
+  .user-menu {
+    position: relative;
+    display: inline-block;
+  }
+
+  .user-menu .menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, .12);
+    padding: 6px 0;
+    display: none;
+    min-width: 140px;
+    z-index: 20;
+  }
+
+  .user-menu .menu.open {
+    display: block;
+  }
+
+  .user-menu .menu button {
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 8px 14px;
+    text-align: left;
+    font-size: 13px;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .user-menu .menu button:hover {
+    background: #f3f4f6;
+  }
+
+  .btn.red {
+    background: #b91c1c;
+    border-color: #b91c1c;
+  }
+
+  .grid {
+    display: grid;
+    gap: 16px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
+  }
+
+  .card .pad {
+    padding: 16px;
+  }
+
+  .muted {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .thumb {
+    height: 180px;
+    background: #f3f4f6;
+    border: 1px dashed var(--line);
+    border-radius: 12px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chip {
+    background: var(--chip);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .chip-hours {
+    gap: 10px;
+    padding-right: 16px;
+  }
+
+  .chip-divider {
+    color: var(--line);
+  }
+.kpi {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .k {
+    background: #f3f4f6;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 8px;
+  }
+
+  .k .num {
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .table th,
+  .table td {
+    padding: 10px;
+    border-top: 1px solid var(--line);
+    text-align: left;
+  }
+
+  .crumbs {
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .crumbs a {
+    color: #2563eb;
+  }
+
+  select {
+    height: 36px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 0 10px;
+    background: #fff;
+  }
+
+  input[type="text"] {
+    height: 36px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 0 10px;
+  }
+
+  #schedule {
+    overflow-x: auto;
+  }
+
+  .schedule-grid {
+    display: grid;
+    gap: 0;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .schedule-grid .cell {
+    padding: 10px 8px;
+    border-top: 1px solid var(--line);
+  }
+
+  .schedule-grid .head {
+    background: #f9fafb;
+    font-weight: 600;
+  }
+
+  .schedule-grid .time {
+    background: #f9fafb;
+    border-right: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .slot-ok {
+    padding: 8px 10px;
+    margin: 6px;
+    border: 1px solid #bfdbfe;
+    background: #dbeafe;
+    border-radius: 10px;
+    text-align: center;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-height: 44px;
+  }
+
+  .slot-full {
+    padding: 8px 10px;
+    margin: 6px;
+    border: 1px solid #d1d5db;
+    background: #e5e7eb;
+    border-radius: 10px;
+    text-align: center;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-height: 44px;
+  }
+
+  .slot-label {
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .slot-full .slot-label {
+    color: #6b7280;
+  }
+
+  .slot-price {
+    font-size: 11px;
+    font-weight: 600;
+    color: #1d4ed8;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 999px;
+    padding: 2px 8px;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f3f4f6;
+    border: 1px solid var(--line);
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+  }
+
+  .pill button {
+    border: none;
+    background: transparent;
+    color: #555;
+    cursor: pointer;
+  }
+
+  .info-overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(10, 12, 16, 0.45);
+    z-index: 3000;
+  }
+
+  .info-overlay.open {
+    display: flex;
+  }
+
+  .info-card {
+    position: relative;
+    width: min(560px, 92vw);
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 24px 60px rgba(10, 12, 16, 0.25);
+    padding: 20px 20px 18px;
+  }
+
+  .info-card h3 {
+    margin: 0 0 8px;
+    font-size: 18px;
+  }
+
+  .info-body p {
+    margin: 0 0 10px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .info-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #fff;
+    cursor: pointer;
+    color: var(--muted);
+  }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #0066cc;
+    text-decoration: none;
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 8px 0;
+  }
+</style>
+</head>
+<body>
+  <!-- 预览状态提示：显示这是上架前的预览版本 -->
+  <div class="preview-banner">
+    ⚠️ Preview: This is a preview before changes go live
+  </div>
+
+  <!-- 顶部导航栏：包含网站标题、返回首页链接和用户登录/注册入口 -->
+  <header>
+    <div class="wrap" style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px">
+      <div style="display:flex;align-items:center;gap:16px">
+        <button class="back-link" onclick="window.location.href = 'club home.html'" type="button" aria-label="Back">← Back</button>
+      </div>
+      <h2 style="margin:0;font-size:18px;font-weight:600;justify-self:center">Public preview</h2>
+      <div style="display:flex;gap:8px;align-items:center;justify-self:end">
+        <button class="btn blue" type="button">Confirm</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="card"><div class="pad">
+      <div class="thumb">Club cover / banner</div>
+      <h2>Club 1</h2>
+      <p class="muted">Suitable for all levels, regular evening training and friendlies.</p>
+      <div class="chips">
+        <span class="chip">&#x1F3F8; Badminton</span>
+        <span class="chip">&#x1F4CD; Hall A</span>
+        <span class="chip chip-hours">
+          <span>&#x1F552; Opening hours <span id="hoursLabel">08:00 - 24:00</span></span>
+          <span class="chip-divider">|</span>
+          <span>Courts: 3</span>
+        </span>
+      </div>
+    </div></div>
+
+
+    <!-- 俱乐部概况卡片：展示封面、描述、标签和关键指标 (KPI) -->
+    
+
+    <!-- 排程管理卡片：包含营业时间设置、场地管理和排程网格 -->
+        <div class="card"><div class="pad">
+      <h3>Booking board</h3>
+      <p class="muted">Tap a slot to toggle between available and full (demo only).</p>
+      <div id="schedule" style="margin-top:12px"></div>
+    </div></div>
+
+    <!-- 成员列表卡片：展示俱乐部成员及管理操作 -->
+<!-- 风险操作区：删除俱乐部或重置数据 -->
+</div>
+
+  <!-- 页脚：包含版权信息和辅助链接 -->
+  <footer>
+    <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;margin-top:24px">
+      <span class="site-footer__text">© <span id="y"></span> Club Booking Portal</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn ghost info-trigger" type="button" data-info="privacy">Privacy</button>
+        <button class="btn ghost info-trigger" type="button" data-info="terms">Terms</button>
+        <button class="btn ghost info-trigger" type="button" data-info="help">Help</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 信息弹窗：用于显示隐私政策、服务条款等静态内容 -->
+  <div id="infoOverlay" class="info-overlay" aria-hidden="true">
+    <div class="info-card" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+      <button class="info-close" type="button" aria-label="Close">x</button>
+      <h3 id="infoTitle">Privacy</h3>
+      <div id="infoBody" class="info-body"></div>
+    </div>
+  </div>
+
+  <script>
+    // 1. 用户会话管理
+    // 负责检查本地存储中的登录状态，并根据用户类型（普通用户或俱乐部管理员）渲染顶部导航栏的用户区域。
+    // 如果已登录，显示下拉菜单；如果未登录，显示登录/注册按钮。
+    const userArea = document.getElementById('userArea');
+    if (userArea) {
+      let savedUser = null;
+      try {
+        savedUser = JSON.parse(localStorage.getItem('loggedUser') || 'null');
+      } catch (err) {
+        savedUser = null;
+        localStorage.removeItem('loggedUser');
+      }
+
+      if (savedUser) {
+        // 已登录：渲染用户菜单（My/Club 按钮及下拉菜单）
+        const isClub = (savedUser && savedUser.type) === 'club';
+        const targetHref = isClub ? 'club.html' : 'user.html';
+        const myLabel = isClub ? 'Club' : 'My';
+        userArea.innerHTML = `
+          <div class="user-menu">
+            <button id="btnMy" class="btn blue" type="button" aria-haspopup="true" aria-expanded="false">${myLabel}</button>
+            <div class="menu" id="myMenu" role="menu">
+              <button type="button" id="btnDetails" role="menuitem">Details</button>
+              <button type="button" id="btnLogout" role="menuitem">Logout</button>
+            </div>
+          </div>
+        `;
+
+        const myBtn = document.getElementById('btnMy');
+        const menuEl = document.getElementById('myMenu');
+        const detailsBtn = document.getElementById('btnDetails');
+        const logoutBtn = document.getElementById('btnLogout');
+
+        // 绑定详情按钮事件
+    if (detailsBtn) {
+          detailsBtn.addEventListener('click', () => {
+            window.location.href = targetHref;
+          });
+        }
+
+        // 绑定登出逻辑
+        if (logoutBtn) {
+          logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('loggedUser');
+            location.reload();
+          });
+        }
+
+        // 下拉菜单交互逻辑（点击、悬停、键盘支持）
+        if (myBtn && menuEl) {
+          let closeTimer = null;
+          const wrapper = userArea ? userArea.querySelector('.user-menu') : null;
+          const CLOSE_DELAY = 400;
+
+          const clearCloseTimer = () => {
+            if (closeTimer) {
+              clearTimeout(closeTimer);
+              closeTimer = null;
+            }
+          };
+
+          const openMenu = () => {
+            clearCloseTimer();
+            menuEl.classList.add('open');
+            myBtn.setAttribute('aria-expanded', 'true');
+          };
+
+          const closeMenu = () => {
+            clearCloseTimer();
+            menuEl.classList.remove('open');
+            myBtn.setAttribute('aria-expanded', 'false');
+          };
+
+          const scheduleClose = (delay = CLOSE_DELAY) => {
+            clearCloseTimer();
+            closeTimer = window.setTimeout(() => {
+              menuEl.classList.remove('open');
+              myBtn.setAttribute('aria-expanded', 'false');
+              closeTimer = null;
+            }, delay);
+          };
+
+          myBtn.addEventListener('click', (evt) => {
+            evt.preventDefault();
+            if (menuEl.classList.contains('open')) {
+              closeMenu();
+            } else {
+              openMenu();
+            }
+          });
+
+          myBtn.addEventListener('focus', openMenu);
+          myBtn.addEventListener('mouseenter', openMenu);
+          myBtn.addEventListener('keydown', (evt) => {
+            if (evt.key === 'Escape') {
+              closeMenu();
+              myBtn.blur();
+            }
+          });
+
+          menuEl.addEventListener('focusin', openMenu);
+          menuEl.addEventListener('mouseenter', openMenu);
+          menuEl.addEventListener('mouseleave', () => scheduleClose());
+          menuEl.addEventListener('keydown', (evt) => {
+            if (evt.key === 'Escape') {
+              closeMenu();
+              myBtn.focus();
+            }
+          });
+
+          if (wrapper) {
+            wrapper.addEventListener('mouseenter', openMenu);
+            wrapper.addEventListener('mouseleave', () => scheduleClose());
+          }
+
+          document.addEventListener('click', (evt) => {
+            if (wrapper && wrapper.contains(evt.target)) {
+              return;
+            }
+            closeMenu();
+          });
+        }
+      } else {
+        // 未登录：绑定登录/注册按钮事件
+        const loginBtn = document.getElementById('btnLogin');
+        const registerBtn = document.getElementById('btnRegister');
+        const openAuth = (mode) => {
+          if (window.openAuthModal) return window.openAuthModal(mode);
+          window.location.href = mode === 'register' ? 'login.html#register' : 'login.html#login';
+        };
+        if (loginBtn) loginBtn.addEventListener('click', () => openAuth('login'));
+        if (registerBtn) registerBtn.addEventListener('click', () => openAuth('register'));
+      }
+    }
+
+    // 2. 演示数据与状态管理
+    // 预留后端接口：当接入真实数据时，将 DB_API_BASE 指向后端地址。
+    const DB_API_BASE = '';
+    const AVAILABILITY_ENDPOINT = '/api/club/availability';
+
+    const fetchAvailabilityFromApi = async () => {
+      if (!DB_API_BASE) return null;
+      try {
+        const response = await fetch(`${DB_API_BASE}${AVAILABILITY_ENDPOINT}`);
+        if (!response.ok) throw new Error(`API ${response.status}`);
+        return await response.json();
+      } catch (error) {
+        console.warn('[club] availability API error', error);
+        return null;
+      }
+    };
+
+    // 预期返回结构示例（后端接入后替换）：
+    // {
+    //   courts: ["Court A", "Court B"],
+    //   slots: [
+    //     { court: "Court A", start: "08:00", end: "09:00", status: "ok" },
+    //     { court: "Court B", start: "08:00", end: "09:00", status: "full" }
+    //   ]
+    // }
+    const hydrateScheduleFromApi = (payload) => {
+      if (!payload || !Array.isArray(payload.courts)) return;
+      courts = payload.courts.slice();
+      Object.keys(scheduleData).forEach((key) => delete scheduleData[key]);
+      if (Array.isArray(payload.slots)) {
+        payload.slots.forEach((slot) => {
+          if (!slot || !slot.court || !slot.start) return;
+          const hour = Number(String(slot.start).split(':')[0]);
+          if (Number.isNaN(hour)) return;
+          if (!scheduleData[hour]) scheduleData[hour] = {};
+          scheduleData[hour][slot.court] = slot.status === 'full' ? 'full' : 'ok';
+        });
+      }
+    };
+
+    // 定义场地列表和初始排程数据（模拟后端数据）。
+    // seed 对象用于生成确定性的伪随机初始状态，以便演示时看起来有数据。
+    let courts=['Court A','Court B','Court C'];
+    const scheduleData={};
+    const seed={
+      8:['ok','full','ok'],9:['ok','ok','ok'],10:['full','ok','ok'],11:['ok','ok','full'],
+      12:['ok','ok','ok'],13:['ok','full','ok'],14:['ok','ok','ok'],15:['full','ok','ok'],
+      16:['ok','ok','ok'],17:['ok','ok','full'],18:['ok','ok','ok'],19:['ok','full','ok'],
+      20:['ok','ok','ok'],21:['ok','ok','ok'],22:['ok','ok','ok'],23:['ok','ok','ok']
+    };
+    // �
+    function ensureHour(hour){
+      if(!scheduleData[hour]) scheduleData[hour] = {};
+      courts.forEach((c,idx)=>{
+        if(!scheduleData[hour][c]){
+          const arr = seed[hour];
+          scheduleData[hour][c] = Array.isArray(arr) && idx < arr.length ? (arr[idx]==='full'?'full':'ok') : 'ok';
+        }
+      });
+      // 移除已删除的场地
+      Object.keys(scheduleData[hour]).forEach(c=>{ if(!courts.includes(c)) delete scheduleData[hour][c]; });
+    }
+
+    // 3. DOM �
+    const scheduleEl=document.getElementById('schedule');
+    const openHour=document.getElementById('openHour');
+    const closeHour=document.getElementById('closeHour');
+    const hoursLabel=document.getElementById('hoursLabel');
+      const courtNameEl=document.getElementById('courtName');
+      const addCourtBtn=document.getElementById('addCourt');
+      const courtListEl=document.getElementById('courtList');
+
+      function pad(n){return String(n).padStart(2,'0');}
+      const slotPrice = (hour, court) => {
+        const base = 7;
+        const peak = hour >= 18 ? 2 : 0;
+        const courtOffset = courts.indexOf(court) % 2;
+        return base + peak + courtOffset;
+      };
+
+    // 动态生成小时选择下拉框的选项
+    // 用于填充开始时间和结束时间的选择器
+
+    function buildHourOptions(selectEl,defaultVal,max=24){
+      if(!selectEl) return;
+      selectEl.innerHTML='';
+      for(let i=0;i<=max;i++){
+        const opt=document.createElement('option');
+        opt.value=i; opt.textContent=`${i}:00`;
+        if(i===defaultVal) opt.selected=true;
+        selectEl.appendChild(opt);
+      }
+    }
+
+    // 4. 场地管理逻辑
+    // 渲染已添加的场地标签（Pills），并绑定删除事件。
+    // 当场地列表发生变化时，会触发排程表的重新渲染。
+    function renderCourts(){
+        if(!courtListEl) return;
+      courtListEl.innerHTML='';
+      courts.forEach((c,idx)=>{
+        const pill=document.createElement('span');
+        pill.className='pill';
+        pill.innerHTML = `${c} <button title="Remove" aria-label="Remove ${c}" data-idx="${idx}">×</button>`;
+        pill.querySelector('button').addEventListener('click',()=>{
+          // 移除场地并重新渲染
+          courts.splice(idx,1);
+          renderCourts();
+          renderSchedule(+openHour.value,+closeHour.value);
+        });
+        courtListEl.appendChild(pill);
+      });
+    }
+
+    const initSchedule = async () => {
+      const payload = await fetchAvailabilityFromApi();
+      if (payload) {
+        hydrateScheduleFromApi(payload);
+      }
+      renderCourts();
+      renderSchedule(+openHour.value, +closeHour.value);
+    };
+
+    // 5. 排程表渲染核心逻辑
+    // 根据选定的营业时间范围（start 至 end），动态生成 CSS Grid 布局的排程表。
+    // 表格包含表头（时间/场地）和时间槽单元格。
+    function renderSchedule(start,end){
+        if(end<=start){
+          scheduleEl.innerHTML='<div class="muted" style="padding:12px">Closing hour must be later than opening hour.</div>';
+          return;
+        }
+        if(!courts.length){
+          scheduleEl.innerHTML='<div class="muted" style="padding:12px">Add at least one court or area to show the board.</div>';
+          return;
+        }
+        hoursLabel.textContent=`${pad(start)}:00 - ${pad(end)}:00`;
+        for(let h=start;h<end;h++) ensureHour(h);
+
+        const cols = courts.length + 1;
+        const template = `repeat(${cols}, minmax(120px, 1fr))`;
+        let html = `<div class="schedule-grid" style="grid-template-columns:${template}">`;
+        html += `<div class="cell head time">Time</div>`;
+        courts.forEach((c)=>{ html += `<div class="cell head">${c}</div>`; });
+
+        for(let h=start; h<end; h++){
+          const next=h+1;
+          html += `<div class="cell time">${pad(h)}:00 - ${pad(next)}:00</div>`;
+          courts.forEach((c)=>{
+            const s = scheduleData[h]?.[c] || 'ok';
+            const cls = s==='full' ? 'slot-full' : 'slot-ok';
+            if(s === 'full'){
+              html += `<div class="cell"><div class="${cls}" data-hour="${h}" data-court="${encodeURIComponent(c)}" title="Fully booked"><div class="slot-label">Fully booked</div></div></div>`;
+              return;
+            }
+            const price = slotPrice(h,c);
+            const priceLabel = `$${price}`;
+            html += `<div class="cell"><div class="${cls}" data-hour="${h}" data-court="${encodeURIComponent(c)}" title="Available ${priceLabel}"><div class="slot-label">Available</div><div class="slot-price">${priceLabel}</div></div></div>`;
+          });
+        }
+        html += '</div>';
+        scheduleEl.innerHTML = html;
+
+        scheduleEl.querySelectorAll('.slot-ok,.slot-full').forEach(cell=>{
+          cell.addEventListener('click',()=>{
+            const h = parseInt(cell.getAttribute('data-hour'),10);
+            const c = decodeURIComponent(cell.getAttribute('data-court'));
+            ensureHour(h);
+            scheduleData[h][c] = scheduleData[h][c] === 'ok' ? 'full' : 'ok';
+            renderSchedule(start,end);
+          });
+        });
+      }
+
+      // 6. 初始化与事件绑定
+    // 初始化下拉菜单选项，设置默认的营业时间（08:00 - 24:00）。
+    buildHourOptions(openHour,8,23); // 开�?0..23
+    buildHourOptions(closeHour,24,24); // 结束 0..24（�
+    // 监听时间选择器的变化，实时更新排程表。
+    openHour?.addEventListener('change',()=>renderSchedule(+openHour.value,+closeHour.value));
+    closeHour?.addEventListener('change',()=>renderSchedule(+openHour.value,+closeHour.value));
+
+    // 绑定添加场地按钮事件
+    // 验证输入是否为空或重复
+    addCourtBtn?.addEventListener('click',()=>{
+      const name = (courtNameEl.value||'').trim();
+      if(!name) return;
+      if(courts.includes(name)) return;
+      courts.push(name);
+      courtNameEl.value='';
+      initSchedule();
+    });
+
+    // 初始渲染
+    renderCourts();
+    renderSchedule(8,24);
+
+    // 7. 信息弹窗逻辑 (Privacy, Terms, Help)
+    // 处理页脚链接点击事件，显示对应的信息弹窗
+    const infoOverlay = document.getElementById('infoOverlay');
+    const infoTitle = document.getElementById('infoTitle');
+    const infoBody = document.getElementById('infoBody');
+    const infoMap = {
+      privacy: {
+        title: 'Privacy',
+        body: `
+          <p>We only store the information needed to manage bookings and memberships.</p>
+          <p>Your account data is kept locally in this demo and is not shared with third parties.</p>
+          <p>You can request deletion at any time by contacting the admin.</p>
+        `
+      },
+      terms: {
+        title: 'Terms',
+        body: `
+          <p>Bookings are first-come, first-served and subject to club capacity.</p>
+          <p>Members must follow club rules and respect facility policies.</p>
+          <p>Repeated no-shows may result in booking restrictions.</p>
+        `
+      },
+      help: {
+        title: 'Help',
+        body: `
+          <p>Need assistance? Start by searching for a club and selecting a time slot.</p>
+          <p>If you cannot log in, double-check your email and password.</p>
+          <p>Contact support at support@example.com for further help.</p>
+        `
+      }
+    };
+
+    const openInfo = (key) => {
+      const data = infoMap[key];
+      if (!data || !infoOverlay) return;
+      if (infoTitle) infoTitle.textContent = data.title;
+      if (infoBody) infoBody.innerHTML = data.body;
+      infoOverlay.classList.add('open');
+      document.body.classList.add('no-scroll');
+    };
+
+    const closeInfo = () => {
+      if (!infoOverlay) return;
+      infoOverlay.classList.remove('open');
+      document.body.classList.remove('no-scroll');
+    };
+
+    document.querySelectorAll('.info-trigger').forEach((btn) => {
+      btn.addEventListener('click', () => openInfo(btn.dataset.info));
+    });
+    infoOverlay?.addEventListener('click', (evt) => { if (evt.target === infoOverlay) closeInfo(); });
+    infoOverlay?.querySelector('.info-close')?.addEventListener('click', closeInfo);
+
+    document.getElementById('y').textContent=new Date().getFullYear();
+  </script>
+
+  <script src="auth-modal.js" defer></script>
+  

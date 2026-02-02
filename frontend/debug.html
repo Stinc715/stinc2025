@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Debug Console</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #000; color: #0f0; }
+    #log { white-space: pre-wrap; word-wrap: break-word; }
+  </style>
+</head>
+<body>
+  <h2>Debug Console</h2>
+  <div id="log"></div>
+  <iframe id="app-frame" src="http://localhost:5173/" style="width: 100%; height: 600px; border: 1px solid #0f0; margin-top: 20px;"></iframe>
+  
+  <script>
+    const log = document.getElementById('log');
+    const logs = [];
+    
+    function addLog(msg) {
+      logs.push(`[${new Date().toLocaleTimeString()}] ${msg}`);
+      log.textContent = logs.join('\n');
+      console.log(msg);
+    }
+    
+    addLog('页面已加载');
+    
+    window.addEventListener('error', (e) => {
+      addLog(`❌ 错误: ${e.message}\n文件: ${e.filename}:${e.lineno}`);
+    });
+    
+    // 检查 iframe 内容
+    const iframe = document.getElementById('app-frame');
+    iframe.onload = () => {
+      addLog('✅ iframe 已加载');
+      try {
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        const appDiv = iframeDoc?.getElementById('app');
+        if (appDiv) {
+          addLog(`✅ 找到 #app div，内容: ${appDiv.innerHTML.substring(0, 100)}`);
+        } else {
+          addLog('❌ 找不到 #app div');
+        }
+      } catch(e) {
+        addLog(`❌ 无法访问 iframe 内容: ${e.message}`);
+      }
+    };
+    
+    iframe.onerror = () => {
+      addLog('❌ iframe 加载失败');
+    };
+  </script>
+</body>
+</html>
