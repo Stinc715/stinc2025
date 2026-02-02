@@ -1,0 +1,1153 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Club Booking Portal</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@600;700&display=swap');
+
+  :root {
+    --card: #fff;
+    --ink: #222;
+    --muted: #6B7280;
+    --line: #E5E7EB;
+    --chip: #F3F4F6;
+    --header-height: 72px;
+    --anim-base: cubic-bezier(.4, 0, .2, 1);
+    --anim-pop: cubic-bezier(.2, .8, .4, 1);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: linear-gradient(#fff, #fafafa);
+    color: var(--ink);
+    font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    animation: fadeBody .6s var(--anim-base) both;
+  }
+
+  header {
+    background: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border: none;
+    box-shadow: none;
+  }
+
+  footer {
+    border-top: 1px solid var(--line);
+    background: #fff;
+  }
+
+  header .wrap,
+  footer .wrap,
+  .wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  h1 {
+    font-size: 22px;
+    margin: 0;
+  }
+
+  h3 {
+    font-size: 15px;
+    margin: 8px 0;
+  }
+
+  .card h3 {
+    font-family: 'Manrope', 'Segoe UI', Arial, sans-serif;
+    font-weight: 700;
+  }
+
+  .btn {
+    border: 1px solid var(--line);
+    background: #111;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition:
+      transform .15s ease,
+      filter .2s var(--anim-pop);
+    box-shadow: none !important;
+    outline: none;
+  }
+
+  .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: none !important;
+  }
+
+  .btn:active {
+    transform: translateY(0);
+    box-shadow: none !important;
+  }
+
+  .btn:focus {
+    outline: none;
+    box-shadow: none !important;
+  }
+
+  .btn:focus-visible {
+    outline: none;
+    box-shadow: none !important;
+  }
+
+  .btn.ghost {
+    background: #fff;
+    color: #111;
+  }
+
+  .btn.blue {
+    background: #2563eb;
+    border-color: #2563eb;
+  }
+
+  .user-menu {
+    position: relative;
+    display: inline-block;
+  }
+  .avatar-btn {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    cursor: pointer;
+    overflow: hidden;
+  }
+  .avatar-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .avatar-btn span {
+    font-size: 13px;
+  }
+
+  .user-menu .menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, .12);
+    padding: 6px 0;
+    min-width: 140px;
+    z-index: 20;
+    opacity: 0;
+    transform: translateY(6px) scale(.98);
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity .2s var(--anim-base),
+      transform .25s var(--anim-pop),
+      visibility 0s linear .25s;
+  }
+
+  .user-menu .menu.open {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    visibility: visible;
+    pointer-events: auto;
+    transition:
+      opacity .2s var(--anim-base),
+      transform .25s var(--anim-pop),
+      visibility 0s;
+  }
+
+  .user-menu .menu button {
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 8px 14px;
+    text-align: left;
+    font-size: 13px;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .user-menu .menu button:hover {
+    background: #f3f4f6;
+  }
+
+  .user-menu .menu.open button {
+    animation: menuPop .28s var(--anim-pop) both;
+  }
+
+  .user-menu .menu.open button:nth-child(2) {
+    animation-delay: .08s;
+  }
+
+  @keyframes menuPop {
+    from {
+      opacity: 0;
+      transform: translateY(6px) scale(.96);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
+    transition:
+      transform .35s var(--anim-base),
+      box-shadow .35s var(--anim-base);
+  }
+
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(15, 23, 42, .14);
+  }
+
+  .card .pad {
+    padding: 12px;
+  }
+
+  .site-title-link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .card.club {
+    opacity: 0;
+    transform: translateY(18px) scale(.98);
+    animation: cardIn .65s var(--anim-base) forwards;
+    animation-delay: calc(var(--card-index, 0) * 70ms);
+  }
+
+  .search-card {
+    position: sticky;
+    top: calc(var(--header-height) + 12px);
+    z-index: 9;
+    border: none;
+    background: rgba(255, 255, 255, .92);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, .12);
+    animation: floatCard 1.2s var(--anim-base) both;
+  }
+
+  .search-card .pad {
+    padding: 18px 20px;
+  }
+
+  .search-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .search-controls {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1 1 50%;
+    max-width: 720px;
+    min-height: 54px;
+    border: 1px solid rgba(148, 163, 184, .35);
+    border-radius: 999px;
+    padding: 14px 18px;
+    background: linear-gradient(180deg, #fff, #f8faff);
+    box-shadow: 0 14px 30px rgba(15, 23, 42, .10);
+    transition:
+      border-color .25s var(--anim-base),
+      box-shadow .25s var(--anim-base),
+      transform .25s var(--anim-base);
+  }
+
+  .search-controls:focus-within {
+    border-color: #2563eb;
+    box-shadow: 0 16px 32px rgba(37, 99, 235, .18);
+    transform: translateY(-1px);
+  }
+
+  .search-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .search-icon {
+    position: relative;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #9CA3AF;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .search-icon::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 2px;
+    background: #9CA3AF;
+    border-radius: 999px;
+    bottom: -3px;
+    right: -6px;
+    transform: rotate(45deg);
+  }
+
+  .search-controls .input {
+    flex: 1;
+    height: auto;
+    border: none;
+    padding: 0;
+    background: transparent;
+    font-size: 15px;
+    color: var(--ink);
+  }
+
+  .search-controls .input::placeholder {
+    color: rgba(107, 114, 128, .88);
+  }
+
+  .search-controls .input:focus {
+    outline: none;
+  }
+
+  .search-controls .btn {
+    height: auto;
+    border: none;
+    background: rgba(37, 99, 235, .12);
+    color: #2563eb;
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-weight: 600;
+    transition:
+      background .2s ease,
+      color .2s ease;
+  }
+
+  .search-controls .btn:hover {
+    background: rgba(37, 99, 235, .22);
+    color: #1d4ed8;
+  }
+
+  .search-controls .btn:active {
+    background: rgba(37, 99, 235, .3);
+  }
+
+  .filter-toggle {
+    border: 1px solid rgba(148, 163, 184, .35);
+    background: linear-gradient(180deg, #fff, #f5f7ff);
+    color: var(--ink);
+    min-width: 120px;
+    height: 54px;
+    padding: 0 18px;
+    border-radius: 999px;
+    font-weight: 600;
+    letter-spacing: .01em;
+    cursor: pointer;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, .10);
+    transition:
+      transform .2s var(--anim-base),
+      box-shadow .2s var(--anim-base),
+      background .2s var(--anim-base);
+  }
+
+  .filter-toggle:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, .12);
+  }
+
+  .filter-toggle.active {
+    background: #111;
+    color: #fff;
+    border-color: #111;
+  }
+
+  .filter-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    margin-left: 6px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #111;
+    color: #fff;
+    font-size: 11px;
+  }
+
+  .filter-surface {
+    display: none;
+    margin-top: 12px;
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: 18px;
+    padding: 12px 14px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, .08);
+  }
+
+  .filter-surface.open {
+    display: block;
+  }
+
+  .filter-surface__body {
+    display: none;
+    gap: 10px;
+    margin-top: 0;
+  }
+
+  .filter-surface.open .filter-surface__body {
+    display: grid;
+  }
+
+  .filter-panel {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .filter-chip {
+    border: 1px solid var(--line);
+    background: var(--chip);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: transform .15s var(--anim-base), background .15s var(--anim-base);
+  }
+
+  .filter-chip:hover {
+    transform: translateY(-1px);
+    background: #fff;
+  }
+
+  .filter-chip.active {
+    background: #111;
+    color: #fff;
+    border-color: #111;
+  }
+
+  input.input {
+    width: 100%;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: #fff;
+    padding: 0 10px;
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  @media (min-width: 640px) {
+    .cards {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .club {
+    padding: 8px;
+  }
+
+  .thumb {
+    height: 64px;
+    background: #f3f4f6;
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .page {
+    padding: 20px 0;
+  }
+
+  .muted {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  .chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .chip {
+    background: var(--chip);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 3px 8px;
+    font-size: 12px;
+    cursor: pointer;
+    font: inherit;
+    appearance: none;
+  }
+
+  .chip-link:hover {
+    background: #fff;
+  }
+
+  .info-overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(10, 12, 16, 0.45);
+    z-index: 3000;
+  }
+
+  .info-overlay.open {
+    display: flex;
+  }
+
+  .info-card {
+    position: relative;
+    width: min(560px, 92vw);
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 24px 60px rgba(10, 12, 16, 0.25);
+    padding: 20px 20px 18px;
+  }
+
+  .info-card h3 {
+    margin: 0 0 8px;
+    font-size: 18px;
+  }
+
+  .info-body p {
+    margin: 0 0 10px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .info-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #fff;
+    cursor: pointer;
+    color: var(--muted);
+  }
+
+  @keyframes fadeBody {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @keyframes cardIn {
+    0% { opacity: 0; transform: translateY(20px) scale(.97); }
+    60% { opacity: 1; transform: translateY(-4px) scale(1); }
+    100% { opacity: 1; transform: none; }
+  }
+
+  @keyframes floatCard {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .empty {
+    padding: 16px;
+    text-align: center;
+    color: var(--muted);
+  }
+
+  @media (max-width: 480px) {
+    .search-card .pad {
+      padding: 14px;
+    }
+
+    .search-row {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .search-controls {
+      flex-direction: column;
+      align-items: stretch;
+      padding: 14px;
+      max-width: none;
+    }
+
+    .search-input-wrap {
+      width: 100%;
+    }
+
+    .search-icon {
+      display: none;
+    }
+
+    .search-controls .btn {
+      width: 100%;
+    }
+
+    .filter-toggle {
+      width: 100%;
+    }
+
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+</style>
+
+
+  <link rel="stylesheet" href="theme.css">
+</head>
+<body>
+  <!-- 顶部导航栏：包含网站标题和用户登录/注册入口 -->
+  <header id="top">
+    <div class="wrap" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <h1 class="site-title" style="display:flex;align-items:center;">
+        <a class="site-title-link" href="#top">Club Booking Portal</a>
+      </h1>
+      <div id="userArea" style="display:flex;align-items:center;gap:8px;margin-top:0">
+        <button id="btnLogin" class="btn" type="button" style="min-width:80px">Login</button>
+        <button id="btnRegister" class="btn blue" type="button" style="min-width:80px">Register</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <!-- 搜索与筛选区域：包含搜索框、清除按钮和筛选折叠面板 -->
+    <section id="p1" class="page">
+      <div class="card search-card"><div class="pad">
+        <div class="search-row">
+          <div class="search-controls" role="search">
+            <div class="search-input-wrap">
+              <span class="search-icon" aria-hidden="true"></span>
+              <input id="kw" class="input" type="text" placeholder="Try: badminton, yoga, football..." />
+            </div>
+            <button class="btn ghost" type="button" id="btnClear">Clear</button>
+          </div>
+          <button class="filter-toggle" type="button" id="filterToggle" aria-expanded="false" aria-controls="filterSurface">
+            Filter <span class="filter-count" id="filterCount" style="display:none">0</span>
+          </button>
+        </div>
+        <div class="filter-surface" id="filterSurface">
+          <div class="filter-surface__body">
+            <div class="filter-panel" id="filterPanel" aria-label="Filter clubs by type"></div>
+          </div>
+        </div>
+      </div></div>
+
+      <!-- 俱乐部卡片列表容器：动态渲染搜索结果 -->
+      <div id="cards" class="cards"></div>
+      <div id="empty" class="empty" style="display:none">No clubs match your keyword.</div>
+    </section>
+  </div>
+  <!-- 页脚：包含版权信息和辅助链接（隐私、条款、帮助） -->
+  <footer class="site-footer">
+    <div class="site-footer__wrap">
+      <span class="site-footer__text">&copy; 2026 Club Booking Portal</span>
+      <div class="site-footer__actions">
+        <button class="site-footer__btn info-trigger" type="button" data-info="privacy">Privacy</button>
+        <button class="site-footer__btn info-trigger" type="button" data-info="terms">Terms</button>
+        <button class="site-footer__btn info-trigger" type="button" data-info="help">Help</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 信息弹窗：用于显示隐私政策、服务条款等静态内容 -->
+  <div id="infoOverlay" class="info-overlay" aria-hidden="true">
+    <div class="info-card" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+      <button class="info-close" type="button" aria-label="Close">×</button>
+      <h3 id="infoTitle">Privacy</h3>
+      <div id="infoBody" class="info-body"></div>
+    </div>
+  </div>
+
+  <script>
+document.addEventListener('DOMContentLoaded', () => {
+  // 1. 布局计算：头部高度
+  // 计算 header 的实际高度，并设置 CSS 变量 --header-height
+  // 这确保了 sticky 定位的搜索栏能够正确地吸附在 header 下方，不会被遮挡
+  const rootEl = document.documentElement;
+  const headerEl = document.querySelector('header');
+  const topLink = document.querySelector('.site-title-link');
+  const setHeaderH = () => {
+    if (headerEl) rootEl.style.setProperty('--header-height', `${headerEl.offsetHeight}px`);
+  };
+  setHeaderH();
+  window.addEventListener('resize', setHeaderH);
+  topLink?.addEventListener('click', (event) => {
+    event.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // 2. 用户会话管理
+  // 从 localStorage 读取用户信息，判断当前是未登录、普通用户还是俱乐部管理员
+  const userArea = document.getElementById('userArea');
+  let savedUser = null;
+  try {
+    savedUser = JSON.parse(localStorage.getItem('loggedUser') || 'null');
+  } catch {
+    localStorage.removeItem('loggedUser');
+  }
+
+  // TODO: Replace with real backend endpoint.
+  const fetchProfile = async () => {
+    try {
+      const res = await fetch('/api/profile', { credentials: 'include' });
+      if (res.ok) return await res.json();
+    } catch (err) {
+      console.error(err);
+    }
+    return null;
+  };
+
+  // 如果用户已登录，渲染包含“我的/俱乐部”按钮和下拉菜单的用户区域
+  if (savedUser && userArea) {
+    const isClub = savedUser.type === 'club';
+    const targetHref = isClub ? 'club.html' : 'user.html';
+    const avatarData = (() => {
+      try { return JSON.parse(localStorage.getItem('profileAvatar') || 'null'); } catch { return null; }
+    })();
+    const fallback = (savedUser.name || savedUser.email || (isClub ? 'C' : 'M')).trim().charAt(0).toUpperCase();
+    userArea.innerHTML = `
+      <div class="user-menu">
+        <button id="btnMy" class="avatar-btn" type="button" aria-haspopup="true" aria-expanded="false">
+          ${avatarData ? `<img src="${avatarData}" alt="My profile">` : `<span>${fallback}</span>`}
+        </button>
+        <div class="menu" id="myMenu" role="menu">
+          <button type="button" id="btnDetails" role="menuitem">Details</button>
+          <button type="button" id="btnLogout" role="menuitem">Logout</button>
+        </div>
+      </div>`;
+
+    const myBtn = document.getElementById('btnMy');
+    const menuEl = document.getElementById('myMenu');
+
+    fetchProfile().then((profile) => {
+      if (!profile || !myBtn) return;
+      const avatarUrl = profile.avatarUrl || profile.avatar;
+      const displayName = profile.displayName || profile.name || '';
+      const email = profile.email || '';
+      const letter = (displayName || email || fallback).trim().charAt(0).toUpperCase();
+      if (avatarUrl) {
+        myBtn.innerHTML = `<img src="${avatarUrl}" alt="My profile">`;
+      } else if (letter) {
+        myBtn.innerHTML = `<span>${letter}</span>`;
+      }
+    });
+
+    // 绑定下拉菜单中的按钮事件
+    document.getElementById('btnDetails')?.addEventListener('click', () => { window.location.href = targetHref; });
+    document.getElementById('btnLogout')?.addEventListener('click', () => { 
+      localStorage.removeItem('loggedUser'); 
+      localStorage.removeItem('user'); 
+      localStorage.removeItem('selectedClub'); 
+      location.reload(); 
+    });
+
+    // 控制下拉菜单的显示与隐藏（支持点击和鼠标悬停）
+    const toggleMenu = (open) => {
+      const wantOpen = open ?? !menuEl.classList.contains('open');
+      menuEl.classList.toggle('open', wantOpen);
+      myBtn.setAttribute('aria-expanded', wantOpen ? 'true' : 'false');
+    };
+
+    myBtn.addEventListener('click', () => toggleMenu());
+    const menuWrap = userArea.querySelector('.user-menu');
+    let closeTimer = null;
+    const cancelClose = () => {
+      if (closeTimer) {
+        clearTimeout(closeTimer);
+        closeTimer = null;
+      }
+    };
+    const scheduleClose = () => {
+      cancelClose();
+      closeTimer = setTimeout(() => toggleMenu(false), 600);
+    };
+    if (menuWrap) {
+      menuWrap.addEventListener('mouseenter', () => {
+        cancelClose();
+        toggleMenu(true);
+      });
+      menuWrap.addEventListener('mouseleave', scheduleClose);
+    }
+    document.addEventListener('click', (e) => { if (!userArea.contains(e.target)) toggleMenu(false); });
+    [myBtn, menuEl].forEach(el => el.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { toggleMenu(false); myBtn.focus(); }
+    }));
+  } else {
+    const openAuth = (mode) => {
+      // 等待 auth-modal.js 加载完成
+      if (window.openAuthModal && typeof window.openAuthModal === 'function') {
+        window.openAuthModal(mode);
+      } else {
+        window.location.href = mode === 'register' ? 'login.html#register' : 'login.html#login';
+      }
+    };
+    document.getElementById('btnLogin')?.addEventListener('click', () => openAuth('login'));
+    document.getElementById('btnRegister')?.addEventListener('click', () => openAuth('register'));
+  }
+
+  // 3. 数据源定义
+  // 本地模拟的俱乐部数据列表。在实际生产环境中，这些数据通常通过 API 从后端获取。
+  const LOCAL_CLUBS = [
+    { id:'badminton', name:'Club 1', tags:['badminton'], desc:'Suitable for all levels, regular evening training and friendlies.' },
+    { id:'basketball', name:'Club 2', tags:['basketball'], desc:'Varsity training + amateur matches, new members welcome.' },
+    { id:'football', name:'Club 3', tags:['football'], desc:'Weekly matches and local tournaments, join our squad!' },
+    { id:'yoga', name:'Club 4', tags:['yoga'], desc:'Relax and strengthen your body and mind, small group sessions.' },
+    { id:'tennis', name:'Club 5', tags:['tennis'], desc:'Book your court and join tournaments or casual games.' },
+    { id:'volleyball', name:'Club 6', tags:['volleyball'], desc:'Indoor and beach volleyball activities for all skill levels.' },
+    { id:'cycling', name:'Club 7', tags:['cycling'], desc:'Weekend city rides and countryside cycling challenges.' },
+    { id:'swimming', name:'Club 8', tags:['swimming'], desc:'Morning and evening sessions available, professional coach guidance.' },
+    { id:'running', name:'Club 9', tags:['running'], desc:'Morning jogs, half marathons, and social running events.' },
+    { id:'fitness', name:'Club 10', tags:['fitness'], desc:'State-of-the-art gym equipment and personalized workout plans.' },
+    { id:'dance', name:'Club 11', tags:['dance'], desc:'Learn hip-hop, jazz, and modern dance from experienced instructors.' },
+    { id:'badminton-east', name:'Club 12', tags:['badminton'], desc:'East campus sessions, beginner friendly with spare rackets.' },
+    { id:'badminton-social', name:'Club 13', tags:['badminton'], desc:'Casual games, social mix-ins on Fridays.' },
+    { id:'yoga-ii', name:'Club 14', tags:['yoga'], desc:'Intermediate vinyasa and power yoga classes.' },
+    { id:'yoga-sunrise', name:'Club 15', tags:['yoga'], desc:'Sunrise outdoor yoga, mats provided.' },
+    { id:'football-evening', name:'Club 16', tags:['football'], desc:'Evening league matches, 7-a-side format.' },
+    { id:'football-academy', name:'Club 17', tags:['football'], desc:'Skill drills and coaching for developing players.' },
+    { id:'tabletennis', name:'Club 18', tags:['table tennis'], desc:'Weekend open training, tables and equipment provided.' },
+    { id:'tennis-advanced', name:'Club 19', tags:['tennis'], desc:'Advanced ladder matches and coaching clinics.' },
+    { id:'tennis-social', name:'Club 20', tags:['tennis'], desc:'Casual doubles and weekend socials.' }
+  ];
+  let CLUBS = LOCAL_CLUBS; 
+
+  // 4. 页面逻辑与渲染
+  const cardsEl = document.getElementById('cards');
+  const emptyEl = document.getElementById('empty');
+  const kwEl = document.getElementById('kw');
+  const filterToggle = document.getElementById('filterToggle');
+  const filterSurface = document.getElementById('filterSurface');
+  const filterPanel = document.getElementById('filterPanel');
+  const filterCount = document.getElementById('filterCount');
+  const selectedTags = [];
+  const infoOverlay = document.getElementById('infoOverlay');
+  const infoTitle = document.getElementById('infoTitle');
+  const infoBody = document.getElementById('infoBody');
+  
+  // 静态信息内容映射（隐私、条款、帮助）
+  const infoMap = {
+    privacy: {
+      title: 'Privacy',
+      body: `
+        <p>We only store the information needed to manage bookings and memberships.</p>
+        <p>Your account data is kept locally in this demo and is not shared with third parties.</p>
+        <p>You can request deletion at any time by contacting the admin.</p>
+      `
+    },
+    terms: {
+      title: 'Terms',
+      body: `
+        <p>Bookings are first-come, first-served and subject to club capacity.</p>
+        <p>Members must follow club rules and respect facility policies.</p>
+        <p>Repeated no-shows may result in booking restrictions.</p>
+      `
+    },
+    help: {
+      title: 'Help',
+      body: `
+        <p>Need assistance? Start by searching for a club and selecting a time slot.</p>
+        <p>If you cannot log in, double-check your email and password.</p>
+        <p>Contact support at support@example.com for further help.</p>
+      `
+    }
+  };
+
+  // 辅助函数：获取俱乐部的主运动类型（用于显示标签）
+  const getSportType = (club) => (club.tags && club.tags.length ? club.tags[0] : 'sport');
+
+  // 辅助函数：记录未登录用户的加入意图
+  // 当用户未登录点击 Join 时，记录目标俱乐部 ID，以便登录后自动重定向到该俱乐部的加入页面
+  const storeJoinIntent = (clubId) => {
+    if (!clubId) return;
+    const club = CLUBS.find(c => c.id === clubId);
+    try {
+      localStorage.setItem('selectedClub', JSON.stringify(club || { id: clubId }));
+    } catch {
+      // 忽略存储配额问题
+    }
+    try {
+      localStorage.setItem('postLoginRedirect', JSON.stringify({ page: 'join', clubId }));
+    } catch {
+      // 忽略存储配额问题
+    }
+  };
+
+  // 全局事件处理：处理“Join Now”按钮点击
+  // 检查登录状态，未登录则弹出登录框，已登录则跳转
+  window.handleJoinClick = function(clubId, event) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    // 仅检查登录状态缓存，避免使用用户自动恢复数据
+    let logged = null;
+    try { 
+      logged = JSON.parse(localStorage.getItem('loggedUser') || 'null'); 
+    } catch(e){ 
+      logged = null; 
+    }
+    
+    if (!logged) {
+      storeJoinIntent(clubId);
+      if (window.openAuthModal) {
+        window.openAuthModal('login');
+      } else {
+        window.location.href = 'login.html#login';
+      }
+      return false;
+    }
+    
+    const club = CLUBS.find(c => c.id === clubId);
+    if (club) {
+      goToJoinPage(club);
+    }
+    return false;
+  };
+
+  // 模板函数：生成单个俱乐部卡片的 HTML 结构
+  const clubCard = (club, idx = 0) => {
+    const sport = getSportType(club);
+    return `
+    <div class="card club" data-id="${club.id}" style="--card-index:${idx};">
+      <div class="thumb">Cover</div>
+      <h3>${club.name}</h3>
+      <p class="muted">${club.desc}</p>
+      <div class="chips">
+        <button class="chip chip-link" type="button" data-tag="${sport}"># ${sport}</button>
+      </div>
+      <div class="toolbar">
+        <button class="btn btn-join" data-action="join" data-id="${club.id}" onclick="return window.handleJoinClick('${club.id}', event);">Join Now</button>
+      </div>
+    </div>`;
+  };
+
+  // 导航函数：跳转到加入页面 (join.html)
+  const goToJoinPage = (clubIdOrClub) => {
+    // 兼容传入对象或俱乐部编号字符串
+    const club = (typeof clubIdOrClub === 'string') 
+      ? CLUBS.find(c => c.id === clubIdOrClub) 
+      : clubIdOrClub;
+    
+    if (!club) return;
+    try {
+      localStorage.setItem('selectedClub', JSON.stringify(club));
+    } catch {
+      // 忽略存储配额问题
+    }
+    const query = club.id ? `?club=${encodeURIComponent(club.id)}` : '';
+    window.location.href = `join.html${query}`;
+  };
+
+  // 渲染函数：将俱乐部列表渲染到页面上，处理空状态
+  const render = (list) => {
+    if (!list.length) {
+      cardsEl.innerHTML = '';
+      emptyEl.style.display = 'block';
+    } else {
+      emptyEl.style.display = 'none';
+      cardsEl.innerHTML = list.map((club, idx) => clubCard(club, idx)).join('');
+    }
+  };
+
+  // 弹窗控制：打开信息弹窗
+  const openInfo = (key) => {
+    if (!infoOverlay) return;
+    const data = infoMap[key];
+    if (!data) return;
+    if (infoTitle) infoTitle.textContent = data.title;
+    if (infoBody) infoBody.innerHTML = data.body;
+    infoOverlay.classList.add('open');
+    document.body.classList.add('no-scroll');
+  };
+
+  // 弹窗控制：关闭信息弹窗
+  const closeInfo = () => {
+    if (!infoOverlay) return;
+    infoOverlay.classList.remove('open');
+    document.body.classList.remove('no-scroll');
+  };
+
+  document.querySelectorAll('.info-trigger').forEach((btn) => {
+    btn.addEventListener('click', () => openInfo(btn.dataset.info));
+  });
+  infoOverlay?.addEventListener('click', (evt) => { if (evt.target === infoOverlay) closeInfo(); });
+  infoOverlay?.querySelector('.info-close')?.addEventListener('click', closeInfo);
+
+  // 筛选面板控制：切换筛选面板的显示/隐藏
+  filterToggle?.addEventListener('click', () => {
+    if (!filterSurface) return;
+    const open = filterSurface.classList.toggle('open');
+    filterToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+
+  // 5. 搜索与筛选逻辑
+  const norm = (s) => (s || '').toLowerCase().replace(/\s+/g,'').trim();
+  const tagKey = (tag) => norm(tag);
+
+  // 更新筛选 UI 状态（高亮选中标签，更新计数器）
+  const updateFilterUI = () => {
+    if (filterPanel) {
+      filterPanel.querySelectorAll('.filter-chip').forEach((btn) => {
+        btn.classList.toggle('active', selectedTags.includes(btn.dataset.key));
+      });
+    }
+    if (filterToggle) filterToggle.classList.toggle('active', selectedTags.length > 0);
+    if (filterCount) {
+      if (selectedTags.length) {
+        filterCount.style.display = 'inline-flex';
+        filterCount.textContent = String(selectedTags.length);
+      } else {
+        filterCount.style.display = 'none';
+      }
+    }
+  };
+
+  // 渲染筛选标签（Chips）：从所有俱乐部中提取标签，去重并排序
+  const renderFilterChips = () => {
+    if (!filterPanel) return;
+    const seen = new Set();
+    const tags = [];
+    CLUBS.forEach((club) => {
+      (club.tags || []).forEach((tag) => {
+        const key = tagKey(tag);
+        if (!seen.has(key)) {
+          seen.add(key);
+          tags.push({ key, label: tag });
+        }
+      });
+    });
+    tags.sort((a, b) => a.label.localeCompare(b.label));
+    filterPanel.innerHTML = tags.map(tag => (
+      `<button class="filter-chip" type="button" data-key="${tag.key}"># ${tag.label}</button>`
+    )).join('');
+    filterPanel.querySelectorAll('.filter-chip').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.key;
+        const idx = selectedTags.indexOf(key);
+        if (idx >= 0) {
+          selectedTags.splice(idx, 1);
+        } else if (selectedTags.length < 2) {
+          selectedTags.push(key);
+        } else {
+          return;
+        }
+        updateFilterUI();
+        filter();
+      });
+    });
+    updateFilterUI();
+  };
+
+  // 核心过滤函数：结合关键字搜索和标签筛选
+  const filter = () => {
+    const q = norm(kwEl?.value);
+    const list = CLUBS.filter(c => {
+      const hay = norm(c.name) + ' ' + norm((c.tags || []).join(' '));
+      const matchText = !q || hay.includes(q);
+      const matchTag = !selectedTags.length || (c.tags || []).some(t => selectedTags.includes(tagKey(t)));
+      return matchText && matchTag;
+    });
+    render(list);
+  };
+
+  // TODO: Replace with backend data fetch.
+  // Expected shape: [{ id, name, desc, tags: [] }]
+  const loadClubs = async () => {
+    try {
+      const res = await fetch('/api/clubs', { credentials: 'include' });
+      if (!res.ok) throw new Error('network');
+      const data = await res.json();
+      if (Array.isArray(data) && data.length) {
+        CLUBS = data.map((c, idx) => ({
+          id: c.id || `club-${idx + 1}`,
+          name: c.name || `Club ${idx + 1}`,
+          desc: c.desc || c.description || '',
+          tags: Array.isArray(c.tags) && c.tags.length ? c.tags : ['sport']
+        }));
+        return;
+      }
+    } catch (err) {
+      // fallback to local
+    }
+    CLUBS = LOCAL_CLUBS;
+  };
+
+  const initData = async () => {
+    await loadClubs();
+    renderFilterChips();
+    filter();
+  };
+
+  // 事件委托：处理卡片上的标签点击，快速筛选
+  cardsEl?.addEventListener('click', (event) => {
+    const chip = event.target.closest('.chip-link');
+    if (!chip || !cardsEl.contains(chip)) return;
+    const tag = chip.dataset.tag;
+    if (!tag) return;
+    selectedTags.length = 0;
+    selectedTags.push(tagKey(tag));
+    updateFilterUI();
+    filter();
+    if (filterSurface && filterToggle) {
+      filterSurface.classList.add('open');
+      filterToggle.setAttribute('aria-expanded', 'true');
+    }
+  });
+
+  // 绑定搜索框事件
+  document.getElementById('btnClear')?.addEventListener('click', () => { if (kwEl){ kwEl.value = ''; kwEl.focus(); } filter(); });
+  kwEl?.addEventListener('input', filter);
+  kwEl?.addEventListener('keydown', (e) => { if (e.key === 'Enter') filter(); });
+
+  // 页面加载完成后执行一次初始筛选渲染
+  initData();
+});
+  </script>
+
+  <script src="auth-modal.js"></script>
+</body>
+</html>
