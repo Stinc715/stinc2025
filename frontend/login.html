@@ -627,6 +627,7 @@
       });
       if (res.ok) {
         const data = await res.json();
+        localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data));
         const role = data.role || data.type;
         const userType = resolveUserType(role);
@@ -663,8 +664,11 @@
 
     console.log("Backend response status:", res.status);
 
-    const text = await res.text();
-    console.log("Backend response body:", text);
+    const user = await res.json();
+    console.log("Backend response body:", user);
+
+    localStorage.setItem('token', user.token);
+    localStorage.setItem('user', JSON.stringify(user));
 
   } catch (e) {
     console.error(e);
