@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Club Booking Portal - Club Home</title>
+  <link rel="stylesheet" href="theme.css">
+  <style>
+    body {
+      margin: 0;
+    }
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 1px solid var(--line);
+    }
+    .header-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .site-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+    }
+    .site-title-link {
+      color: inherit;
+      text-decoration: none;
+    }
+    .btn {
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .page-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 16px 0 12px;
+      flex-wrap: wrap;
+    }
+    .page-head h2 {
+      margin: 0;
+    }
+    .page-head p {
+      margin: 4px 0 0;
+    }
+    .page-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .card .pad {
+      padding: 16px;
+    }
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+    }
+    .stat-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .stat-bar {
+      height: 6px;
+      background: var(--chip);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .stat-bar span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+      border-radius: 999px;
+      transition: width .4s var(--anim-base);
+    }
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 16px;
+    }
+    .section-head h3 {
+      margin: 0;
+    }
+    .section-head p {
+      margin: 4px 0 0;
+    }
+    .action-grid {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .action-card {
+      padding: 18px;
+      min-height: 120px;
+      display: grid;
+      gap: 8px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .action-card:hover {
+      color: inherit;
+    }
+    .action-tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent-strong);
+      background: rgba(47, 93, 255, 0.1);
+      width: fit-content;
+    }
+    .action-card.disabled {
+      opacity: 0.55;
+      border-style: dashed;
+      pointer-events: none;
+    }
+    .info-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(10, 12, 16, 0.45);
+      z-index: 3000;
+    }
+    .info-overlay.open {
+      display: flex;
+    }
+    .info-card {
+      position: relative;
+      width: min(560px, 92vw);
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: none;
+      padding: 20px 20px 18px;
+    }
+    .info-card h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+    .info-body p {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .info-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fff;
+      cursor: pointer;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <header id="top">
+    <div class="wrap header-wrap">
+      <h1 class="site-title">Club Home</h1>
+      <div class="header-actions">
+        <button id="logoutBtn" class="btn" type="button" style="min-width:80px">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="page-head">
+      <div>
+        <h2>Today's overview</h2>
+        <p class="muted">Quick snapshot of bookings and attendance.</p>
+      </div>
+      <!-- <div class="page-actions">
+        <a class="btn" href="club bookings.html">Review bookings</a>
+        <a class="btn ghost" href="venue overview.html">Manage venues</a>
+      </div> -->
+    </div>
+
+    <section class="card">
+      <div class="pad">
+        <div class="stat-grid" id="overviewGrid">
+          <div class="stat-card" data-key="bookings" data-value="24">
+            <span class="stat-label">Bookings</span>
+            <span class="stat-value">24</span>
+            <div class="stat-bar"><span></span></div>
+          </div>
+          <div class="stat-card" data-key="checkins" data-value="18">
+            <span class="stat-label">Check-ins</span>
+            <span class="stat-value">18</span>
+            <div class="stat-bar"><span></span></div>
+          </div>
+          <div class="stat-card" data-key="cancellations" data-value="2">
+            <span class="stat-label">Cancellations</span>
+            <span class="stat-value">2</span>
+            <div class="stat-bar"><span></span></div>
+          </div>
+          <div class="stat-card" data-key="courtsInUse" data-value="4" data-total="6">
+            <span class="stat-label">Courts in use</span>
+            <span class="stat-value">4 / 6</span>
+            <div class="stat-bar"><span></span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-head">
+      <div>
+        <h3>Quick actions</h3>
+        <p class="muted">Jump back into key areas of your club.</p>
+      </div>
+    </div>
+    <section class="action-grid">
+      <a class="card action-card" href="onboarding.html">
+        <h3>Club profile</h3>
+        <p class="muted">Manage club info and location.</p>
+        <span class="action-tag">Manage</span>
+      </a>
+      <a class="card action-card" href="club.html" target="_blank" rel="noopener">
+        <h3>Public preview</h3>
+        <p class="muted">See the club page as members do.</p>
+        <span class="action-tag">Preview</span>
+      </a>
+      <a class="card action-card" href="venue overview.html">
+        <h3>Venue overview</h3>
+        <p class="muted">Manage courts, capacity, and slots.</p>
+        <span class="action-tag">Manage</span>
+      </a>
+      <a class="card action-card" href="club bookings.html">
+        <h3>Member bookings</h3>
+        <p class="muted">Approve and manage reservations.</p>
+        <span class="action-tag">Review</span>
+      </a>
+      <a class="card action-card" href="club updates.html">
+        <h3>Member updates</h3>
+        <p class="muted">Share updates with members.</p>
+        <span class="action-tag">Manage</span>
+      </a>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer__wrap">
+      <span class="site-footer__text">&copy; 2026 Club Booking Portal</span>
+      <div class="site-footer__actions">
+        <button class="site-footer__btn info-trigger" type="button" data-info="privacy">Privacy</button>
+        <button class="site-footer__btn info-trigger" type="button" data-info="terms">Terms</button>
+        <button class="site-footer__btn info-trigger" type="button" data-info="help">Help</button>
+      </div>
+    </div>
+  </footer>
+
+  <div id="infoOverlay" class="info-overlay" aria-hidden="true">
+    <div class="info-card" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+      <button class="info-close" type="button" aria-label="Close">x</button>
+      <h3 id="infoTitle">Privacy</h3>
+      <div id="infoBody" class="info-body"></div>
+    </div>
+  </div>
+  <script>
+    document.getElementById('logoutBtn')?.addEventListener('click', () => {
+      localStorage.removeItem('loggedUser');
+      localStorage.removeItem('user');
+      window.location.href = 'login.html';
+    });
+
+    const applyOverviewStats = (stats) => {
+      const grid = document.getElementById('overviewGrid');
+      if (!grid) return;
+      const cards = grid.querySelectorAll('.stat-card');
+      const bookings = stats?.bookings ?? Number(cards[0]?.dataset.value || 0);
+      const checkins = stats?.checkins ?? Number(cards[1]?.dataset.value || 0);
+      const cancellations = stats?.cancellations ?? Number(cards[2]?.dataset.value || 0);
+      const courtsInUse = stats?.courtsInUse ?? Number(cards[3]?.dataset.value || 0);
+      const courtsTotal = stats?.courtsTotal ?? Number(cards[3]?.dataset.total || 0);
+      const maxValue = Math.max(bookings, checkins, cancellations, 1);
+
+      const setCard = (key, value, total) => {
+        const card = grid.querySelector(`.stat-card[data-key="${key}"]`);
+        if (!card) return;
+        const valueEl = card.querySelector('.stat-value');
+        const barEl = card.querySelector('.stat-bar span');
+        if (valueEl) {
+          valueEl.textContent = total ? `${value} / ${total}` : `${value}`;
+        }
+        if (barEl) {
+          const pct = total ? (total > 0 ? (value / total) * 100 : 0) : (value / maxValue) * 100;
+          barEl.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+        }
+      };
+
+      setCard('bookings', bookings);
+      setCard('checkins', checkins);
+      setCard('cancellations', cancellations);
+      setCard('courtsInUse', courtsInUse, courtsTotal);
+    };
+
+    // TODO: Replace with backend data fetch; expected shape:
+    // { bookings: number, checkins: number, cancellations: number, courtsInUse: number, courtsTotal: number }
+    if (window.clubStats) {
+      applyOverviewStats(window.clubStats);
+    } else {
+      applyOverviewStats();
+    }
+
+    const infoOverlay = document.getElementById('infoOverlay');
+    const infoTitle = document.getElementById('infoTitle');
+    const infoBody = document.getElementById('infoBody');
+    const infoMap = {
+      privacy: {
+        title: 'Privacy',
+        body: `
+          <p>We only store the information needed to manage bookings and memberships.</p>
+          <p>Your account data is kept locally in this demo and is not shared with third parties.</p>
+          <p>You can request deletion at any time by contacting the admin.</p>
+        `
+      },
+      terms: {
+        title: 'Terms',
+        body: `
+          <p>Bookings are first-come, first-served and subject to club capacity.</p>
+          <p>Members must follow club rules and respect facility policies.</p>
+          <p>Repeated no-shows may result in booking restrictions.</p>
+        `
+      },
+      help: {
+        title: 'Help',
+        body: `
+          <p>Need assistance? Start by searching for a club and selecting a time slot.</p>
+          <p>If you cannot log in, double-check your email and password.</p>
+          <p>Contact support at support@example.com for further help.</p>
+        `
+      }
+    };
+
+    const openInfo = (key) => {
+      const data = infoMap[key];
+      if (!data || !infoOverlay) return;
+      if (infoTitle) infoTitle.textContent = data.title;
+      if (infoBody) infoBody.innerHTML = data.body;
+      infoOverlay.classList.add('open');
+      document.body.classList.add('no-scroll');
+    };
+
+    const closeInfo = () => {
+      if (!infoOverlay) return;
+      infoOverlay.classList.remove('open');
+      document.body.classList.remove('no-scroll');
+    };
+
+    document.querySelectorAll('.info-trigger').forEach((btn) => {
+      btn.addEventListener('click', () => openInfo(btn.dataset.info));
+    });
+    infoOverlay?.addEventListener('click', (evt) => { if (evt.target === infoOverlay) closeInfo(); });
+    infoOverlay?.querySelector('.info-close')?.addEventListener('click', closeInfo);
+  </script>
+</body>
+</html>

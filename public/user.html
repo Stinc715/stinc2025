@@ -1,0 +1,1109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Club Booking Portal - User Profile</title>
+  <link rel="stylesheet" href="theme.css">
+  <style>
+    body { margin: 0; background: #fff; }
+    header { position: sticky; top: 0; z-index: 10; border-bottom: none; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; }
+    .header-wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .site-title-link { color: inherit; text-decoration: none; }
+    .page-head { display: none; }
+    .page-actions { display: none; }
+
+    .profile-shell {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      gap: 24px;
+      margin-top: 0;
+      padding: 8px 0 0;
+      background: transparent;
+      border-radius: 0;
+    }
+
+    .profile-card {
+      padding: 0;
+    }
+
+    .side-nav {
+      position: sticky;
+      top: 96px;
+      align-self: start;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 0 18px 0 0;
+      border-right: none;
+      background: none;
+      box-shadow: none;
+    }
+
+    .side-title {
+      font-size: 18px;
+      font-weight: 700;
+      padding: 6px 10px 2px;
+      color: var(--ink);
+    }
+
+    .side-link {
+      width: 100%;
+      border: none;
+      background: none;
+      text-align: left;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--muted);
+      transition: color .2s var(--anim-base), background .2s var(--anim-base), border-color .2s var(--anim-base), box-shadow .2s var(--anim-base);
+    }
+
+    .side-link:hover {
+      background: rgba(21, 23, 26, 0.04);
+      color: var(--ink);
+    }
+
+    .side-link.active {
+      color: var(--accent-strong);
+      background: rgba(47, 93, 255, 0.1);
+      border-color: transparent;
+      box-shadow: none;
+    }
+
+    .side-subnav {
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: auto;
+      padding-top: 6px;
+    }
+
+    .side-nav.info-active .side-subnav {
+      display: flex;
+    }
+
+    .side-sublink {
+      width: fit-content;
+      border: none;
+      background: none;
+      text-align: left;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .side-sublink.active {
+      color: var(--accent-strong);
+      background: rgba(47, 93, 255, 0.1);
+    }
+
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    .profile-shell .pad { padding: 6px 6px 12px; }
+    .card .pad { padding: 16px; }
+    .booking-list { display: grid; gap: 12px; margin-top: 12px; }
+    .booking-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 0;
+      border: none;
+      border-bottom: none;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      transition: transform .25s var(--anim-base), box-shadow .25s var(--anim-base);
+    }
+    .booking-card:last-child {
+      border-bottom: none;
+    }
+    .booking-meta { display: grid; gap: 4px; }
+    .booking-title { font-weight: 700; font-size: 15px; }
+    .booking-sub { color: var(--muted); font-size: 13px; }
+    .booking-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn {
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 13px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: none;
+    }
+    .btn:hover {
+      box-shadow: none;
+    }
+    .btn.small { padding: 6px 10px; font-size: 12px; }
+
+    .info-grid { display: grid; gap: 16px; }
+    .info-tabs { display: none; }
+    .info-tab {
+      flex: 1;
+      background: none;
+      border: none;
+      padding: 12px 0;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--muted);
+      border-bottom: none;
+    }
+    .info-tab.active { color: var(--accent-strong); }
+    .info-section { display: none; }
+    .info-section.active { display: block; }
+    .profile-hero {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .avatar-uploader {
+      position: relative;
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: #eef1f6;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .avatar-uploader input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .avatar-placeholder {
+      font-size: 18px;
+      font-weight: 700;
+      color: rgba(15, 23, 42, 0.5);
+    }
+
+    .avatar-badge {
+      position: absolute;
+      right: 6px;
+      bottom: 6px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(15, 23, 42, 0.9);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      pointer-events: none;
+    }
+
+    .profile-name {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .profile-email {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .form-field { margin-bottom: 0; }
+    .form-field label { font-size: 13px; color: var(--muted); }
+    .form-field input {
+      width: 100%;
+      height: 36px;
+      border-radius: 10px;
+      border: 1.5px solid #111;
+      background: transparent;
+      padding: 0 12px;
+      font-size: 14px;
+    }
+    .row-field {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 12px;
+      padding: 8px 0;
+      flex-wrap: wrap;
+    }
+    .row-field label {
+      min-width: 60px;
+    }
+    .input-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      flex: 1 1 260px;
+      min-width: 220px;
+    }
+    .row-field input {
+      width: 100%;
+      text-align: left;
+      padding-right: 40px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .row-field input[readonly] {
+      background: #f5f6fb;
+      color: var(--ink);
+    }
+    .row-actions {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .edit-icon {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: none;
+      background: #111;
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .confirm-inline {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .confirm-inline.open {
+      display: inline-flex;
+    }
+    .name-row .row-actions {
+      display: none;
+    }
+    .name-row.editing .row-actions {
+      display: inline-flex;
+    }
+    .form-actions { display: flex; gap: 8px; margin-top: 18px; }
+    .error-text { color: var(--danger); font-size: 12px; margin-top: 4px; display: none; }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(10, 12, 16, 0.45);
+      z-index: 3500;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-card {
+      position: relative;
+      width: min(520px, 92vw);
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 24px 60px rgba(10, 12, 16, 0.25);
+      padding: 22px 22px 18px;
+    }
+    .modal-card h3 { margin: 0 0 10px; font-size: 18px; }
+    .modal-card p { margin: 0 0 14px; color: var(--muted); font-size: 13px; }
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: none;
+      background: #fff;
+      cursor: pointer;
+      color: var(--muted);
+    }
+    .modal-field {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .modal-field label { font-size: 12px; color: var(--muted); }
+    .modal-field input {
+      height: 36px;
+      border-radius: 10px;
+      border: 1.5px solid #111;
+      padding: 0 10px;
+      font-size: 14px;
+    }
+    .code-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 10px;
+    }
+
+    .info-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(10, 12, 16, 0.45);
+      z-index: 3000;
+    }
+    .info-overlay.open { display: flex; }
+    .info-card {
+      position: relative;
+      width: min(560px, 92vw);
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 24px 60px rgba(10, 12, 16, 0.25);
+      padding: 20px 20px 18px;
+    }
+    .info-card h3 { margin: 0 0 8px; font-size: 18px; }
+    .info-body p { margin: 0 0 10px; color: var(--muted); font-size: 13px; }
+    .info-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      border: none;
+      background: #fff;
+      cursor: pointer;
+      color: var(--muted);
+    }
+
+    @media (max-width: 960px) {
+      .profile-shell { grid-template-columns: 1fr; }
+      .side-nav {
+        position: static;
+        flex-direction: column;
+        border-right: none;
+        border-bottom: none;
+        padding: 0 0 12px;
+      }
+      .side-link { text-align: left; }
+      .side-subnav {
+        flex-direction: column;
+        width: auto;
+        justify-content: flex-start;
+        margin-top: 6px;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .booking-card { flex-direction: column; align-items: flex-start; }
+      .booking-actions { width: 100%; }
+      .header-wrap { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap header-wrap">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <a class="link-back" href="home.html">Back to Home</a>
+        <h1 class="site-title"><a class="site-title-link" href="home.html">Club Booking Portal</a></h1>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="profile-card">
+      <div class="profile-shell">
+        <aside class="side-nav" aria-label="Profile Sections">
+        <div class="side-title">User Profile</div>
+        <button class="side-link active" type="button" data-panel="bookings">My Bookings</button>
+        <button class="side-link" type="button" data-panel="info">Information</button>
+        <div class="side-subnav" aria-label="Information Tabs">
+          <button id="tabProfile" class="side-sublink active" type="button">Profile</button>
+          <button id="tabSecurity" class="side-sublink" type="button">Security</button>
+        </div>
+      </aside>
+
+        <section class="panel active" id="panelBookings" data-panel="bookings">
+          <div class="pad">
+            <div class="booking-list">
+              <div class="booking-card">
+                <div class="booking-meta">
+                  <div class="booking-title">Badminton Club</div>
+                  <div class="booking-sub">Friday 18:00 Training</div>
+                </div>
+                <div class="booking-actions">
+                  <button class="btn ghost small" type="button">Details</button>
+                  <button class="btn red small" type="button">Cancel</button>
+                </div>
+              </div>
+              <div class="booking-card">
+                <div class="booking-meta">
+                  <div class="booking-title">Yoga Club</div>
+                  <div class="booking-sub">Saturday 10:00 Class</div>
+                </div>
+                <div class="booking-actions">
+                  <button class="btn ghost small" type="button">Details</button>
+                  <button class="btn red small" type="button">Cancel</button>
+                </div>
+              </div>
+              <div class="booking-card">
+                <div class="booking-meta">
+                  <div class="booking-title">Basketball Club</div>
+                  <div class="booking-sub">Sunday 15:00 Match</div>
+                </div>
+                <div class="booking-actions">
+                  <button class="btn ghost small" type="button">Details</button>
+                  <button class="btn red small" type="button">Cancel</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="panelInfo" data-panel="info">
+          <div class="pad">
+            <div id="profileTab" class="info-section active">
+              <h4 style="margin:0 0 12px;font-size:16px">Personal Information</h4>
+              <div class="profile-hero">
+                <label class="avatar-uploader" aria-label="Upload avatar">
+                  <span class="avatar-placeholder" id="avatarPlaceholder">+</span>
+                  <img id="avatarImg" class="avatar-img" alt="Avatar" style="display:none" />
+                  <span class="avatar-badge" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                      <path d="M4 8.5C4 7.12 5.12 6 6.5 6H8.7L9.7 4.5C10.05 3.97 10.64 3.65 11.27 3.65H12.73C13.36 3.65 13.95 3.97 14.3 4.5L15.3 6H17.5C18.88 6 20 7.12 20 8.5V17.5C20 18.88 18.88 20 17.5 20H6.5C5.12 20 4 18.88 4 17.5V8.5Z" stroke="#fff" stroke-width="1.6"/>
+                      <circle cx="12" cy="13" r="3.3" stroke="#fff" stroke-width="1.6"/>
+                    </svg>
+                  </span>
+                  <input id="avatarInput" type="file" accept="image/*" />
+                </label>
+              </div>
+
+              <div class="form-field row-field name-row" id="nameRow">
+                <label for="modalNameInput">Name</label>
+                <div class="input-wrap">
+                  <input id="modalNameInput" type="text" readonly />
+                  <button id="editNameBtn" class="edit-icon" type="button" aria-label="Edit name">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                      <path d="M4 20h4l10-10a2 2 0 0 0-4-4L4 16v4Z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
+                <div class="row-actions">
+                  <button id="saveNameBtn" class="btn small" type="button" style="display:none">Save</button>
+                  <button id="cancelNameBtn" class="btn ghost small" type="button" style="display:none">Cancel</button>
+                  <div id="nameConfirm" class="confirm-inline" role="status" aria-live="polite">
+                    Confirm save?
+                    <button id="confirmNameBtn" class="btn small" type="button">Confirm</button>
+                    <button id="dismissNameBtn" class="btn ghost small" type="button">Cancel</button>
+                  </div>
+                </div>
+              </div>
+              <div class="form-field row-field">
+                <label for="modalEmailInput">Email</label>
+                <div class="input-wrap">
+                  <input id="modalEmailInput" type="text" readonly />
+                  <button id="editEmailBtn" class="edit-icon" type="button" aria-label="Edit email">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                      <path d="M4 20h4l10-10a2 2 0 0 0-4-4L4 16v4Z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+            <div id="securityTab" class="info-section">
+              <h4 style="margin:0 0 12px;font-size:16px">Change Password</h4>
+
+              <div class="form-field">
+                <label for="currentPassInput">Current Password</label>
+                <input id="currentPassInput" type="password" />
+                <div id="currentPassErr" class="error-text"></div>
+              </div>
+
+              <div class="form-field">
+                <label for="newPassInput">New Password</label>
+                <input id="newPassInput" type="password" />
+                <div id="newPassErr" class="error-text"></div>
+              </div>
+
+              <div class="form-field">
+                <label for="confirmPassInput">Confirm New Password</label>
+                <input id="confirmPassInput" type="password" />
+                <div id="confirmPassErr" class="error-text"></div>
+              </div>
+
+              <p style="color:var(--muted);font-size:13px;margin:12px 0 0">Passwords are stored using bcrypt hashing.</p>
+
+              <div class="form-actions">
+                <button id="updatePassBtn" class="btn blue" type="button" style="flex:1">Update Password</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__wrap">
+      <span class="site-footer__text">&copy; 2026 Club Booking Portal</span>
+      <div class="site-footer__actions">
+        <button class="site-footer__btn info-trigger" type="button" data-info="privacy">Privacy</button>
+        <button class="site-footer__btn info-trigger" type="button" data-info="terms">Terms</button>
+        <button class="site-footer__btn info-trigger" type="button" data-info="help">Help</button>
+      </div>
+    </div>
+  </footer>
+
+  <div id="infoOverlay" class="info-overlay" aria-hidden="true">
+    <div class="info-card" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+      <button class="info-close" type="button" aria-label="Close">x</button>
+      <h3 id="infoTitle">Privacy</h3>
+      <div id="infoBody" class="info-body"></div>
+    </div>
+  </div>
+
+  <div id="emailOverlay" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="emailTitle">
+      <button id="closeEmailModal" class="modal-close" type="button" aria-label="Close">x</button>
+      <h3 id="emailTitle">Update Email</h3>
+      <p>Enter your new email and verification code to confirm.</p>
+      <div class="modal-field">
+        <label for="newEmailInput">New email</label>
+        <input id="newEmailInput" type="email" placeholder="name@example.com" />
+      </div>
+      <div class="modal-field">
+        <label for="emailCodeInput">Verification code</label>
+        <div class="code-row">
+          <input id="emailCodeInput" type="text" placeholder="Verification code" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" />
+          <button id="sendEmailCodeBtn" class="btn ghost small" type="button">Send code</button>
+        </div>
+        <div id="emailUpdateErr" class="error-text" style="display:none"></div>
+      </div>
+      <div class="modal-actions">
+        <button id="confirmEmailBtn" class="btn small" type="button">Confirm</button>
+        <button id="cancelEmailBtn" class="btn ghost small" type="button">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const infoOverlay = document.getElementById('infoOverlay');
+      const infoTitle = document.getElementById('infoTitle');
+      const infoBody = document.getElementById('infoBody');
+      const infoMap = {
+        privacy: {
+          title: 'Privacy',
+          body: `
+            <p>We only store the information needed to manage bookings and memberships.</p>
+            <p>Your account data is kept locally in this demo and is not shared with third parties.</p>
+            <p>You can request deletion at any time by contacting the admin.</p>
+          `
+        },
+        terms: {
+          title: 'Terms',
+          body: `
+            <p>Bookings are first-come, first-served and subject to club capacity.</p>
+            <p>Members must follow club rules and respect facility policies.</p>
+            <p>Repeated no-shows may result in booking restrictions.</p>
+          `
+        },
+        help: {
+          title: 'Help',
+          body: `
+            <p>Need assistance? Start by searching for a club and selecting a time slot.</p>
+            <p>If you cannot log in, double-check your email and password.</p>
+            <p>Contact support at support@example.com for further help.</p>
+          `
+        }
+      };
+
+      const openInfo = (key) => {
+        const data = infoMap[key];
+        if (!data || !infoOverlay) return;
+        if (infoTitle) infoTitle.textContent = data.title;
+        if (infoBody) infoBody.innerHTML = data.body;
+        infoOverlay.classList.add('open');
+        document.body.classList.add('no-scroll');
+      };
+
+      const closeInfo = () => {
+        if (!infoOverlay) return;
+        infoOverlay.classList.remove('open');
+        document.body.classList.remove('no-scroll');
+      };
+
+      document.querySelectorAll('.info-trigger').forEach((btn) => {
+        btn.addEventListener('click', () => openInfo(btn.dataset.info));
+      });
+      infoOverlay?.addEventListener('click', (evt) => { if (evt.target === infoOverlay) closeInfo(); });
+      infoOverlay?.querySelector('.info-close')?.addEventListener('click', closeInfo);
+
+      const panelButtons = Array.from(document.querySelectorAll('.side-link'));
+      const panels = Array.from(document.querySelectorAll('.panel'));
+      const sideNav = document.querySelector('.side-nav');
+
+      const switchPanel = (panelKey) => {
+        panelButtons.forEach((btn) => btn.classList.toggle('active', btn.dataset.panel === panelKey));
+        panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.panel === panelKey));
+        sideNav?.classList.toggle('info-active', panelKey === 'info');
+      };
+
+      panelButtons.forEach((btn) => {
+        btn.addEventListener('click', () => switchPanel(btn.dataset.panel));
+      });
+
+
+      const safeParse = (key) => {
+        try {
+          return JSON.parse(localStorage.getItem(key) || 'null');
+        } catch (err) {
+          return null;
+        }
+      };
+
+      const authFetch = (url, options = {}) => {
+        const token = localStorage.getItem('token');
+        const headers = { ...(options.headers || {}) };
+        if (token) headers.Authorization = `Bearer ${token}`;
+        return fetch(url, {
+          ...options,
+          credentials: options.credentials ?? 'include',
+          headers
+        });
+      };
+
+      // TODO: Replace with real backend endpoints.
+      const profileApi = {
+        async getProfile() {
+          try {
+            const res = await authFetch('/api/profile');
+            if (res.ok) return await res.json();
+          } catch (err) {
+            console.error(err);
+          }
+          return null;
+        },
+        async updateName(displayName) {
+          try {
+            const res = await authFetch('/api/profile', {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ displayName })
+            });
+            if (res.ok) return await res.json();
+          } catch (err) {
+            console.error(err);
+          }
+          return null;
+        },
+        async sendEmailCode(email) {
+          try {
+            const res = await authFetch('/api/profile/email/code', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email })
+            });
+            if (res.ok) return await res.json();
+          } catch (err) {
+            console.error(err);
+          }
+          return null;
+        },
+        async updateEmail(email, code) {
+          try {
+            const res = await authFetch('/api/profile/email', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email, code })
+            });
+            if (res.ok) return await res.json();
+          } catch (err) {
+            console.error(err);
+          }
+          return null;
+        },
+        async uploadAvatar(file) {
+          try {
+            const formData = new FormData();
+            formData.append('avatar', file);
+            const res = await authFetch('/api/profile/avatar', {
+              method: 'POST',
+              body: formData
+            });
+            if (res.ok) return await res.json();
+          } catch (err) {
+            console.error(err);
+          }
+          return null;
+        }
+      };
+
+      const tabProfile = document.getElementById('tabProfile');
+      const tabSecurity = document.getElementById('tabSecurity');
+      const profileTab = document.getElementById('profileTab');
+      const securityTab = document.getElementById('securityTab');
+
+      const modalNameInput = document.getElementById('modalNameInput');
+      const nameRow = document.getElementById('nameRow');
+      const modalEmailInput = document.getElementById('modalEmailInput');
+      const editNameBtn = document.getElementById('editNameBtn');
+      const saveNameBtn = document.getElementById('saveNameBtn');
+      const cancelNameBtn = document.getElementById('cancelNameBtn');
+      const editEmailBtn = document.getElementById('editEmailBtn');
+      const emailOverlay = document.getElementById('emailOverlay');
+      const closeEmailModal = document.getElementById('closeEmailModal');
+      const cancelEmailBtn = document.getElementById('cancelEmailBtn');
+      const confirmEmailBtn = document.getElementById('confirmEmailBtn');
+      const sendEmailCodeBtn = document.getElementById('sendEmailCodeBtn');
+      const newEmailInput = document.getElementById('newEmailInput');
+      const emailCodeInput = document.getElementById('emailCodeInput');
+      const emailUpdateErr = document.getElementById('emailUpdateErr');
+      const nameConfirm = document.getElementById('nameConfirm');
+      const confirmNameBtn = document.getElementById('confirmNameBtn');
+      const dismissNameBtn = document.getElementById('dismissNameBtn');
+      const avatarInput = document.getElementById('avatarInput');
+      const avatarImg = document.getElementById('avatarImg');
+      const avatarPlaceholder = document.getElementById('avatarPlaceholder');
+
+      const currentPassInput = document.getElementById('currentPassInput');
+      const newPassInput = document.getElementById('newPassInput');
+      const confirmPassInput = document.getElementById('confirmPassInput');
+      const currentPassErr = document.getElementById('currentPassErr');
+      const newPassErr = document.getElementById('newPassErr');
+      const confirmPassErr = document.getElementById('confirmPassErr');
+
+      let currentName = '';
+      let currentEmail = '';
+      let codeTimer = null;
+      let codeRemaining = 0;
+
+      const toggleConfirm = (show) => {
+        if (!nameConfirm) return;
+        nameConfirm.classList.toggle('open', show);
+        if (show) confirmNameBtn?.focus();
+        if (saveNameBtn) saveNameBtn.style.display = show ? 'none' : 'inline-flex';
+        if (cancelNameBtn) cancelNameBtn.style.display = show ? 'none' : 'inline-flex';
+      };
+
+      const setEditing = (editing) => {
+        if (!modalNameInput) return;
+        modalNameInput.readOnly = !editing;
+        if (editNameBtn) editNameBtn.style.display = editing ? 'none' : 'inline-flex';
+        if (saveNameBtn) saveNameBtn.style.display = editing ? 'inline-flex' : 'none';
+        if (cancelNameBtn) cancelNameBtn.style.display = editing ? 'inline-flex' : 'none';
+        nameRow?.classList.toggle('editing', editing);
+        toggleConfirm(false);
+        if (editing) modalNameInput.focus();
+      };
+
+      const loadAndDisplay = async () => {
+        const profile = await profileApi.getProfile();
+        const localProfile = safeParse('profile');
+        const loggedUser = safeParse('loggedUser');
+        const userObj = safeParse('user');
+        const avatarData = safeParse('profileAvatar');
+
+        const displayName = (profile && profile.displayName)
+          || (localProfile && localProfile.displayName)
+          || (loggedUser && loggedUser.name)
+          || (userObj && (userObj.fullName || userObj.name))
+          || '';
+        const email = (profile && profile.email)
+          || (loggedUser && loggedUser.email)
+          || (userObj && userObj.email)
+          || '';
+        const avatarUrl = (profile && (profile.avatarUrl || profile.avatar))
+          || avatarData
+          || '';
+
+        if (modalNameInput) modalNameInput.value = displayName || '';
+        if (modalEmailInput) modalEmailInput.value = email || '';
+        currentName = displayName || '';
+        currentEmail = email || '';
+        setEditing(false);
+
+        if (avatarImg && avatarPlaceholder) {
+          if (avatarUrl) {
+            avatarImg.src = avatarUrl;
+            avatarImg.style.display = 'block';
+            avatarPlaceholder.style.display = 'none';
+          } else {
+            avatarImg.style.display = 'none';
+            avatarPlaceholder.style.display = 'block';
+          }
+        }
+      };
+
+      const switchInfoTab = (tab) => {
+        const showProfile = tab === 'profile';
+        profileTab.classList.toggle('active', showProfile);
+        securityTab.classList.toggle('active', !showProfile);
+        tabProfile.classList.toggle('active', showProfile);
+        tabSecurity.classList.toggle('active', !showProfile);
+      };
+
+      const resetSecurity = () => {
+        currentPassInput.value = '';
+        newPassInput.value = '';
+        confirmPassInput.value = '';
+        currentPassErr.style.display = 'none';
+        newPassErr.style.display = 'none';
+        confirmPassErr.style.display = 'none';
+      };
+
+      tabProfile?.addEventListener('click', () => {
+        switchPanel('info');
+        switchInfoTab('profile');
+      });
+      tabSecurity?.addEventListener('click', () => {
+        switchPanel('info');
+        switchInfoTab('security');
+      });
+
+      const persistDisplayName = async () => {
+        const newName = (modalNameInput.value || '').trim();
+        if (newName === currentName) {
+          setEditing(false);
+          return;
+        }
+        const updated = await profileApi.updateName(newName);
+        if (!updated) {
+          const profile = safeParse('profile') || {};
+          const loggedUser = safeParse('loggedUser') || {};
+          const userObj = safeParse('user') || {};
+
+          profile.displayName = newName;
+          loggedUser.name = newName;
+          userObj.fullName = newName;
+
+          try {
+            localStorage.setItem('profile', JSON.stringify(profile));
+            localStorage.setItem('loggedUser', JSON.stringify(loggedUser));
+            localStorage.setItem('user', JSON.stringify(userObj));
+          } catch (err) {
+            console.error(err);
+          }
+        }
+
+        currentName = newName;
+        setEditing(false);
+        toggleConfirm(false);
+      };
+
+      const openEmailModal = () => {
+        if (!emailOverlay) return;
+        if (newEmailInput) newEmailInput.value = '';
+        if (emailCodeInput) emailCodeInput.value = '';
+        if (emailUpdateErr) {
+          emailUpdateErr.textContent = '';
+          emailUpdateErr.style.display = 'none';
+        }
+        emailOverlay.classList.add('open');
+      };
+
+      const closeEmailModalFn = () => {
+        if (!emailOverlay) return;
+        emailOverlay.classList.remove('open');
+      };
+
+      editNameBtn?.addEventListener('click', () => setEditing(true));
+      saveNameBtn?.addEventListener('click', () => toggleConfirm(true));
+      confirmNameBtn?.addEventListener('click', persistDisplayName);
+      dismissNameBtn?.addEventListener('click', () => toggleConfirm(false));
+      cancelNameBtn?.addEventListener('click', () => {
+        if (modalNameInput) modalNameInput.value = currentName;
+        setEditing(false);
+      });
+      editEmailBtn?.addEventListener('click', openEmailModal);
+      closeEmailModal?.addEventListener('click', closeEmailModalFn);
+      cancelEmailBtn?.addEventListener('click', closeEmailModalFn);
+      emailOverlay?.addEventListener('click', (event) => {
+        if (event.target === emailOverlay) closeEmailModalFn();
+      });
+      sendEmailCodeBtn?.addEventListener('click', () => {
+        if (!sendEmailCodeBtn || sendEmailCodeBtn.disabled) return;
+        const emailValue = (newEmailInput?.value || '').trim();
+        const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue);
+        if (!emailOk) {
+          if (emailUpdateErr) {
+            emailUpdateErr.textContent = 'Please enter a valid email before requesting a code.';
+            emailUpdateErr.style.display = 'block';
+          }
+          return;
+        }
+        if (emailUpdateErr) {
+          emailUpdateErr.textContent = '';
+          emailUpdateErr.style.display = 'none';
+        }
+        profileApi.sendEmailCode(emailValue);
+        codeRemaining = 120;
+        sendEmailCodeBtn.disabled = true;
+        sendEmailCodeBtn.textContent = `Resend in ${codeRemaining}s`;
+        if (codeTimer) clearInterval(codeTimer);
+        codeTimer = setInterval(() => {
+          codeRemaining -= 1;
+          if (codeRemaining <= 0) {
+            clearInterval(codeTimer);
+            codeTimer = null;
+            sendEmailCodeBtn.disabled = false;
+            sendEmailCodeBtn.textContent = 'Send code';
+            return;
+          }
+          sendEmailCodeBtn.textContent = `Resend in ${codeRemaining}s`;
+        }, 1000);
+      });
+      confirmEmailBtn?.addEventListener('click', async () => {
+        const nextEmail = (newEmailInput?.value || '').trim();
+        const code = (emailCodeInput?.value || '').trim();
+        if (!nextEmail || !code) {
+          if (emailUpdateErr) {
+            emailUpdateErr.textContent = 'Please enter the new email and verification code.';
+            emailUpdateErr.style.display = 'block';
+          }
+          return;
+        }
+        if (!/^\d{6}$/.test(code)) {
+          if (emailUpdateErr) {
+            emailUpdateErr.textContent = 'Verification code must be 6 digits.';
+            emailUpdateErr.style.display = 'block';
+          }
+          return;
+        }
+        if (emailUpdateErr) {
+          emailUpdateErr.textContent = '';
+          emailUpdateErr.style.display = 'none';
+        }
+        const updated = await profileApi.updateEmail(nextEmail, code);
+        if (!updated) {
+          if (emailUpdateErr) {
+            emailUpdateErr.textContent = 'Verification failed. Please check the code and try again.';
+            emailUpdateErr.style.display = 'block';
+          }
+          return;
+        }
+        currentEmail = nextEmail;
+        if (modalEmailInput) modalEmailInput.value = nextEmail;
+        closeEmailModalFn();
+      });
+
+      emailCodeInput?.addEventListener('input', () => {
+        if (!emailCodeInput) return;
+        const cleaned = emailCodeInput.value.replace(/\D/g, '').slice(0, 6);
+        if (emailCodeInput.value !== cleaned) emailCodeInput.value = cleaned;
+      });
+      modalNameInput?.addEventListener('keydown', (event) => {
+        if (modalNameInput.readOnly) {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            setEditing(true);
+            return;
+          }
+          if (event.key.length === 1 || event.key === 'Backspace' || event.key === 'Delete') {
+            setEditing(true);
+          }
+        }
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          toggleConfirm(true);
+        }
+      });
+
+      avatarInput?.addEventListener('change', async (event) => {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result;
+          if (typeof result !== 'string') return;
+          try {
+            localStorage.setItem('profileAvatar', JSON.stringify(result));
+          } catch (err) {
+            console.error(err);
+          }
+          if (avatarImg && avatarPlaceholder) {
+            avatarImg.src = result;
+            avatarImg.style.display = 'block';
+            avatarPlaceholder.style.display = 'none';
+          }
+        };
+        reader.readAsDataURL(file);
+        await profileApi.uploadAvatar(file);
+      });
+
+      document.getElementById('updatePassBtn')?.addEventListener('click', () => {
+        currentPassErr.style.display = 'none';
+        newPassErr.style.display = 'none';
+        confirmPassErr.style.display = 'none';
+
+        const currentPass = currentPassInput.value;
+        const newPass = newPassInput.value;
+        const confirmPass = confirmPassInput.value;
+
+        let valid = true;
+
+        if (!currentPass) {
+          currentPassErr.textContent = 'Current password is required.';
+          currentPassErr.style.display = 'block';
+          valid = false;
+        }
+        if (!newPass) {
+          newPassErr.textContent = 'New password is required.';
+          newPassErr.style.display = 'block';
+          valid = false;
+        }
+        if (newPass && confirmPass && newPass !== confirmPass) {
+          confirmPassErr.textContent = 'Passwords do not match.';
+          confirmPassErr.style.display = 'block';
+          valid = false;
+        }
+
+        if (!valid) return;
+
+        const updateBtn = document.getElementById('updatePassBtn');
+        if (updateBtn) {
+          updateBtn.textContent = 'Password updated';
+          setTimeout(() => {
+            updateBtn.textContent = 'Update Password';
+            resetSecurity();
+          }, 900);
+        }
+      });
+
+      loadAndDisplay();
+      switchPanel('bookings');
+    });
+  </script>
+
+  <script src="auth-modal.js" defer></script>
+</body>
+</html>
