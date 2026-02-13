@@ -498,7 +498,7 @@
           showStatus('Registered successfully! Redirecting to club home...', false);
           setTimeout(() => { window.location.href = 'club home.html'; }, 900);
         } else if (res.status === 409) {
-          showStatus('Email already exists.', true);
+          showStatus('Email already exists. If you created a user account first, re-submit here with the same password to upgrade it to a club account.', true);
         } else {
           const t = await res.text();
           showStatus(t || 'Registration failed. Please try again.', true);

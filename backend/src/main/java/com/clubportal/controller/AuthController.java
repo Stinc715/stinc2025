@@ -44,8 +44,37 @@ public class AuthController {
                 return ResponseEntity.badRequest().body("Missing fields");
             }
 
+            UserAccount.Role requestedRole = resolveRoleForRegistration(req.getRole());
+
             // 2. 重复邮箱检测
-            if (userRepo.findByEmail(req.getEmail()).isPresent()) {
+            // For club registration, allow promoting an existing STUDENT account to CLUB_LEADER
+            // when the password matches (prevents getting stuck after registering on the wrong tab).
+            var existingOpt = userRepo.findByEmail(req.getEmail());
+            if (existingOpt.isPresent()) {
+                UserAccount existing = existingOpt.get();
+
+                if (requestedRole == UserAccount.Role.CLUB_LEADER) {
+                    if (!passwordUtil.matches(req.getPassword(), existing.getPasswordHash())) {
+                        return ResponseEntity.status(409).body("Email already exists");
+                    }
+
+                    // Never overwrite elevated roles; only promote STUDENT -> CLUB_LEADER.
+                    if (existing.getRole() == null || existing.getRole() == UserAccount.Role.STUDENT) {
+                        existing.setRole(UserAccount.Role.CLUB_LEADER);
+                    }
+                    if (existing.getFullName() == null || existing.getFullName().isBlank()) {
+                        existing.setFullName(req.getFullName());
+                    }
+
+                    UserAccount saved = userRepo.save(existing);
+                    return ResponseEntity.ok(java.util.Map.of(
+                            "id", saved.getId(),
+                            "fullName", saved.getFullName(),
+                            "email", saved.getEmail(),
+                            "role", saved.getRole().name()
+                    ));
+                }
+
                 return ResponseEntity.status(409).body("Email already exists");
             }
 
@@ -54,7 +83,7 @@ public class AuthController {
             u.setFullName(req.getFullName());
             u.setEmail(req.getEmail());
             u.setPasswordHash(passwordUtil.encodePassword(req.getPassword())); // 使用 BCrypt 加密
-            u.setRole(resolveRoleForRegistration(req.getRole()));  // Allow club registration; never self-assign ADMIN
+            u.setRole(requestedRole);  // Allow club registration; never self-assign ADMIN
 
             UserAccount saved = userRepo.save(u);
             return ResponseEntity.ok(java.util.Map.of(
