@@ -304,9 +304,12 @@
   </div>
   <script>
     document.getElementById('logoutBtn')?.addEventListener('click', () => {
+      localStorage.removeItem('token');
       localStorage.removeItem('loggedUser');
       localStorage.removeItem('user');
-      window.location.href = 'login.html';
+      localStorage.removeItem('selectedClub');
+      localStorage.removeItem('postLoginRedirect');
+      window.location.href = '/';
     });
 
     const applyOverviewStats = (stats) => {
