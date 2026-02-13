@@ -731,14 +731,21 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.removeItem('loggedUser');
   }
 
+  const authFetch = (url, options = {}) => {
+    const token = localStorage.getItem('token');
+    const headers = { ...(options.headers || {}) };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return fetch(url, {
+      ...options,
+      credentials: options.credentials ?? 'include',
+      headers
+    });
+  };
+
   // TODO: Replace with real backend endpoint.
   const fetchProfile = async () => {
     try {
-      const res = await fetch('/api/profile', {
-        headers: {
-          Authorization: 'Bearer ' + localStorage.getItem('token')
-        }
-      });
+      const res = await authFetch('/api/profile');
       if (res.ok) return await res.json();
     } catch (err) {
       console.error(err);
@@ -904,18 +911,25 @@ document.addEventListener('DOMContentLoaded', () => {
   // 辅助函数：获取俱乐部的主运动类型（用于显示标签）
   const getSportType = (club) => (club.tags && club.tags.length ? club.tags[0] : 'sport');
 
+  // 统一 clubId 为字符串，避免 number/string 混用导致点击无响应或 join 页面识别失败
+  const normalizeClubId = (value) => {
+    if (value === undefined || value === null) return '';
+    return String(value);
+  };
+
   // 辅助函数：记录未登录用户的加入意图
   // 当用户未登录点击 Join 时，记录目标俱乐部 ID，以便登录后自动重定向到该俱乐部的加入页面
   const storeJoinIntent = (clubId) => {
-    if (!clubId) return;
-    const club = CLUBS.find(c => c.id === clubId);
+    const key = normalizeClubId(clubId);
+    if (!key) return;
+    const club = CLUBS.find(c => normalizeClubId(c.id) === key);
     try {
-      localStorage.setItem('selectedClub', JSON.stringify(club || { id: clubId }));
+      localStorage.setItem('selectedClub', JSON.stringify(club || { id: key }));
     } catch {
       // 忽略存储配额问题
     }
     try {
-      localStorage.setItem('postLoginRedirect', JSON.stringify({ page: 'join', clubId }));
+      localStorage.setItem('postLoginRedirect', JSON.stringify({ page: 'join', clubId: key }));
     } catch {
       // 忽略存储配额问题
     }
@@ -924,8 +938,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // 全局事件处理：处理“Join Now”按钮点击
   // 检查登录状态，未登录则弹出登录框，已登录则跳转
   window.handleJoinClick = function(clubId, event) {
-    event.preventDefault();
-    event.stopPropagation();
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    const key = normalizeClubId(clubId);
     
     // 仅检查登录状态缓存，避免使用用户自动恢复数据
     let logged = null;
@@ -936,7 +951,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     if (!logged) {
-      storeJoinIntent(clubId);
+      storeJoinIntent(key);
       if (window.openAuthModal) {
         window.openAuthModal('login');
       } else {
@@ -944,11 +959,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       return false;
     }
-    
-    const club = CLUBS.find(c => c.id === clubId);
-    if (club) {
-      goToJoinPage(club);
-    }
+
+    goToJoinPage(key);
     return false;
   };
 
@@ -971,19 +983,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 导航函数：跳转到加入页面 (join.html)
   const goToJoinPage = (clubIdOrClub) => {
-    // 兼容传入对象或俱乐部编号字符串
-    const club = (typeof clubIdOrClub === 'string') 
-      ? CLUBS.find(c => c.id === clubIdOrClub) 
-      : clubIdOrClub;
-    
-    if (!club) return;
+    const clubObj = (typeof clubIdOrClub === 'object' && clubIdOrClub) ? clubIdOrClub : null;
+    const clubId = normalizeClubId(clubObj?.id ?? clubIdOrClub);
+    if (!clubId) return;
+
+    const club =
+      clubObj ||
+      CLUBS.find(c => normalizeClubId(c.id) === clubId) ||
+      { id: clubId };
+
     try {
       localStorage.setItem('selectedClub', JSON.stringify(club));
     } catch {
       // 忽略存储配额问题
     }
-    const query = club.id ? `?club=${encodeURIComponent(club.id)}` : '';
-    window.location.href = `join.html${query}`;
+    window.location.href = `join.html?club=${encodeURIComponent(clubId)}`;
   };
 
   // 渲染函数：将俱乐部列表渲染到页面上，处理空状态
@@ -1102,16 +1116,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // Expected shape: [{ id, name, desc, tags: [] }]
   const loadClubs = async () => {
     try {
-      const res = await fetch('/api/clubs', { credentials: 'include' });
+      const res = await authFetch('/api/clubs');
       if (!res.ok) throw new Error('network');
       const data = await res.json();
       if (Array.isArray(data) && data.length) {
-        CLUBS = data.map((c, idx) => ({
-          id: c.id || `club-${idx + 1}`,
-          name: c.name || `Club ${idx + 1}`,
-          desc: c.desc || c.description || '',
-          tags: Array.isArray(c.tags) && c.tags.length ? c.tags : ['sport']
-        }));
+        CLUBS = data.map((c, idx) => {
+          const rawId = c?.id ?? c?.clubId ?? c?.slug;
+          const id = normalizeClubId(rawId) || `club-${idx + 1}`;
+          return {
+            id,
+            name: c?.name || c?.title || `Club ${idx + 1}`,
+            desc: c?.desc || c?.description || '',
+            tags: Array.isArray(c?.tags) && c.tags.length ? c.tags : ['sport']
+          };
+        });
         return;
       }
     } catch (err) {
