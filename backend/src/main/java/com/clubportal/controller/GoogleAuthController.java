@@ -2,18 +2,23 @@ package com.clubportal.controller;
 
 import com.clubportal.dto.AuthResponse;
 import com.clubportal.dto.GoogleLoginRequest;
+import com.clubportal.security.JwtUtil;
 import com.clubportal.service.GoogleAuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
 public class GoogleAuthController {
 
     private final GoogleAuthService googleAuthService;
+    private final JwtUtil jwtUtil;
 
-    public GoogleAuthController(GoogleAuthService googleAuthService) {
+    public GoogleAuthController(GoogleAuthService googleAuthService, JwtUtil jwtUtil) {
         this.googleAuthService = googleAuthService;
+        this.jwtUtil = jwtUtil;
     }
 
     /**
@@ -28,7 +33,14 @@ public class GoogleAuthController {
                 return ResponseEntity.badRequest().body("Missing credential");
             }
             AuthResponse auth = googleAuthService.loginWithGoogleIdToken(req.getCredential());
-            return ResponseEntity.ok(auth);
+            String token = jwtUtil.generateToken(auth.getEmail(), auth.getRole());
+            return ResponseEntity.ok(Map.of(
+                    "token", token,
+                    "id", auth.getId(),
+                    "email", auth.getEmail(),
+                    "fullName", auth.getFullName(),
+                    "role", auth.getRole()
+            ));
         } catch (IllegalArgumentException ex) {
             // 返回安全的错误信息，不暴露内部细节
             System.err.println("Google login validation failed: " + ex.getMessage());

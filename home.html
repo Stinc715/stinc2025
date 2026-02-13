@@ -734,7 +734,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // TODO: Replace with real backend endpoint.
   const fetchProfile = async () => {
     try {
-      const res = await fetch('/api/profile', { credentials: 'include' });
+      const res = await fetch('/api/profile', {
+        headers: {
+          Authorization: 'Bearer ' + localStorage.getItem('token')
+        }
+      });
       if (res.ok) return await res.json();
     } catch (err) {
       console.error(err);
