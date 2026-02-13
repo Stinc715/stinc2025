@@ -649,37 +649,26 @@
   }
 
   window.handleGoogleCredential = async function (response) {
-    try {
-      const idToken = response && response.credential;
-      if (!idToken) {
-        alert('Google sign-in failed: no credential received');
-        return;
-      }
-      const res = await fetch(AUTH_ENDPOINTS.googleLogin, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ credential: idToken })
-      });
+  console.log("Google callback triggered");
 
-      if (!res.ok) {
-        const t = await res.text();
-        alert('Google sign-in failed: ' + (t || res.status));
-        return;
-      }
-      const user = await res.json();
-      localStorage.setItem('user', JSON.stringify(user));
-      const role = user.role || user.type;
-      const userType = resolveUserType(role);
-      localStorage.setItem('loggedUser', JSON.stringify({
-        email: user.email,
-        name: user.fullName,
-        type: userType
-      }));
-      redirectAfterLogin(role);
-    } catch (e) {
-      console.error(e);
-      alert('Network error, please try again later');
-    }
+  try {
+    const idToken = response && response.credential;
+    console.log("ID token exists:", !!idToken);
+
+    const res = await fetch(AUTH_ENDPOINTS.googleLogin, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential: idToken })
+    });
+
+    console.log("Backend response status:", res.status);
+
+    const text = await res.text();
+    console.log("Backend response body:", text);
+
+  } catch (e) {
+    console.error(e);
+  }
   };
 
   async function handleRegister(){
