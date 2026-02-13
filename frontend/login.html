@@ -652,7 +652,7 @@
            name: data.fullName,
            type: userType
          }));
-         redirectAfterLogin(userType === 'club' ? (role || 'club') : role);
+         redirectAfterLogin(userType === 'club' ? 'club' : role);
        } else {
          const text = await res.text();
          const msg = (res.status == 401 || res.status == 400) ? 'Incorrect password' : (text || 'Login failed');
@@ -700,7 +700,7 @@
         type: userType
       }));
 
-      redirectAfterLogin(userType === 'club' ? (role || 'club') : role);
+      redirectAfterLogin(userType === 'club' ? 'club' : role);
     } catch (e) {
       console.error(e);
       showLoginError('Google login failed. Please try again.');
