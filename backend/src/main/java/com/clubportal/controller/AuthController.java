@@ -3,6 +3,7 @@ package com.clubportal.controller;
 import com.clubportal.dto.RegisterRequest;
 import com.clubportal.model.UserAccount;
 import com.clubportal.repository.UserAccountRepository;
+import com.clubportal.security.JwtUtil;
 import com.clubportal.util.PasswordEncryptionUtil;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
@@ -14,10 +15,23 @@ public class AuthController {
 
     private final UserAccountRepository userRepo;
     private final PasswordEncryptionUtil passwordUtil;
+    private final JwtUtil jwtUtil;
 
-    public AuthController(UserAccountRepository userRepo, PasswordEncryptionUtil passwordUtil) {
+    public AuthController(UserAccountRepository userRepo, PasswordEncryptionUtil passwordUtil, JwtUtil jwtUtil) {
         this.userRepo = userRepo;
         this.passwordUtil = passwordUtil;
+        this.jwtUtil = jwtUtil;
+    }
+
+    private static UserAccount.Role resolveRoleForRegistration(String role) {
+        if (role == null || role.isBlank()) return UserAccount.Role.STUDENT;
+
+        String r = role.trim().toUpperCase();
+        if (r.equals("CLUB") || r.equals("CLUB_LEADER") || r.equals("CLUBLEADER")) return UserAccount.Role.CLUB_LEADER;
+        if (r.equals("STUDENT") || r.equals("USER") || r.equals("MEMBER")) return UserAccount.Role.STUDENT;
+
+        // Never allow users to self-assign elevated roles (e.g. ADMIN) via public registration.
+        return UserAccount.Role.STUDENT;
     }
 
     @PostMapping("/register")
@@ -40,10 +54,15 @@ public class AuthController {
             u.setFullName(req.getFullName());
             u.setEmail(req.getEmail());
             u.setPasswordHash(passwordUtil.encodePassword(req.getPassword())); // 使用 BCrypt 加密
-            u.setRole(UserAccount.Role.STUDENT);  // 显式设置，避免 NULL
+            u.setRole(resolveRoleForRegistration(req.getRole()));  // Allow club registration; never self-assign ADMIN
 
             UserAccount saved = userRepo.save(u);
-            return ResponseEntity.ok("Registered");
+            return ResponseEntity.ok(java.util.Map.of(
+                    "id", saved.getId(),
+                    "fullName", saved.getFullName(),
+                    "email", saved.getEmail(),
+                    "role", saved.getRole().name()
+            ));
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.status(409).body("Email already exists");
         } catch (Exception e) {
@@ -62,11 +81,15 @@ public class AuthController {
             return ResponseEntity.status(401).body("Invalid email or password");
         }
         // 返回给前端的结构（与前端预期一致）
+        String role = (user.getRole() == null) ? UserAccount.Role.STUDENT.name() : user.getRole().name();
+        String token = jwtUtil.generateToken(user.getEmail(), role);
+
         var resp = java.util.Map.of(
+                "token", token,
                 "id", user.getId(),
                 "fullName", user.getFullName(),
                 "email", user.getEmail(),
-                "role", user.getRole().name()
+                "role", role
         );
         return ResponseEntity.ok(resp);
     }

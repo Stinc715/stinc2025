@@ -650,29 +650,43 @@
   }
 
   window.handleGoogleCredential = async function (response) {
-  console.log("Google callback triggered");
+    hideLoginError();
+    try {
+      const idToken = response && response.credential;
+      if (!idToken) {
+        showLoginError('Google sign-in failed. Missing credential.');
+        return;
+      }
 
-  try {
-    const idToken = response && response.credential;
-    console.log("ID token exists:", !!idToken);
+      const res = await fetch(AUTH_ENDPOINTS.googleLogin, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: idToken })
+      });
 
-    const res = await fetch(AUTH_ENDPOINTS.googleLogin, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ credential: idToken })
-    });
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        showLoginError(text || 'Google login failed');
+        return;
+      }
 
-    console.log("Backend response status:", res.status);
+      const user = await res.json();
+      if (user && user.token) localStorage.setItem('token', user.token);
+      localStorage.setItem('user', JSON.stringify(user));
 
-    const user = await res.json();
-    console.log("Backend response body:", user);
+      const role = user.role || user.type;
+      const userType = resolveUserType(role);
+      localStorage.setItem('loggedUser', JSON.stringify({
+        email: user.email,
+        name: user.fullName,
+        type: userType
+      }));
 
-    localStorage.setItem('token', user.token);
-    localStorage.setItem('user', JSON.stringify(user));
-
-  } catch (e) {
-    console.error(e);
-  }
+      redirectAfterLogin(role);
+    } catch (e) {
+      console.error(e);
+      showLoginError('Google login failed. Please try again.');
+    }
   };
 
   async function handleRegister(){

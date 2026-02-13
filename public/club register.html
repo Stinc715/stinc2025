@@ -366,9 +366,9 @@
   </div>
 
   <script>
-    const API_BASE = "http://13.40.74.21:8080/api";
-    // TODO: Replace with real backend endpoint for club registration.
-    const CLUB_REGISTER_ENDPOINT = `${API_BASE}/clubs/register`;
+    const API_BASE = "/api";
+    // Register club leaders into the shared user_account table (role=CLUB_LEADER).
+    const CLUB_REGISTER_ENDPOINT = `${API_BASE}/register`;
     const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const passRe = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/;
 
@@ -465,7 +465,7 @@
         const res = await fetch(CLUB_REGISTER_ENDPOINT, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fullName, email, password: pass })
+          body: JSON.stringify({ fullName, email, password: pass, role: 'CLUB_LEADER' })
         });
 
         if (res.ok) {
