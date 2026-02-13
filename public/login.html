@@ -105,6 +105,19 @@
   }
   #panel-login .login-social-section{
     padding-top:8px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  #panel-login .login-social-section .divider{
+    width:100%;
+  }
+  #google-signin-btn{
+    width:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    margin-top:4px;
   }
   label{ display:block;font-size:14px;margin:0 0 6px;color:var(--ink); }
   input, select{ width:100%;height:40px;border:1px solid var(--line);border-radius:10px;padding:0 10px;font-size:13px;background:#fff; }
@@ -177,6 +190,12 @@
   .small-row{ display:flex;justify-content:flex-end;margin:6px 0 18px; }
   .switch-row{ display:flex;justify-content:flex-end;margin:8px 0 12px; }
   .divider{display:flex;align-items:center;gap:10px;margin:20px 0 16px;color:#6b7280;font-size:12px;}
+  .google-signin-shell{position:relative;width:100%;height:42px;border:1px solid #d1d5db;border-radius:4px;background:#fff;overflow:hidden;}
+  .google-signin-shell__visual{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;color:#1f2937;font-size:16px;font-weight:500;}
+  .google-signin-shell__label{font-size:16px;line-height:1;}
+  .google-signin-shell__logo{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:20px;height:20px;display:block;}
+  #google-signin-btn{position:absolute;inset:0;opacity:0;z-index:2;}
+  #google-signin-btn > div, #google-signin-btn iframe{width:100%!important;height:100%!important;}
   #reset-panel{ position:fixed;inset:0;background:rgba(15,23,42,.28);display:none;align-items:center;justify-content:center;z-index:999; }
   #reset-box{ width:320px;background:#fff;border-radius:16px;box-shadow:none;padding:20px 18px 16px; }
   #reset-box h3{ margin:0 0 6px;font-size:16px; }
@@ -252,24 +271,19 @@
       </div><!-- end login-form-section -->
 
       <div class="login-social-section">
-      <!-- Google 鐧诲綍 -->
+      <!-- Google 登录 -->
       <div class="divider"><span>or</span></div>
-      <div style="text-align:center;">
-        <div id="g_id_onload"
-             data-client_id="885940597719-mtcoo82k9bbksvuj786nsj7iombqtsli.apps.googleusercontent.com"
-             data-context="signin"
-             data-ux_mode="popup"
-             data-callback="handleGoogleCredential"
-             data-auto_prompt="false">
+      <div class="google-signin-shell" aria-label="Sign in with Google">
+        <div class="google-signin-shell__visual" aria-hidden="true">
+          <svg class="google-signin-shell__logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+            <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.2-.9 2.3-2 3.1l3.2 2.5c1.9-1.7 3-4.3 3-7.4 0-.7-.1-1.4-.2-2.1H12z"/>
+            <path fill="#34A853" d="M12 22c2.7 0 5-.9 6.7-2.4l-3.2-2.5c-.9.6-2 .9-3.5.9-2.7 0-4.9-1.8-5.7-4.2H3v2.6C4.7 19.8 8.1 22 12 22z"/>
+            <path fill="#4A90E2" d="M6.3 13.8c-.2-.6-.3-1.2-.3-1.8s.1-1.3.3-1.8V7.6H3C2.4 8.8 2 10.4 2 12s.4 3.2 1 4.4l3.3-2.6z"/>
+            <path fill="#FBBC05" d="M12 6.8c1.5 0 2.8.5 3.8 1.5l2.8-2.8C17 4 14.7 3 12 3 8.1 3 4.7 5.2 3 8.6l3.3 2.6C7.1 8.6 9.3 6.8 12 6.8z"/>
+          </svg>
+          <span class="google-signin-shell__label">Sign in with Google</span>
         </div>
-        <div class="g_id_signin"
-             data-type="standard"
-             data-shape="rectangular"
-             data-theme="outline"
-             data-text="signin_with"
-             data-size="large"
-             data-logo_alignment="left">
-        </div>
+        <div id="google-signin-btn"></div>
       </div>
       </div><!-- end login-social-section -->
     </div>
@@ -344,80 +358,41 @@
     </div>
   </div>
 
-  <!-- Google 韬唤鏈嶅姟 SDK -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-
-  <!-- 璇婃柇杈呭姪锛氳緭鍑?client_id 涓庢潵婧愶紝骞剁瓑寰?GSI 鍙敤 -->
+  <!-- Google Identity Services SDK -->
+  <script src="https://accounts.google.com/gsi/client?hl=en" async defer></script>
   <script>
     (function(){
-      try{
-        const el = document.querySelector('[data-client_id]');
-        const clientId = el ? el.getAttribute('data-client_id') : null;
-        console.log('[GSI DEBUG] page origin =', location.origin);
-        console.log('[GSI DEBUG] client_id attr =', clientId);
-
-        function checkGsi(){
-          const ok = !!(window.google && window.google.accounts && window.google.accounts.id);
-          console.log('[GSI DEBUG] google.accounts.id available =', ok);
-          if(!ok){
-            // 閲嶈瘯鍑犳
-            return false;
-          }
-          return true;
-        }
-
-        let attempts = 0;
-        const maxAttempts = 8;
-        const t = setInterval(()=>{
-          attempts++;
-          const ready = checkGsi();
-          if(ready || attempts >= maxAttempts){
-            clearInterval(t);
-            if(!ready) console.warn('[GSI DEBUG] Google Identity Services did not become available after retries.');
-          }
-        }, 300);
-      }catch(e){ console.error('[GSI DEBUG] diagnostic error', e); }
-    })();
-  </script>
-
-  <!-- 濡傛灉 SDK 鏈湴鍖栦簡鎸夐挳鏂囨锛屽皾璇曞己鍒舵敼鍥炶嫳鏂?-->
-  <script>
-    (function(){
-      const desired = 'Sign in with Google';
-      let attempts = 0;
-      const maxAttempts = 12;
-      const t = setInterval(()=>{
+      var attempts = 0;
+      var t = setInterval(function(){
         attempts++;
-        try{
-          const container = document.querySelector('.g_id_signin');
-          if(!container) return;
-          // 鏌ユ壘鍖呭惈鏈湴鍖栨枃妗堢殑鎸夐挳鎴?span
-          const btn = container.querySelector('button') || container.querySelector('[role="button"]') || container.querySelector('div');
-          if(!btn) return;
-          // 鏌ユ壘鎵胯浇鏂囨鐨勫厓绱?
-          const textEl = btn.querySelector('span') || btn;
-          if(textEl && textEl.textContent && /浣跨敤|鐧诲綍|鐧诲叆|甯宠櫉|璐﹀彿|Google/.test(textEl.textContent)){
-            textEl.textContent = desired;
-            // 濡傛湁 aria-label 鍒欏悓姝ユ洿鏂?
-            if(btn.getAttribute){
-              const aria = btn.getAttribute('aria-label');
-              if(aria) btn.setAttribute('aria-label', desired);
+        if(window.google && window.google.accounts && window.google.accounts.id){
+          clearInterval(t);
+          google.accounts.id.initialize({
+            client_id: '885940597719-mtcoo82k9bbksvuj786nsj7iombqtsli.apps.googleusercontent.com',
+            callback: function(response){
+              if (typeof window.handleGoogleCredential === 'function') {
+                window.handleGoogleCredential(response);
+              }
             }
-            clearInterval(t);
-            return;
-          }
-          // 澶勭悊 SDK 鐢熸垚澶氬眰缁撴瀯鐨勬儏鍐?
-          const allSpans = container.querySelectorAll('span');
-          for(const s of allSpans){
-            if(s.textContent && /浣跨敤|鐧诲綍|鐧诲叆|甯宠櫉|璐﹀彿|Google/.test(s.textContent)){
-              s.textContent = desired;
-              clearInterval(t);
-              return;
-            }
-          }
-        }catch(e){ /* 蹇界暐 */ }
-        if(attempts >= maxAttempts) clearInterval(t);
-      }, 250);
+          });
+          var googleBtnHost = document.getElementById('google-signin-btn');
+          var dividerEl = document.querySelector('.login-social-section .divider');
+          var googleBtnWidth = Math.max(
+            320,
+            Math.floor(
+              (dividerEl && dividerEl.clientWidth) ||
+              (googleBtnHost && googleBtnHost.clientWidth) ||
+              320
+            )
+          );
+          google.accounts.id.renderButton(
+            googleBtnHost,
+            { type:'standard', shape:'rectangular', theme:'outline', text:'signin_with', logo_alignment:'left', locale:'en', width: googleBtnWidth }
+          );
+        } else if(attempts >= 20){
+          clearInterval(t);
+        }
+      }, 200);
     })();
   </script>
   <script>
