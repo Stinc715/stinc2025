@@ -439,6 +439,21 @@
       return 'user';
     };
 
+    const rememberClubEmail = (email) => {
+      const em = String(email || '').trim().toLowerCase();
+      if (!em) return;
+      const key = 'clubPortal.clubEmails';
+      try {
+        const raw = localStorage.getItem(key);
+        const list = raw ? JSON.parse(raw) : [];
+        const next = Array.isArray(list) ? list : [];
+        if (!next.includes(em)) next.push(em);
+        localStorage.setItem(key, JSON.stringify(next));
+      } catch (e) {
+        try { localStorage.setItem(key, JSON.stringify([em])); } catch (err) {}
+      }
+    };
+
     document.getElementById('clubRegisterBtn')?.addEventListener('click', async () => {
       clearStatus();
       let ok = true;
@@ -473,6 +488,7 @@
           try { saved = await res.json(); } catch (e) { saved = null; }
           const profileToSave = saved || { fullName, email, role: 'club' };
           const userType = resolveUserType(profileToSave.role || profileToSave.type);
+          rememberClubEmail(profileToSave.email || email);
           localStorage.setItem('user', JSON.stringify(profileToSave));
           localStorage.setItem('loggedUser', JSON.stringify({
             email: profileToSave.email || email,

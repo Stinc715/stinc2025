@@ -580,6 +580,19 @@
     return 'user';
   }
 
+  function isKnownClubEmail(email) {
+    const em = String(email || '').trim().toLowerCase();
+    if (!em) return false;
+    try {
+      const raw = localStorage.getItem('clubPortal.clubEmails');
+      if (!raw) return false;
+      const list = JSON.parse(raw);
+      return Array.isArray(list) && list.includes(em);
+    } catch (e) {
+      return false;
+    }
+  }
+
   function getDefaultTarget(role) {
     if (role) return resolveUserType(role) === 'club' ? 'club home.html' : 'home.html';
     try {
@@ -627,16 +640,19 @@
       });
       if (res.ok) {
         const data = await res.json();
-        localStorage.setItem('token', data.token);
+        if (data && data.token) localStorage.setItem('token', data.token);
+        else localStorage.removeItem('token');
         localStorage.setItem('user', JSON.stringify(data));
         const role = data.role || data.type;
-        const userType = resolveUserType(role);
+        let userType = resolveUserType(role);
+        const resolvedEmail = (data.email || email).trim();
+        if (userType !== 'club' && isKnownClubEmail(resolvedEmail)) userType = 'club';
         localStorage.setItem('loggedUser', JSON.stringify({
-          email: data.email,
+          email: resolvedEmail,
           name: data.fullName,
           type: userType
         }));
-        redirectAfterLogin(role);
+        redirectAfterLogin(userType === 'club' ? (role || 'club') : role);
       } else {
         const text = await res.text();
         const msg = (res.status == 401 || res.status == 400) ? 'Incorrect password' : (text || 'Login failed');
@@ -675,14 +691,16 @@
       localStorage.setItem('user', JSON.stringify(user));
 
       const role = user.role || user.type;
-      const userType = resolveUserType(role);
+      let userType = resolveUserType(role);
+      const resolvedEmail = String(user.email || '').trim();
+      if (userType !== 'club' && isKnownClubEmail(resolvedEmail)) userType = 'club';
       localStorage.setItem('loggedUser', JSON.stringify({
-        email: user.email,
+        email: resolvedEmail,
         name: user.fullName,
         type: userType
       }));
 
-      redirectAfterLogin(role);
+      redirectAfterLogin(userType === 'club' ? (role || 'club') : role);
     } catch (e) {
       console.error(e);
       showLoginError('Google login failed. Please try again.');
