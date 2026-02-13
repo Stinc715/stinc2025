@@ -9,7 +9,19 @@ import java.time.LocalDateTime;
 })
 public class UserAccount {
 
-    public enum Role { STUDENT, CLUB_LEADER, ADMIN }
+    public enum Role {
+        STUDENT,
+        CLUB_LEADER,
+        ADMIN;
+
+        // Frontend only distinguishes between "user" and "club".
+        public String toAccountType() {
+            return switch (this) {
+                case CLUB_LEADER, ADMIN -> "club";
+                case STUDENT -> "user";
+            };
+        }
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -47,7 +47,7 @@ public class AuthController {
             UserAccount.Role requestedRole = resolveRoleForRegistration(req.getRole());
 
             // 2. 重复邮箱检测
-            // For club registration, allow promoting an existing STUDENT account to CLUB_LEADER
+            // For club registration, allow promoting an existing "user" account to a "club" account
             // when the password matches (prevents getting stuck after registering on the wrong tab).
             var existingOpt = userRepo.findByEmail(req.getEmail());
             if (existingOpt.isPresent()) {
@@ -58,7 +58,7 @@ public class AuthController {
                         return ResponseEntity.status(409).body("Email already exists");
                     }
 
-                    // Never overwrite elevated roles; only promote STUDENT -> CLUB_LEADER.
+                    // Never overwrite elevated roles; only promote user -> club.
                     if (existing.getRole() == null || existing.getRole() == UserAccount.Role.STUDENT) {
                         existing.setRole(UserAccount.Role.CLUB_LEADER);
                     }
@@ -71,7 +71,7 @@ public class AuthController {
                             "id", saved.getId(),
                             "fullName", saved.getFullName(),
                             "email", saved.getEmail(),
-                            "role", saved.getRole().name()
+                            "role", saved.getRole() == null ? "user" : saved.getRole().toAccountType()
                     ));
                 }
 
@@ -90,7 +90,7 @@ public class AuthController {
                     "id", saved.getId(),
                     "fullName", saved.getFullName(),
                     "email", saved.getEmail(),
-                    "role", saved.getRole().name()
+                    "role", saved.getRole() == null ? "user" : saved.getRole().toAccountType()
             ));
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.status(409).body("Email already exists");
@@ -110,7 +110,7 @@ public class AuthController {
             return ResponseEntity.status(401).body("Invalid email or password");
         }
         // 返回给前端的结构（与前端预期一致）
-        String role = (user.getRole() == null) ? UserAccount.Role.STUDENT.name() : user.getRole().name();
+        String role = (user.getRole() == null) ? "user" : user.getRole().toAccountType();
         String token = jwtUtil.generateToken(user.getEmail(), role);
 
         var resp = java.util.Map.of(

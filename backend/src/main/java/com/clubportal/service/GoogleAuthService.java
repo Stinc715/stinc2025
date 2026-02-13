@@ -185,7 +185,7 @@ public class GoogleAuthService {
                 user.getId(),            // Integer 类型，与 UserAccount 一致
                 user.getFullName(),
                 user.getEmail(),
-                user.getRole().name()
+                user.getRole() == null ? "user" : user.getRole().toAccountType()
         );
     }
 }

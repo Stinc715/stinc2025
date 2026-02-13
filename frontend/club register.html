@@ -367,7 +367,7 @@
 
   <script>
     const API_BASE = "/api";
-    // Register club leaders into the shared user_account table (role=CLUB_LEADER).
+    // Register club accounts into the shared user_account table (role=club).
     const CLUB_REGISTER_ENDPOINT = `${API_BASE}/register`;
     const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const passRe = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/;
@@ -480,7 +480,7 @@
         const res = await fetch(CLUB_REGISTER_ENDPOINT, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fullName, email, password: pass, role: 'CLUB_LEADER' })
+          body: JSON.stringify({ fullName, email, password: pass, role: 'club' })
         });
 
         if (res.ok) {

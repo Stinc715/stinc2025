@@ -4,7 +4,7 @@ public class RegisterRequest {
     private String fullName;
     private String email;
     private String password;
-    // Optional: allow the frontend to specify account type. We only accept STUDENT or CLUB_LEADER.
+    // Optional: allow the frontend to specify account type ("user" or "club").
     private String role;
 
     public String getFullName() { return fullName; }
