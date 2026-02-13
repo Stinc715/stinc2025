@@ -1,4 +1,4 @@
-﻿// onboarding.js
+// onboarding.js
 (function(){
   const sports = [
     'Badminton',

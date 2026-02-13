@@ -1,0 +1,773 @@
+﻿﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Club Booking Portal</title>
+  <link rel="stylesheet" href="theme.css">
+<style>
+  :root{ --bg:#fff; --card:#fff; --line:#e5e7eb; --ink:#111827; --muted:#6b7280; --accent:#2563eb; }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--bg);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+    min-height:100vh;display:flex;flex-direction:column;align-items:stretch;
+  }
+  body.embedded{
+    background:transparent;
+    min-height:unset;
+    display:block;
+    padding:28px;
+  }
+  .auth-wrap{
+    flex:1;
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px 0;
+  }
+  body.embedded .auth-wrap{
+    display:block;
+    padding:0;
+  }
+  .card{
+    width:360px;background:var(--card);border:1px solid rgba(0,0,0,.03);border-radius:18px;
+    box-shadow:none;padding:28px 26px 26px;position:relative;
+  }
+  body.embedded .card{
+    width:100%;
+    max-width:none;
+    border:none;
+    box-shadow:none;
+    padding:10px 8px 8px;
+  }
+  h1{ text-align:center;font-size:32px;margin:0 0 28px; }
+  .tabs{ 
+    display:flex;
+    gap:0;
+    border-bottom:1px solid var(--line);
+    margin-bottom:22px;
+  }
+  .tab{ 
+    flex:1;
+    text-align:center;
+    padding:14px 0;
+    font-weight:600;
+    cursor:pointer;
+    background:transparent;
+    color:var(--muted);
+    font-size:15px;
+    transition:all 0.2s ease;
+    position:relative;
+  }
+  .tab:hover{
+    color:var(--ink);
+  }
+  .tab.active{ 
+    background:transparent;
+    color:var(--ink);
+    border-bottom:2px solid var(--ink);
+    margin-bottom:-1px;
+  }
+  .panels-container{
+    position:relative;
+    min-height:380px;
+    display:flex;
+    flex-direction:column;
+  }
+  #panel-login,
+  #panel-register{
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+  #panel-login.active,
+  #panel-register.active{
+    position:relative;
+    opacity:1;
+    visibility:visible;
+    pointer-events:auto;
+    min-height:380px;
+  }
+  #panel-login .login-form-section{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+  }
+  #panel-login .login-social-section{
+    padding-top:8px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  #panel-login .login-social-section .divider{
+    width:100%;
+  }
+  #google-signin-btn{
+    width:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    margin-top:4px;
+  }
+  label{ display:block;font-size:14px;margin:0 0 6px;color:var(--ink); }
+  input, select{ width:100%;height:40px;border:1px solid var(--line);border-radius:10px;padding:0 10px;font-size:13px;background:#fff; }
+  input:-webkit-autofill,
+  input:-webkit-autofill:focus{
+    box-shadow:0 0 0 1000px #fff inset;
+    -webkit-text-fill-color:var(--ink);
+  }
+  .input-wrap{ position:relative; }
+  .input-wrap input{ padding-right:44px; }
+  .toggle-password{
+    position:absolute; right:8px; top:50%; transform:translateY(-50%);
+    width:32px; height:32px; border-radius:999px; border:1px solid var(--line);
+    background:#fff; display:inline-flex; align-items:center; justify-content:center;
+    cursor:pointer; color:#6b7280; transition:background .15s ease, box-shadow .15s ease;
+  }
+  .toggle-password:hover{ background:#f3f4f6; box-shadow:none; }
+  .toggle-password svg{ width:18px; height:18px; stroke:currentColor; }
+  .toggle-password .eye-off{ display:none; }
+  .toggle-password.is-visible .eye-on{ display:none; }
+  .toggle-password.is-visible .eye-off{ display:block; }
+  .mb-3{ margin-bottom:18px }
+  .btn-row{ display:flex;gap:12px;margin-top:18px; }
+  .btn{ 
+    flex:1;
+    height:44px;
+    border-radius:10px;
+    border:1px solid #000;
+    background:#111;
+    color:#fff;
+    font-size:16px;
+    cursor:pointer;
+    box-shadow:none !important;
+    transition:transform 0.15s ease;
+    outline:none;
+  }
+  .btn:hover{
+    transform:translateY(-2px);
+    box-shadow:none !important;
+  }
+  .btn:active{
+    transform:translateY(0);
+    box-shadow:none !important;
+  }
+  .btn:focus{
+    outline:none;
+    box-shadow:none !important;
+  }
+  .btn:focus-visible{
+    outline:none;
+    box-shadow:none !important;
+  }
+  .btn[disabled]{opacity:.6;cursor:not-allowed}
+  .btn.light{ background:#fff;color:#000; }
+  .link-btn{ background:none;border:none;color:#2563eb;font-size:13px;cursor:pointer;padding:0; }
+  .error{ font-size:12px;color:#dc2626;margin-top:4px;display:none; }
+  .success{
+    display:none; position:relative; padding:10px 12px; border-radius:12px;
+    border:1px solid rgba(59,130,246,.25); background:rgba(59,130,246,.08);
+    color:#1f3bb3; font-size:13px; margin-bottom:12px;
+  }
+  .success::before,
+  .success::after{
+    content:none;
+  }
+  .success .success-title{ margin:0 0 4px;font-size:13px;font-weight:600; }
+  .success .success-body{ display:flex;flex-direction:column;gap:2px; }
+  .success .success-text{ margin:0;color:inherit;font-size:13px; }
+  .success.is-error{ border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.08);color:#b91c1c; }
+  .small-row{ display:flex;justify-content:flex-end;margin:6px 0 18px; }
+  .switch-row{ display:flex;justify-content:flex-end;margin:8px 0 12px; }
+  .divider{display:flex;align-items:center;gap:10px;margin:20px 0 16px;color:#6b7280;font-size:12px;}
+  .google-signin-shell{position:relative;width:100%;height:42px;border:1px solid #d1d5db;border-radius:4px;background:#fff;overflow:hidden;}
+  .google-signin-shell__visual{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;color:#1f2937;font-size:16px;font-weight:500;}
+  .google-signin-shell__label{font-size:16px;line-height:1;}
+  .google-signin-shell__logo{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:20px;height:20px;display:block;}
+  #google-signin-btn{position:absolute;inset:0;opacity:0;z-index:2;}
+  #google-signin-btn > div, #google-signin-btn iframe{width:100%!important;height:100%!important;}
+  #reset-panel{ position:fixed;inset:0;background:rgba(15,23,42,.28);display:none;align-items:center;justify-content:center;z-index:999; }
+  #reset-box{ width:320px;background:#fff;border-radius:16px;box-shadow:none;padding:20px 18px 16px; }
+  #reset-box h3{ margin:0 0 6px;font-size:16px; }
+  #reset-box p{ margin:0 0 12px;font-size:13px;color:#6b7280; }
+  #reset-msg{ font-size:12px;color:#1d4ed8;background:#eff6ff;border:1px solid #bfdbfe;padding:6px 8px;border-radius:8px;display:none;margin-bottom:10px; }
+  .status-dialog{ position:fixed; inset:0; background:rgba(15,23,42,.35); display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .25s ease; z-index:1200; padding:24px; backdrop-filter:blur(2px); }
+  .status-dialog.active{ opacity:1; pointer-events:auto; }
+  .status-dialog__card{ width:min(380px,90vw); background:#fff; border-radius:22px; padding:34px 30px 26px; text-align:center; box-shadow:none; transform:translateY(24px); transition:transform .3s ease; }
+  .status-dialog.active .status-dialog__card{ transform:translateY(0); }
+  .status-dialog__icon{ width:70px;height:70px;border-radius:18px;margin:0 auto 18px;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;color:#fff;background:linear-gradient(135deg,#2563eb,#1d4ed8);box-shadow:none; }
+  .status-dialog[data-mode="success"] .status-dialog__icon{ background:linear-gradient(135deg,#3b82f6,#1d4ed8);box-shadow:none; }
+  .status-dialog__title{ font-size:22px;margin:0 0 8px;color:#0f172a; }
+  .status-dialog__text{ margin:0 0 22px;color:#4b5563;font-size:14px; }
+  .status-dialog__btn{ border:none;border-radius:999px;width:100%;max-width:220px;margin:0 auto;height:46px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-size:15px;font-weight:600;cursor:pointer;box-shadow:none; }
+  .status-dialog__btn:active{ transform:translateY(1px); }
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:#e5e7eb;}
+  .form-alert{display:none;margin:10px 0;padding:10px 12px;border-radius:12px;border:1px solid rgba(47,93,255,.25);background:rgba(47,93,255,.08);color:#1f3bb3;font-size:13px;animation:fadeUp .2s ease both;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+</style>
+</head>
+<body>
+  <main class="auth-wrap">
+    <div class="card">
+<h1>Club Booking Portal</h1>
+
+    <div class="tabs">
+      <div id="tab-login" class="tab active">Login</div>
+      <div id="tab-register-user" class="tab">Register</div>
+    </div>
+
+    <div class="panels-container">
+    <!-- 鐧诲綍闈㈡澘 -->
+    <div id="panel-login" class="active">
+      <div class="login-form-section">
+      <div id="login-success" class="success" role="status" aria-live="polite">
+        <div class="success-body">
+          <p class="success-title">Registration complete</p>
+          <p class="success-text">You can log in now.</p>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="username" />
+        <div id="login-email-err" class="error">Please enter a valid email address.</div>
+      </div>
+      <div class="mb-3">
+        <label for="password">Password</label>
+        <div class="input-wrap">
+          <input id="password" type="password" autocomplete="current-password" />
+          <button id="togglePassword" class="toggle-password" type="button" aria-label="Show password">
+            <svg class="eye-on" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.56 21.56 0 0 1 5.06-6.06"></path>
+              <path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.4 21.4 0 0 1-4.46 5.19"></path>
+              <path d="M14.12 14.12a3 3 0 0 1-4.24-4.24"></path>
+              <path d="M1 1l22 22"></path>
+            </svg>
+          </button>
+        </div>
+        <div id="login-pass-err" class="error">Password is required.</div>
+      </div>
+      <div id="login-form-err" class="form-alert" role="alert"></div>
+      <div class="small-row">
+        <button id="btnForgot" class="link-btn" type="button">Forgot password?</button>
+      </div>
+      <div class="btn-row">
+        <button id="loginBtn" class="btn" type="button">Login</button>
+        <button id="btnGoRegister" class="btn light" type="button">Create account</button>
+      </div>
+      </div><!-- end login-form-section -->
+
+      <div class="login-social-section">
+      <!-- Google 登录 -->
+      <div class="divider"><span>or</span></div>
+      <div class="google-signin-shell" aria-label="Sign in with Google">
+        <div class="google-signin-shell__visual" aria-hidden="true">
+          <svg class="google-signin-shell__logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+            <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.2-.9 2.3-2 3.1l3.2 2.5c1.9-1.7 3-4.3 3-7.4 0-.7-.1-1.4-.2-2.1H12z"/>
+            <path fill="#34A853" d="M12 22c2.7 0 5-.9 6.7-2.4l-3.2-2.5c-.9.6-2 .9-3.5.9-2.7 0-4.9-1.8-5.7-4.2H3v2.6C4.7 19.8 8.1 22 12 22z"/>
+            <path fill="#4A90E2" d="M6.3 13.8c-.2-.6-.3-1.2-.3-1.8s.1-1.3.3-1.8V7.6H3C2.4 8.8 2 10.4 2 12s.4 3.2 1 4.4l3.3-2.6z"/>
+            <path fill="#FBBC05" d="M12 6.8c1.5 0 2.8.5 3.8 1.5l2.8-2.8C17 4 14.7 3 12 3 8.1 3 4.7 5.2 3 8.6l3.3 2.6C7.1 8.6 9.3 6.8 12 6.8z"/>
+          </svg>
+          <span class="google-signin-shell__label">Sign in with Google</span>
+        </div>
+        <div id="google-signin-btn"></div>
+      </div>
+      </div><!-- end login-social-section -->
+    </div>
+
+    <!-- 娉ㄥ唽闈㈡澘 -->
+    <div id="panel-register">
+      <div id="reg-success" class="success" role="status" aria-live="polite">
+        <div class="success-body">
+          <p class="success-title" id="reg-success-title">Heads up</p>
+          <p class="success-text" id="reg-success-text"></p>
+        </div>
+      </div>
+      <div class="switch-row">
+        <button id="clubSwitch" class="link-btn" type="button">Register as a club?</button>
+      </div>
+
+      <div id="user-extra" class="mb-3">
+        <label for="reg-username">Your name / display name</label>
+        <input id="reg-username" type="text" />
+        <div id="reg-username-err" class="error">Please enter your name.</div>
+      </div>
+
+      <div class="mb-3">
+        <label for="reg-email">Email</label>
+        <input id="reg-email" type="email" autocomplete="email" />
+        <div id="reg-email-err" class="error">Please enter a valid email address.</div>
+      </div>
+      <div class="mb-3">
+        <label for="reg-pass">Password</label>
+        <input id="reg-pass" type="password" autocomplete="new-password" />
+        <div id="reg-pass-err" class="error">Password is required.</div>
+      </div>
+      <div class="mb-3">
+        <label for="reg-pass2">Confirm password</label>
+        <input id="reg-pass2" type="password" autocomplete="new-password" />
+        <div id="reg-pass2-err" class="error">Passwords do not match.</div>
+      </div>
+      <div class="btn-row">
+        <button id="btnRegisterDo" class="btn" type="button">Register</button>
+        <button id="btnBackLogin" class="btn light" type="button">Back to login</button>
+      </div>
+    </div>
+    </div><!-- end panels-container -->
+    </div>
+  </main>
+
+
+  <!-- 閲嶇疆瀵嗙爜寮瑰眰 -->
+  <div id="reset-panel">
+    <div id="reset-box">
+      <h3>Reset password</h3>
+      <p>Enter your email address, we'll send you a reset link.</p >
+      <div id="reset-msg">Email sent.</div>
+      <div class="mb-3">
+        <label for="reset-email">Email</label>
+        <input id="reset-email" type="email" />
+        <div id="reset-email-err" class="error">Please enter a valid email address.</div>
+      </div>
+      <div class="btn-row">
+        <button id="btnResetSend" class="btn" type="button">Send link</button>
+        <button id="btnResetBack" class="btn light" type="button">Back</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="status-dialog" class="status-dialog" aria-hidden="true" data-mode="success">
+    <div class="status-dialog__card" role="alertdialog" aria-labelledby="status-dialog-title" aria-describedby="status-dialog-text">
+      <div class="status-dialog__icon" id="status-dialog-icon" aria-hidden="true">&#10003;</div>
+      <p id="status-dialog-title" class="status-dialog__title"></p>
+      <p id="status-dialog-text" class="status-dialog__text"></p>
+      <button type="button" id="status-dialog-btn" class="status-dialog__btn">OK</button>
+    </div>
+  </div>
+
+  <!-- Google Identity Services SDK -->
+  <script src="https://accounts.google.com/gsi/client?hl=en" async defer></script>
+  <script>
+    (function(){
+      var attempts = 0;
+      var t = setInterval(function(){
+        attempts++;
+        if(window.google && window.google.accounts && window.google.accounts.id){
+          clearInterval(t);
+          google.accounts.id.initialize({
+            client_id: '885940597719-mtcoo82k9bbksvuj786nsj7iombqtsli.apps.googleusercontent.com',
+            callback: function(response){
+              if (typeof window.handleGoogleCredential === 'function') {
+                window.handleGoogleCredential(response);
+              }
+            }
+          });
+          var googleBtnHost = document.getElementById('google-signin-btn');
+          var dividerEl = document.querySelector('.login-social-section .divider');
+          var googleBtnWidth = Math.max(
+            320,
+            Math.floor(
+              (dividerEl && dividerEl.clientWidth) ||
+              (googleBtnHost && googleBtnHost.clientWidth) ||
+              320
+            )
+          );
+          google.accounts.id.renderButton(
+            googleBtnHost,
+            { type:'standard', shape:'rectangular', theme:'outline', text:'signin_with', logo_alignment:'left', locale:'en', width: googleBtnWidth }
+          );
+        } else if(attempts >= 20){
+          clearInterval(t);
+        }
+      }, 200);
+    })();
+  </script>
+  <script>
+  const API_BASE = "http://13.40.74.21:8080/api";
+  // TODO: Replace with real backend endpoints (user + club auth).
+  const AUTH_ENDPOINTS = {
+    userLogin: `${API_BASE}/login`,
+    clubLogin: `${API_BASE}/clubs/login`,
+    userRegister: `${API_BASE}/register`,
+    clubRegister: `${API_BASE}/clubs/register`,
+    googleLogin: `${API_BASE}/auth/google`
+  };
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const tabLogin = document.getElementById('tab-login');
+  const tabRegisterUser = document.getElementById('tab-register-user');
+  const panelLogin = document.getElementById('panel-login');
+  const panelRegister = document.getElementById('panel-register');
+  const regSuccess = document.getElementById('reg-success');
+  const regSuccessTitle = document.getElementById('reg-success-title');
+  const regSuccessText = document.getElementById('reg-success-text');
+  const loginFormErr = document.getElementById('login-form-err');
+
+  const userExtra = document.getElementById('user-extra');
+  const clubSwitch = document.getElementById('clubSwitch');
+
+  const resetPanel = document.getElementById('reset-panel');
+  const resetEmail = document.getElementById('reset-email');
+  const resetEmailErr = document.getElementById('reset-email-err');
+  const resetMsg = document.getElementById('reset-msg');
+
+  const statusDialog = document.getElementById('status-dialog');
+  const statusDialogTitle = document.getElementById('status-dialog-title');
+  const statusDialogText = document.getElementById('status-dialog-text');
+  const statusDialogBtn = document.getElementById('status-dialog-btn');
+  const statusDialogIcon = document.getElementById('status-dialog-icon');
+  let statusDialogCb = null;
+
+  const togglePasswordBtn = document.getElementById('togglePassword');
+  const passwordInput = document.getElementById('password');
+
+  const showLoginError = (msg) => {
+    if (!loginFormErr) return;
+    loginFormErr.textContent = msg;
+    loginFormErr.style.display = 'block';
+    requestResize();
+  };
+  const hideLoginError = () => {
+    if (loginFormErr) loginFormErr.style.display = 'none';
+    requestResize();
+  };
+
+  if (togglePasswordBtn && passwordInput) {
+    togglePasswordBtn.addEventListener('click', () => {
+      const isVisible = passwordInput.type === 'text';
+      passwordInput.type = isVisible ? 'password' : 'text';
+      togglePasswordBtn.classList.toggle('is-visible', !isVisible);
+      togglePasswordBtn.setAttribute('aria-label', isVisible ? 'Show password' : 'Hide password');
+    });
+  }
+
+  function showStatusDialog({ title = '', message = '', buttonText = 'OK', icon = 'success', onConfirm = null } = {}){
+    if (!statusDialog) return;
+    statusDialogTitle.textContent = title;
+    statusDialogText.textContent = message;
+    statusDialogBtn.textContent = buttonText;
+    statusDialogIcon.innerHTML = icon === 'success' ? '&#10003;' : '&#9432;';
+    statusDialog.dataset.mode = icon;
+    statusDialog.classList.add('active');
+    statusDialog.setAttribute('aria-hidden','false');
+    statusDialogCb = typeof onConfirm === 'function' ? onConfirm : null;
+  }
+  function hideStatusDialog(){
+    if (!statusDialog) return;
+    statusDialog.classList.remove('active');
+    statusDialog.setAttribute('aria-hidden','true');
+    if(statusDialogCb){ const cb = statusDialogCb; statusDialogCb = null; cb(); }
+  }
+  statusDialogBtn?.addEventListener('click', hideStatusDialog);
+  statusDialog?.addEventListener('click', (evt)=>{ if(evt.target === statusDialog){ hideStatusDialog(); } });
+  document.addEventListener('keydown', (evt)=>{ if(evt.key === 'Escape' && statusDialog?.classList.contains('active')){ hideStatusDialog(); } });
+
+  function setRegNotice(title, message, isError = false){
+    if (!regSuccess) return;
+    regSuccessTitle.textContent = title;
+    regSuccessText.textContent = message;
+    regSuccess.classList.toggle('is-error', !!isError);
+    regSuccess.style.display = 'block';
+    requestResize();
+  }
+  function hideRegNotice(){
+    if (!regSuccess) return;
+    regSuccess.style.display = 'none';
+    regSuccess.classList.remove('is-error');
+    regSuccessText.textContent = '';
+    requestResize();
+  }
+
+  function switchToLogin(showSuccess){
+    tabLogin?.classList.add('active');
+    tabRegisterUser?.classList.remove('active');
+    panelLogin?.classList.add('active');
+    panelRegister?.classList.remove('active');
+    if (resetPanel) resetPanel.style.display = 'none';
+    const succLogin = document.getElementById('login-success');
+    succLogin.style.display = showSuccess ? 'block' : 'none';
+    if(showSuccess){ setTimeout(()=>{ succLogin.style.display = 'none'; }, 2200); }
+    requestResize();
+  }
+
+  function switchToRegister(){
+    tabLogin?.classList.remove('active');
+    tabRegisterUser?.classList.add('active');
+    panelRegister?.classList.add('active');
+    panelLogin?.classList.remove('active');
+    if (resetPanel) resetPanel.style.display = 'none';
+    hideRegNotice();
+    if (userExtra) userExtra.style.display = 'block';
+    requestResize();
+  }
+
+  tabLogin?.addEventListener('click', ()=>switchToLogin(false));
+  tabRegisterUser?.addEventListener('click', ()=>switchToRegister());
+  document.getElementById('btnGoRegister')?.addEventListener('click', ()=>switchToRegister());
+  document.getElementById('email')?.addEventListener('input', hideLoginError);
+  document.getElementById('password')?.addEventListener('input', hideLoginError);
+  document.getElementById('btnBackLogin')?.addEventListener('click', ()=>switchToLogin(false));
+  const openClubRegister = () => {
+    const target = 'club register.html';
+    if (window.self !== window.top) {
+      window.top.location.href = target;
+      return;
+    }
+    window.location.href = target;
+  };
+  clubSwitch?.addEventListener('click', openClubRegister);
+
+  function consumePostLoginRedirect(){
+    try{
+      const raw = localStorage.getItem('postLoginRedirect');
+      if (!raw) return null;
+      localStorage.removeItem('postLoginRedirect');
+      const data = JSON.parse(raw);
+      if (data && data.page === 'join' && data.clubId) {
+        return `join.html?club=${encodeURIComponent(data.clubId)}`;
+      }
+    }catch(e){
+      try{ localStorage.removeItem('postLoginRedirect'); }catch(err){}
+    }
+    return null;
+  }
+
+  const isEmbedded = window.self !== window.top;
+  if (isEmbedded) document.body.classList.add('embedded');
+
+  const notifyParentSize = () => {
+    if (!isEmbedded) return;
+    const height = Math.max(
+      document.body?.scrollHeight || 0,
+      document.documentElement?.scrollHeight || 0
+    );
+    window.parent.postMessage({ type: 'auth-resize', height }, '*');
+  };
+
+  const requestResize = () => {
+    if (!isEmbedded) return;
+    requestAnimationFrame(() => notifyParentSize());
+  };
+
+  if (isEmbedded) {
+    window.addEventListener('load', notifyParentSize);
+    window.addEventListener('resize', notifyParentSize);
+    if (window.ResizeObserver) {
+      const ro = new ResizeObserver(() => notifyParentSize());
+      ro.observe(document.body);
+    }
+    setTimeout(notifyParentSize, 50);
+  }
+
+  function resolveUserType(role) {
+    const r = String(role || '').toLowerCase();
+    if (!r) return 'user';
+    if (r.includes('club') || r.includes('admin') || r.includes('leader')) return 'club';
+    return 'user';
+  }
+
+  function getDefaultTarget(role) {
+    if (role) return resolveUserType(role) === 'club' ? 'club home.html' : 'home.html';
+    try {
+      const logged = JSON.parse(localStorage.getItem('loggedUser') || 'null');
+      if (logged && logged.type === 'club') return 'club home.html';
+    } catch (e) { /* ignore */ }
+    return 'home.html';
+  }
+
+  function redirectAfterLogin(role){
+    const userType = resolveUserType(role);
+    const target = userType === 'club'
+      ? getDefaultTarget(role)
+      : (consumePostLoginRedirect() || getDefaultTarget(role));
+    if (isEmbedded) {
+      window.parent.postMessage({ type: 'auth-success', target }, '*');
+      return;
+    }
+    window.location.href = target;
+  }
+
+  async function handleLogin(){
+    const email = document.getElementById('email').value.trim();
+    const pass  = document.getElementById('password').value;
+
+    hideLoginError();
+    document.getElementById('login-email-err').style.display = 'none';
+    document.getElementById('login-pass-err').style.display = 'none';
+    if(!emailRe.test(email)){
+      showLoginError('Invalid email format');
+      return;
+    }
+    if(!pass){
+      showLoginError('Password is required');
+      return;
+    }
+
+    const btn = document.getElementById('loginBtn');
+    btn.disabled = true; btn.textContent = 'Logging in...';
+    try {
+      const res = await fetch(AUTH_ENDPOINTS.userLogin, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: pass })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        localStorage.setItem('user', JSON.stringify(data));
+        const role = data.role || data.type;
+        const userType = resolveUserType(role);
+        localStorage.setItem('loggedUser', JSON.stringify({
+          email: data.email,
+          name: data.fullName,
+          type: userType
+        }));
+        redirectAfterLogin(role);
+      } else {
+        const text = await res.text();
+        const msg = (res.status == 401 || res.status == 400) ? 'Incorrect password' : (text || 'Login failed');
+        showLoginError(msg);
+      }
+    } catch(err){
+      showLoginError('Network error, please try again.');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Login';
+    }
+  }
+
+  window.handleGoogleCredential = async function (response) {
+    try {
+      const idToken = response && response.credential;
+      if (!idToken) {
+        alert('Google sign-in failed: no credential received');
+        return;
+      }
+      const res = await fetch(AUTH_ENDPOINTS.googleLogin, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: idToken })
+      });
+
+      if (!res.ok) {
+        const t = await res.text();
+        alert('Google sign-in failed: ' + (t || res.status));
+        return;
+      }
+      const user = await res.json();
+      localStorage.setItem('user', JSON.stringify(user));
+      const role = user.role || user.type;
+      const userType = resolveUserType(role);
+      localStorage.setItem('loggedUser', JSON.stringify({
+        email: user.email,
+        name: user.fullName,
+        type: userType
+      }));
+      redirectAfterLogin(role);
+    } catch (e) {
+      console.error(e);
+      alert('Network error, please try again later');
+    }
+  };
+
+  async function handleRegister(){
+    const username = document.getElementById('reg-username').value.trim();
+    const email  = document.getElementById('reg-email').value.trim();
+    const pass   = document.getElementById('reg-pass').value;
+    const pass2  = document.getElementById('reg-pass2').value;
+
+    hideLoginError();
+    let ok = true;
+
+    if (!username) { document.getElementById('reg-username-err').style.display = 'block'; ok = false; }
+    else document.getElementById('reg-username-err').style.display = 'none';
+
+    if(!emailRe.test(email)){ document.getElementById('reg-email-err').style.display = 'block'; ok = false; }
+    else document.getElementById('reg-email-err').style.display = 'none';
+    if(!pass){ document.getElementById('reg-pass-err').style.display = 'block'; ok = false; }
+    else document.getElementById('reg-pass-err').style.display = 'none';
+    if(pass !== pass2){ document.getElementById('reg-pass2-err').style.display = 'block'; ok = false; }
+    else document.getElementById('reg-pass2-err').style.display = 'none';
+    if(!ok) return;
+
+    let fullName = username || email.split('@')[0];
+
+    const btn = document.getElementById('btnRegisterDo');
+    btn.disabled = true; btn.textContent = 'Registering...';
+    hideRegNotice();
+    try {
+      const res = await fetch(AUTH_ENDPOINTS.userRegister, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName, email, password: pass })
+      });
+
+      if (res.ok) {
+        let saved = null;
+        try { saved = await res.json(); } catch (e) { saved = null; }
+        const profileToSave = saved || { fullName, email, role: 'user' };
+        localStorage.setItem('user', JSON.stringify(profileToSave));
+        const role = profileToSave.role || profileToSave.type || 'user';
+        const userType = resolveUserType(role);
+        localStorage.setItem('loggedUser', JSON.stringify({
+          email: profileToSave.email || email,
+          name: profileToSave.fullName || fullName,
+          type: userType
+        }));
+        setRegNotice('Success', 'Registered successfully! Redirecting to home...');
+        setTimeout(()=> {
+          if (isEmbedded) {
+            window.parent.postMessage({ type: 'auth-success', target: getDefaultTarget(role) }, '*');
+            return;
+          }
+          window.location.href = getDefaultTarget(role);
+        }, 800);
+      } else if (res.status === 409) {
+        setRegNotice('Heads up', 'Email already exists.', true);
+      } else {
+        const t = await res.text();
+        setRegNotice('Registration failed', t || 'Registration failed. Please try again.', true);
+      }
+    } catch(err) {
+      setRegNotice('Network error', 'Please ensure the backend is running.', true);
+    } finally {
+      btn.disabled = false; btn.textContent = 'Register';
+    }
+  }
+
+  document.getElementById('btnForgot')?.addEventListener('click', function(){
+    resetPanel.style.display = 'flex';
+    resetEmail.value = ''; resetEmailErr.style.display = 'none'; resetMsg.style.display = 'none';
+    requestResize();
+  });
+  document.getElementById('btnResetBack')?.addEventListener('click', function(){
+    resetPanel.style.display = 'none';
+    requestResize();
+  });
+  document.getElementById('btnResetSend')?.addEventListener('click', function(){
+    const em = resetEmail.value.trim();
+    if(!emailRe.test(em)){ resetEmailErr.style.display = 'block'; return; }
+    resetEmailErr.style.display = 'none';
+    resetMsg.textContent = 'Reset link sent to: ' + em;
+    resetMsg.style.display = 'block';
+  });
+
+  document.getElementById('loginBtn')?.addEventListener('click', handleLogin);
+  document.getElementById('btnRegisterDo')?.addEventListener('click', handleRegister);
+
+  if(location.hash === '#register-club'){ openClubRegister(); }
+  else if(location.hash === '#register' || location.hash === '#register-user'){ switchToRegister(); }
+</script>
+</body>
+</html>
