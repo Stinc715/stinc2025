@@ -655,7 +655,9 @@
          redirectAfterLogin(userType === 'club' ? 'club' : role);
        } else {
          const text = await res.text();
-         const msg = (res.status == 401 || res.status == 400) ? 'Incorrect password' : (text || 'Login failed');
+         const msg = (res.status == 401 || res.status == 400)
+           ? (text || 'Invalid email or password')
+           : (text || 'Login failed');
          showLoginError(msg);
       }
     } catch(err){
