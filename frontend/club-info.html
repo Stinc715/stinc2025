@@ -1,0 +1,1373 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Club Account Info</title>
+  <style>
+    :root {
+      --bg: #f7f7f8;
+      --card: #ffffff;
+      --line: #e2e8f0;
+      --text: #0f172a;
+      --muted: #64748b;
+      --accent: #2563eb;
+      --danger: #b91c1c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(#fff, #fafafa);
+      color: var(--text);
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+    }
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    .header-wrap {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 12px;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #2563eb;
+      text-decoration: none;
+      font-size: 14px;
+      justify-self: start;
+    }
+    .page-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      justify-self: center;
+    }
+    .card {
+      margin-top: 14px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
+    }
+    .pad {
+      padding: 20px;
+    }
+    .section-title {
+      margin: 0 0 8px;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .muted {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .kv {
+      margin-top: 14px;
+      display: grid;
+      gap: 10px;
+    }
+    .kv-row {
+      display: grid;
+      grid-template-columns: 130px 1fr;
+      gap: 10px;
+      align-items: center;
+      font-size: 14px;
+    }
+    .kv-row .k {
+      color: var(--muted);
+    }
+    .divider {
+      margin: 18px 0;
+      border-top: 1px solid var(--line);
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    input[type="email"],
+    input[type="text"],
+    input[type="time"],
+    input[type="number"],
+    input[type="tel"],
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 15px;
+      outline: none;
+      background: #fff;
+    }
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+    input[type="email"]:focus,
+    input[type="text"]:focus,
+    input[type="time"]:focus,
+    input[type="number"]:focus,
+    input[type="tel"]:focus,
+    textarea:focus {
+      border-color: #93c5fd;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    .form-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 760px) {
+      .form-grid.cols-2 {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    .actions {
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .field-with-action {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+    }
+    .field-with-action input[readonly] {
+      background: #f8fafc;
+      cursor: default;
+    }
+    @media (max-width: 759px) {
+      .field-with-action {
+        grid-template-columns: 1fr;
+      }
+    }
+    .btn {
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #fff;
+      background: var(--accent);
+    }
+    .btn[disabled] {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .status {
+      min-height: 20px;
+      font-size: 13px;
+    }
+    .status.ok { color: #166534; }
+    .status.err { color: var(--danger); }
+    .gallery-panel {
+      border: 1px dashed var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fcfdff;
+    }
+    .upload-row {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .file-input-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+    .btn.ghost {
+      color: #0f172a;
+      background: #fff;
+      border-color: var(--line);
+    }
+    .btn.danger {
+      background: #fff5f5;
+      border-color: #fecaca;
+      color: #b91c1c;
+    }
+    .btn.small {
+      padding: 6px 10px;
+      font-size: 12px;
+      border-radius: 8px;
+    }
+    .image-grid {
+      margin-top: 12px;
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      align-items: stretch;
+    }
+    .image-card {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .image-media {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      background: #f1f5f9;
+    }
+    .image-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .image-meta {
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1 1 auto;
+    }
+    .image-name {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.3;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .image-primary-badge {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      font-size: 11px;
+      font-weight: 700;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      background: #ecfdf5;
+      border-radius: 999px;
+      padding: 2px 8px;
+    }
+    .image-primary-badge.overlay {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      z-index: 1;
+      box-shadow: 0 1px 4px rgba(6, 95, 70, 0.18);
+    }
+    .map-panel {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #f8fafc;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+    .map-toolbar {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+    }
+    @media (max-width: 759px) {
+      .map-toolbar {
+        grid-template-columns: 1fr;
+      }
+    }
+    .map-canvas {
+      width: 100%;
+      height: 300px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #e2e8f0;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap header-wrap">
+      <a class="back-link" href="club home.html">&larr; Back</a>
+      <h1 class="page-title">Club Account Information</h1>
+      <span></span>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <section class="card">
+      <div class="pad">
+        <h2 class="section-title">Club profile</h2>
+
+        <div class="divider"></div>
+
+        <form id="clubProfileForm" class="form-grid cols-2">
+          <label>Club name
+            <div class="field-with-action">
+              <input id="clubNameInput" type="text" required placeholder="e.g. Badminton Club" readonly />
+              <button id="clubNameEditBtn" class="btn ghost" type="button" disabled>Change club name</button>
+            </div>
+          </label>
+          <label>Categories
+            <div class="field-with-action">
+              <input id="clubCategoryInput" type="text" placeholder="No categories selected" readonly />
+              <button id="clubCategoryEditBtn" class="btn ghost" type="button" disabled>Change categories</button>
+            </div>
+          </label>
+          <label style="grid-column:1/-1">Address
+            <input id="clubLocationInput" type="text" placeholder="Select on map or enter full address" />
+          </label>
+          <div class="map-panel" style="grid-column:1/-1">
+            <div class="map-toolbar">
+              <input id="clubMapSearchInput" type="text" placeholder="Search address on Google Maps" />
+              <button id="clubMapSetKeyBtn" class="btn ghost" type="button">Set Maps API key</button>
+            </div>
+            <div id="clubMapCanvas" class="map-canvas" aria-label="Club address map"></div>
+            <p id="clubMapStatus" class="status"></p>
+          </div>
+          <label>Opening start
+            <input id="clubOpeningStartInput" type="time" />
+          </label>
+          <label>Opening end
+            <input id="clubOpeningEndInput" type="time" />
+          </label>
+          <label>Email
+            <input id="clubEmailInput" type="email" placeholder="contact@example.com" />
+          </label>
+          <label>Phone
+            <input id="clubPhoneInput" type="tel" placeholder="optional" />
+          </label>
+          <label style="grid-column:1/-1">Description
+            <textarea id="clubDescInput" placeholder="short intro"></textarea>
+          </label>
+          <div style="grid-column:1/-1">
+            <label for="clubImageInput">Club images</label>
+            <div class="gallery-panel">
+              <p class="muted">Upload one or more photos (JPG, PNG, GIF, WEBP).</p>
+              <p class="muted">Primary image will be displayed on the Home page.</p>
+              <div class="upload-row">
+                <input id="clubImageInput" class="file-input-hidden" type="file" accept="image/*" multiple />
+                <button id="uploadClubImagesBtn" class="btn ghost" type="button">Upload images</button>
+                <span id="clubImageSelection" class="muted">No files selected.</span>
+                <span id="clubImageStatus" class="status"></span>
+              </div>
+              <div id="clubImageList" class="image-grid"></div>
+            </div>
+          </div>
+          <div class="actions" style="grid-column:1/-1">
+            <button id="saveClubBtn" class="btn" type="submit">Save</button>
+            <span id="clubStatus" class="status"></span>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <script src="ui-prompt.js?v=20260309b"></script>
+  <script>
+    const LOCKED_LOGIN_TARGET = Object.freeze({
+      user: 'home.html',
+      club: 'club home.html'
+    });
+
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const accountNameEl = document.getElementById('accountName');
+    const currentEmailEl = document.getElementById('currentEmail');
+    const accountRoleEl = document.getElementById('accountRole');
+    const newEmailInput = document.getElementById('newEmailInput');
+    const saveEmailBtn = document.getElementById('saveEmailBtn');
+    const statusEl = document.getElementById('status');
+    const clubTargetLabelEl = document.getElementById('clubTargetLabel');
+    const clubProfileForm = document.getElementById('clubProfileForm');
+    const clubNameInput = document.getElementById('clubNameInput');
+    const clubNameEditBtn = document.getElementById('clubNameEditBtn');
+    const clubCategoryInput = document.getElementById('clubCategoryInput');
+    const clubCategoryEditBtn = document.getElementById('clubCategoryEditBtn');
+    const clubLocationInput = document.getElementById('clubLocationInput');
+    const clubMapSearchInput = document.getElementById('clubMapSearchInput');
+    const clubMapCanvasEl = document.getElementById('clubMapCanvas');
+    const clubMapStatusEl = document.getElementById('clubMapStatus');
+    const clubMapSetKeyBtn = document.getElementById('clubMapSetKeyBtn');
+    const clubOpeningStartInput = document.getElementById('clubOpeningStartInput');
+    const clubOpeningEndInput = document.getElementById('clubOpeningEndInput');
+    const clubEmailInput = document.getElementById('clubEmailInput');
+    const clubPhoneInput = document.getElementById('clubPhoneInput');
+    const clubDescInput = document.getElementById('clubDescInput');
+    const clubImageInput = document.getElementById('clubImageInput');
+    const clubImageSelectionEl = document.getElementById('clubImageSelection');
+    const uploadClubImagesBtn = document.getElementById('uploadClubImagesBtn');
+    const clubImageStatusEl = document.getElementById('clubImageStatus');
+    const clubImageListEl = document.getElementById('clubImageList');
+    const saveClubBtn = document.getElementById('saveClubBtn');
+    const clubStatusEl = document.getElementById('clubStatus');
+    const GOOGLE_MAPS_API_KEY_STORAGE_KEY = 'clubPortal.googleMapsApiKey';
+    const DEFAULT_MAP_CENTER = Object.freeze({ lat: 51.5074, lng: -0.1278 });
+    let selectedClubId = null;
+    let mapApiLoadPromise = null;
+    let mapInstance = null;
+    let mapMarker = null;
+    let mapGeocoder = null;
+    let mapAutocomplete = null;
+    let serverGoogleMapsApiKey = '';
+    let serverGoogleMapsApiKeyLoaded = false;
+    let suppressLocationFieldSync = false;
+    let selectedClubTags = [];
+    let clubMapSelection = {
+      address: '',
+      placeId: '',
+      lat: null,
+      lng: null
+    };
+
+    const safeParse = (key) => {
+      try {
+        return JSON.parse(localStorage.getItem(key) || 'null');
+      } catch {
+        return null;
+      }
+    };
+
+    const setStatus = (text, kind = '') => {
+      if (!statusEl) return;
+      statusEl.textContent = text || '';
+      statusEl.className = `status ${kind}`.trim();
+    };
+
+    const setClubStatus = (text, kind = '') => {
+      if (!clubStatusEl) return;
+      clubStatusEl.textContent = text || '';
+      clubStatusEl.className = `status ${kind}`.trim();
+    };
+
+    const setClubImageStatus = (text, kind = '') => {
+      if (!clubImageStatusEl) return;
+      clubImageStatusEl.textContent = text || '';
+      clubImageStatusEl.className = `status ${kind}`.trim();
+    };
+
+    const setClubMapStatus = (text, kind = '') => {
+      if (!clubMapStatusEl) return;
+      clubMapStatusEl.textContent = text || '';
+      clubMapStatusEl.className = `status ${kind}`.trim();
+    };
+
+    const normalizeTagList = (values) => {
+      const list = Array.isArray(values) ? values : [];
+      const seen = new Set();
+      const out = [];
+      list.forEach((value) => {
+        const tag = String(value || '').trim();
+        const key = tag.toLowerCase();
+        if (!tag || seen.has(key)) return;
+        seen.add(key);
+        out.push(tag);
+      });
+      return out;
+    };
+
+    const normalizeCoordinate = (value) => {
+      const num = Number(value);
+      return Number.isFinite(num) ? num : null;
+    };
+
+    const updateClubMapUi = () => {
+      const hasServerKey = !!String(serverGoogleMapsApiKey || '').trim();
+      if (clubMapSetKeyBtn) {
+        clubMapSetKeyBtn.textContent = hasServerKey ? 'Override Maps API key' : 'Set Maps API key';
+      }
+    };
+
+    const setClubMapSelection = ({ address = '', placeId = '', lat = null, lng = null } = {}) => {
+      clubMapSelection = {
+        address: String(address || '').trim(),
+        placeId: String(placeId || '').trim(),
+        lat: normalizeCoordinate(lat),
+        lng: normalizeCoordinate(lng)
+      };
+    };
+
+    const clearClubMapSelectionMetadata = (address = '') => {
+      setClubMapSelection({ address, placeId: '', lat: null, lng: null });
+    };
+
+    const getStoredGoogleMapsApiKey = () => {
+      const query = new URLSearchParams(window.location.search);
+      const fromQuery = String(query.get('gmapsKey') || '').trim();
+      if (fromQuery) {
+        try {
+          localStorage.setItem(GOOGLE_MAPS_API_KEY_STORAGE_KEY, fromQuery);
+        } catch {}
+      }
+      const fromGlobal = String(window.GOOGLE_MAPS_API_KEY || window.__GOOGLE_MAPS_API_KEY__ || '').trim();
+      if (fromGlobal) return fromGlobal;
+      const fromServer = String(serverGoogleMapsApiKey || '').trim();
+      if (fromServer) return fromServer;
+      try {
+        return String(localStorage.getItem(GOOGLE_MAPS_API_KEY_STORAGE_KEY) || '').trim();
+      } catch {
+        return '';
+      }
+    };
+
+    const loadServerGoogleMapsApiKey = async () => {
+      if (serverGoogleMapsApiKeyLoaded) return String(serverGoogleMapsApiKey || '').trim();
+      serverGoogleMapsApiKeyLoaded = true;
+      try {
+        const res = await authFetch('/api/public/config');
+        if (!res.ok) {
+          updateClubMapUi();
+          return '';
+        }
+        const data = await res.json();
+        const key = String(data?.googleMapsApiKey || '').trim();
+        serverGoogleMapsApiKey = key;
+        if (key) {
+          try {
+            localStorage.setItem(GOOGLE_MAPS_API_KEY_STORAGE_KEY, key);
+          } catch {}
+        }
+        updateClubMapUi();
+        return key;
+      } catch (err) {
+        console.warn('[club-info] public config load failed', err);
+        updateClubMapUi();
+        return '';
+      }
+    };
+
+    const promptGoogleMapsApiKey = async () => {
+      const current = getStoredGoogleMapsApiKey();
+      let next = null;
+      if (window.AppPrompt && typeof window.AppPrompt.prompt === 'function') {
+        next = await window.AppPrompt.prompt({
+          title: 'Set Maps API key',
+          message: 'Enter Google Maps JavaScript API key.',
+          label: 'API key',
+          defaultValue: current,
+          okText: 'Save',
+          cancelText: 'Cancel'
+        });
+      } else {
+        next = window.prompt('Enter Google Maps JavaScript API key', current);
+      }
+      const key = String(next || '').trim();
+      if (!key) {
+        setClubMapStatus('Google Maps API key was not updated.', 'err');
+        return false;
+      }
+      try {
+        localStorage.setItem(GOOGLE_MAPS_API_KEY_STORAGE_KEY, key);
+      } catch {}
+      mapApiLoadPromise = null;
+      mapInstance = null;
+      mapMarker = null;
+      mapGeocoder = null;
+      mapAutocomplete = null;
+      setClubMapStatus('Google Maps API key saved. Reloading map...', '');
+      updateClubMapUi();
+      return true;
+    };
+
+    const loadGoogleMapsApi = async () => {
+      if (window.google?.maps?.Map) {
+        return window.google.maps;
+      }
+      if (mapApiLoadPromise) {
+        return mapApiLoadPromise;
+      }
+
+      const apiKey = getStoredGoogleMapsApiKey();
+      if (!apiKey) {
+        throw new Error('Missing Google Maps API key');
+      }
+
+      mapApiLoadPromise = new Promise((resolve, reject) => {
+        const callbackName = '__clubInfoGoogleMapsInit';
+        const existing = document.querySelector('script[data-club-maps-api="1"]');
+        if (existing) existing.remove();
+
+        let settled = false;
+        const doneResolve = () => {
+          if (settled) return;
+          settled = true;
+          window.clearTimeout(timerId);
+          try { delete window[callbackName]; } catch {}
+          resolve(window.google.maps);
+        };
+        const doneReject = (err) => {
+          if (settled) return;
+          settled = true;
+          window.clearTimeout(timerId);
+          try { delete window[callbackName]; } catch {}
+          mapApiLoadPromise = null;
+          reject(err);
+        };
+
+        window[callbackName] = doneResolve;
+
+        const script = document.createElement('script');
+        script.dataset.clubMapsApi = '1';
+        script.async = true;
+        script.defer = true;
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=places&callback=${callbackName}`;
+        script.onerror = () => doneReject(new Error('Failed to load Google Maps script'));
+        document.head.appendChild(script);
+
+        const timerId = window.setTimeout(() => {
+          doneReject(new Error('Google Maps load timed out'));
+        }, 12000);
+      });
+
+      return mapApiLoadPromise;
+    };
+
+    const updateLocationInput = (address, statusText = '') => {
+      const normalized = String(address || '').trim();
+      suppressLocationFieldSync = true;
+      if (clubLocationInput) clubLocationInput.value = normalized;
+      if (clubMapSearchInput) clubMapSearchInput.value = normalized;
+      suppressLocationFieldSync = false;
+      if (statusText) setClubMapStatus(statusText, 'ok');
+    };
+
+    const setMapMarkerPosition = (latLng, zoom = 15) => {
+      if (!mapInstance || !window.google?.maps || !latLng) return;
+      const maps = window.google.maps;
+      if (!mapMarker) {
+        mapMarker = new maps.Marker({
+          map: mapInstance,
+          position: latLng
+        });
+      } else {
+        mapMarker.setPosition(latLng);
+        mapMarker.setMap(mapInstance);
+      }
+      mapInstance.panTo(latLng);
+      mapInstance.setZoom(zoom);
+    };
+
+    const applySelectedMapLocation = ({ address = '', placeId = '', lat = null, lng = null, statusText = 'Address selected on map.', zoom = 15 } = {}) => {
+      const normalizedAddress = String(address || '').trim();
+      const locationLat = normalizeCoordinate(lat);
+      const locationLng = normalizeCoordinate(lng);
+      setClubMapSelection({
+        address: normalizedAddress,
+        placeId,
+        lat: locationLat,
+        lng: locationLng
+      });
+      if (normalizedAddress) {
+        updateLocationInput(normalizedAddress, statusText);
+      }
+      if (locationLat !== null && locationLng !== null) {
+        setMapMarkerPosition({ lat: locationLat, lng: locationLng }, zoom);
+      }
+    };
+
+    const geocodeAddressToMap = async (address, { updateInput = false, showStatus = false } = {}) => {
+      const normalized = String(address || '').trim();
+      if (!normalized || !mapGeocoder) return false;
+
+      return new Promise((resolve) => {
+        mapGeocoder.geocode({ address: normalized }, (results, status) => {
+          if (status !== 'OK' || !Array.isArray(results) || !results.length || !results[0]?.geometry?.location) {
+            if (showStatus) setClubMapStatus('Could not locate that address on map.', 'err');
+            resolve(false);
+            return;
+          }
+          const top = results[0];
+          const lat = typeof top.geometry.location?.lat === 'function' ? top.geometry.location.lat() : top.geometry.location?.lat;
+          const lng = typeof top.geometry.location?.lng === 'function' ? top.geometry.location.lng() : top.geometry.location?.lng;
+          const nextAddress = String(top.formatted_address || normalized).trim();
+          applySelectedMapLocation({
+            address: updateInput ? nextAddress : normalized,
+            placeId: top.place_id || '',
+            lat,
+            lng,
+            statusText: showStatus ? (updateInput ? 'Address selected on map.' : 'Address positioned on map.') : '',
+            zoom: 15
+          });
+          resolve(true);
+        });
+      });
+    };
+
+    const reverseGeocodeFromMap = async (latLng) => {
+      if (!mapGeocoder || !latLng) return;
+      mapGeocoder.geocode({ location: latLng }, (results, status) => {
+        if (status !== 'OK' || !Array.isArray(results) || !results.length) {
+          setClubMapStatus('Map point selected, but reverse geocoding failed.', 'err');
+          return;
+        }
+        const address = String(results[0]?.formatted_address || '').trim();
+        if (!address) {
+          setClubMapStatus('Map point selected, but no address returned.', 'err');
+          return;
+        }
+        const lat = typeof latLng?.lat === 'function' ? latLng.lat() : latLng?.lat;
+        const lng = typeof latLng?.lng === 'function' ? latLng.lng() : latLng?.lng;
+        applySelectedMapLocation({
+          address,
+          placeId: results[0]?.place_id || '',
+          lat,
+          lng,
+          statusText: 'Address selected on map.',
+          zoom: 15
+        });
+      });
+    };
+
+    const initClubMapPicker = async () => {
+      if (!clubMapCanvasEl) return;
+      await loadServerGoogleMapsApiKey();
+      const apiKey = getStoredGoogleMapsApiKey();
+      if (!apiKey) {
+        setClubMapStatus('Set Google Maps API key to enable map picker.', 'err');
+        return;
+      }
+
+      try {
+        const maps = await loadGoogleMapsApi();
+        if (!mapInstance) {
+          mapInstance = new maps.Map(clubMapCanvasEl, {
+            center: DEFAULT_MAP_CENTER,
+            zoom: 11,
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: false
+          });
+          mapGeocoder = new maps.Geocoder();
+
+          mapInstance.addListener('click', (event) => {
+            const location = event?.latLng;
+            if (!location) return;
+            setMapMarkerPosition(location);
+            reverseGeocodeFromMap(location);
+          });
+
+          if (clubMapSearchInput) {
+            mapAutocomplete = new maps.places.Autocomplete(clubMapSearchInput, {
+              fields: ['formatted_address', 'geometry', 'name', 'place_id']
+            });
+            mapAutocomplete.addListener('place_changed', () => {
+              const place = mapAutocomplete.getPlace();
+              const loc = place?.geometry?.location;
+              const address = String(place?.formatted_address || place?.name || clubMapSearchInput.value || '').trim();
+              if (!loc || !address) {
+                setClubMapStatus('Please choose a valid search result.', 'err');
+                return;
+              }
+              applySelectedMapLocation({
+                address,
+                placeId: String(place?.place_id || '').trim(),
+                lat: typeof loc.lat === 'function' ? loc.lat() : loc.lat,
+                lng: typeof loc.lng === 'function' ? loc.lng() : loc.lng,
+                statusText: 'Address selected on map.',
+                zoom: 15
+              });
+            });
+          }
+        }
+
+        const currentAddress = String(clubMapSelection.address || clubLocationInput?.value || '').trim();
+        const hasCoordinates = Number.isFinite(Number(clubMapSelection.lat)) && Number.isFinite(Number(clubMapSelection.lng));
+        if (hasCoordinates) {
+          setMapMarkerPosition({
+            lat: Number(clubMapSelection.lat),
+            lng: Number(clubMapSelection.lng)
+          }, 15);
+        } else if (currentAddress) {
+          await geocodeAddressToMap(currentAddress, { updateInput: false, showStatus: false });
+        }
+        setClubMapStatus('Google Maps ready. Search or click map to select address.', '');
+      } catch (err) {
+        console.error(err);
+        setClubMapStatus('Failed to initialize Google Maps picker.', 'err');
+      }
+    };
+
+    const authFetch = (url, options = {}) => {
+      const token = localStorage.getItem('token');
+      const headers = { ...(options.headers || {}) };
+      if (token) headers.Authorization = `Bearer ${token}`;
+      return fetch(url, {
+        ...options,
+        credentials: options.credentials ?? 'include',
+        headers
+      });
+    };
+
+    const cacheBustedUrl = (url) => {
+      const raw = String(url || '').trim();
+      if (!raw) return '';
+      return `${raw}${raw.includes('?') ? '&' : '?'}v=${Date.now()}`;
+    };
+
+    const openNameEditor = () => {
+      const returnTo = encodeURIComponent('club-info.html');
+      window.location.href = `onboarding.html?mode=name-edit&return=${returnTo}`;
+    };
+
+    const openCategoryEditor = () => {
+      const returnTo = encodeURIComponent('club-info.html');
+      window.location.href = `onboarding.html?mode=category-edit&return=${returnTo}`;
+    };
+
+    const updateClubImageSelectionLabel = () => {
+      if (!clubImageSelectionEl) return;
+      const files = Array.from(clubImageInput?.files || []);
+      if (!files.length) {
+        clubImageSelectionEl.textContent = 'No files selected.';
+        return;
+      }
+      if (files.length === 1) {
+        clubImageSelectionEl.textContent = files[0].name || '1 file selected';
+        return;
+      }
+      clubImageSelectionEl.textContent = `${files.length} files selected`;
+    };
+
+    const renderClubImageList = (images) => {
+      if (!clubImageListEl) return;
+      clubImageListEl.innerHTML = '';
+      const list = Array.isArray(images) ? images : [];
+      if (!list.length) {
+        const empty = document.createElement('div');
+        empty.className = 'muted';
+        empty.textContent = 'No images uploaded yet.';
+        clubImageListEl.appendChild(empty);
+        return;
+      }
+
+      list.forEach((item) => {
+        const imageId = item?.imageId ?? item?.id;
+        const url = String(item?.url || '').trim();
+        if (!imageId || !url) return;
+
+        const card = document.createElement('div');
+        card.className = 'image-card';
+
+        const media = document.createElement('div');
+        media.className = 'image-media';
+
+        const img = document.createElement('img');
+        img.src = cacheBustedUrl(url);
+        img.alt = 'Club image';
+        media.appendChild(img);
+
+        const meta = document.createElement('div');
+        meta.className = 'image-meta';
+
+        const name = document.createElement('div');
+        name.className = 'image-name';
+        name.textContent = String(item?.originalName || `Image #${imageId}`);
+        meta.appendChild(name);
+
+        const isPrimary = Boolean(item?.primary);
+        if (isPrimary) {
+          const badge = document.createElement('span');
+          badge.className = 'image-primary-badge overlay';
+          badge.textContent = 'Main image';
+          media.appendChild(badge);
+        }
+
+        card.appendChild(media);
+
+        const mainBtn = document.createElement('button');
+        mainBtn.type = 'button';
+        mainBtn.className = 'btn small ghost';
+        mainBtn.textContent = isPrimary ? 'Main image' : 'Set as main image';
+        mainBtn.disabled = isPrimary;
+        if (!isPrimary) {
+          mainBtn.addEventListener('click', () => setPrimaryClubImage(imageId));
+        }
+        meta.appendChild(mainBtn);
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'btn small danger';
+        removeBtn.textContent = 'Delete';
+        removeBtn.addEventListener('click', () => deleteClubImage(imageId));
+        meta.appendChild(removeBtn);
+
+        card.appendChild(meta);
+        clubImageListEl.appendChild(card);
+      });
+    };
+
+    const loadClubImages = async () => {
+      if (!selectedClubId) {
+        renderClubImageList([]);
+        return;
+      }
+      try {
+        const res = await authFetch(`/api/clubs/${encodeURIComponent(selectedClubId)}/images`);
+        if (!res.ok) {
+          const text = await res.text().catch(() => '');
+          setClubImageStatus(text || 'Failed to load images.', 'err');
+          return;
+        }
+        const data = await res.json();
+        renderClubImageList(data);
+        setClubImageStatus('', '');
+      } catch (err) {
+        console.error(err);
+        setClubImageStatus('Failed to load images.', 'err');
+      }
+    };
+
+    const setPrimaryClubImage = async (imageId) => {
+      if (!selectedClubId || !imageId) return;
+      setClubImageStatus('Setting main image...', '');
+      try {
+        const res = await authFetch(`/api/clubs/${encodeURIComponent(selectedClubId)}/images/${encodeURIComponent(String(imageId))}/primary`, {
+          method: 'PUT'
+        });
+        if (!res.ok) {
+          const text = await res.text().catch(() => '');
+          setClubImageStatus(text || 'Failed to set main image.', 'err');
+          return;
+        }
+        await loadClubImages();
+        setClubImageStatus('Main image updated. It will be shown on the Home page.', 'ok');
+      } catch (err) {
+        console.error(err);
+        setClubImageStatus('Failed to set main image.', 'err');
+      }
+    };
+
+    const uploadClubImages = async () => {
+      if (!selectedClubId) {
+        setClubImageStatus('Create/save club profile first, then upload images.', 'err');
+        return;
+      }
+      const files = Array.from(clubImageInput?.files || []);
+      if (!files.length) {
+        setClubImageStatus('Please choose at least one image file.', 'err');
+        return;
+      }
+
+      if (uploadClubImagesBtn) uploadClubImagesBtn.disabled = true;
+      setClubImageStatus('Uploading images...', '');
+
+      try {
+        const fd = new FormData();
+        files.forEach((file) => fd.append('files', file));
+
+        const res = await authFetch(`/api/clubs/${encodeURIComponent(selectedClubId)}/images`, {
+          method: 'POST',
+          body: fd
+        });
+
+        if (!res.ok) {
+          const text = await res.text().catch(() => '');
+          setClubImageStatus(text || 'Upload failed.', 'err');
+          return;
+        }
+
+        if (clubImageInput) clubImageInput.value = '';
+        updateClubImageSelectionLabel();
+        await loadClubImages();
+        setClubImageStatus('Images uploaded.', 'ok');
+      } catch (err) {
+        console.error(err);
+        setClubImageStatus('Upload failed.', 'err');
+      } finally {
+        if (uploadClubImagesBtn) uploadClubImagesBtn.disabled = false;
+      }
+    };
+
+    const deleteClubImage = async (imageId) => {
+      if (!selectedClubId || !imageId) return;
+      setClubImageStatus('Deleting image...', '');
+      try {
+        const res = await authFetch(`/api/clubs/${encodeURIComponent(selectedClubId)}/images/${encodeURIComponent(String(imageId))}`, {
+          method: 'DELETE'
+        });
+        if (!res.ok) {
+          const text = await res.text().catch(() => '');
+          setClubImageStatus(text || 'Delete failed.', 'err');
+          return;
+        }
+        await loadClubImages();
+        setClubImageStatus('Image deleted.', 'ok');
+      } catch (err) {
+        console.error(err);
+        setClubImageStatus('Delete failed.', 'err');
+      }
+    };
+
+    const ensureClubLogin = () => {
+      const token = localStorage.getItem('token');
+      const logged = safeParse('loggedUser');
+      if (!token || !logged) {
+        window.location.href = 'login.html#login';
+        return false;
+      }
+      if (logged.type !== 'club') {
+        window.location.replace(LOCKED_LOGIN_TARGET.user);
+        return false;
+      }
+      return true;
+    };
+
+    const applyProfile = (profile) => {
+      if (!profile) return;
+      const name = (profile.displayName || profile.name || profile.fullName || '').trim();
+      const email = (profile.email || '').trim();
+      const role = (profile.role || 'club').trim();
+
+      if (accountNameEl) accountNameEl.textContent = name || '-';
+      if (currentEmailEl) currentEmailEl.textContent = email || '-';
+      if (accountRoleEl) accountRoleEl.textContent = role || 'club';
+      if (newEmailInput && !newEmailInput.value) newEmailInput.value = email || '';
+
+      const logged = safeParse('loggedUser') || {};
+      const user = safeParse('user') || {};
+      const localProfile = safeParse('profile') || {};
+
+      logged.name = name || logged.name || '';
+      logged.email = email || logged.email || '';
+      logged.type = 'club';
+      user.fullName = name || user.fullName || '';
+      user.name = name || user.name || '';
+      user.email = email || user.email || '';
+      user.role = 'club';
+      localProfile.displayName = name || localProfile.displayName || '';
+      localProfile.email = email || localProfile.email || '';
+
+      localStorage.setItem('loggedUser', JSON.stringify(logged));
+      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('profile', JSON.stringify(localProfile));
+    };
+
+    const fillClubForm = (club) => {
+      if (!club) return;
+      if (clubNameInput) clubNameInput.value = (club.name || club.clubName || '').trim();
+      if (clubCategoryInput) {
+        selectedClubTags = normalizeTagList(Array.isArray(club.tags) ? club.tags : [club.category]);
+        clubCategoryInput.value = selectedClubTags.join(', ');
+      }
+      const location = (club.location || '').trim();
+      if (clubLocationInput) clubLocationInput.value = location;
+      if (clubMapSearchInput) clubMapSearchInput.value = location;
+      setClubMapSelection({
+        address: location,
+        placeId: String(club.placeId || '').trim(),
+        lat: club.locationLat,
+        lng: club.locationLng
+      });
+      if (mapInstance) {
+        if (Number.isFinite(Number(clubMapSelection.lat)) && Number.isFinite(Number(clubMapSelection.lng))) {
+          setMapMarkerPosition({
+            lat: Number(clubMapSelection.lat),
+            lng: Number(clubMapSelection.lng)
+          }, 15);
+        } else if (location) {
+          geocodeAddressToMap(location, { updateInput: false, showStatus: false });
+        }
+      }
+      if (clubOpeningStartInput) clubOpeningStartInput.value = (club.openingStart || '').trim();
+      if (clubOpeningEndInput) clubOpeningEndInput.value = (club.openingEnd || '').trim();
+      if (clubEmailInput) clubEmailInput.value = (club.email || '').trim();
+      if (clubPhoneInput) clubPhoneInput.value = (club.phone || '').trim();
+      if (clubDescInput) clubDescInput.value = (club.description || '').trim();
+    };
+
+    const setSelectedClubTarget = (club) => {
+      const id = club?.id ?? club?.clubId ?? null;
+      const name = (club?.name || club?.clubName || '').trim();
+      selectedClubId = id ? String(id) : null;
+
+      if (clubTargetLabelEl) {
+        clubTargetLabelEl.textContent = selectedClubId ? `${name || 'Club'} (#${selectedClubId})` : 'new club';
+      }
+      if (saveClubBtn) {
+        saveClubBtn.textContent = selectedClubId ? 'Save' : 'Create';
+      }
+      if (clubNameEditBtn) {
+        clubNameEditBtn.disabled = !selectedClubId;
+      }
+      if (clubCategoryEditBtn) {
+        clubCategoryEditBtn.disabled = !selectedClubId;
+      }
+
+      if (selectedClubId) {
+        try {
+          localStorage.setItem('selectedClub', JSON.stringify({
+            id: selectedClubId,
+            name: name || `Club #${selectedClubId}`,
+            tags: normalizeTagList(Array.isArray(club?.tags) ? club.tags : [])
+          }));
+        } catch {}
+      }
+      if (!selectedClubId) renderClubImageList([]);
+    };
+
+    const loadClubProfile = async () => {
+      if (!clubProfileForm) return;
+      setClubStatus('Loading club profile...', '');
+
+      const clubsRes = await authFetch('/api/my/clubs');
+      if (clubsRes.status === 401) {
+        window.location.href = 'login.html#login';
+        return;
+      }
+      if (!clubsRes.ok) {
+        const text = await clubsRes.text();
+        setClubStatus(text || 'Failed to load clubs.', 'err');
+        return;
+      }
+
+      const clubs = await clubsRes.json();
+      const list = Array.isArray(clubs) ? clubs : [];
+      if (!list.length) {
+        setSelectedClubTarget(null);
+        setClubStatus('No club found yet. You can create one here.', '');
+        await initClubMapPicker();
+        return;
+      }
+
+      let preferredId = null;
+      try {
+        preferredId = String((safeParse('selectedClub') || {}).id || '');
+      } catch {
+        preferredId = null;
+      }
+      const targetClub = list.find((club) => String(club?.id ?? club?.clubId ?? '') === preferredId) || list[0];
+      setSelectedClubTarget(targetClub);
+
+      const detailRes = await authFetch(`/api/clubs/${encodeURIComponent(selectedClubId)}`);
+      if (!detailRes.ok) {
+        const text = await detailRes.text();
+        setClubStatus(text || 'Failed to load selected club profile.', 'err');
+        return;
+      }
+      const detail = await detailRes.json();
+      fillClubForm(detail);
+      await initClubMapPicker();
+      await loadClubImages();
+      setClubStatus('', '');
+    };
+
+    const saveClubProfile = async () => {
+      const name = (clubNameInput?.value || '').trim();
+      const tags = normalizeTagList(selectedClubTags);
+      const category = String(tags[0] || '').trim();
+      const location = (clubLocationInput?.value || '').trim();
+      const openingStart = (clubOpeningStartInput?.value || '').trim();
+      const openingEnd = (clubOpeningEndInput?.value || '').trim();
+      const email = (clubEmailInput?.value || '').trim();
+      const phone = (clubPhoneInput?.value || '').trim();
+      const description = (clubDescInput?.value || '').trim();
+      const locationLat = normalizeCoordinate(clubMapSelection?.lat);
+      const locationLng = normalizeCoordinate(clubMapSelection?.lng);
+      const placeId = String(clubMapSelection?.placeId || '').trim();
+
+      if (!name) {
+        setClubStatus('Club name is required.', 'err');
+        return;
+      }
+
+      if ((openingStart && !openingEnd) || (!openingStart && openingEnd)) {
+        setClubStatus('Please provide both opening start and opening end.', 'err');
+        return;
+      }
+      if (openingStart && openingEnd && openingStart >= openingEnd) {
+        setClubStatus('Opening start must be earlier than opening end.', 'err');
+        return;
+      }
+
+      const isEdit = !!selectedClubId;
+      const endpoint = isEdit ? `/api/clubs/${encodeURIComponent(selectedClubId)}` : '/api/clubs';
+      const method = isEdit ? 'PUT' : 'POST';
+
+      if (saveClubBtn) saveClubBtn.disabled = true;
+      setClubStatus(isEdit ? 'Saving club profile...' : 'Creating club...', '');
+
+      try {
+        const res = await authFetch(endpoint, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name,
+            category,
+            tags,
+            location,
+            placeId,
+            locationLat,
+            locationLng,
+            openingStart,
+            openingEnd,
+            email,
+            phone,
+            description
+          })
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          setClubStatus(text || (isEdit ? 'Save failed.' : 'Create failed.'), 'err');
+          return;
+        }
+
+        const club = await res.json();
+        setSelectedClubTarget(club);
+        fillClubForm(club);
+        await loadClubImages();
+        setClubStatus(isEdit ? 'Club profile saved.' : 'Club created.', 'ok');
+      } catch (err) {
+        console.error(err);
+        setClubStatus(isEdit ? 'Save failed.' : 'Create failed.', 'err');
+      } finally {
+        if (saveClubBtn) saveClubBtn.disabled = false;
+      }
+    };
+
+    const loadProfile = async () => {
+      setStatus('Loading account...', '');
+      const res = await authFetch('/api/profile');
+      if (res.status === 401) {
+        window.location.href = 'login.html#login';
+        return;
+      }
+      if (!res.ok) {
+        const text = await res.text();
+        setStatus(text || 'Failed to load account.', 'err');
+        return;
+      }
+      const profile = await res.json();
+      applyProfile(profile);
+      setStatus('', '');
+    };
+
+    const saveEmail = async () => {
+      const nextEmail = (newEmailInput?.value || '').trim();
+      if (!emailRe.test(nextEmail)) {
+        setStatus('Please enter a valid email address.', 'err');
+        return;
+      }
+
+      if (saveEmailBtn) saveEmailBtn.disabled = true;
+      setStatus('Updating email...', '');
+
+      try {
+        const res = await authFetch('/api/profile/email', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: nextEmail })
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          setStatus(text || 'Failed to update email.', 'err');
+          return;
+        }
+
+        const payload = await res.json();
+        if (payload?.token) {
+          localStorage.setItem('token', payload.token);
+        }
+        applyProfile(payload);
+        setStatus('Email updated successfully.', 'ok');
+      } catch (err) {
+        console.error(err);
+        setStatus('Failed to update email.', 'err');
+      } finally {
+        if (saveEmailBtn) saveEmailBtn.disabled = false;
+      }
+    };
+
+    if (ensureClubLogin()) {
+      updateClubMapUi();
+      (async () => {
+        await loadServerGoogleMapsApiKey();
+        await loadProfile();
+        await loadClubProfile();
+        updateClubImageSelectionLabel();
+      })();
+      clubMapSetKeyBtn?.addEventListener('click', async () => {
+        const updated = await promptGoogleMapsApiKey();
+        if (!updated) return;
+        await initClubMapPicker();
+        const address = String(clubLocationInput?.value || '').trim();
+        if (address) {
+          await geocodeAddressToMap(address, { updateInput: false, showStatus: false });
+        }
+      });
+      clubMapSearchInput?.addEventListener('keydown', async (event) => {
+        if (event.key !== 'Enter') return;
+        event.preventDefault();
+        const q = String(clubMapSearchInput.value || '').trim();
+        if (!q) return;
+        if (!mapInstance) await initClubMapPicker();
+        if (!mapInstance) return;
+        await geocodeAddressToMap(q, { updateInput: true, showStatus: true });
+      });
+      clubLocationInput?.addEventListener('input', () => {
+        if (suppressLocationFieldSync) return;
+        clearClubMapSelectionMetadata(String(clubLocationInput.value || '').trim());
+      });
+      clubLocationInput?.addEventListener('blur', async () => {
+        const address = String(clubLocationInput.value || '').trim();
+        if (!address || !mapInstance) return;
+        await geocodeAddressToMap(address, { updateInput: false, showStatus: false });
+      });
+      clubLocationInput?.addEventListener('keydown', async (event) => {
+        if (event.key !== 'Enter') return;
+        event.preventDefault();
+        const address = String(clubLocationInput.value || '').trim();
+        if (!address) return;
+        if (!mapInstance) await initClubMapPicker();
+        if (!mapInstance) return;
+        await geocodeAddressToMap(address, { updateInput: false, showStatus: true });
+      });
+      clubImageInput?.addEventListener('change', () => {
+        updateClubImageSelectionLabel();
+        const files = Array.from(clubImageInput?.files || []);
+        if (files.length) uploadClubImages();
+      });
+      clubNameEditBtn?.addEventListener('click', openNameEditor);
+      clubCategoryEditBtn?.addEventListener('click', openCategoryEditor);
+      uploadClubImagesBtn?.addEventListener('click', () => {
+        clubImageInput?.click();
+      });
+      saveEmailBtn?.addEventListener('click', saveEmail);
+      newEmailInput?.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          saveEmail();
+        }
+      });
+      clubProfileForm?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        await saveClubProfile();
+      });
+    }
+  </script>
+</body>
+</html>
+

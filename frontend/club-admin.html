@@ -1,0 +1,1894 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Club Admin - Manage Venues & Time Slots</title>
+  <link rel="stylesheet" href="theme.css?v=20260220b">
+  <style>
+    :root {
+      --bg: #ffffff;
+      --card: #fff;
+      --ink: #111827;
+      --muted: #6b7280;
+      --line: #dde3ee;
+      --danger: #b91c1c;
+      --ok: #065f46;
+      --focus: rgba(37, 99, 235, 0.28);
+      --surface-soft: #f8faff;
+      --surface-strong: #eef3ff;
+      --venue-panels-height: 286px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .wrap {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 16px 18px;
+    }
+    .header-wrap {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 12px;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #2563eb;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      justify-self: start;
+      border: 1px solid rgba(37, 99, 235, 0.18);
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 999px;
+      padding: 6px 11px;
+    }
+    .page-title {
+      margin: 0;
+      font-size: 19px;
+      letter-spacing: -0.01em;
+      justify-self: center;
+    }
+
+    h1 { margin: 0; font-size: 18px; }
+    h2 { margin: 0 0 12px; font-size: 22px; letter-spacing: -0.01em; }
+    h3 { margin: 0 0 10px; font-size: 18px; letter-spacing: -0.01em; }
+
+    .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+    .muted { color: var(--muted); font-size: 13px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: none;
+    }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    @media (min-width: 960px) { .grid { grid-template-columns: 1fr 1fr; } }
+    .admin-main { display: grid; gap: 12px; padding-top: 0; padding-bottom: 0; }
+    .page-head { align-items: flex-start; }
+    .section-head { margin-bottom: 12px; align-items: flex-start; }
+    .section-hint { margin-top: 4px; }
+    .workspace-shell {
+      margin-top: 0;
+      padding: 0;
+    }
+    .workspace-shell > .section-head {
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px dashed #d6ddeb;
+    }
+    .workspace-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+    .workspace-grid {
+      grid-template-columns: minmax(300px, .92fr) minmax(360px, 1.08fr) !important;
+      gap: 14px !important;
+      align-items: stretch;
+    }
+    .slot-section {
+      margin-top: 8px;
+    }
+    .slot-list-block {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px dashed #d6ddeb;
+    }
+    .added-slots-section {
+      margin-top: 8px;
+    }
+    .list-block-title {
+      margin: 0 0 10px;
+      font-size: 20px;
+      letter-spacing: -0.01em;
+    }
+    .sub-card {
+      border-radius: 14px !important;
+      background: #fff;
+      border-color: var(--line);
+      box-shadow: none;
+      min-height: 100%;
+    }
+    .card.sub-card.slot-section,
+    .card.sub-card.added-slots-section {
+      display: block;
+      height: auto;
+      min-height: 0;
+      max-height: none;
+      overflow: visible;
+      align-self: start;
+    }
+    .card.sub-card.venue-form-panel,
+    .card.sub-card.added-venues-panel {
+      display: flex;
+      flex-direction: column;
+      height: var(--venue-panels-height);
+      min-height: var(--venue-panels-height);
+      max-height: var(--venue-panels-height);
+      align-self: stretch;
+    }
+    .venue-form-panel .section-head {
+      margin-bottom: 10px;
+    }
+    .venue-form-panel #formCreateVenue {
+      flex: 1 1 auto;
+      align-content: start;
+    }
+    .added-venues-panel {
+      overflow: hidden;
+    }
+    .spacer-sm { height: 10px; }
+    .club-toolbar {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .club-switch {
+      min-width: 260px;
+      flex: 1 1 260px;
+      max-width: 420px;
+    }
+    #selectedClubLabel {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 9px;
+      border-radius: 999px;
+      border: 1px solid #c6d4f3;
+      background: var(--surface-strong);
+      color: #1e3a8a;
+      font-weight: 600;
+      margin-left: 4px;
+    }
+    #weekRangeLabel { font-size: 13px; font-weight: 600; padding-bottom: 6px; color: #475569; }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: #111;
+      color: #fff;
+      padding: 9px 13px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease;
+    }
+    .btn.blue { background: #2563eb; border-color: #2563eb; }
+    .btn.ghost { background: #fff; color: #111; }
+    .btn.red { background: var(--danger); border-color: var(--danger); }
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 16px rgba(15, 23, 42, 0.10);
+    }
+    .btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus);
+    }
+    .btn[disabled] { opacity: .6; cursor: not-allowed; }
+    .btn[disabled]:hover { transform: none; box-shadow: none; }
+    .btn.is-disabled {
+      opacity: .56;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    a.btn {
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #4b5563;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      background: #fff;
+      color: var(--ink);
+      transition: border-color .14s ease, box-shadow .14s ease, background .14s ease;
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #93c5fd;
+      box-shadow: 0 0 0 3px var(--focus);
+    }
+    textarea { min-height: 84px; resize: vertical; }
+    input:disabled, textarea:disabled, select:disabled {
+      background: #f8fafc;
+      color: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 11px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 640px) { .form-grid.cols-2 { grid-template-columns: 1fr 1fr; } }
+    .span-all { grid-column: 1 / -1; }
+    .form-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      grid-column: 1 / -1;
+    }
+    .form-note {
+      grid-column: 1 / -1;
+      font-size: 13px;
+    }
+    .slot-form { margin-top: 10px !important; margin-bottom: 12px !important; }
+    form[aria-disabled="true"] { opacity: 0.86; }
+
+    .list { display: grid; gap: 10px; }
+    #venueList {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      flex: 1 1 auto;
+      min-height: 0;
+      max-height: none;
+      overflow-y: auto;
+      padding-right: 4px;
+      align-content: start;
+    }
+    body.venue-modal-open {
+      overflow: hidden;
+    }
+    body.venue-modal-open header,
+    body.venue-modal-open main {
+      filter: blur(2px) saturate(0.92);
+      transform: scale(0.997);
+      transform-origin: top center;
+      transition: filter .2s ease, transform .2s ease, opacity .2s ease;
+    }
+    .club-admin-page .venue-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1400;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow-y: auto;
+      background: rgba(248, 250, 252, 0.62);
+      backdrop-filter: blur(10px) saturate(104%);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease;
+    }
+    .venue-modal.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .club-admin-page .app-prompt-overlay {
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 24px !important;
+    }
+    .club-admin-page .app-prompt-card {
+      margin: 0 auto;
+    }
+    .venue-modal__card {
+      width: min(560px, calc(100vw - 32px));
+      max-height: calc(100vh - 48px);
+      overflow: auto;
+      padding: 22px;
+      border-radius: 26px;
+      border: 1px solid #cad8ee;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(247,250,255,0.98) 100%);
+      box-shadow: none;
+      position: relative;
+      display: grid;
+      gap: 14px;
+    }
+    .venue-modal__close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      border: 1px solid #cfd9ea;
+      background: rgba(255,255,255,0.95);
+      color: #475569;
+      font-size: 24px;
+      line-height: 1;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(148, 163, 184, 0.16);
+    }
+    .venue-modal__kicker {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #64748b;
+    }
+    .venue-modal__title {
+      margin: 0;
+      padding-right: 44px;
+      font-size: 28px;
+      line-height: 1.1;
+      font-weight: 800;
+      color: #0f172a;
+      word-break: break-word;
+    }
+    .venue-modal__section-label {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #64748b;
+    }
+    .venue-modal__address {
+      padding: 15px 16px;
+      border-radius: 16px;
+      border: 1px solid #d8e2f0;
+      background: rgba(255,255,255,0.92);
+      color: #0f172a;
+      line-height: 1.55;
+      word-break: break-word;
+    }
+    .venue-modal__address.is-empty {
+      color: #94a3b8;
+      font-style: italic;
+    }
+    .venue-modal__actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .item {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 13px;
+      background: #fff;
+      transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+    .item:hover {
+      border-color: #cbd6e8;
+      background: #fcfdff;
+    }
+    .item.is-selected {
+      border-color: #93c5fd;
+      background: #eff6ff;
+      box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.24);
+    }
+    .item-row { align-items: flex-start; }
+    .item-main { min-width: 0; display: grid; gap: 2px; }
+    .item-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .item-title { font-weight: 700; font-size: 18px; margin-bottom: 2px; line-height: 1.2; }
+    .item-sub { color: var(--muted); font-size: 14px; line-height: 1.3; }
+    .item-sub strong { color: #1f2937; font-weight: 600; }
+    .venue-item {
+      padding: 0;
+      overflow: hidden;
+      min-height: 74px;
+      border-radius: 16px;
+      border-color: #dbe3ef;
+      background: #fff;
+      box-shadow: none;
+    }
+    .venue-item:hover {
+      border-color: #cfd9e7;
+      background: #fcfdff;
+    }
+    .venue-item.is-selected {
+      border-color: #bfd5ff;
+      box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.20);
+    }
+    .venue-summary {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-height: 74px;
+      padding: 10px 14px;
+      cursor: pointer;
+      text-align: left;
+    }
+    .venue-summary-main {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1 1 auto;
+    }
+    .venue-summary-name {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.2;
+      font-weight: 700;
+      color: #0f172a;
+      word-break: break-word;
+    }
+    .venue-summary-toggle {
+      border: 1px solid #d6ddeb;
+      background: #f8fafc;
+      color: #334155;
+      border-radius: 999px;
+      min-width: 112px;
+      min-height: 36px;
+      padding: 6px 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      flex: 0 0 auto;
+      transition: border-color .15s ease, background .15s ease, transform .15s ease;
+    }
+    .venue-summary-toggle:hover {
+      border-color: #bfd0ea;
+      background: #f1f5f9;
+      transform: translateY(-1px);
+    }
+    .venue-summary-toggle-label {
+      white-space: nowrap;
+    }
+    .venue-summary-toggle-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: #fff;
+      color: #475569;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: inset 0 0 0 1px #d5dde9;
+    }
+    .venue-details {
+      border-top: 1px solid #e8eef7;
+      padding: 0 20px 20px;
+      display: grid;
+      gap: 14px;
+      background: #ffffff;
+    }
+    .venue-address-shell {
+      display: grid;
+      gap: 8px;
+      margin-top: 16px;
+      padding: 16px;
+      border: 1px solid #dde6f2;
+      border-radius: 16px;
+      background: #fff;
+    }
+    .venue-detail-label {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #64748b;
+    }
+    .venue-detail-address {
+      color: #0f172a;
+      font-size: 14px;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+    .venue-detail-address.is-empty {
+      color: #94a3b8;
+      font-style: italic;
+    }
+    .venue-detail-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .venue-edit-form {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+      border: 1px solid #dde6f2;
+      border-radius: 16px;
+      background: #fff;
+    }
+    .venue-edit-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .venue-inline-note {
+      margin: 0;
+      color: #64748b;
+      font-size: 13px;
+    }
+    .btn.btn-compact {
+      min-height: 40px;
+      padding: 8px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.2;
+    }
+
+    .status {
+      font-size: 12px;
+      font-weight: 700;
+      margin-left: 0;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #fff;
+      color: #334155;
+      min-height: 32px;
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 11px;
+    }
+    .status.ok { color: var(--ok); border-color: #9ad8bb; background: #ebfaf2; }
+    .status.err { color: var(--danger); border-color: #f2b7b7; background: #fef0f0; }
+
+    .week-tabs {
+      display: flex;
+      gap: 9px;
+      overflow: auto;
+      padding: 5px 2px;
+      border-radius: 12px;
+      scroll-padding: 6px;
+    }
+    .week-tab {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      padding: 8px 11px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      user-select: none;
+      transition: border-color .14s ease, background .14s ease, color .14s ease;
+    }
+    .week-tab:hover {
+      border-color: #b5c5df;
+    }
+    .week-tab.active {
+      background: #0f172a;
+      color: #fff;
+      border-color: #0f172a;
+    }
+    .week-tab .badge {
+      background: rgba(0,0,0,.10);
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 11px;
+    }
+    .week-tab.active .badge { background: rgba(255,255,255,.18); }
+
+    @media (max-width: 1080px) {
+      .workspace-grid { grid-template-columns: 1fr !important; }
+      .card.sub-card.venue-form-panel,
+      .added-venues-panel {
+        height: auto;
+        min-height: 0;
+        max-height: none;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .wrap { padding-left: 12px; padding-right: 12px; }
+      .card { padding: 13px; }
+      .workspace-shell { padding: 0; }
+      .venue-modal {
+        padding: 14px 12px 18px;
+      }
+      .venue-modal__card {
+        width: min(100vw - 24px, 560px);
+        max-height: calc(100vh - 28px);
+        border-radius: 22px;
+      }
+      .item-title { font-size: 16px; }
+      .item-actions { width: 100%; }
+      .item-actions .btn { flex: 1 1 120px; text-align: center; }
+      .venue-summary {
+        padding: 13px 14px;
+        align-items: flex-start;
+      }
+      #venueList {
+        grid-template-columns: 1fr;
+      }
+      .venue-summary-toggle {
+        min-width: 104px;
+      }
+      .venue-details {
+        padding: 0 14px 14px;
+      }
+    }
+  </style>
+</head>
+<body class="club-admin-page">
+  <header>
+    <div class="wrap header-wrap">
+      <a class="back-link" href="club home.html">&larr; Back</a>
+      <h1 class="page-title">Club Admin</h1>
+      <span></span>
+    </div>
+  </header>
+
+  <main class="wrap admin-main">
+    <section class="workspace-shell">
+      <div class="grid workspace-grid">
+        <div class="card sub-card venue-form-panel">
+          <div class="row section-head">
+            <h3 style="margin:0">Venue</h3>
+          </div>
+          <form id="formCreateVenue" class="form-grid cols-2">
+            <label>Venue name
+              <input id="venueName" required placeholder="e.g. Court A" />
+            </label>
+            <label class="span-all">Location (optional)
+              <input id="venueLoc" placeholder="e.g. Hall A" />
+            </label>
+            <div class="form-actions">
+              <button class="btn blue" type="submit" id="btnCreateVenue">Add venue</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card sub-card added-venues-panel">
+          <h3 class="list-block-title">Added venues</h3>
+          <div id="venueList" class="list"></div>
+          <div class="muted" id="venueEmpty" style="display:none;padding:8px 0">No venues yet.</div>
+        </div>
+      </div>
+
+      <div class="card sub-card slot-section">
+        <div class="row section-head">
+          <h3 style="margin:0">Time Slots</h3>
+        </div>
+        <label style="margin-bottom:10px">Venue
+          <select id="slotVenue" required></select>
+        </label>
+        <div id="weekTabs" class="week-tabs" aria-label="Next 7 days"></div>
+        <form id="formCreateSlot" class="form-grid cols-2 slot-form">
+          <label>Start
+            <input type="time" required id="slotStartTime" />
+          </label>
+          <label>End
+            <input type="time" required id="slotEndTime" />
+          </label>
+          <label>Max capacity
+            <input type="number" min="1" value="1" required id="slotCap" />
+          </label>
+          <label>Price
+            <input type="number" min="0" step="0.01" value="0.00" id="slotPrice" />
+          </label>
+          <div class="form-actions">
+            <button class="btn blue" type="submit" id="btnCreateSlot">Add slot</button>
+            <button class="btn ghost" type="button" id="btnCancelSlotEdit" hidden>Cancel edit</button>
+            <button class="btn ghost" type="button" id="btnCopyDayToWeek">Apply weekly</button>
+            <button class="btn ghost" type="button" id="btnCopyDayToDaily">Apply daily</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card sub-card added-slots-section">
+        <h3 class="list-block-title">Added time slots</h3>
+        <div id="slotList" class="list"></div>
+        <div class="muted" id="slotEmpty" style="display:none;padding:8px 0">No time slots yet for this day.</div>
+      </div>
+      <div id="statusLine" class="status" role="status" aria-live="polite" style="display:none"></div>
+    </section>
+  </main>
+
+  <div id="venueModal" class="venue-modal" aria-hidden="true"></div>
+
+  <script src="ui-prompt.js?v=20260309b"></script>
+  <script>
+    const statusLine = document.getElementById('statusLine');
+    const setStatus = (msg, kind) => {
+      if (!statusLine) return;
+      const text = String(msg || '').trim();
+      if (!text) {
+        statusLine.textContent = '';
+        statusLine.className = 'status';
+        statusLine.style.display = 'none';
+        return;
+      }
+      statusLine.textContent = text;
+      statusLine.className = `status ${kind || ''}`.trim();
+      statusLine.style.display = 'inline-flex';
+    };
+
+    const authFetch = (url, options = {}) => {
+      const token = localStorage.getItem('token');
+      const headers = { ...(options.headers || {}) };
+      if (token) headers.Authorization = `Bearer ${token}`;
+      return fetch(url, {
+        ...options,
+        credentials: options.credentials ?? 'include',
+        headers
+      });
+    };
+
+    const apiJson = async (res) => {
+      const ct = String(res.headers.get('content-type') || '');
+      if (ct.includes('application/json')) return await res.json();
+      const text = await res.text();
+      return text ? { message: text } : null;
+    };
+
+    const requireClubLogin = () => {
+      const token = localStorage.getItem('token');
+      if (!token) return false;
+      try {
+        const u = JSON.parse(localStorage.getItem('loggedUser') || 'null');
+        if (!u || u.type !== 'club') return false;
+      } catch {
+        return false;
+      }
+      return true;
+    };
+
+    const localDateISO = (d) => {
+      const tzOffset = d.getTimezoneOffset() * 60000;
+      return new Date(d.getTime() - tzOffset).toISOString().slice(0, 10);
+    };
+
+    let selectedClubId = null;
+    let selectedClubName = null;
+    let selectedVenueId = null;
+    let expandedVenueId = null;
+    let editingVenueId = null;
+    let selectedDayISO = null;
+    let weekDays = [];
+    let weekSlots = [];
+    let weekFrom = null;
+    let weekTo = null;
+    let editingSlotId = null;
+    const DISPLAY_LOCALE = 'en-US';
+    const WEEKLY_RECURRENCE_WEEKS = 52;
+    const DAILY_RECURRENCE_DAYS = 7;
+
+    const selectedClubLabel = document.getElementById('selectedClubLabel');
+    const clubSwitchEl = document.getElementById('clubSwitch');
+    const btnViewAsUserEl = document.getElementById('btnViewAsUser');
+    const venueList = document.getElementById('venueList');
+    const venueModalEl = document.getElementById('venueModal');
+    const venueEmpty = document.getElementById('venueEmpty');
+    const formCreateVenueEl = document.getElementById('formCreateVenue');
+    const venueNameEl = document.getElementById('venueName');
+    const venueLocEl = document.getElementById('venueLoc');
+    const btnCreateVenueEl = document.getElementById('btnCreateVenue');
+    const venueFormNoteEl = document.getElementById('venueFormNote');
+    const slotList = document.getElementById('slotList');
+    const slotEmpty = document.getElementById('slotEmpty');
+    const weekRangeLabelEl = document.getElementById('weekRangeLabel');
+    const slotVenueEl = document.getElementById('slotVenue');
+    const weekTabsEl = document.getElementById('weekTabs');
+    const selectedDayLabelEl = document.getElementById('selectedDayLabel');
+    const slotStartTimeEl = document.getElementById('slotStartTime');
+    const slotEndTimeEl = document.getElementById('slotEndTime');
+    const slotCapEl = document.getElementById('slotCap');
+    const slotPriceEl = document.getElementById('slotPrice');
+    const btnCreateSlot = document.getElementById('btnCreateSlot');
+    const btnCancelSlotEdit = document.getElementById('btnCancelSlotEdit');
+    const btnCopyDayToWeek = document.getElementById('btnCopyDayToWeek');
+    const btnCopyDayToDaily = document.getElementById('btnCopyDayToDaily');
+    let venuesCache = [];
+    let myClubsCache = [];
+
+    const clubFormTitle = document.getElementById('clubFormTitle');
+    const clubFormHint = document.getElementById('clubFormHint');
+    const clubNameEl = document.getElementById('clubName');
+    const clubCategoryEl = document.getElementById('clubCategory');
+    const clubEmailEl = document.getElementById('clubEmail');
+    const clubPhoneEl = document.getElementById('clubPhone');
+    const clubDescEl = document.getElementById('clubDesc');
+    const btnCreateClub = document.getElementById('btnCreateClub');
+
+    const setClubFormMode = (mode) => {
+      const isEdit = mode === 'edit';
+      if (clubFormTitle) clubFormTitle.textContent = isEdit ? 'Club profile' : 'Create Club';
+      if (clubFormHint) clubFormHint.textContent = isEdit
+        ? 'Edit the club details saved from onboarding.'
+        : 'Creates a club and assigns you as admin.';
+      if (btnCreateClub) btnCreateClub.textContent = isEdit ? 'Save' : 'Create';
+    };
+
+    const fillClubForm = (club) => {
+      if (!club) return;
+      const name = club.name || club.clubName || '';
+      const category = club.category || (Array.isArray(club.tags) ? club.tags[0] : '') || '';
+      if (clubNameEl) clubNameEl.value = name;
+      if (clubCategoryEl) clubCategoryEl.value = category;
+      if (clubEmailEl) clubEmailEl.value = club.email || '';
+      if (clubPhoneEl) clubPhoneEl.value = club.phone || '';
+      if (clubDescEl) clubDescEl.value = club.description || '';
+    };
+
+    const prefillClubFormFallback = () => {
+      // Only used when no club exists yet (no selectedClubId).
+      try {
+        const logged = JSON.parse(localStorage.getItem('loggedUser') || 'null');
+        if (clubEmailEl && !clubEmailEl.value) clubEmailEl.value = logged?.email || '';
+      } catch {}
+      try {
+        const profile = JSON.parse(localStorage.getItem('profile') || 'null');
+        if (clubNameEl && !clubNameEl.value) clubNameEl.value = profile?.displayName || '';
+        if (clubCategoryEl && !clubCategoryEl.value) clubCategoryEl.value = Array.isArray(profile?.sports) ? (profile.sports[0] || '') : '';
+      } catch {}
+    };
+
+    const loadClubDetailToForm = async () => {
+      if (!clubNameEl) return;
+      if (!selectedClubId) {
+        setClubFormMode('create');
+        prefillClubFormFallback();
+        return;
+      }
+      setClubFormMode('edit');
+      const res = await authFetch(`/api/clubs/${encodeURIComponent(selectedClubId)}`);
+      if (!res.ok) return;
+      const club = await res.json();
+      fillClubForm(club);
+    };
+
+    const setSelectedClub = (club) => {
+      selectedClubId = club?.id ?? club?.clubId ?? null;
+      selectedClubName = club?.name ?? club?.clubName ?? club?.title ?? null;
+      selectedVenueId = null;
+      expandedVenueId = null;
+      editingVenueId = null;
+      setSlotEditMode(null);
+      if (selectedClubLabel) {
+        selectedClubLabel.textContent = selectedClubId ? `${selectedClubName || 'Club'} (#${selectedClubId})` : 'none';
+      }
+      if (selectedClubId) {
+        try { localStorage.setItem('selectedClub', JSON.stringify({ id: String(selectedClubId), name: selectedClubName || `Club #${selectedClubId}` })); } catch {}
+      }
+      if (clubSwitchEl) {
+        if (selectedClubId) {
+          try { clubSwitchEl.value = String(selectedClubId); } catch {}
+        } else {
+          try { clubSwitchEl.value = ''; } catch {}
+        }
+      }
+      if (btnViewAsUserEl) {
+        if (selectedClubId) {
+          btnViewAsUserEl.href = `club.html?club=${encodeURIComponent(String(selectedClubId))}`;
+          btnViewAsUserEl.classList.remove('is-disabled');
+          btnViewAsUserEl.removeAttribute('aria-disabled');
+        } else {
+          btnViewAsUserEl.href = 'club.html';
+          btnViewAsUserEl.classList.add('is-disabled');
+          btnViewAsUserEl.setAttribute('aria-disabled', 'true');
+        }
+      }
+    };
+
+    const setSelectedVenue = (venueId) => {
+      selectedVenueId = venueId ? String(venueId) : null;
+      if (slotVenueEl && selectedVenueId) {
+        try { slotVenueEl.value = String(selectedVenueId); } catch {}
+      }
+    };
+
+    const updateVenueFormState = (count) => {
+      if (venueNameEl) venueNameEl.disabled = false;
+      if (venueLocEl) venueLocEl.disabled = false;
+      if (btnCreateVenueEl) {
+        btnCreateVenueEl.disabled = false;
+        btnCreateVenueEl.textContent = 'Add venue';
+      }
+      if (formCreateVenueEl) {
+        formCreateVenueEl.removeAttribute('aria-disabled');
+      }
+    };
+
+    const renderVenueOptions = (venues) => {
+      if (!slotVenueEl) return;
+      const list = Array.isArray(venues) ? venues : [];
+      slotVenueEl.innerHTML = '';
+
+      if (!list.length) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = 'Add a venue first';
+        slotVenueEl.appendChild(opt);
+        slotVenueEl.disabled = true;
+        if (btnCreateSlot) btnCreateSlot.disabled = true;
+        if (btnCopyDayToWeek) btnCopyDayToWeek.disabled = true;
+        if (btnCopyDayToDaily) btnCopyDayToDaily.disabled = true;
+        selectedVenueId = null;
+        setSlotEditMode(null);
+        renderWeekTabs();
+        renderDaySlots();
+        return;
+      }
+
+      slotVenueEl.disabled = false;
+      if (btnCreateSlot) btnCreateSlot.disabled = false;
+      if (btnCopyDayToWeek) btnCopyDayToWeek.disabled = false;
+      if (btnCopyDayToDaily) btnCopyDayToDaily.disabled = false;
+
+      const ids = list.map((v) => String(v.venueId ?? v.id ?? ''));
+      if (!selectedVenueId || !ids.includes(String(selectedVenueId))) {
+        selectedVenueId = ids[0] || null;
+      }
+
+      list.forEach((v) => {
+        const id = v.venueId ?? v.id;
+        const name = String(v.name || v.venueName || '').trim() || 'Venue';
+        const opt = document.createElement('option');
+        opt.value = String(id);
+        opt.textContent = name;
+        slotVenueEl.appendChild(opt);
+      });
+
+      if (selectedVenueId) slotVenueEl.value = String(selectedVenueId);
+    };
+
+    const renderMyClubs = (clubs) => {
+      myClubsCache = Array.isArray(clubs) ? clubs : [];
+      if (!clubSwitchEl) return;
+      clubSwitchEl.innerHTML = '';
+
+      if (!myClubsCache.length) {
+        const emptyOpt = document.createElement('option');
+        emptyOpt.value = '';
+        emptyOpt.textContent = 'No clubs yet';
+        clubSwitchEl.appendChild(emptyOpt);
+        clubSwitchEl.disabled = true;
+        setSelectedClub(null);
+        return;
+      }
+
+      clubSwitchEl.disabled = false;
+      myClubsCache.forEach((c) => {
+        const id = c.id ?? c.clubId;
+        const name = c.name || c.clubName || `Club #${id}`;
+        const opt = document.createElement('option');
+        opt.value = String(id);
+        opt.textContent = `${name} (#${id})`;
+        clubSwitchEl.appendChild(opt);
+      });
+
+      if (selectedClubId) clubSwitchEl.value = String(selectedClubId);
+    };
+
+    const escapeHtml = (s) => String(s ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
+
+    const parseDateISO = (s) => String(s || '').trim().slice(0, 10);
+    const parseTimeHHMM = (s) => {
+      const t = String(s || '').split('T')[1] || '';
+      return t.slice(0, 5);
+    };
+    const addMinutesToHHMM = (hhmm, deltaMinutes) => {
+      const raw = String(hhmm || '').trim();
+      if (!/^\d{2}:\d{2}$/.test(raw)) return '';
+      const [hours, minutes] = raw.split(':').map((part) => Number(part));
+      if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return '';
+      const dayMinutes = 24 * 60;
+      const shifted = Math.max(0, Math.min(hours * 60 + minutes + Number(deltaMinutes || 0), dayMinutes - 1));
+      const nextHours = String(Math.floor(shifted / 60)).padStart(2, '0');
+      const nextMinutes = String(shifted % 60).padStart(2, '0');
+      return `${nextHours}:${nextMinutes}`;
+    };
+    const toBackendLocalDateTimeFromDateAndTime = (dateISO, hhmm) => {
+      const d = String(dateISO || '').trim();
+      const t = String(hhmm || '').trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return '';
+      if (!/^\d{2}:\d{2}$/.test(t)) return '';
+      return `${d}T${t}:00`;
+    };
+    const addDaysToISO = (dateISO, days) => {
+      const raw = String(dateISO || '').trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) return '';
+      const [year, month, day] = raw.split('-').map((part) => Number(part));
+      if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return '';
+      const dt = new Date(year, month - 1, day);
+      dt.setDate(dt.getDate() + Number(days || 0));
+      return localDateISO(dt);
+    };
+    const formatPrice = (raw) => {
+      const n = Number(raw);
+      if (!Number.isFinite(n) || n < 0) return '$0.00';
+      return `$${n.toFixed(2)}`;
+    };
+
+    const clearSlotFormInputs = () => {
+      if (slotStartTimeEl) slotStartTimeEl.value = '';
+      if (slotEndTimeEl) slotEndTimeEl.value = '';
+      if (slotCapEl) slotCapEl.value = '1';
+      if (slotPriceEl) slotPriceEl.value = '0.00';
+    };
+
+    const syncSlotTimeValidity = ({ autofillEnd = false } = {}) => {
+      if (!slotEndTimeEl) return true;
+      const startHHMM = String(slotStartTimeEl?.value || '').trim();
+      const endHHMM = String(slotEndTimeEl.value || '').trim();
+
+      if (startHHMM) slotEndTimeEl.min = startHHMM;
+      else slotEndTimeEl.removeAttribute('min');
+
+      if (autofillEnd && startHHMM && (!endHHMM || endHHMM <= startHHMM)) {
+        const nextEnd = addMinutesToHHMM(startHHMM, 60);
+        if (nextEnd) slotEndTimeEl.value = nextEnd;
+      }
+
+      const nextStartHHMM = String(slotStartTimeEl?.value || '').trim();
+      const nextEndHHMM = String(slotEndTimeEl.value || '').trim();
+      const isValid = !nextStartHHMM || !nextEndHHMM || nextEndHHMM > nextStartHHMM;
+      slotEndTimeEl.setCustomValidity(isValid ? '' : 'End time must be after start time');
+      return isValid;
+    };
+
+    const syncSlotEditorUi = () => {
+      const isEdit = !!editingSlotId;
+      if (btnCreateSlot) btnCreateSlot.textContent = isEdit ? 'Save changes' : 'Add slot';
+      if (btnCancelSlotEdit) btnCancelSlotEdit.hidden = !isEdit;
+    };
+
+    const readSlotDraft = () => {
+      if (!selectedClubId) { setStatus('Select a club first', 'err'); return null; }
+
+      const venueId = slotVenueEl?.value;
+      const dayISO = selectedDayISO || weekFrom;
+      const startHHMM = slotStartTimeEl?.value;
+      const endHHMM = slotEndTimeEl?.value;
+      const start = toBackendLocalDateTimeFromDateAndTime(dayISO, startHHMM);
+      const end = toBackendLocalDateTimeFromDateAndTime(dayISO, endHHMM);
+      const cap = Number(slotCapEl?.value || 1);
+      const priceRaw = slotPriceEl?.value;
+      const price = priceRaw === '' || priceRaw === null || priceRaw === undefined ? 0 : Number(priceRaw);
+
+      if (!venueId) { setStatus('Select a venue first', 'err'); return null; }
+      if (!dayISO) { setStatus('Select a day first', 'err'); return null; }
+      if (!start || !end) { setStatus('Missing start/end time', 'err'); return null; }
+      if (!syncSlotTimeValidity()) {
+        setStatus('End time must be after start time', 'err');
+        try { slotEndTimeEl?.reportValidity(); } catch {}
+        return null;
+      }
+      if (!Number.isFinite(cap) || cap <= 0) { setStatus('Invalid max capacity', 'err'); return null; }
+      if (!Number.isFinite(price) || price < 0) { setStatus('Invalid price', 'err'); return null; }
+      if (String(end) <= String(start)) {
+        setStatus('End time must be after start time', 'err');
+        try { slotEndTimeEl?.reportValidity(); } catch {}
+        return null;
+      }
+
+      return { venueId, dayISO, startHHMM, endHHMM, start, end, cap, price };
+    };
+
+    const getVisibleDailyOccurrences = (dayISO) => {
+      const index = weekDays.findIndex((day) => day.iso === dayISO);
+      if (index < 0) return DAILY_RECURRENCE_DAYS;
+      return Math.max(1, weekDays.length - index);
+    };
+
+    const applyRecurringSlots = async ({
+      stepDays,
+      occurrences,
+      buttonEl,
+      idleText,
+      busyText,
+      confirmTitle,
+      confirmMessage,
+      confirmDetails,
+      successLabel
+    }) => {
+      const draft = readSlotDraft();
+      if (!draft) return;
+
+      const {
+        venueId,
+        dayISO,
+        startHHMM,
+        endHHMM,
+        cap,
+        price
+      } = draft;
+
+      const safeOccurrences = Math.max(1, Number(occurrences || 1));
+      const finalDayISO = addDaysToISO(dayISO, (safeOccurrences - 1) * stepDays);
+      if (!finalDayISO) {
+        setStatus('Invalid selected day', 'err');
+        return;
+      }
+
+      const ok = await window.AppPrompt.confirm({
+        title: confirmTitle,
+        message: confirmMessage,
+        details: [
+          ...confirmDetails,
+          `Time: ${startHHMM}-${endHHMM}`,
+          'Existing duplicates will be skipped.'
+        ],
+        okText: 'Apply',
+        cancelText: 'Cancel'
+      });
+      if (!ok) return;
+
+      const existingKeys = new Set();
+      try {
+        const resExisting = await authFetch(`/api/clubs/${encodeURIComponent(selectedClubId)}/timeslots?from=${encodeURIComponent(dayISO)}&to=${encodeURIComponent(finalDayISO)}`);
+        if (resExisting.ok) {
+          const existingSlots = await resExisting.json();
+          (Array.isArray(existingSlots) ? existingSlots : [])
+            .filter((s) => String(s.venueId) === String(venueId))
+            .forEach((s) => {
+              existingKeys.add(`${venueId}|${String(s.startTime)}|${String(s.endTime)}`);
+            });
+        }
+      } catch (err) {
+        console.warn('load existing recurring slots failed', err);
+      }
+
+      let created = 0;
+      let skipped = 0;
+      try {
+        if (buttonEl) {
+          buttonEl.disabled = true;
+          buttonEl.textContent = busyText;
+        }
+
+        for (let index = 0; index < safeOccurrences; index++) {
+          const targetDayISO = addDaysToISO(dayISO, index * stepDays);
+          const st = toBackendLocalDateTimeFromDateAndTime(targetDayISO, startHHMM);
+          const en = toBackendLocalDateTimeFromDateAndTime(targetDayISO, endHHMM);
+          if (!st || !en || String(en) <= String(st)) {
+            skipped++;
+            continue;
+          }
+
+          const key = `${venueId}|${st}|${en}`;
+          if (existingKeys.has(key)) {
+            skipped++;
+            continue;
+          }
+
+          setStatus(`${successLabel}... created ${created}, skipped ${skipped}`, '');
+          const resCreate = await authFetch(`/api/clubs/${encodeURIComponent(selectedClubId)}/venues/${encodeURIComponent(venueId)}/timeslots`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ startTime: st, endTime: en, maxCapacity: cap, price })
+          });
+          if (resCreate.ok) {
+            created++;
+            existingKeys.add(key);
+          } else {
+            skipped++;
+            const body = await apiJson(resCreate);
+            console.warn('recurring slot create failed', body);
+          }
+        }
+
+        await loadTimeslots();
+        setStatus(`${successLabel} complete. Created ${created}, skipped ${skipped}.`, 'ok');
+      } finally {
+        if (buttonEl) {
+          buttonEl.disabled = false;
+          buttonEl.textContent = idleText;
+        }
+      }
+    };
+
+    const setSlotEditMode = (slot) => {
+      if (slot && slot.timeslotId !== undefined && slot.timeslotId !== null) {
+        editingSlotId = String(slot.timeslotId);
+        if (slot.venueId !== undefined && slot.venueId !== null) {
+          setSelectedVenue(slot.venueId);
+        }
+        const dayISO = parseDateISO(slot.startTime);
+        if (dayISO) selectedDayISO = dayISO;
+        if (slotStartTimeEl) slotStartTimeEl.value = parseTimeHHMM(slot.startTime);
+        if (slotEndTimeEl) slotEndTimeEl.value = parseTimeHHMM(slot.endTime);
+        const cap = Number(slot.maxCapacity);
+        if (slotCapEl && Number.isFinite(cap) && cap > 0) slotCapEl.value = String(Math.floor(cap));
+        const price = Number(slot.price);
+        if (slotPriceEl) slotPriceEl.value = Number.isFinite(price) && price >= 0 ? price.toFixed(2) : '0.00';
+        syncSlotTimeValidity();
+        syncSlotEditorUi();
+        renderWeekTabs();
+        renderDaySlots();
+        setStatus(`Editing time slot #${editingSlotId}. Update values then save.`, '');
+        return;
+      }
+
+      editingSlotId = null;
+      clearSlotFormInputs();
+      syncSlotTimeValidity();
+      syncSlotEditorUi();
+    };
+
+    const initWeek = () => {
+      const base = new Date();
+      base.setHours(0, 0, 0, 0);
+      weekDays = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(base.getTime() + i * 24 * 60 * 60 * 1000);
+        weekDays.push({ date: d, iso: localDateISO(d) });
+      }
+      weekFrom = weekDays[0]?.iso || localDateISO(base);
+      weekTo = weekDays[6]?.iso || localDateISO(base);
+      if (!selectedDayISO) selectedDayISO = weekFrom;
+      if (weekRangeLabelEl) weekRangeLabelEl.textContent = `Week: ${weekFrom} -> ${weekTo}`;
+    };
+
+    const fmtWeekday = new Intl.DateTimeFormat(DISPLAY_LOCALE, { weekday: 'short' });
+    const fmtMonthDay = new Intl.DateTimeFormat(DISPLAY_LOCALE, { month: '2-digit', day: '2-digit' });
+    const fmtLongDay = new Intl.DateTimeFormat(DISPLAY_LOCALE, { weekday: 'short', year: 'numeric', month: 'short', day: '2-digit' });
+    const dayLabel = (day) => `${fmtWeekday.format(day.date)} ${fmtMonthDay.format(day.date)}`;
+
+    const loadMyClubs = async () => {
+      setStatus('Loading my clubs...', '');
+      const res = await authFetch('/api/my/clubs');
+      if (!res.ok) {
+        const body = await apiJson(res);
+        throw new Error(body?.message || 'Failed to load my clubs');
+      }
+      const clubsData = await res.json();
+      const clubs = Array.isArray(clubsData) ? clubsData : [];
+      let storedId = null;
+      try {
+        storedId = JSON.parse(localStorage.getItem('selectedClub') || 'null')?.id ?? null;
+      } catch {}
+      const pick = clubs.find(c => String(c.id ?? c.clubId) === String(selectedClubId ?? ''))
+        || clubs.find(c => String(c.id ?? c.clubId) === String(storedId ?? ''))
+        || clubs[0]
+        || null;
+      setSelectedClub(pick);
+      renderMyClubs(clubs);
+
+      setStatus('', '');
+    };
+
+    clubSwitchEl?.addEventListener('change', async () => {
+      const nextId = String(clubSwitchEl.value || '');
+      if (!nextId) return;
+      const nextClub = myClubsCache.find((c) => String(c.id ?? c.clubId) === nextId);
+      if (!nextClub) return;
+      if (String(selectedClubId ?? '') === nextId) return;
+      setSelectedClub(nextClub);
+      try {
+        await reloadAll();
+      } catch (err) {
+        setStatus(err?.message || 'Failed to switch club', 'err');
+      }
+    });
+
+    const setVenueModalOpen = (open) => {
+      if (!venueModalEl) return;
+      venueModalEl.classList.toggle('open', Boolean(open));
+      venueModalEl.setAttribute('aria-hidden', open ? 'false' : 'true');
+      document.body.classList.toggle('venue-modal-open', Boolean(open));
+      if (open) {
+        venueModalEl.scrollTop = 0;
+        const modalCard = venueModalEl.querySelector('.venue-modal__card');
+        if (modalCard) modalCard.scrollTop = 0;
+      }
+      if (!open) {
+        venueModalEl.innerHTML = '';
+      }
+    };
+
+    const closeVenueModal = () => {
+      expandedVenueId = null;
+      editingVenueId = null;
+      setVenueModalOpen(false);
+      syncVenueListUi();
+    };
+
+    const renderVenueModal = () => {
+      if (!venueModalEl) return;
+      const activeVenueId = String(expandedVenueId || '').trim();
+      if (!activeVenueId) {
+        setVenueModalOpen(false);
+        return;
+      }
+
+      const venue = venuesCache.find((item) => String(item?.venueId ?? item?.id ?? '') === activeVenueId);
+      if (!venue) {
+        setVenueModalOpen(false);
+        return;
+      }
+
+      const venueName = String(venue.name || venue.venueName || 'Venue');
+      const locationText = String(venue.location || '').trim();
+      const isEditing = String(editingVenueId || '') === activeVenueId;
+
+      venueModalEl.innerHTML = `
+        <div class="venue-modal__card" role="dialog" aria-modal="true" aria-labelledby="venueModalTitle">
+          <button class="venue-modal__close" type="button" aria-label="Close" data-action="closeVenueModal">&times;</button>
+          <div class="venue-modal__kicker">Venue details</div>
+          <h4 id="venueModalTitle" class="venue-modal__title">${escapeHtml(venueName)}</h4>
+          <div class="venue-modal__section-label">Address</div>
+          <div class="venue-modal__address${locationText ? '' : ' is-empty'}">${escapeHtml(locationText || 'No address added yet.')}</div>
+          ${isEditing ? `
+            <form class="venue-edit-form">
+              <label>Venue name
+                <input type="text" name="venueName" value="${escapeHtml(venueName)}" maxlength="120" />
+              </label>
+              <label>Address
+                <input type="text" name="venueLocation" value="${escapeHtml(String(venue.location || ''))}" maxlength="255" placeholder="Optional" />
+              </label>
+              <p class="venue-inline-note">Save here to update this venue directly in the database.</p>
+              <div class="venue-edit-actions">
+                <button class="btn blue btn-compact" type="submit">Save changes</button>
+                <button class="btn ghost btn-compact" type="button" data-action="cancelVenueEdit">Cancel</button>
+                <button class="btn red btn-compact" type="button" data-action="deleteVenue">Delete venue</button>
+              </div>
+            </form>
+          ` : `
+            <div class="venue-modal__actions">
+              <button class="btn ghost btn-compact" type="button" data-action="startEditVenue">Edit venue</button>
+              <button class="btn red btn-compact" type="button" data-action="deleteVenue">Delete venue</button>
+            </div>
+          `}
+        </div>
+      `;
+      setVenueModalOpen(true);
+
+      const deleteVenue = async () => {
+        const ok = await window.AppPrompt.confirm({
+          title: 'Delete venue?',
+          message: 'All its time slots will be removed.',
+          details: [`Venue: ${venueName}`],
+          okText: 'Delete',
+          cancelText: 'Cancel'
+        });
+        if (!ok) return;
+        setStatus('Deleting venue...', '');
+        const resDel = await authFetch(`/api/clubs/${encodeURIComponent(selectedClubId)}/venues/${encodeURIComponent(activeVenueId)}`, { method: 'DELETE' });
+        if (!resDel.ok) {
+          const body = await apiJson(resDel);
+          setStatus(body?.message || 'Delete failed', 'err');
+          return;
+        }
+        expandedVenueId = null;
+        editingVenueId = null;
+        await reloadAll();
+        setStatus('Venue deleted.', 'ok');
+      };
+
+      venueModalEl.querySelector('[data-action="closeVenueModal"]')?.addEventListener('click', closeVenueModal);
+      venueModalEl.querySelector('[data-action="startEditVenue"]')?.addEventListener('click', () => {
+        editingVenueId = activeVenueId;
+        renderVenueModal();
+        setStatus(`Editing venue: ${venueName}.`, '');
+      });
+      venueModalEl.querySelector('[data-action="cancelVenueEdit"]')?.addEventListener('click', () => {
+        editingVenueId = null;
+        renderVenueModal();
+        setStatus('Venue edit cancelled.', '');
+      });
+      venueModalEl.querySelector('[data-action="deleteVenue"]')?.addEventListener('click', deleteVenue);
+
+      venueModalEl.querySelector('.venue-edit-form')?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const nameInput = form?.querySelector('input[name="venueName"]');
+        const locationInput = form?.querySelector('input[name="venueLocation"]');
+        const nextName = String(nameInput?.value || '').trim();
+        const nextLocation = String(locationInput?.value || '').trim();
+
+        if (!nextName) {
+          setStatus('Venue name is required.', 'err');
+          nameInput?.focus();
+          return;
+        }
+
+        setStatus('Updating venue...', '');
+        const resUpdate = await authFetch(`/api/clubs/${encodeURIComponent(selectedClubId)}/venues/${encodeURIComponent(activeVenueId)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: nextName, location: nextLocation })
+        });
+        if (!resUpdate.ok) {
+          const body = await apiJson(resUpdate);
+          setStatus(body?.message || 'Update failed', 'err');
+          return;
+        }
+        editingVenueId = null;
+        expandedVenueId = activeVenueId;
+        setSelectedVenue(activeVenueId);
+        await reloadAll();
+        setStatus('Venue updated.', 'ok');
+      });
+    };
+
+    const syncVenueListUi = () => {
+      if (!venueList) return;
+      venueList.querySelectorAll('.venue-item').forEach((node) => {
+        const venueId = String(node.dataset.venueId || '');
+        const isSelected = String(selectedVenueId || '') === venueId;
+        const isOpen = String(expandedVenueId || '') === venueId;
+        node.classList.toggle('is-selected', isSelected);
+        node.classList.toggle('is-open', isOpen);
+        const toggleBtn = node.querySelector('[data-action="toggleVenue"]');
+        const icon = node.querySelector('.venue-summary-toggle-icon');
+        const label = node.querySelector('.venue-summary-toggle-label');
+        if (toggleBtn instanceof HTMLElement) {
+          toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        }
+        if (icon instanceof HTMLElement) {
+          icon.textContent = isOpen ? '−' : '+';
+        }
+        if (label instanceof HTMLElement) {
+          label.textContent = 'Manage';
+        }
+      });
+      renderVenueModal();
+    };
+
+    const loadVenues = async () => {
+      if (!selectedClubId) return;
+      const res = await authFetch(`/api/clubs/${encodeURIComponent(selectedClubId)}/venues`);
+      if (!res.ok) {
+        const body = await apiJson(res);
+        throw new Error(body?.message || 'Failed to load venues');
+      }
+      const venues = await res.json();
+
+      venueList.innerHTML = '';
+      const list = Array.isArray(venues) ? venues : [];
+      venuesCache = list;
+      venueEmpty.style.display = list.length ? 'none' : 'block';
+      updateVenueFormState(list.length);
+      renderVenueOptions(list);
+
+      const venueIdSet = new Set(list.map((v) => String(v.venueId ?? v.id ?? '')));
+      if (expandedVenueId && !venueIdSet.has(String(expandedVenueId))) {
+        expandedVenueId = null;
+      }
+      if (editingVenueId && !venueIdSet.has(String(editingVenueId))) {
+        editingVenueId = null;
+      }
+
+      list.forEach((v) => {
+        const el = document.createElement('div');
+        const venueId = String(v.venueId ?? v.id ?? '');
+        const venueName = String(v.name || v.venueName || 'Venue');
+        const isSelected = String(selectedVenueId || '') === venueId;
+        const isOpen = String(expandedVenueId || '') === venueId;
+        el.className = `item venue-item ${isSelected ? 'is-selected' : ''}`.trim();
+        el.dataset.venueId = venueId;
+        el.innerHTML = `
+          <button class="venue-summary" type="button" data-action="toggleVenue" aria-expanded="${isOpen ? 'true' : 'false'}">
+            <div class="venue-summary-main">
+              <div class="item-title venue-summary-name">${escapeHtml(venueName)}</div>
+            </div>
+            <span class="venue-summary-toggle" aria-hidden="true">
+              <span class="venue-summary-toggle-label">Manage</span>
+              <span class="venue-summary-toggle-icon">${isOpen ? '−' : '+'}</span>
+            </span>
+          </button>
+        `;
+
+        el.querySelector('[data-action="toggleVenue"]')?.addEventListener('click', () => {
+          const isSameOpen = String(expandedVenueId || '') === venueId;
+          setSelectedVenue(venueId);
+          setSlotEditMode(null);
+          if (isSameOpen) {
+            expandedVenueId = null;
+            editingVenueId = null;
+          } else {
+            expandedVenueId = venueId;
+            editingVenueId = null;
+          }
+          syncVenueListUi();
+          setStatus(`Selected venue: ${venueName}.`, 'ok');
+          renderWeekTabs();
+          renderDaySlots();
+        });
+
+        venueList.appendChild(el);
+      });
+
+      syncVenueListUi();
+    };
+
+    const renderWeekTabs = () => {
+      if (!weekTabsEl) return;
+      if (!weekDays.length || !weekFrom || !weekTo) initWeek();
+      weekTabsEl.innerHTML = "";
+
+      weekDays.forEach((day) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `week-tab ${day.iso === selectedDayISO ? "active" : ""}`.trim();
+
+        const count = selectedVenueId
+          ? weekSlots.filter(s => String(s.venueId) === String(selectedVenueId) && parseDateISO(s.startTime) === day.iso).length
+          : 0;
+
+        btn.innerHTML = `${escapeHtml(dayLabel(day))} <span class="badge">${escapeHtml(String(count))}</span>`;
+        btn.addEventListener("click", () => {
+          selectedDayISO = day.iso;
+          renderWeekTabs();
+          renderDaySlots();
+        });
+        weekTabsEl.appendChild(btn);
+      });
+    };
+
+    const renderDaySlots = () => {
+      if (!slotList || !slotEmpty) return;
+      if (!weekDays.length || !weekFrom || !weekTo) initWeek();
+      if (!selectedDayISO) selectedDayISO = weekFrom;
+
+      const dayObj = weekDays.find(d => d.iso === selectedDayISO) || weekDays[0] || null;
+      if (selectedDayLabelEl) {
+        try {
+          selectedDayLabelEl.textContent = dayObj ? fmtLongDay.format(dayObj.date) : String(selectedDayISO);
+        } catch {
+          selectedDayLabelEl.textContent = String(selectedDayISO);
+        }
+      }
+
+      if (!selectedVenueId) {
+        slotList.innerHTML = "";
+        slotEmpty.style.display = "block";
+        slotEmpty.textContent = "Select a venue to see time slots.";
+        return;
+      }
+
+      const list = weekSlots
+        .filter(s => String(s.venueId) === String(selectedVenueId) && parseDateISO(s.startTime) === selectedDayISO)
+        .sort((a, b) => String(a.startTime).localeCompare(String(b.startTime)));
+
+      slotList.innerHTML = "";
+      slotEmpty.style.display = list.length ? "none" : "block";
+      slotEmpty.textContent = "No time slots yet for this day.";
+
+      list.forEach((s) => {
+        const el = document.createElement("div");
+        const isEditing = String(editingSlotId || '') === String(s.timeslotId);
+        el.className = `item ${isEditing ? 'is-selected' : ''}`.trim();
+        const remaining = (s.remaining ?? "--");
+        const maxCap = (s.maxCapacity ?? "--");
+        const bookedRaw = Number(s.booked);
+        const maxCapNum = Number(s.maxCapacity);
+        const remainingNum = Number(s.remaining);
+        const fallbackBooked = (Number.isFinite(maxCapNum) && Number.isFinite(remainingNum))
+          ? Math.max(0, maxCapNum - remainingNum)
+          : 0;
+        const bookedCount = Number.isFinite(bookedRaw) && bookedRaw >= 0
+          ? bookedRaw
+          : fallbackBooked;
+        const priceLabel = formatPrice(s.price);
+        const startHHMM = parseTimeHHMM(s.startTime);
+        const endHHMM = parseTimeHHMM(s.endTime);
+        el.innerHTML = `
+          <div class="row item-row">
+            <div class="item-main">
+              <div class="item-title">${escapeHtml(s.venueName || "Venue")}</div>
+              <div class="item-sub"><strong>Date:</strong> ${escapeHtml(String(selectedDayISO))} | <strong>Time:</strong> ${escapeHtml(startHHMM)}-${escapeHtml(endHHMM)}</div>
+              <div class="item-sub"><strong>ID:</strong> ${escapeHtml(String(s.timeslotId))} | <strong>Booked:</strong> ${escapeHtml(String(bookedCount))} | <strong>Remaining:</strong> ${escapeHtml(String(remaining))}/${escapeHtml(String(maxCap))} | <strong>Price:</strong> ${escapeHtml(priceLabel)}</div>
+            </div>
+            <div class="item-actions">
+              <button class="btn ghost" type="button" data-action="editSlot">Edit</button>
+              <button class="btn red" type="button" data-action="delSlot">Delete</button>
+            </div>
+          </div>
+        `;
+        el.querySelector("[data-action=\"editSlot\"]")?.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          setSlotEditMode(s);
+          document.getElementById('formCreateSlot')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          try { slotStartTimeEl?.focus({ preventScroll: true }); } catch { slotStartTimeEl?.focus(); }
+        });
+        el.querySelector("[data-action=\"delSlot\"]")?.addEventListener("click", async () => {
+          const ok = await window.AppPrompt.confirm({
+            title: 'Delete time slot?',
+            message: `${selectedDayISO} ${startHHMM}-${endHHMM}`,
+            details: [String(s.venueName || 'Venue')],
+            okText: 'Delete',
+            cancelText: 'Cancel'
+          });
+          if (!ok) return;
+          setStatus("Deleting time slot...", "");
+          const resDel = await authFetch(`/api/clubs/${encodeURIComponent(selectedClubId)}/venues/${encodeURIComponent(s.venueId)}/timeslots/${encodeURIComponent(s.timeslotId)}`, { method: "DELETE" });
+          if (!resDel.ok) {
+            const body = await apiJson(resDel);
+            setStatus(body?.message || "Delete failed", "err");
+            return;
+          }
+          if (String(editingSlotId || '') === String(s.timeslotId)) {
+            setSlotEditMode(null);
+          }
+          await loadTimeslots();
+          setStatus("Time slot deleted.", "ok");
+        });
+        slotList.appendChild(el);
+      });
+    };
+
+    const loadTimeslots = async () => {
+      if (!selectedClubId) return;
+      if (!weekDays.length || !weekFrom || !weekTo) initWeek();
+
+      const res = await authFetch(`/api/clubs/${encodeURIComponent(selectedClubId)}/timeslots?from=${encodeURIComponent(weekFrom)}&to=${encodeURIComponent(weekTo)}`);
+      if (!res.ok) {
+        const body = await apiJson(res);
+        throw new Error(body?.message || "Failed to load time slots");
+      }
+      const slots = await res.json();
+      weekSlots = Array.isArray(slots) ? slots : [];
+      if (editingSlotId) {
+        const exists = weekSlots.some((s) => String(s?.timeslotId ?? '') === String(editingSlotId));
+        if (!exists) setSlotEditMode(null);
+      }
+      renderWeekTabs();
+      renderDaySlots();
+    };
+    const reloadAll = async () => {
+      await loadClubDetailToForm();
+      if (!selectedClubId) return;
+      setStatus('Loading venues, slots and bookings...', '');
+      await loadVenues();
+      await loadTimeslots();
+      setStatus('', '');
+    };
+
+    document.getElementById('btnReloadMyClubs')?.addEventListener('click', async () => {
+      try {
+        await loadMyClubs();
+        await reloadAll();
+      } catch (e) {
+        setStatus(e.message || 'Failed', 'err');
+      }
+    });
+
+    document.getElementById('btnReloadSlots')?.addEventListener('click', async () => {
+      try {
+        await loadTimeslots();
+      } catch (e) {
+        setStatus(e.message || 'Failed', 'err');
+      }
+    });
+
+    document.getElementById('formCreateClub')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('clubName')?.value?.trim();
+      const category = document.getElementById('clubCategory')?.value?.trim();
+      const email = document.getElementById('clubEmail')?.value?.trim();
+      const phone = document.getElementById('clubPhone')?.value?.trim();
+      const description = document.getElementById('clubDesc')?.value?.trim();
+
+      if (!name) { setStatus('Missing club name', 'err'); return; }
+      const isEdit = !!selectedClubId;
+      const endpoint = isEdit ? `/api/clubs/${encodeURIComponent(selectedClubId)}` : '/api/clubs';
+
+      try {
+        setStatus(isEdit ? 'Saving club...' : 'Creating club...', '');
+        if (btnCreateClub) {
+          btnCreateClub.disabled = true;
+          btnCreateClub.textContent = isEdit ? 'Saving...' : 'Creating...';
+        }
+
+        const res = await authFetch(endpoint, {
+          method: isEdit ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, category, email, phone, description })
+        });
+        if (!res.ok) {
+          const body = await apiJson(res);
+          setStatus(body?.message || (isEdit ? 'Save club failed' : 'Create club failed'), 'err');
+          return;
+        }
+        const club = await res.json();
+        setSelectedClub(club);
+        await loadMyClubs();
+        await reloadAll();
+        setStatus(isEdit ? 'Club saved.' : 'Club created.', 'ok');
+      } finally {
+        setClubFormMode(selectedClubId ? 'edit' : 'create');
+        if (btnCreateClub) btnCreateClub.disabled = false;
+      }
+    });
+
+    document.getElementById('formCreateVenue')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!selectedClubId) { setStatus('Select a club first', 'err'); return; }
+      const name = venueNameEl?.value?.trim();
+      const location = venueLocEl?.value?.trim();
+
+      if (!name) { setStatus('Missing venue name', 'err'); return; }
+
+      setStatus('Creating venue...', '');
+      const res = await authFetch(`/api/clubs/${encodeURIComponent(selectedClubId)}/venues`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, location })
+      });
+      if (!res.ok) {
+        const body = await apiJson(res);
+        setStatus(body?.message || 'Create venue failed', 'err');
+        return;
+      }
+      if (venueNameEl) venueNameEl.value = '';
+      if (venueLocEl) venueLocEl.value = '';
+      await reloadAll();
+      setStatus('Venue created.', 'ok');
+    });
+
+    venueModalEl?.addEventListener('click', (event) => {
+      if (event.target === venueModalEl) {
+        closeVenueModal();
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && venueModalEl?.classList.contains('open')) {
+        closeVenueModal();
+      }
+    });
+
+    slotVenueEl?.addEventListener('change', () => {
+      const venueId = slotVenueEl.value;
+      if (venueId) setSelectedVenue(venueId);
+      setSlotEditMode(null);
+      renderWeekTabs();
+      renderDaySlots();
+    });
+    slotStartTimeEl?.addEventListener('change', () => { syncSlotTimeValidity({ autofillEnd: true }); });
+    slotStartTimeEl?.addEventListener('input', () => { syncSlotTimeValidity(); });
+    slotEndTimeEl?.addEventListener('change', () => { syncSlotTimeValidity(); });
+    slotEndTimeEl?.addEventListener('input', () => { syncSlotTimeValidity(); });
+
+    btnCancelSlotEdit?.addEventListener('click', () => {
+      setSlotEditMode(null);
+      setStatus('Edit cancelled.', '');
+    });
+
+    document.getElementById('formCreateSlot')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const draft = readSlotDraft();
+      if (!draft) return;
+      const { venueId, start, end, cap, price } = draft;
+
+      try {
+        const isEdit = !!editingSlotId;
+        const targetSlotId = editingSlotId ? String(editingSlotId) : '';
+        setStatus(isEdit ? 'Updating time slot...' : 'Creating time slot...', '');
+        if (btnCreateSlot) {
+          btnCreateSlot.disabled = true;
+          btnCreateSlot.textContent = isEdit ? 'Saving...' : 'Adding...';
+        }
+        const endpoint = isEdit
+          ? `/api/clubs/${encodeURIComponent(selectedClubId)}/venues/${encodeURIComponent(venueId)}/timeslots/${encodeURIComponent(targetSlotId)}`
+          : `/api/clubs/${encodeURIComponent(selectedClubId)}/venues/${encodeURIComponent(venueId)}/timeslots`;
+        const resCreate = await authFetch(endpoint, {
+          method: isEdit ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ startTime: start, endTime: end, maxCapacity: cap, price })
+        });
+        if (!resCreate.ok) {
+          const body = await apiJson(resCreate);
+          setStatus(body?.message || (isEdit ? 'Update slot failed' : 'Create slot failed'), 'err');
+          return;
+        }
+        await loadTimeslots();
+        setSlotEditMode(null);
+        setStatus(isEdit ? 'Time slot updated.' : 'Time slot created.', 'ok');
+      } finally {
+        if (btnCreateSlot) {
+          btnCreateSlot.disabled = false;
+          btnCreateSlot.textContent = editingSlotId ? 'Save changes' : 'Add slot';
+        }
+      }
+    });
+
+    btnCopyDayToWeek?.addEventListener('click', async () => {
+      const draft = readSlotDraft();
+      if (!draft) return;
+      await applyRecurringSlots({
+        stepDays: 7,
+        occurrences: WEEKLY_RECURRENCE_WEEKS,
+        buttonEl: btnCopyDayToWeek,
+        idleText: 'Apply weekly',
+        busyText: 'Applying...',
+        confirmTitle: 'Apply weekly schedule?',
+        confirmMessage: `Create this slot and repeat it weekly for ${WEEKLY_RECURRENCE_WEEKS} week(s).`,
+        confirmDetails: [`Day: ${draft.dayISO}`],
+        successLabel: 'Weekly schedule'
+      });
+    });
+
+    btnCopyDayToDaily?.addEventListener('click', async () => {
+      const draft = readSlotDraft();
+      if (!draft) return;
+      const dailyOccurrences = getVisibleDailyOccurrences(draft.dayISO);
+      await applyRecurringSlots({
+        stepDays: 1,
+        occurrences: dailyOccurrences,
+        buttonEl: btnCopyDayToDaily,
+        idleText: 'Apply daily',
+        busyText: 'Applying...',
+        confirmTitle: 'Apply daily schedule?',
+        confirmMessage: `Create this slot every day from ${draft.dayISO} for ${dailyOccurrences} day(s).`,
+        confirmDetails: [`Start day: ${draft.dayISO}`],
+        successLabel: 'Daily schedule'
+      });
+    });
+
+    (async () => {
+      if (!requireClubLogin()) {
+        setStatus('Please login with a club account first.', 'err');
+        window.location.href = 'login.html#login';
+        return;
+      }
+
+      syncSlotEditorUi();
+      syncSlotTimeValidity();
+      initWeek();
+      renderWeekTabs();
+      renderDaySlots();
+
+      try {
+        await loadMyClubs();
+        await reloadAll();
+      } catch (e) {
+        setStatus(e.message || 'Failed', 'err');
+      }
+    })();
+  </script>
+</body>
+</html>
+

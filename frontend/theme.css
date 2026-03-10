@@ -21,6 +21,10 @@
   --brand-font: 'Sora', sans-serif;
 }
 
+html {
+  background: var(--bg);
+}
+
 * {
   box-sizing: border-box;
   font-family: 'Sora', sans-serif;
@@ -36,11 +40,41 @@ textarea {
 
 body {
   color: var(--ink);
-  background: linear-gradient(180deg, #f6f7fb 0%, #eef1f6 100%);
+  background: var(--bg);
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
   animation: pageIn .6s var(--anim-base) both;
+}
+
+body.page-with-footer {
+  margin: 0;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg) !important;
+  padding-bottom: 86px;
+}
+
+body.page-with-footer > main,
+body.page-with-footer > .page-main,
+body.page-with-footer > .club-register-page {
+  flex: 1 0 auto;
+}
+
+body.page-with-footer > .site-footer,
+body.page-with-footer > .club-register-page > .site-footer {
+  margin-top: 0 !important;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 120;
+}
+
+body.page-with-footer > .site-footer .site-footer__wrap,
+body.page-with-footer > .club-register-page > .site-footer .site-footer__wrap {
+  min-height: 72px;
 }
 
 
@@ -167,7 +201,7 @@ footer {
   display: none;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: clamp(10px, 2.4vh, 20px) clamp(10px, 2.8vw, 20px);
   background: rgba(10, 12, 16, 0.45);
   z-index: 9999;
   animation: overlayFade .2s ease both;
@@ -179,10 +213,11 @@ footer {
 
 .auth-dialog {
   position: relative;
-  width: min(560px, 92vw);
+  width: min(520px, calc(100vw - clamp(20px, 5vw, 40px)));
   height: auto;
+  max-height: calc(100dvh - clamp(20px, 6vh, 44px));
   background: #fff;
-  border-radius: 22px;
+  border-radius: 20px;
   box-shadow: 0 40px 90px rgba(10, 12, 16, 0.35);
   overflow: hidden;
   transform: none;
@@ -191,10 +226,14 @@ footer {
 
 .auth-frame {
   width: 100%;
-  height: auto;
+  height: 100%;
   display: block;
   border: none;
   background: #fff;
+}
+
+.auth-dialog.auth-dialog--clamped {
+  box-shadow: 0 34px 70px rgba(10, 12, 16, 0.32);
 }
 
 .auth-close {
@@ -220,6 +259,19 @@ footer {
 .auth-close:hover {
   transform: translateY(-1px);
   box-shadow: 0 12px 22px rgba(15, 23, 42, 0.18);
+}
+
+@media (max-width: 600px) {
+  .auth-dialog {
+    border-radius: 18px;
+  }
+
+  .auth-close {
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+  }
 }
 
 @keyframes overlayFade {

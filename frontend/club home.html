@@ -1,46 +1,64 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Club Booking Portal - Club Home</title>
-  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="theme.css?v=20260220b">
   <style>
+    html,
+    body {
+      height: 100%;
+    }
     body {
       margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: #ffffff !important;
+    }
+    body.page-with-footer {
+      padding-bottom: 0 !important;
+      overflow: hidden;
     }
     .wrap {
-      max-width: 1100px;
+      width: min(1680px, calc(100vw - 24px));
+      max-width: none;
       margin: 0 auto;
-      padding: 16px;
+      padding: 14px 10px;
     }
     header {
       position: sticky;
       top: 0;
-      z-index: 10;
+      z-index: 40;
       border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.9) !important;
+      backdrop-filter: blur(12px);
     }
     .header-wrap {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      gap: 14px;
+      min-height: 84px;
+    }
+    .title-stack {
+      display: grid;
+      gap: 0;
+    }
+    .site-title {
+      margin: 0;
+      font-family: "Sora", sans-serif;
+      font-size: clamp(28px, 4vw, 38px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.05;
     }
     .header-actions {
       display: flex;
       align-items: center;
       gap: 8px;
       flex-wrap: wrap;
-    }
-    .site-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin: 0;
-    }
-    .site-title-link {
-      color: inherit;
-      text-decoration: none;
     }
     .btn {
       padding: 8px 16px;
@@ -51,111 +69,315 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      transition: transform 0.16s ease, box-shadow 0.16s ease;
     }
-    .page-head {
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+    .logout-btn {
+      min-width: 90px;
+      font-weight: 600;
+    }
+    main.wrap {
+      flex: 1 1 auto;
+      width: 100%;
+      min-height: 0;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin: 16px 0 12px;
-      flex-wrap: wrap;
+      padding-top: 20px;
+      padding-bottom: 96px;
     }
-    .page-head h2 {
-      margin: 0;
-    }
-    .page-head p {
-      margin: 4px 0 0;
-    }
-    .page-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .card .pad {
-      padding: 16px;
-    }
-    .stat-grid {
+    .workspace {
+      flex: 1 1 auto;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 12px;
-    }
-    .stat-card {
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 12px;
-      display: grid;
-      gap: 8px;
-    }
-    .stat-label {
-      font-size: 12px;
-      color: var(--muted);
-    }
-    .stat-value {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--ink);
-    }
-    .stat-bar {
-      height: 6px;
-      background: var(--chip);
-      border-radius: 999px;
+      grid-template-columns: 290px minmax(0, 1fr);
+      height: 100%;
+      min-height: 0;
+      border-radius: 22px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background: #ffffff;
+      box-shadow: none;
       overflow: hidden;
     }
-    .stat-bar span {
-      display: block;
+    .workspace.card:hover {
+      transform: none;
+      box-shadow: none;
+    }
+    .workspace-nav {
+      position: relative;
+      top: auto;
+      align-self: stretch;
       height: 100%;
-      width: 0%;
-      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-      border-radius: 999px;
-      transition: width .4s var(--anim-base);
-    }
-    .section-head {
+      max-height: none;
+      overflow-y: auto;
+      border-right: 1px solid rgba(15, 23, 42, 0.08);
+      padding: 18px 14px 14px;
+      background: #ffffff;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 16px;
+      flex-direction: column;
+      gap: 12px;
     }
-    .section-head h3 {
+    .workspace-nav::after {
+      display: none;
+    }
+    .workspace-nav-top {
+      display: grid;
+      gap: 10px;
+      padding: 8px 8px 10px;
+    }
+    .workspace-title {
       margin: 0;
+      font-size: 19px;
+      font-family: "Sora", sans-serif;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
     }
-    .section-head p {
-      margin: 4px 0 0;
+    .workspace-sub {
+      margin: 0;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
     }
-    .action-grid {
-      margin-top: 12px;
+    .club-chip {
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      background: rgba(15, 23, 42, 0.04);
+      color: #0f172a;
+      border-radius: 12px;
+      padding: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+    .workspace-menu {
+      position: relative;
+      z-index: 1;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
+      gap: 7px;
     }
-    .action-card {
-      padding: 18px;
-      min-height: 120px;
+    .workspace-tab {
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 11px 10px;
+      text-align: left;
+      cursor: pointer;
       display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      align-items: center;
       gap: 8px;
-      text-decoration: none;
-      color: inherit;
+      transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
     }
-    .action-card:hover {
-      color: inherit;
+    .workspace-tab:hover {
+      border-color: rgba(15, 23, 42, 0.14);
+      background: rgba(255, 255, 255, 0.84);
+      transform: translateY(-1px);
     }
-    .action-tag {
+    .workspace-tab.active {
+      border-color: rgba(15, 23, 42, 0.2);
+      background: rgba(15, 23, 42, 0.08);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+    .workspace-tab-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      border: 1px solid rgba(15, 23, 42, 0.16);
+      background: rgba(255, 255, 255, 0.9);
+      color: #111827;
+      font-size: 13px;
+      font-weight: 700;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      line-height: 1;
+      letter-spacing: -0.01em;
+    }
+    .workspace-tab.active .workspace-tab-icon {
+      border-color: rgba(15, 23, 42, 0.24);
+      background: rgba(15, 23, 42, 0.1);
+      color: #0f172a;
+    }
+    .workspace-tab-copy {
+      display: grid;
+      gap: 2px;
+      min-width: 0;
+    }
+    .workspace-tab-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+    .workspace-tab-desc {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.3;
+    }
+    .workspace-nav-foot {
+      position: relative;
+      z-index: 1;
+      margin-top: auto;
+      padding: 8px;
+      border-top: 1px dashed rgba(15, 23, 42, 0.12);
+      display: grid;
+      gap: 8px;
+    }
+    .workspace-quick-btn {
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.9);
+      color: #0f172a;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.25;
+      padding: 9px 10px;
+      text-decoration: none;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+    }
+    .workspace-quick-btn:hover {
+      border-color: rgba(15, 23, 42, 0.18);
+      background: #ffffff;
+      transform: translateY(-1px);
+    }
+    .workspace-quick-btn.is-disabled {
+      opacity: 0.56;
+      pointer-events: none;
+      cursor: not-allowed;
+    }
+    .workspace-main {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 12px;
+      min-height: 0;
+      overflow: hidden;
+      padding: 14px;
+      background: #ffffff;
+    }
+    .workspace-head {
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 14px;
+      background: #ffffff;
+      padding: 14px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .workspace-head-main {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+    .section-pill {
+      width: fit-content;
       padding: 4px 10px;
       border-radius: 999px;
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--accent-strong);
+      border: 1px solid rgba(47, 93, 255, 0.2);
       background: rgba(47, 93, 255, 0.1);
-      width: fit-content;
+      color: #1e40af;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
     }
-    .action-card.disabled {
-      opacity: 0.55;
-      border-style: dashed;
+    .workspace-head h2 {
+      margin: 0;
+      font-size: clamp(20px, 2.4vw, 30px);
+      font-family: "Sora", sans-serif;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+    .workspace-head p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+      max-width: 720px;
+    }
+    .workspace-tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .workspace-tools .btn {
+      min-height: 38px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+    .frame-shell {
+      position: relative;
+      display: block;
+      height: 100%;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 16px;
+      background: #ffffff;
+      overflow: hidden;
+      min-height: 0;
+      box-shadow: none;
+    }
+    .frame-shell.loading .section-frame.active {
+      opacity: 0.2;
+    }
+    .section-frame {
+      width: 100%;
+      border: 0;
+      height: 100%;
+      min-height: 0;
+      display: none;
+      opacity: 0;
+      background: #ffffff;
+      transition: opacity 0.22s ease;
+    }
+    .section-frame.active {
+      display: block;
+      opacity: 1;
+    }
+    .frame-loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.92);
+      color: #1f2937;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      opacity: 0;
       pointer-events: none;
+      transition: opacity 0.22s ease;
+      z-index: 5;
+    }
+    .frame-shell.loading .frame-loading {
+      opacity: 1;
+    }
+    .frame-spinner {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid rgba(37, 99, 235, 0.2);
+      border-top-color: #2563eb;
+      animation: frameSpin 0.8s linear infinite;
+    }
+    @keyframes frameSpin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    .site-footer {
+      margin-top: auto !important;
+      background: #ffffff !important;
     }
     .info-overlay {
       position: fixed;
@@ -173,7 +395,7 @@
     .info-card {
       position: relative;
       width: min(560px, 92vw);
-      background: #fff;
+      background: #ffffff;
       border-radius: 16px;
       box-shadow: none;
       padding: 20px 20px 18px;
@@ -195,95 +417,172 @@
       height: 30px;
       border-radius: 999px;
       border: 1px solid var(--line);
-      background: #fff;
+      background: #ffffff;
       cursor: pointer;
       color: var(--muted);
     }
+    @media (max-width: 1100px) {
+      .workspace {
+        grid-template-columns: 260px minmax(0, 1fr);
+      }
+    }
+    @media (max-width: 900px) {
+      body.page-with-footer {
+        padding-bottom: 86px !important;
+        overflow: auto;
+      }
+      main.wrap {
+        display: block;
+        padding-bottom: 24px;
+      }
+      .header-wrap {
+        min-height: 76px;
+      }
+      .workspace {
+        grid-template-columns: 1fr;
+        height: auto;
+        min-height: calc(100dvh - 180px);
+        overflow: visible;
+      }
+      .workspace-nav {
+        position: relative;
+        top: auto;
+        align-self: stretch;
+        height: auto;
+        max-height: none;
+        overflow: visible;
+        border-right: 0;
+        border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+      }
+      .workspace-main {
+        overflow: visible;
+      }
+      .frame-shell {
+        height: auto;
+        overflow: visible;
+      }
+      .section-frame {
+        height: auto;
+      }
+      .workspace-menu {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .workspace-nav-foot {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 640px) {
+      .wrap {
+        width: calc(100vw - 16px);
+        padding-left: 8px;
+        padding-right: 8px;
+      }
+      .workspace {
+        border-radius: 16px;
+      }
+      .workspace-nav-top {
+        padding: 4px 6px 8px;
+      }
+      .workspace-menu {
+        grid-template-columns: 1fr;
+      }
+      .workspace-nav-foot {
+        grid-template-columns: 1fr;
+      }
+      .workspace-head {
+        padding: 12px;
+      }
+      .workspace-tools {
+        width: 100%;
+      }
+      .workspace-tools .btn {
+        flex: 1 1 auto;
+      }
+    }
   </style>
 </head>
-<body>
+<body class="page-with-footer">
   <header id="top">
     <div class="wrap header-wrap">
-      <h1 class="site-title">Club Home</h1>
+      <div class="title-stack">
+        <h1 class="site-title">Club Home</h1>
+      </div>
       <div class="header-actions">
-        <button id="logoutBtn" class="btn" type="button" style="min-width:80px">Logout</button>
+        <button id="logoutBtn" class="btn ghost logout-btn" type="button">Logout</button>
       </div>
     </div>
   </header>
 
   <main class="wrap">
-    <div class="page-head">
-      <div>
-        <h2>Today's overview</h2>
-        <p class="muted">Quick snapshot of bookings and attendance.</p>
-      </div>
-      <!-- <div class="page-actions">
-        <a class="btn" href="club bookings.html">Review bookings</a>
-        <a class="btn ghost" href="venue overview.html">Manage venues</a>
-      </div> -->
-    </div>
+    <section class="workspace card">
+      <aside class="workspace-nav">
+        <div class="workspace-nav-top">
+          <h2 class="workspace-title">Club Workspace</h2>
+        </div>
 
-    <section class="card">
-      <div class="pad">
-        <div class="stat-grid" id="overviewGrid">
-          <div class="stat-card" data-key="bookings" data-value="24">
-            <span class="stat-label">Bookings</span>
-            <span class="stat-value">24</span>
-            <div class="stat-bar"><span></span></div>
-          </div>
-          <div class="stat-card" data-key="checkins" data-value="18">
-            <span class="stat-label">Check-ins</span>
-            <span class="stat-value">18</span>
-            <div class="stat-bar"><span></span></div>
-          </div>
-          <div class="stat-card" data-key="cancellations" data-value="2">
-            <span class="stat-label">Cancellations</span>
-            <span class="stat-value">2</span>
-            <div class="stat-bar"><span></span></div>
-          </div>
-          <div class="stat-card" data-key="courtsInUse" data-value="4" data-total="6">
-            <span class="stat-label">Courts in use</span>
-            <span class="stat-value">4 / 6</span>
-            <div class="stat-bar"><span></span></div>
+        <nav class="workspace-menu" id="workspaceMenu" aria-label="Workspace sections">
+          <button class="workspace-tab active" type="button" data-section="info">
+            <span class="workspace-tab-icon" aria-hidden="true">I</span>
+            <span class="workspace-tab-copy">
+              <span class="workspace-tab-title">Club information</span>
+              <span class="workspace-tab-desc">Profile, email, images</span>
+            </span>
+          </button>
+          <button class="workspace-tab" type="button" data-section="venues">
+            <span class="workspace-tab-icon" aria-hidden="true">V</span>
+            <span class="workspace-tab-copy">
+              <span class="workspace-tab-title">Venues and time slots</span>
+              <span class="workspace-tab-desc">Venue and schedule management</span>
+            </span>
+          </button>
+          <button class="workspace-tab" type="button" data-section="bookings">
+            <span class="workspace-tab-icon" aria-hidden="true">B</span>
+            <span class="workspace-tab-copy">
+              <span class="workspace-tab-title">Member bookings</span>
+              <span class="workspace-tab-desc">Review and update statuses</span>
+            </span>
+          </button>
+          <button class="workspace-tab" type="button" data-section="updates">
+            <span class="workspace-tab-icon" aria-hidden="true">U</span>
+            <span class="workspace-tab-copy">
+              <span class="workspace-tab-title">Memberships</span>
+              <span class="workspace-tab-desc">Manage plans and active members</span>
+            </span>
+          </button>
+          <button class="workspace-tab" type="button" data-section="chats">
+            <span class="workspace-tab-icon" aria-hidden="true">C</span>
+            <span class="workspace-tab-copy">
+              <span class="workspace-tab-title">Member chats</span>
+              <span class="workspace-tab-desc">View conversation messages</span>
+            </span>
+          </button>
+        </nav>
+
+      </aside>
+
+      <section class="workspace-main">
+        <div class="workspace-head">
+          <div class="workspace-head-main">
+            <h2 id="sectionTitle">Club information</h2>
+            <p id="sectionDesc">Manage your club account profile and public content.</p>
           </div>
         </div>
-      </div>
-    </section>
 
-    <div class="section-head">
-      <div>
-        <h3>Quick actions</h3>
-        <p class="muted">Jump back into key areas of your club.</p>
-      </div>
-    </div>
-    <section class="action-grid">
-      <a class="card action-card" href="onboarding.html">
-        <h3>Club profile</h3>
-        <p class="muted">Manage club info and location.</p>
-        <span class="action-tag">Manage</span>
-      </a>
-      <a class="card action-card" href="club.html" target="_blank" rel="noopener">
-        <h3>Public preview</h3>
-        <p class="muted">See the club page as members do.</p>
-        <span class="action-tag">Preview</span>
-      </a>
-      <a class="card action-card" href="venue overview.html">
-        <h3>Venue overview</h3>
-        <p class="muted">Manage courts, capacity, and slots.</p>
-        <span class="action-tag">Manage</span>
-      </a>
-      <a class="card action-card" href="club bookings.html">
-        <h3>Member bookings</h3>
-        <p class="muted">Approve and manage reservations.</p>
-        <span class="action-tag">Review</span>
-      </a>
-      <a class="card action-card" href="club updates.html">
-        <h3>Member updates</h3>
-        <p class="muted">Share updates with members.</p>
-        <span class="action-tag">Manage</span>
-      </a>
+        <div class="frame-shell" id="frameShell">
+          <div id="frameLoading" class="frame-loading" aria-hidden="true" aria-live="polite">
+            <span class="frame-spinner" aria-hidden="true"></span>
+            <span id="frameLoadingText">Loading section...</span>
+          </div>
+          <iframe class="section-frame active" data-section="info" data-src="club-info.html?v=20260225i" src="club-info.html?v=20260225i" title="Club information panel" loading="eager"></iframe>
+          <iframe class="section-frame" data-section="venues" data-src="club-admin.html?v=20260309f" title="Venues and time slots panel" loading="lazy"></iframe>
+          <iframe class="section-frame" data-section="bookings" data-src="club bookings.html" title="Member bookings panel" loading="lazy"></iframe>
+          <iframe class="section-frame" data-section="updates" data-src="club updates.html?v=20260310-memberships-f" title="Memberships panel" loading="lazy"></iframe>
+          <iframe class="section-frame" data-section="chats" data-src="club chat.html?v=20260309e" title="Member chats panel" loading="lazy"></iframe>
+        </div>
+      </section>
     </section>
   </main>
+
   <footer class="site-footer">
     <div class="site-footer__wrap">
       <span class="site-footer__text">&copy; 2026 Club Booking Portal</span>
@@ -297,59 +596,475 @@
 
   <div id="infoOverlay" class="info-overlay" aria-hidden="true">
     <div class="info-card" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
-      <button class="info-close" type="button" aria-label="Close">x</button>
+      <button class="info-close" type="button" aria-label="Close">&times;</button>
       <h3 id="infoTitle">Privacy</h3>
       <div id="infoBody" class="info-body"></div>
     </div>
   </div>
+
   <script>
+    const LOCKED_LOGIN_TARGET = Object.freeze({
+      user: 'home.html',
+      club: 'club home.html'
+    });
+
+    const SECTION_CONFIG = Object.freeze({
+      info: {
+        title: 'Club information',
+        desc: 'Manage your club account profile and public content.',
+        src: 'club-info.html?v=20260225i'
+      },
+      venues: {
+        title: 'Venues and time slots',
+        desc: '',
+        src: 'club-admin.html?v=20260309f'
+      },
+      bookings: {
+        title: 'Member bookings',
+        desc: 'Review bookings, member statuses, and attendance changes.',
+        src: 'club bookings.html'
+      },
+      updates: {
+        title: 'Memberships',
+        desc: 'Set membership plans and review active members.',
+        src: 'club updates.html?v=20260310-memberships-f'
+      },
+      chats: {
+        title: 'Member chats',
+        desc: '',
+        src: 'club chat.html?v=20260309e'
+      }
+    });
+
+    const getLoggedUserType = () => {
+      try {
+        const user = JSON.parse(localStorage.getItem('loggedUser') || 'null');
+        return user?.type === 'club' ? 'club' : (user?.type ? 'user' : null);
+      } catch {
+        return null;
+      }
+    };
+
+    const enforcedAwayFromClubHome = (() => {
+      const userType = getLoggedUserType();
+      if (userType && userType !== 'club') {
+        window.location.replace(LOCKED_LOGIN_TARGET.user);
+        return true;
+      }
+      return false;
+    })();
+
+    const requireClubLogin = () => {
+      const token = localStorage.getItem('token');
+      if (!token) return false;
+      try {
+        const user = JSON.parse(localStorage.getItem('loggedUser') || 'null');
+        if (!user || user.type !== 'club') return false;
+      } catch {
+        return false;
+      }
+      return true;
+    };
+
+    const clearAuthState = () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('loggedUser');
+      localStorage.removeItem('user');
+      localStorage.removeItem('postLoginRedirect');
+    };
+
+    const forceLogout = (target = 'login.html#login') => {
+      clearAuthState();
+      localStorage.removeItem('selectedClub');
+      window.location.replace(target);
+    };
+
+    const authFetch = (url, options = {}) => {
+      const token = localStorage.getItem('token');
+      const headers = { ...(options.headers || {}) };
+      if (token) headers.Authorization = `Bearer ${token}`;
+      return fetch(url, {
+        ...options,
+        credentials: options.credentials ?? 'include',
+        headers
+      });
+    };
+
+    const parseJsonSafe = (raw, fallback = null) => {
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return fallback;
+      }
+    };
+
+    const ensureClubProfileReady = async () => {
+      if (enforcedAwayFromClubHome) return null;
+      if (!requireClubLogin()) {
+        clearAuthState();
+        window.location.href = 'login.html#login';
+        return null;
+      }
+
+      try {
+        const res = await authFetch('/api/my/clubs');
+        if (!res.ok) {
+          clearAuthState();
+          window.location.href = 'login.html#login';
+          return null;
+        }
+        const clubs = await res.json();
+        if (!Array.isArray(clubs) || clubs.length === 0) {
+          window.location.href = 'onboarding.html';
+          return null;
+        }
+
+        const first = clubs[0];
+        const firstId = first.id ?? first.clubId;
+        const firstName = first.name || first.clubName || `Club #${firstId}`;
+        try {
+          const stored = parseJsonSafe(localStorage.getItem('selectedClub') || 'null');
+          const storedId = stored?.id ?? null;
+          const stillExists = storedId && clubs.some((club) => String(club.id ?? club.clubId) === String(storedId));
+          if (!stillExists) throw new Error('stale');
+        } catch {
+          try {
+            localStorage.setItem('selectedClub', JSON.stringify({ id: String(firstId), name: firstName }));
+          } catch {}
+        }
+        return clubs;
+      } catch (err) {
+        console.error(err);
+        return null;
+      }
+    };
+
+    const selectedClubChipEl = document.getElementById('selectedClubChip');
+    const sectionTitleEl = document.getElementById('sectionTitle');
+    const sectionDescEl = document.getElementById('sectionDesc');
+    const frameShellEl = document.getElementById('frameShell');
+    const frameLoadingEl = document.getElementById('frameLoading');
+    const frameLoadingTextEl = document.getElementById('frameLoadingText');
+    const menuButtons = Array.from(document.querySelectorAll('.workspace-tab'));
+    const framesBySection = new Map(
+      Array.from(document.querySelectorAll('.section-frame')).map((frame) => [frame.dataset.section, frame])
+    );
+
+    const decodeJwtPayload = (token) => {
+      const raw = String(token || '').trim();
+      if (!raw) return null;
+      const parts = raw.split('.');
+      if (parts.length !== 3) return null;
+      try {
+        const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        const pad = b64.length % 4 === 0 ? '' : '='.repeat(4 - (b64.length % 4));
+        return JSON.parse(atob(b64 + pad));
+      } catch {
+        return null;
+      }
+    };
+
+    const getTokenSessionVersion = (token) => {
+      const payload = decodeJwtPayload(token);
+      const value = Number(payload?.sv);
+      return Number.isFinite(value) && value > 0 ? value : null;
+    };
+
+    let activeSection = 'info';
+    const frameLoadRetries = new Map();
+    const frameLoadWatchdogs = new Map();
+    const FRAME_LOAD_TIMEOUT_MS = 8000;
+    const MAX_FRAME_LOAD_RETRY = 2;
+    const SESSION_CHECK_INTERVAL_MS = 15000;
+    let sessionCheckTimer = null;
+    let sessionCheckInFlight = false;
+    let currentTokenSessionVersion = getTokenSessionVersion(localStorage.getItem('token') || '');
+
+    const normalizeSection = (raw) => {
+      const key = String(raw || '').trim().toLowerCase();
+      return SECTION_CONFIG[key] ? key : 'info';
+    };
+
+    const setFrameLoading = (loading, text = '') => {
+      if (frameShellEl) frameShellEl.classList.toggle('loading', Boolean(loading));
+      if (frameLoadingEl) frameLoadingEl.setAttribute('aria-hidden', loading ? 'false' : 'true');
+      if (frameLoadingTextEl && text) frameLoadingTextEl.textContent = text;
+    };
+
+    const loadingTextFor = (section) => `Loading ${SECTION_CONFIG[section]?.title || 'section'}...`;
+
+    const getSectionSrc = (section, forceReload = false) => {
+      const base = SECTION_CONFIG[section]?.src || SECTION_CONFIG.info.src;
+      if (!forceReload) return base;
+      return `${base}${base.includes('?') ? '&' : '?'}_=${Date.now()}`;
+    };
+
+    const syncSelectedClubChip = () => {
+      if (!selectedClubChipEl) return;
+      const selected = parseJsonSafe(localStorage.getItem('selectedClub') || 'null');
+      const id = selected?.id ?? selected?.clubId ?? '';
+      const name = selected?.name || selected?.clubName || '';
+      if (!id && !name) {
+        selectedClubChipEl.textContent = 'Selected club: -';
+      } else {
+        const label = id ? `${name || 'Club'} (#${id})` : (name || 'Club');
+        selectedClubChipEl.textContent = `Selected club: ${label}`;
+      }
+
+    };
+
+    const updateUrlSection = (section) => {
+      const url = new URL(window.location.href);
+      url.searchParams.set('section', section);
+      history.replaceState(null, '', `${url.pathname}${url.search}`);
+    };
+
+    const getInitialSection = () => {
+      const url = new URL(window.location.href);
+      const fromQuery = url.searchParams.get('section');
+      const fromHash = window.location.hash.replace(/^#/, '');
+      return normalizeSection(fromQuery || fromHash || 'info');
+    };
+
+    const applyEmbedStyle = (frame) => {
+      try {
+        const doc = frame.contentDocument;
+        if (!doc || !doc.head) return;
+        if (doc.getElementById('club-home-embed-style')) return;
+        const style = doc.createElement('style');
+        style.id = 'club-home-embed-style';
+        const embeddedRules = [
+          'header, #top, .site-footer { display: none !important; }',
+          'html, body { background: #ffffff !important; }',
+          'html { height: 100% !important; }',
+          'body { margin: 0 !important; min-height: 100% !important; padding: 0 !important; overflow-y: auto !important; overscroll-behavior: contain !important; }',
+          'body.page-with-footer { display: block !important; padding-bottom: 0 !important; }',
+          'main { margin: 0 !important; }',
+          'main.wrap, .wrap, .page-shell { max-width: none !important; width: 100% !important; margin: 0 !important; padding: 16px !important; }',
+          '.admin-main { max-width: none !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }'
+        ];
+        if (String(frame.dataset.section || '') === 'chats') {
+          embeddedRules.push(
+            'main.wrap, .wrap, .page-shell, .page-main { padding: 0 !important; }',
+            '.chat-shell { min-height: 100% !important; height: 100% !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; }',
+            '.thread-list-panel, .thread-view, .thread-head, .chat-log, .reply-form { background: #ffffff !important; }'
+          );
+        }
+        style.textContent = embeddedRules.join('\n');
+        doc.head.appendChild(style);
+      } catch (err) {
+        console.warn('Unable to style embedded section:', err);
+      }
+    };
+    const syncFrameHeight = (frame, options = {}) => {
+      if (!frame) return;
+      try {
+        const shellHeight = frameShellEl ? Math.max(0, Math.ceil(frameShellEl.clientHeight)) : 0;
+        const current = Number.parseInt(String(frame.style.height || '').replace('px', ''), 10) || 0;
+        const next = shellHeight || current;
+        if (Math.abs(next - current) > 1) {
+          frame.style.height = `${next}px`;
+        }
+      } catch {}
+    };
+
+    const scheduleFrameHeightSync = (frame) => {
+      if (!frame) return;
+      syncFrameHeight(frame, { allowShrink: true });
+      window.setTimeout(() => syncFrameHeight(frame, { allowShrink: true }), 120);
+      window.setTimeout(() => syncFrameHeight(frame, { allowShrink: true }), 360);
+      window.setTimeout(() => syncFrameHeight(frame, { allowShrink: true }), 760);
+    };
+
+    const clearFrameWatchdog = (section) => {
+      const timer = frameLoadWatchdogs.get(section);
+      if (timer) {
+        window.clearTimeout(timer);
+        frameLoadWatchdogs.delete(section);
+      }
+    };
+
+    const startFrameWatchdog = (section) => {
+      clearFrameWatchdog(section);
+      const timer = window.setTimeout(() => {
+        const frame = framesBySection.get(section);
+        if (!frame || frame.dataset.loaded === '1') return;
+        const retryCount = Number(frameLoadRetries.get(section) || 0);
+        if (retryCount >= MAX_FRAME_LOAD_RETRY) {
+          if (section === activeSection) setFrameLoading(false);
+          return;
+        }
+        frameLoadRetries.set(section, retryCount + 1);
+        loadFrameIfNeeded(section, true);
+      }, FRAME_LOAD_TIMEOUT_MS);
+      frameLoadWatchdogs.set(section, timer);
+    };
+
+    const loadFrameIfNeeded = (section, forceReload = false) => {
+      const frame = framesBySection.get(section);
+      if (!frame) return;
+      const srcAttr = String(frame.getAttribute('src') || '').trim();
+      const hasRealSrc = Boolean(srcAttr) && srcAttr !== 'about:blank';
+      if (forceReload || frame.dataset.loaded !== '1' || !hasRealSrc) {
+        frame.dataset.loaded = 'loading';
+        const shouldBypassCache = forceReload || !hasRealSrc;
+        frame.src = getSectionSrc(section, shouldBypassCache);
+        startFrameWatchdog(section);
+      }
+    };
+
+    const activateSection = (section, options = {}) => {
+      const key = normalizeSection(section);
+      const config = SECTION_CONFIG[key];
+      const frame = framesBySection.get(key);
+      const needsLoad = Boolean(frame) && (options.forceReload === true || frame.dataset.loaded !== '1');
+      activeSection = key;
+
+      menuButtons.forEach((btn) => {
+        const isActive = btn.dataset.section === key;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-current', isActive ? 'page' : 'false');
+      });
+
+      framesBySection.forEach((item, frameKey) => {
+        const isActive = frameKey === key;
+        item.classList.toggle('active', isActive);
+        item.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+      });
+
+      if (sectionTitleEl) sectionTitleEl.textContent = config.title;
+      if (sectionDescEl) {
+        const desc = String(config.desc || '').trim();
+        sectionDescEl.textContent = desc;
+        sectionDescEl.hidden = !desc;
+      }
+
+      if (options.updateUrl !== false) {
+        updateUrlSection(key);
+      }
+
+      if (needsLoad) {
+        setFrameLoading(true, loadingTextFor(key));
+      } else {
+        setFrameLoading(false);
+      }
+
+      loadFrameIfNeeded(key, options.forceReload === true);
+      scheduleFrameHeightSync(frame);
+    };
+
+    menuButtons.forEach((btn) => {
+      btn.addEventListener('click', () => activateSection(btn.dataset.section));
+    });
+
+    framesBySection.forEach((frame) => {
+      frame.addEventListener('load', () => {
+        const section = normalizeSection(frame.dataset.section);
+        frame.dataset.loaded = '1';
+        frameLoadRetries.set(section, 0);
+        clearFrameWatchdog(section);
+        applyEmbedStyle(frame);
+        scheduleFrameHeightSync(frame);
+        syncSelectedClubChip();
+        if (frame.dataset.section === activeSection) {
+          setFrameLoading(false);
+        }
+      });
+
+      frame.addEventListener('error', () => {
+        const section = normalizeSection(frame.dataset.section);
+        const retryCount = Number(frameLoadRetries.get(section) || 0);
+        if (retryCount >= MAX_FRAME_LOAD_RETRY) {
+          if (section === activeSection) setFrameLoading(false);
+          return;
+        }
+        frameLoadRetries.set(section, retryCount + 1);
+        if (section === activeSection) {
+          setFrameLoading(true, loadingTextFor(section));
+        }
+        loadFrameIfNeeded(section, true);
+      });
+    });
+
     document.getElementById('logoutBtn')?.addEventListener('click', () => {
       localStorage.removeItem('token');
       localStorage.removeItem('loggedUser');
       localStorage.removeItem('user');
       localStorage.removeItem('selectedClub');
       localStorage.removeItem('postLoginRedirect');
-      window.location.href = '/';
+      window.location.href = 'home.html';
     });
 
-    const applyOverviewStats = (stats) => {
-      const grid = document.getElementById('overviewGrid');
-      if (!grid) return;
-      const cards = grid.querySelectorAll('.stat-card');
-      const bookings = stats?.bookings ?? Number(cards[0]?.dataset.value || 0);
-      const checkins = stats?.checkins ?? Number(cards[1]?.dataset.value || 0);
-      const cancellations = stats?.cancellations ?? Number(cards[2]?.dataset.value || 0);
-      const courtsInUse = stats?.courtsInUse ?? Number(cards[3]?.dataset.value || 0);
-      const courtsTotal = stats?.courtsTotal ?? Number(cards[3]?.dataset.total || 0);
-      const maxValue = Math.max(bookings, checkins, cancellations, 1);
-
-      const setCard = (key, value, total) => {
-        const card = grid.querySelector(`.stat-card[data-key="${key}"]`);
-        if (!card) return;
-        const valueEl = card.querySelector('.stat-value');
-        const barEl = card.querySelector('.stat-bar span');
-        if (valueEl) {
-          valueEl.textContent = total ? `${value} / ${total}` : `${value}`;
+    window.addEventListener('resize', () => {
+      scheduleFrameHeightSync(framesBySection.get(activeSection));
+    });
+    window.addEventListener('popstate', () => {
+      activateSection(getInitialSection(), { updateUrl: false });
+    });
+    window.addEventListener('storage', (event) => {
+      if (event.key === 'token') {
+        const newToken = String(event.newValue || '').trim();
+        if (!newToken) {
+          forceLogout('login.html#login');
+          return;
         }
-        if (barEl) {
-          const pct = total ? (total > 0 ? (value / total) * 100 : 0) : (value / maxValue) * 100;
-          barEl.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+        const newSessionVersion = getTokenSessionVersion(newToken);
+        if (currentTokenSessionVersion && newSessionVersion && newSessionVersion !== currentTokenSessionVersion) {
+          forceLogout('login.html#login');
+          return;
         }
-      };
+        currentTokenSessionVersion = newSessionVersion || currentTokenSessionVersion;
+      }
+      if (event.key === 'loggedUser') {
+        const user = parseJsonSafe(localStorage.getItem('loggedUser') || 'null');
+        if (!user || user.type !== 'club') {
+          forceLogout('login.html#login');
+          return;
+        }
+      }
+      syncSelectedClubChip();
+      scheduleFrameHeightSync(framesBySection.get(activeSection));
+    });
 
-      setCard('bookings', bookings);
-      setCard('checkins', checkins);
-      setCard('cancellations', cancellations);
-      setCard('courtsInUse', courtsInUse, courtsTotal);
+    window.addEventListener('pageshow', () => {
+      const activeFrame = framesBySection.get(activeSection);
+      if (!activeFrame) return;
+      const srcAttr = String(activeFrame.getAttribute('src') || '').trim();
+      if (!srcAttr || srcAttr === 'about:blank' || activeFrame.dataset.loaded !== '1') {
+        activateSection(activeSection, { updateUrl: false, forceReload: true });
+      }
+    });
+
+    window.setInterval(() => {
+      syncSelectedClubChip();
+      syncFrameHeight(framesBySection.get(activeSection), { allowShrink: false });
+    }, 1400);
+
+    const checkSessionAlive = async () => {
+      if (sessionCheckInFlight) return;
+      if (!requireClubLogin()) {
+        forceLogout('login.html#login');
+        return;
+      }
+      sessionCheckInFlight = true;
+      try {
+        const res = await authFetch('/api/profile', { cache: 'no-store' });
+        if (res.status === 401) {
+          forceLogout('login.html#login');
+        }
+      } catch {
+        // Network blips should not force logout.
+      } finally {
+        sessionCheckInFlight = false;
+      }
     };
 
-    // TODO: Replace with backend data fetch; expected shape:
-    // { bookings: number, checkins: number, cancellations: number, courtsInUse: number, courtsTotal: number }
-    if (window.clubStats) {
-      applyOverviewStats(window.clubStats);
-    } else {
-      applyOverviewStats();
-    }
+    const startSessionGuard = () => {
+      if (sessionCheckTimer) {
+        window.clearInterval(sessionCheckTimer);
+      }
+      sessionCheckTimer = window.setInterval(checkSessionAlive, SESSION_CHECK_INTERVAL_MS);
+    };
 
     const infoOverlay = document.getElementById('infoOverlay');
     const infoTitle = document.getElementById('infoTitle');
@@ -399,8 +1114,23 @@
     document.querySelectorAll('.info-trigger').forEach((btn) => {
       btn.addEventListener('click', () => openInfo(btn.dataset.info));
     });
-    infoOverlay?.addEventListener('click', (evt) => { if (evt.target === infoOverlay) closeInfo(); });
+    infoOverlay?.addEventListener('click', (evt) => {
+      if (evt.target === infoOverlay) closeInfo();
+    });
     infoOverlay?.querySelector('.info-close')?.addEventListener('click', closeInfo);
+
+    (async () => {
+      try {
+        await ensureClubProfileReady();
+      } catch (err) {
+        console.error('Failed to initialize club workspace:', err);
+      } finally {
+        syncSelectedClubChip();
+        activateSection(getInitialSection(), { updateUrl: true });
+        startSessionGuard();
+        checkSessionAlive();
+      }
+    })();
   </script>
 </body>
 </html>

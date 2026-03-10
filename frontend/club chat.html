@@ -1,0 +1,991 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Club Booking Portal - Member Chats</title>
+  <link rel="stylesheet" href="theme.css?v=20260220b">
+  <style>
+    :root {
+      --chat-line: #e2e8f0;
+      --chat-soft: #f8fafc;
+      --chat-brand: #2563eb;
+      --chat-brand-soft: #dbeafe;
+      --chat-ink-soft: #64748b;
+    }
+    body {
+      margin: 0;
+      background: #fff;
+      color: var(--ink);
+      font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+    header {
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 14px 16px;
+    }
+    .head-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #2563eb;
+      text-decoration: none;
+      border: none;
+      background: none;
+      cursor: pointer;
+      padding: 6px 0;
+      font-size: 14px;
+    }
+    .head-title {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .head-sub {
+      margin: 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .chat-shell {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      min-height: 660px;
+      border: 0;
+      border-radius: 0;
+      background: #fff;
+      box-shadow: none;
+      overflow: hidden;
+    }
+    .thread-list-panel {
+      border-right: 1px solid var(--chat-line);
+      background: #fff;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr);
+      min-height: 0;
+    }
+    .thread-list {
+      padding: 14px 10px 10px;
+      overflow: auto;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+    .thread-card {
+      border: 1px solid var(--chat-line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 9px 10px;
+      display: grid;
+      gap: 4px;
+      cursor: pointer;
+      transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+      text-align: left;
+    }
+    .thread-card:hover {
+      transform: translateY(-1px);
+      border-color: #bfdbfe;
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.12);
+    }
+    .thread-card.active {
+      border-color: #93c5fd;
+      background: #eff6ff;
+      box-shadow: 0 10px 20px rgba(37, 99, 235, 0.14);
+    }
+    .thread-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-width: 0;
+    }
+    .thread-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .thread-count {
+      min-width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      border: 1px solid #bfdbfe;
+      background: #dbeafe;
+      color: #1e3a8a;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 0 6px;
+      line-height: 1;
+    }
+    .thread-preview {
+      color: var(--chat-ink-soft);
+      font-size: 12px;
+      line-height: 1.35;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .thread-time {
+      color: var(--chat-ink-soft);
+      font-size: 11px;
+      line-height: 1.2;
+    }
+    .thread-empty {
+      border: 1px dashed #cbd5e1;
+      border-radius: 10px;
+      background: #f8fafc;
+      color: #475569;
+      font-size: 12px;
+      line-height: 1.4;
+      padding: 10px;
+    }
+    .thread-view {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      background: #fff;
+    }
+    .thread-head {
+      padding: 14px;
+      border-bottom: 1px solid var(--chat-line);
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .thread-head h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .chat-log {
+      padding: 14px;
+      overflow: auto;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+      background: #fff;
+    }
+    .chat-empty {
+      border: 1px dashed #cbd5e1;
+      border-radius: 10px;
+      background: #f8fafc;
+      color: #475569;
+      font-size: 12px;
+      line-height: 1.45;
+      padding: 10px 12px;
+    }
+    .chat-msg {
+      display: grid;
+      gap: 4px;
+      justify-items: start;
+    }
+    .chat-msg.club {
+      justify-items: end;
+    }
+    .chat-bubble {
+      border: 1px solid #dbe2ea;
+      border-radius: 12px;
+      background: #fff;
+      color: #0f172a;
+      max-width: min(84%, 520px);
+      padding: 9px 11px;
+      font-size: 12px;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+    .chat-msg.club .chat-bubble {
+      border-color: #bfdbfe;
+      background: var(--chat-brand-soft);
+      color: #1e3a8a;
+    }
+    .chat-meta {
+      color: var(--chat-ink-soft);
+      font-size: 11px;
+      line-height: 1.2;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .chat-status {
+      font-weight: 700;
+    }
+    .chat-status.unread {
+      color: #dc2626;
+    }
+    .chat-status.read {
+      color: #94a3b8;
+    }
+    .reply-form {
+      border-top: 1px solid var(--chat-line);
+      padding: 12px 14px;
+      background: #fff;
+      display: grid;
+      gap: 8px;
+    }
+    .reply-input {
+      width: 100%;
+      min-height: 74px;
+      max-height: 180px;
+      resize: vertical;
+      border: 1px solid var(--chat-line);
+      border-radius: 10px;
+      font: inherit;
+      line-height: 1.4;
+      padding: 8px 10px;
+    }
+    .reply-actions {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .reply-send {
+      border: 1px solid var(--chat-brand);
+      background: var(--chat-brand);
+      color: #fff;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1;
+      padding: 8px 14px;
+      cursor: pointer;
+    }
+    .reply-send:hover {
+      border-color: #1d4ed8;
+      background: #1d4ed8;
+    }
+    .site-footer {
+      margin-top: 18px;
+      background: #fff;
+      border-top: 1px solid var(--line);
+    }
+    .footer-wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 12px 16px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    @media (max-width: 980px) {
+      .chat-shell {
+        grid-template-columns: 1fr;
+      }
+      .thread-list-panel {
+        border-right: 0;
+        border-bottom: 1px solid var(--chat-line);
+      }
+      .thread-list {
+        max-height: 220px;
+      }
+    }
+    @media (max-width: 640px) {
+      .wrap {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+      .chat-shell {
+        min-height: 560px;
+        border-radius: 0;
+      }
+      .thread-head,
+      .chat-log,
+      .reply-form {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+      .chat-bubble {
+        max-width: 92%;
+      }
+    }
+  </style>
+</head>
+<body class="page-with-footer">
+  <header id="top">
+    <div class="wrap head-row">
+      <button class="back-link" type="button" onclick="window.location.href='club home.html'" aria-label="Back">&larr; Back</button>
+      <div style="display:grid;gap:4px;min-width:0">
+        <h1 class="head-title">Member chats</h1>
+        <p class="head-sub">Messages synced from the public club page chat widget.</p>
+      </div>
+      <span class="head-sub">UI preview</span>
+    </div>
+  </header>
+
+  <main class="wrap page-main">
+    <section class="chat-shell">
+      <aside class="thread-list-panel">
+        <div id="threadList" class="thread-list" aria-label="Conversation list"></div>
+      </aside>
+
+      <section class="thread-view">
+        <div class="thread-head">
+          <div style="min-width:0">
+            <h3 id="activeTitle">No conversation selected</h3>
+          </div>
+        </div>
+        <div id="chatLog" class="chat-log" aria-live="polite"></div>
+        <form id="replyForm" class="reply-form">
+          <textarea id="replyInput" class="reply-input" placeholder="Type a reply as club staff..." maxlength="500"></textarea>
+          <div class="reply-actions">
+            <button id="replySendBtn" class="reply-send" type="submit">Send reply</button>
+          </div>
+        </form>
+      </section>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-wrap">&copy; 2026 Club Booking Portal</div>
+  </footer>
+
+  <script src="ui-prompt.js?v=20260309b"></script>
+  <script>
+  const CHAT_POLL_VISIBLE_MS = 2500;
+  const CHAT_POLL_HIDDEN_MS = 9000;
+
+  const threadListEl = document.getElementById('threadList');
+  const activeTitleEl = document.getElementById('activeTitle');
+  const chatLogEl = document.getElementById('chatLog');
+  const replyFormEl = document.getElementById('replyForm');
+  const replyInputEl = document.getElementById('replyInput');
+  const replySendBtnEl = document.getElementById('replySendBtn');
+
+  let selectedClubId = '';
+  let selectedClubName = '';
+  let conversations = [];
+  let activeUserId = null;
+  let activeThread = null;
+  let myClubs = [];
+  let loadingConversations = false;
+  let loadingThread = false;
+  let chatPollTimer = null;
+  let chatPollInFlight = false;
+  let hasTriedClubFallback = false;
+
+  const parseJsonSafe = (raw, fallback = null) => {
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return fallback;
+    }
+  };
+
+  const escapeHtml = (raw) => {
+    return String(raw ?? '').replace(/[&<>"']/g, (ch) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[ch]));
+  };
+
+  const authFetch = (url, options = {}) => {
+    const token = localStorage.getItem('token');
+    const headers = { ...(options.headers || {}) };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return fetch(url, {
+      ...options,
+      credentials: options.credentials ?? 'include',
+      headers
+    });
+  };
+
+  const readErrorText = async (res) => {
+    try {
+      const text = await res.text();
+      return String(text || '').trim() || `Request failed (${res.status})`;
+    } catch {
+      return `Request failed (${res.status})`;
+    }
+  };
+
+  const isNumericId = (id) => /^[0-9]+$/.test(String(id || ''));
+
+  const resolveAccountType = (raw) => {
+    const role = String(raw || '').trim().toLowerCase();
+    if (!role) return '';
+    if (role.includes('club') || role.includes('admin') || role.includes('leader')) return 'club';
+    if (role.includes('user') || role.includes('member') || role.includes('student')) return 'user';
+    return '';
+  };
+
+  const normalizeClubMeta = (raw) => {
+    if (!raw || typeof raw !== 'object') return null;
+    const clubId = String(raw.id ?? raw.clubId ?? '').trim();
+    if (!isNumericId(clubId)) return null;
+    const clubName = String(raw.name || raw.clubName || `Club #${clubId}`).trim() || `Club #${clubId}`;
+    return { clubId, clubName };
+  };
+
+  const getSelectedClubMeta = () => {
+    const params = new URLSearchParams(window.location.search);
+    const queryClubId = params.get('club');
+    const selected = parseJsonSafe(localStorage.getItem('selectedClub') || 'null', null) || {};
+    const candidateId = String(queryClubId || selected.id || selected.clubId || '').trim();
+    const candidateName = String(selected.name || selected.clubName || '').trim();
+    return {
+      clubId: isNumericId(candidateId) ? candidateId : '',
+      clubName: candidateName || ''
+    };
+  };
+
+  const syncClubContext = () => {
+    return;
+  };
+
+  const applySelectedClub = (meta, { persist = true } = {}) => {
+    const previousClubId = selectedClubId;
+    const nextId = String(meta?.clubId || '').trim();
+    if (!isNumericId(nextId)) {
+      selectedClubId = '';
+      selectedClubName = '';
+      hasTriedClubFallback = false;
+      syncClubContext();
+      return;
+    }
+
+    const nextName = String(meta?.clubName || `Club #${nextId}`).trim() || `Club #${nextId}`;
+    selectedClubId = nextId;
+    selectedClubName = nextName;
+    if (previousClubId !== selectedClubId) {
+      hasTriedClubFallback = false;
+    }
+    if (persist) {
+      try {
+        localStorage.setItem('selectedClub', JSON.stringify({ id: selectedClubId, name: selectedClubName }));
+      } catch {}
+    }
+    syncClubContext();
+  };
+
+  const resolvePreferredClub = (preferredMeta) => {
+    const preferredId = String(preferredMeta?.clubId || '').trim();
+    if (preferredId && myClubs.length) {
+      const matched = myClubs.find((club) => club.clubId === preferredId);
+      if (matched) return matched;
+    }
+    if (myClubs.length) return myClubs[0];
+    if (isNumericId(preferredId)) {
+      return {
+        clubId: preferredId,
+        clubName: String(preferredMeta?.clubName || `Club #${preferredId}`).trim() || `Club #${preferredId}`
+      };
+    }
+    return null;
+  };
+
+  const refreshOwnedClubs = async () => {
+    try {
+      const res = await authFetch('/api/my/clubs');
+      if (!res.ok) {
+        myClubs = [];
+        return;
+      }
+      const raw = await res.json();
+      const list = Array.isArray(raw) ? raw.map(normalizeClubMeta).filter(Boolean) : [];
+      myClubs = list;
+    } catch (err) {
+      console.warn('[club chat] load my clubs error', err);
+      myClubs = [];
+    }
+  };
+
+  const ensureClubAuth = ({ notify = false, redirectOnMissing = false } = {}) => {
+    const loggedUser = parseJsonSafe(localStorage.getItem('loggedUser') || 'null', null);
+    const token = localStorage.getItem('token') || '';
+    const type = resolveAccountType(loggedUser?.type || loggedUser?.role);
+
+    if (!loggedUser || !token) {
+      if (notify) showModalAlert('Please log in with a club account.');
+      if (redirectOnMissing) window.location.href = 'login.html#login';
+      return { ok: false, reason: 'not_logged_in' };
+    }
+    if (type !== 'club') {
+      if (notify) showModalAlert('Only club accounts can access member chats.');
+      return { ok: false, reason: 'wrong_role' };
+    }
+    return { ok: true, reason: '' };
+  };
+
+  const showModalAlert = (message, title = 'Notice') => {
+    const text = String(message || '').trim();
+    if (!text) return;
+    if (window.AppPrompt && typeof window.AppPrompt.alert === 'function') {
+      window.AppPrompt.alert(text, { title, okText: 'OK' });
+      return;
+    }
+    alert(text);
+  };
+
+  const formatTime = (raw) => {
+    if (!raw) return '';
+    const date = new Date(raw);
+    if (Number.isNaN(date.getTime())) return '';
+    return new Intl.DateTimeFormat('en-GB', {
+      month: 'short',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  };
+
+  const normalizeConversation = (raw) => {
+    if (!raw || typeof raw !== 'object') return null;
+    const userId = Number(raw.userId);
+    if (!Number.isFinite(userId)) return null;
+    return {
+      userId,
+      userName: String(raw.userName || `User #${userId}`).trim() || `User #${userId}`,
+      userEmail: String(raw.userEmail || '').trim(),
+      lastSender: String(raw.lastSender || '').toLowerCase() === 'club' ? 'club' : 'user',
+      lastMessageText: String(raw.lastMessageText || '').replace(/\s+/g, ' ').trim(),
+      lastMessageAt: String(raw.lastMessageAt || '').trim(),
+      unreadCount: Math.max(0, Number(raw.unreadCount) || 0),
+      totalMessages: Math.max(0, Number(raw.totalMessages) || 0)
+    };
+  };
+
+  const normalizeMessage = (raw) => {
+    if (!raw || typeof raw !== 'object') return null;
+    const sender = String(raw.sender || '').toLowerCase() === 'club' ? 'club' : 'user';
+    const text = String(raw.text || '').replace(/\r\n/g, '\n').trim();
+    if (!text) return null;
+    return {
+      messageId: raw.messageId ?? null,
+      sender,
+      authorName: String(raw.authorName || (sender === 'club' ? selectedClubName : 'Member')).trim() || (sender === 'club' ? selectedClubName : 'Member'),
+      text,
+      readByClub: Boolean(raw.readByClub),
+      readByUser: Boolean(raw.readByUser),
+      createdAt: String(raw.createdAt || '')
+    };
+  };
+
+  const getMessageReadState = (msg) => {
+    if (!msg || typeof msg !== 'object') {
+      return { label: 'Read', className: 'read' };
+    }
+    const isRead = msg.sender === 'club' ? Boolean(msg.readByUser) : Boolean(msg.readByClub);
+    return {
+      label: isRead ? 'Read' : 'Unread',
+      className: isRead ? 'read' : 'unread'
+    };
+  };
+
+  const getThreadPreview = (thread) => {
+    const prefix = thread.lastSender === 'club' ? 'You: ' : 'Member: ';
+    return `${prefix}${thread.lastMessageText || 'No messages yet.'}`;
+  };
+
+  const renderThreadList = () => {
+    if (!threadListEl) return;
+    if (!selectedClubId) {
+      threadListEl.innerHTML = `
+        <div class="thread-empty">Select a club first, then open this chat module.</div>
+      `;
+      return;
+    }
+
+    if (loadingConversations && !conversations.length) {
+      threadListEl.innerHTML = `
+        <div class="thread-empty">Loading conversations...</div>
+      `;
+      return;
+    }
+
+    if (!conversations.length) {
+      threadListEl.innerHTML = `
+        <div class="thread-empty">
+          No member conversations yet. New chats will appear here automatically.
+        </div>
+      `;
+      return;
+    }
+
+    threadListEl.innerHTML = conversations.map((thread) => {
+      const preview = getThreadPreview(thread);
+      const timeLabel = formatTime(thread.lastMessageAt) || 'No timestamp';
+      const activeClass = Number(activeUserId) === Number(thread.userId) ? ' active' : '';
+      const unreadBadge = Math.max(0, Number(thread.unreadCount) || 0);
+      return `
+        <button class="thread-card${activeClass}" type="button" data-user-id="${thread.userId}">
+          <div class="thread-top">
+            <span class="thread-title">${escapeHtml(thread.userName)}</span>
+            ${unreadBadge > 0 ? `<span class="thread-count">${unreadBadge}</span>` : ''}
+          </div>
+          <div class="thread-preview" title="${escapeHtml(preview)}">${escapeHtml(preview)}</div>
+          <div class="thread-time">${escapeHtml(timeLabel)}</div>
+        </button>
+      `;
+    }).join('');
+
+    threadListEl.querySelectorAll('[data-user-id]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const userId = Number(btn.getAttribute('data-user-id'));
+        if (!Number.isFinite(userId)) return;
+        activeUserId = userId;
+        renderThreadList();
+        await loadActiveThread({ markRead: true, scrollBottom: true, quiet: false });
+      });
+    });
+  };
+
+  const renderChatLog = (scrollBottom = false) => {
+    if (!chatLogEl || !activeTitleEl) return;
+
+    if (!selectedClubId) {
+      activeTitleEl.textContent = 'No club selected';
+      chatLogEl.innerHTML = '<div class="chat-empty">No active club context.</div>';
+      if (replyInputEl) replyInputEl.disabled = true;
+      if (replySendBtnEl) replySendBtnEl.disabled = true;
+      return;
+    }
+
+    if (!activeThread) {
+      activeTitleEl.textContent = 'No conversation selected';
+      chatLogEl.innerHTML = '<div class="chat-empty">No conversation available yet.</div>';
+      if (replyInputEl) replyInputEl.disabled = true;
+      if (replySendBtnEl) replySendBtnEl.disabled = true;
+      return;
+    }
+
+    activeTitleEl.textContent = activeThread.userName || `User #${activeThread.userId}`;
+    if (replyInputEl) replyInputEl.disabled = false;
+    if (replySendBtnEl) replySendBtnEl.disabled = false;
+
+    const total = activeThread.messages.length;
+    if (loadingThread && !total) {
+      chatLogEl.innerHTML = '<div class="chat-empty">Loading messages...</div>';
+      return;
+    }
+
+    if (!total) {
+      chatLogEl.innerHTML = '<div class="chat-empty">Conversation is empty. Start by sending a reply.</div>';
+      return;
+    }
+
+    chatLogEl.innerHTML = activeThread.messages.map((msg) => {
+      const textHtml = escapeHtml(String(msg.text || '')).replace(/\n/g, '<br>');
+      const timeLabel = formatTime(msg.createdAt) || 'Just now';
+      const readState = getMessageReadState(msg);
+      return `
+        <div class="chat-msg ${msg.sender}">
+          <div class="chat-bubble">${textHtml}</div>
+          <div class="chat-meta">
+            <span>${escapeHtml(msg.authorName)} - ${escapeHtml(timeLabel)}</span>
+            <span class="chat-status ${readState.className}">${readState.label}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    if (scrollBottom) {
+      chatLogEl.scrollTop = chatLogEl.scrollHeight;
+    }
+  };
+
+  const applyActiveThreadReadState = () => {
+    if (!activeThread) return;
+    activeThread.unreadCount = 0;
+    activeThread.messages = Array.isArray(activeThread.messages)
+      ? activeThread.messages.map((msg) => (
+          msg?.sender === 'user' ? { ...msg, readByClub: true } : msg
+        ))
+      : [];
+    conversations = conversations.map((item) => {
+      if (Number(item.userId) !== Number(activeThread.userId)) return item;
+      return { ...item, unreadCount: 0 };
+    });
+    renderThreadList();
+    renderChatLog();
+  };
+
+  const markActiveThreadRead = async () => {
+    if (!activeUserId || !selectedClubId) return;
+    try {
+      const res = await authFetch(`/api/my/clubs/${encodeURIComponent(selectedClubId)}/chat/conversations/${encodeURIComponent(String(activeUserId))}/read`, {
+        method: 'POST'
+      });
+      if (!res.ok) return;
+      applyActiveThreadReadState();
+    } catch (err) {
+      console.warn('[club chat] mark read error', err);
+    }
+  };
+
+  const loadConversations = async ({ keepActive = true, quiet = false } = {}) => {
+    if (loadingConversations || !selectedClubId) return;
+    loadingConversations = true;
+    if (!quiet) renderThreadList();
+
+    try {
+      const res = await authFetch(`/api/my/clubs/${encodeURIComponent(selectedClubId)}/chat/conversations`);
+      if (!res.ok) {
+        const msg = await readErrorText(res);
+        if (!quiet) {
+          conversations = [];
+          activeUserId = null;
+          activeThread = null;
+          threadListEl.innerHTML = `<div class="thread-empty">${escapeHtml(msg)}</div>`;
+          renderChatLog();
+        }
+        return;
+      }
+
+      const raw = await res.json();
+      let list = Array.isArray(raw) ? raw.map(normalizeConversation).filter(Boolean) : [];
+
+      // If current selected club has no chat, try other owned clubs once and auto-switch to the first non-empty one.
+      if (!list.length && myClubs.length > 1 && !hasTriedClubFallback) {
+        hasTriedClubFallback = true;
+        for (const club of myClubs) {
+          if (club.clubId === selectedClubId) continue;
+          try {
+            const altRes = await authFetch(`/api/my/clubs/${encodeURIComponent(club.clubId)}/chat/conversations`);
+            if (!altRes.ok) continue;
+            const altRaw = await altRes.json();
+            const altList = Array.isArray(altRaw) ? altRaw.map(normalizeConversation).filter(Boolean) : [];
+            if (!altList.length) continue;
+            applySelectedClub(club, { persist: true });
+            list = altList;
+            hasTriedClubFallback = false;
+            break;
+          } catch (err) {
+            console.warn('[club chat] fallback conversations error', err);
+          }
+        }
+      }
+
+      if (list.length) {
+        hasTriedClubFallback = false;
+      }
+
+      conversations = list;
+
+      if (!keepActive || !conversations.some((item) => Number(item.userId) === Number(activeUserId))) {
+        activeUserId = conversations[0]?.userId ?? null;
+      }
+
+      renderThreadList();
+    } catch (err) {
+      console.warn('[club chat] load conversations error', err);
+      if (!quiet) {
+        conversations = [];
+        activeUserId = null;
+        activeThread = null;
+        threadListEl.innerHTML = '<div class="thread-empty">Failed to load conversations.</div>';
+        renderChatLog();
+      }
+    } finally {
+      loadingConversations = false;
+      if (!quiet) renderThreadList();
+    }
+  };
+
+  const loadActiveThread = async ({ markRead = true, scrollBottom = false, quiet = false } = {}) => {
+    if (loadingThread || !selectedClubId || !activeUserId) {
+      if (!activeUserId) {
+        activeThread = null;
+        renderChatLog();
+      }
+      return;
+    }
+
+    loadingThread = true;
+    if (!quiet) renderChatLog(scrollBottom);
+
+    try {
+      const res = await authFetch(`/api/my/clubs/${encodeURIComponent(selectedClubId)}/chat/conversations/${encodeURIComponent(String(activeUserId))}/messages`);
+      if (!res.ok) {
+        const msg = await readErrorText(res);
+        if (!quiet) {
+          activeThread = {
+            userId: activeUserId,
+            userName: `User #${activeUserId}`,
+            unreadCount: 0,
+            messages: []
+          };
+          chatLogEl.innerHTML = `<div class="chat-empty">${escapeHtml(msg)}</div>`;
+        }
+        return;
+      }
+
+      const raw = await res.json();
+      const messages = Array.isArray(raw?.messages) ? raw.messages.map(normalizeMessage).filter(Boolean) : [];
+      activeThread = {
+        userId: Number(raw?.userId) || activeUserId,
+        userName: String(raw?.userName || `User #${activeUserId}`).trim() || `User #${activeUserId}`,
+        unreadCount: Math.max(0, Number(raw?.unreadCount) || 0),
+        messages
+      };
+      renderChatLog(scrollBottom);
+
+      if (markRead && activeThread.unreadCount > 0) {
+        await markActiveThreadRead();
+      }
+    } catch (err) {
+      console.warn('[club chat] load messages error', err);
+      if (!quiet) {
+        activeThread = {
+          userId: activeUserId,
+          userName: `User #${activeUserId}`,
+          unreadCount: 0,
+          messages: []
+        };
+        chatLogEl.innerHTML = '<div class="chat-empty">Failed to load messages.</div>';
+      }
+    } finally {
+      loadingThread = false;
+      if (!quiet) renderChatLog(scrollBottom);
+    }
+  };
+
+  const stopChatPolling = () => {
+    if (chatPollTimer) {
+      clearInterval(chatPollTimer);
+      chatPollTimer = null;
+    }
+  };
+
+  const runClubChatPoll = async () => {
+    if (chatPollInFlight) return;
+    if (!selectedClubId) return;
+    chatPollInFlight = true;
+    try {
+      await loadConversations({ keepActive: true, quiet: false });
+      await loadActiveThread({ markRead: false, scrollBottom: false, quiet: false });
+    } finally {
+      chatPollInFlight = false;
+    }
+  };
+
+  const scheduleChatPolling = () => {
+    stopChatPolling();
+    const interval = document.hidden ? CHAT_POLL_HIDDEN_MS : CHAT_POLL_VISIBLE_MS;
+    chatPollTimer = window.setInterval(runClubChatPoll, interval);
+  };
+
+  const startChatPolling = () => {
+    scheduleChatPolling();
+    runClubChatPoll();
+  };
+
+  document.addEventListener('visibilitychange', () => {
+    scheduleChatPolling();
+    if (!document.hidden) runClubChatPoll();
+  });
+
+  window.addEventListener('focus', () => {
+    scheduleChatPolling();
+    runClubChatPoll();
+  });
+
+  replyFormEl?.addEventListener('submit', async (evt) => {
+    evt.preventDefault();
+    const auth = ensureClubAuth({ notify: true, redirectOnMissing: true });
+    if (!auth.ok) return;
+
+    if (!selectedClubId || !activeUserId) {
+      showModalAlert('Select a conversation before sending.');
+      return;
+    }
+
+    const text = String(replyInputEl?.value || '').replace(/\r\n/g, '\n').trim();
+    if (!text) return;
+
+    try {
+      const res = await authFetch(`/api/my/clubs/${encodeURIComponent(selectedClubId)}/chat/conversations/${encodeURIComponent(String(activeUserId))}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      });
+      if (!res.ok) {
+        const msg = await readErrorText(res);
+        showModalAlert(msg, 'Error');
+        return;
+      }
+
+      if (replyInputEl) replyInputEl.value = '';
+      await loadActiveThread({ markRead: false, scrollBottom: true, quiet: false });
+      await loadConversations({ keepActive: true, quiet: false });
+      replyInputEl?.focus();
+    } catch (err) {
+      console.warn('[club chat] send reply error', err);
+      showModalAlert('Failed to send reply. Please try again.', 'Error');
+    }
+  });
+
+  window.addEventListener('storage', async (evt) => {
+    if (evt.key === 'selectedClub') {
+      const next = resolvePreferredClub(getSelectedClubMeta());
+      applySelectedClub(next, { persist: false });
+      conversations = [];
+      activeUserId = null;
+      activeThread = null;
+      await loadConversations({ keepActive: false, quiet: false });
+      await loadActiveThread({ markRead: true, scrollBottom: false, quiet: false });
+    }
+
+    if (evt.key === 'token' || evt.key === 'loggedUser') {
+      const auth = ensureClubAuth();
+      if (!auth.ok) {
+        stopChatPolling();
+        conversations = [];
+        activeUserId = null;
+        activeThread = null;
+        renderThreadList();
+        renderChatLog();
+        return;
+      }
+      await refreshOwnedClubs();
+      const next = resolvePreferredClub(getSelectedClubMeta());
+      applySelectedClub(next, { persist: true });
+      await loadConversations({ keepActive: true, quiet: false });
+      await loadActiveThread({ markRead: true, scrollBottom: false, quiet: false });
+      startChatPolling();
+    }
+  });
+
+  (async () => {
+    const auth = ensureClubAuth({ notify: true, redirectOnMissing: true });
+    if (!auth.ok) return;
+
+    const selected = getSelectedClubMeta();
+    await refreshOwnedClubs();
+    const preferred = resolvePreferredClub(selected);
+    applySelectedClub(preferred, { persist: true });
+
+    await loadConversations({ keepActive: true, quiet: false });
+    await loadActiveThread({ markRead: true, scrollBottom: false, quiet: false });
+    startChatPolling();
+  })();
+</script>
+</body>
+</html>
+

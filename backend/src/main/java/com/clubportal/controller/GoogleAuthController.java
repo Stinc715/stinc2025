@@ -2,8 +2,13 @@ package com.clubportal.controller;
 
 import com.clubportal.dto.AuthResponse;
 import com.clubportal.dto.GoogleLoginRequest;
+import com.clubportal.model.User;
+import com.clubportal.repository.UserRepository;
 import com.clubportal.security.JwtUtil;
 import com.clubportal.service.GoogleAuthService;
+import com.clubportal.service.GoogleLoginPolicyException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,16 +18,21 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 public class GoogleAuthController {
 
+    private static final Logger log = LoggerFactory.getLogger(GoogleAuthController.class);
+
     private final GoogleAuthService googleAuthService;
+    private final UserRepository userRepo;
     private final JwtUtil jwtUtil;
 
-    public GoogleAuthController(GoogleAuthService googleAuthService, JwtUtil jwtUtil) {
+    public GoogleAuthController(GoogleAuthService googleAuthService,
+                                UserRepository userRepo,
+                                JwtUtil jwtUtil) {
         this.googleAuthService = googleAuthService;
+        this.userRepo = userRepo;
         this.jwtUtil = jwtUtil;
     }
 
     /**
-     * 前端把 Google Identity Services 返回的 ID Token 放在 body.credential 里传过来
      * POST /api/auth/google
      * { "credential": "eyJhbGciOiJSUzI1NiIsImtpZCI6..." }
      */
@@ -32,23 +42,38 @@ public class GoogleAuthController {
             if (req == null || req.getCredential() == null || req.getCredential().isBlank()) {
                 return ResponseEntity.badRequest().body("Missing credential");
             }
-            AuthResponse auth = googleAuthService.loginWithGoogleIdToken(req.getCredential());
-            String token = jwtUtil.generateToken(auth.getEmail(), auth.getRole());
+            String credential = req.getCredential().trim();
+            int segments = credential.split("\\.").length;
+            log.info("Google credential received: len={}, segments={}", credential.length(), segments);
+            if (segments != 3) {
+                return ResponseEntity.status(401).body("Invalid Google credential format");
+            }
+
+            AuthResponse auth = googleAuthService.loginWithGoogleIdToken(credential);
+            User user = userRepo.findByEmailIgnoreCase(auth.getEmail()).orElse(null);
+            if (user == null) {
+                return ResponseEntity.status(401).body("Account not found");
+            }
+            int nextSessionVersion = user.bumpSessionVersion();
+            User savedUser = userRepo.save(user);
+            String token = jwtUtil.generateToken(savedUser.getEmail(), auth.getRole(), nextSessionVersion);
             return ResponseEntity.ok(Map.of(
                     "token", token,
-                    "id", auth.getId(),
-                    "email", auth.getEmail(),
-                    "fullName", auth.getFullName(),
-                    "role", auth.getRole()
+                    "id", savedUser.getUserId(),
+                    "email", savedUser.getEmail(),
+                    "fullName", savedUser.getUsername(),
+                    "role", savedUser.getRole() == null ? "user" : savedUser.getRole().toAccountType()
             ));
+        } catch (GoogleLoginPolicyException ex) {
+            return ResponseEntity.status(403).body(ex.getMessage());
         } catch (IllegalArgumentException ex) {
-            // 返回安全的错误信息，不暴露内部细节
-            System.err.println("Google login validation failed: " + ex.getMessage());
-            return ResponseEntity.status(401).body("Google authentication failed");
+            String message = ex.getMessage() == null || ex.getMessage().isBlank()
+                    ? "Google authentication failed"
+                    : ex.getMessage();
+            log.warn("Google login validation failed: {}", message);
+            return ResponseEntity.status(401).body(message);
         } catch (Exception e) {
-            // 日志记录技术细节，向客户端返回通用错误
-            System.err.println("Google login error: " + e.getClass().getName() + " - " + e.getMessage());
-            e.printStackTrace(System.err);
+            log.error("Google login error: {} - {}", e.getClass().getName(), e.getMessage(), e);
             return ResponseEntity.internalServerError().body("Authentication service temporarily unavailable");
         }
     }

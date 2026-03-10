@@ -1,11 +1,9 @@
-﻿﻿<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
-<script>console.log("LOGIN PAGE VERSION 2026-02-13-TEST");</script>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Club Booking Portal</title>
-  <link rel="stylesheet" href="theme.css">
 <style>
   :root{ --bg:#fff; --card:#fff; --line:#e5e7eb; --ink:#111827; --muted:#6b7280; --accent:#2563eb; }
   *{box-sizing:border-box}
@@ -17,7 +15,7 @@
     background:transparent;
     min-height:unset;
     display:block;
-    padding:28px;
+    padding:18px 18px 16px;
   }
   .auth-wrap{
     flex:1;
@@ -40,9 +38,20 @@
     max-width:none;
     border:none;
     box-shadow:none;
-    padding:10px 8px 8px;
+    padding:4px;
   }
-  h1{ text-align:center;font-size:32px;margin:0 0 28px; }
+  body.embedded h1{
+    font-size:24px;
+    margin:0 0 18px;
+  }
+  h1{
+    text-align:center;
+    font-size:32px;
+    margin:0 0 28px;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    font-weight:700;
+    letter-spacing:0;
+  }
   .tabs{ 
     display:flex;
     gap:0;
@@ -72,31 +81,18 @@
   }
   .panels-container{
     position:relative;
-    min-height:380px;
-    display:flex;
-    flex-direction:column;
+    min-height:0;
   }
   #panel-login,
   #panel-register{
-    position:absolute;
-    top:0;
-    left:0;
-    right:0;
-    bottom:0;
-    opacity:0;
-    visibility:hidden;
-    pointer-events:none;
-    display:flex;
-    flex-direction:column;
-    justify-content:space-between;
+    display:none;
   }
   #panel-login.active,
   #panel-register.active{
-    position:relative;
-    opacity:1;
-    visibility:visible;
-    pointer-events:auto;
-    min-height:380px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    min-height:0;
   }
   #panel-login .login-form-section{
     flex:1;
@@ -142,6 +138,8 @@
   .toggle-password.is-visible .eye-off{ display:block; }
   .mb-3{ margin-bottom:18px }
   .btn-row{ display:flex;gap:12px;margin-top:18px; }
+  body.embedded .mb-3{ margin-bottom:14px; }
+  body.embedded .btn-row{ margin-top:14px; }
   .btn{ 
     flex:1;
     height:44px;
@@ -151,6 +149,10 @@
     color:#fff;
     font-size:16px;
     cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    text-decoration:none;
     box-shadow:none !important;
     transition:transform 0.15s ease;
     outline:none;
@@ -189,8 +191,10 @@
   .success .success-text{ margin:0;color:inherit;font-size:13px; }
   .success.is-error{ border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.08);color:#b91c1c; }
   .small-row{ display:flex;justify-content:flex-end;margin:6px 0 18px; }
+  body.embedded .small-row{ margin:4px 0 14px; }
   .switch-row{ display:flex;justify-content:flex-end;margin:8px 0 12px; }
   .divider{display:flex;align-items:center;gap:10px;margin:20px 0 16px;color:#6b7280;font-size:12px;}
+  body.embedded .divider{ margin:14px 0 10px; }
   .google-signin-shell{position:relative;width:100%;height:42px;border:1px solid #d1d5db;border-radius:4px;background:#fff;overflow:hidden;}
   .google-signin-shell__visual{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;color:#1f2937;font-size:16px;font-weight:500;}
   .google-signin-shell__label{font-size:16px;line-height:1;}
@@ -202,6 +206,7 @@
   #reset-box h3{ margin:0 0 6px;font-size:16px; }
   #reset-box p{ margin:0 0 12px;font-size:13px;color:#6b7280; }
   #reset-msg{ font-size:12px;color:#1d4ed8;background:#eff6ff;border:1px solid #bfdbfe;padding:6px 8px;border-radius:8px;display:none;margin-bottom:10px; }
+  #reset-msg.is-error{ color:#b91c1c;background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.35); }
   .status-dialog{ position:fixed; inset:0; background:rgba(15,23,42,.35); display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .25s ease; z-index:1200; padding:24px; backdrop-filter:blur(2px); }
   .status-dialog.active{ opacity:1; pointer-events:auto; }
   .status-dialog__card{ width:min(380px,90vw); background:#fff; border-radius:22px; padding:34px 30px 26px; text-align:center; box-shadow:none; transform:translateY(24px); transition:transform .3s ease; }
@@ -214,6 +219,47 @@
   .status-dialog__btn:active{ transform:translateY(1px); }
   .divider::before,.divider::after{content:"";flex:1;height:1px;background:#e5e7eb;}
   .form-alert{display:none;margin:10px 0;padding:10px 12px;border-radius:12px;border:1px solid rgba(47,93,255,.25);background:rgba(47,93,255,.08);color:#1f3bb3;font-size:13px;animation:fadeUp .2s ease both;}
+  .verify-box{margin:-4px 0 14px;padding:10px;border:1px solid #e5e7eb;border-radius:12px;background:#f8fafc;}
+  .verify-hint{margin:0 0 8px;font-size:12px;color:#4b5563;}
+  .verify-row{display:flex;gap:8px;align-items:center;}
+  .verify-row + .verify-row{margin-top:8px;}
+  .verify-row input{flex:1;}
+  .verify-action{
+    border:1px solid #d1d5db;
+    background:#fff;
+    color:#111827;
+    border-radius:10px;
+    height:40px;
+    min-width:98px;
+    padding:0 12px;
+    font-size:13px;
+    cursor:pointer;
+  }
+  .verify-action[disabled]{opacity:.6;cursor:not-allowed}
+  .verify-state{
+    display:none;
+    margin-top:8px;
+    font-size:12px;
+    border-radius:10px;
+    border:1px solid rgba(59,130,246,.3);
+    background:rgba(59,130,246,.08);
+    color:#1f3bb3;
+    padding:7px 9px;
+  }
+  .verify-state.is-error{
+    border-color:rgba(239,68,68,.35);
+    background:rgba(239,68,68,.08);
+    color:#b91c1c;
+  }
+  .verify-state.is-success{
+    border-color:rgba(34,197,94,.35);
+    background:rgba(34,197,94,.1);
+    color:#166534;
+  }
+  .verify-state.show{display:block;}
+  body.route-locked .tabs{display:none !important;}
+  body.route-locked #btnGoRegister,
+  body.route-locked #btnBackLogin{display:none !important;}
   @keyframes fadeUp{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
 </style>
 </head>
@@ -312,18 +358,29 @@
         <input id="reg-email" type="email" autocomplete="email" />
         <div id="reg-email-err" class="error">Please enter a valid email address.</div>
       </div>
+      <div class="verify-box">
+        <p class="verify-hint">Verify your email first. Password fields unlock after verification succeeds.</p>
+        <div class="verify-row">
+          <button id="reg-send-code-btn" class="verify-action" type="button">Send code</button>
+        </div>
+        <div class="verify-row">
+          <input id="reg-email-code" type="text" placeholder="6-digit code" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" />
+          <button id="reg-verify-code-btn" class="verify-action" type="button">Verify</button>
+        </div>
+        <div id="reg-verify-msg" class="verify-state" role="status" aria-live="polite"></div>
+      </div>
       <div class="mb-3">
         <label for="reg-pass">Password</label>
-        <input id="reg-pass" type="password" autocomplete="new-password" />
-        <div id="reg-pass-err" class="error">Password is required.</div>
+        <input id="reg-pass" type="password" autocomplete="new-password" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+" title="Must include uppercase, lowercase, and a number." disabled />
+        <div id="reg-pass-err" class="error">Password must include uppercase, lowercase, and a number.</div>
       </div>
       <div class="mb-3">
         <label for="reg-pass2">Confirm password</label>
-        <input id="reg-pass2" type="password" autocomplete="new-password" />
+        <input id="reg-pass2" type="password" autocomplete="new-password" disabled />
         <div id="reg-pass2-err" class="error">Passwords do not match.</div>
       </div>
       <div class="btn-row">
-        <button id="btnRegisterDo" class="btn" type="button">Register</button>
+        <button id="btnRegisterDo" class="btn" type="button" disabled>Register</button>
         <button id="btnBackLogin" class="btn light" type="button">Back to login</button>
       </div>
     </div>
@@ -336,9 +393,9 @@
   <div id="reset-panel">
     <div id="reset-box">
       <h3>Reset password</h3>
-      <p>Enter your email address, we'll send you a reset link.</p >
+      <p id="reset-intro">Enter your email address, we'll send you a reset link.</p >
       <div id="reset-msg">Email sent.</div>
-      <div class="mb-3">
+      <div class="mb-3" id="reset-email-field">
         <label for="reset-email">Email</label>
         <input id="reset-email" type="email" />
         <div id="reset-email-err" class="error">Please enter a valid email address.</div>
@@ -363,37 +420,77 @@
   <script src="https://accounts.google.com/gsi/client?hl=en" async defer></script>
   <script>
     (function(){
-      var attempts = 0;
-      var t = setInterval(function(){
-        attempts++;
-        if(window.google && window.google.accounts && window.google.accounts.id){
-          clearInterval(t);
-          google.accounts.id.initialize({
-            client_id: '885940597719-mtcoo82k9bbksvuj786nsj7iombqtsli.apps.googleusercontent.com',
-            callback: function(response){
-              if (typeof window.handleGoogleCredential === 'function') {
-                window.handleGoogleCredential(response);
-              }
-            }
-          });
-          var googleBtnHost = document.getElementById('google-signin-btn');
-          var dividerEl = document.querySelector('.login-social-section .divider');
-          var googleBtnWidth = Math.max(
-            320,
-            Math.floor(
-              (dividerEl && dividerEl.clientWidth) ||
-              (googleBtnHost && googleBtnHost.clientWidth) ||
-              320
-            )
-          );
-          google.accounts.id.renderButton(
-            googleBtnHost,
-            { type:'standard', shape:'rectangular', theme:'outline', text:'signin_with', logo_alignment:'left', locale:'en', width: googleBtnWidth }
-          );
-        } else if(attempts >= 20){
-          clearInterval(t);
+      var DEFAULT_GOOGLE_CLIENT_ID = '885940597719-mtcoo82k9bbksvuj786nsj7iombqtsli.apps.googleusercontent.com';
+      window.__googleGsi = window.__googleGsi || { ready: false, rendered: false, pendingCredential: null, clientId: '' };
+      window.__googleGsi.ready = false;
+      window.__googleGsi.rendered = false;
+      window.__googleGsi.pendingCredential = null;
+      window.__googleGsi.clientId = '';
+
+      function flushGoogleCredential(response){
+        if (!response) return;
+        if (typeof window.handleGoogleCredential === 'function') {
+          window.handleGoogleCredential(response);
+          return;
         }
-      }, 200);
+        window.__googleGsi.pendingCredential = response;
+      }
+
+      function resolveGoogleClientIdFromConfig(payload){
+        if (!payload || typeof payload !== 'object') return '';
+        return String(payload.googleOauthClientId || '').trim();
+      }
+
+      function loadGoogleClientId(){
+        return fetch('/api/public/config', { credentials: 'same-origin' })
+          .then(function(res){
+            if (!res.ok) return null;
+            return res.json();
+          })
+          .then(function(data){
+            var serverClientId = resolveGoogleClientIdFromConfig(data);
+            return serverClientId || DEFAULT_GOOGLE_CLIENT_ID;
+          })
+          .catch(function(){
+            return DEFAULT_GOOGLE_CLIENT_ID;
+          });
+      }
+
+      loadGoogleClientId().then(function(clientId){
+        if (!clientId) return;
+        window.__googleGsi.clientId = clientId;
+        var attempts = 0;
+        var t = setInterval(function(){
+          attempts++;
+          if(window.google && window.google.accounts && window.google.accounts.id){
+            clearInterval(t);
+            window.__googleGsi.ready = true;
+            google.accounts.id.initialize({
+              client_id: clientId,
+              ux_mode: 'popup',
+              itp_support: true,
+              callback: flushGoogleCredential
+            });
+            var googleBtnHost = document.getElementById('google-signin-btn');
+            var dividerEl = document.querySelector('.login-social-section .divider');
+            var googleBtnWidth = Math.max(
+              320,
+              Math.floor(
+                (dividerEl && dividerEl.clientWidth) ||
+                (googleBtnHost && googleBtnHost.clientWidth) ||
+                320
+              )
+            );
+            google.accounts.id.renderButton(
+              googleBtnHost,
+              { type:'standard', shape:'rectangular', theme:'outline', text:'signin_with', logo_alignment:'left', locale:'en', width: googleBtnWidth }
+            );
+            window.__googleGsi.rendered = true;
+          } else if(attempts >= 200){
+            clearInterval(t);
+          }
+        }, 200);
+      });
     })();
   </script>
   <script>
@@ -404,10 +501,15 @@
     clubLogin: `${API_BASE}/clubs/login`,
     userRegister: `${API_BASE}/register`,
     clubRegister: `${API_BASE}/clubs/register`,
-    googleLogin: `${API_BASE}/auth/google`
+    googleLogin: `${API_BASE}/auth/google`,
+    registerCodeSend: `${API_BASE}/auth/register/email-code/send`,
+    registerCodeVerify: `${API_BASE}/auth/register/email-code/verify`,
+    passwordResetRequest: `${API_BASE}/auth/password-reset/request`
   };
   const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const registerPassRe = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/;
 
+  const tabs = document.querySelector('.tabs');
   const tabLogin = document.getElementById('tab-login');
   const tabRegisterUser = document.getElementById('tab-register-user');
   const panelLogin = document.getElementById('panel-login');
@@ -416,14 +518,29 @@
   const regSuccessTitle = document.getElementById('reg-success-title');
   const regSuccessText = document.getElementById('reg-success-text');
   const loginFormErr = document.getElementById('login-form-err');
+  const regEmailInput = document.getElementById('reg-email');
+  const regPassInput = document.getElementById('reg-pass');
+  const regPass2Input = document.getElementById('reg-pass2');
+  const regSendCodeBtn = document.getElementById('reg-send-code-btn');
+  const regVerifyCodeBtn = document.getElementById('reg-verify-code-btn');
+  const regEmailCodeInput = document.getElementById('reg-email-code');
+  const regVerifyMsg = document.getElementById('reg-verify-msg');
+  const btnRegisterDo = document.getElementById('btnRegisterDo');
+  const btnGoRegister = document.getElementById('btnGoRegister');
+  const btnBackLogin = document.getElementById('btnBackLogin');
 
   const userExtra = document.getElementById('user-extra');
   const clubSwitch = document.getElementById('clubSwitch');
 
   const resetPanel = document.getElementById('reset-panel');
+  const resetTitle = document.querySelector('#reset-box h3');
+  const resetIntro = document.getElementById('reset-intro');
+  const resetEmailField = document.getElementById('reset-email-field');
   const resetEmail = document.getElementById('reset-email');
   const resetEmailErr = document.getElementById('reset-email-err');
   const resetMsg = document.getElementById('reset-msg');
+  const resetSendBtn = document.getElementById('btnResetSend');
+  const resetBackBtn = document.getElementById('btnResetBack');
 
   const statusDialog = document.getElementById('status-dialog');
   const statusDialogTitle = document.getElementById('status-dialog-title');
@@ -434,6 +551,10 @@
 
   const togglePasswordBtn = document.getElementById('togglePassword');
   const passwordInput = document.getElementById('password');
+  let routeLockedMode = '';
+  let registerVerifiedEmail = '';
+  let regCodeTimer = null;
+  let resetRequestedEmail = '';
 
   const showLoginError = (msg) => {
     if (!loginFormErr) return;
@@ -445,6 +566,15 @@
     if (loginFormErr) loginFormErr.style.display = 'none';
     requestResize();
   };
+
+  // If the Google SDK/button fails to load (blocked network/adblock/slow load),
+  // clicking the visual shell would otherwise do nothing. Provide a user-facing hint.
+  document.getElementById('google-signin-btn')?.addEventListener('click', () => {
+    const g = window.__googleGsi;
+    if (!g || !g.ready || !g.rendered) {
+      showLoginError('Google sign-in is not available right now. Please refresh the page, disable ad blockers/privacy extensions, or open login.html directly and try again.');
+    }
+  });
 
   if (togglePasswordBtn && passwordInput) {
     togglePasswordBtn.addEventListener('click', () => {
@@ -492,11 +622,140 @@
     requestResize();
   }
 
+  function normalizeEmail(value){
+    return String(value || '').trim().toLowerCase();
+  }
+
+  function setResetMessage(message, isError = false){
+    if (!resetMsg) return;
+    if (!message) {
+      resetMsg.textContent = '';
+      resetMsg.style.display = 'none';
+      resetMsg.classList.remove('is-error');
+      requestResize();
+      return;
+    }
+    resetMsg.textContent = message;
+    resetMsg.style.display = 'block';
+    resetMsg.classList.toggle('is-error', !!isError);
+    requestResize();
+  }
+
+  function setResetPanelMode(mode, email = '') {
+    const isSent = mode === 'sent';
+    const normalizedEmail = normalizeEmail(email || resetRequestedEmail);
+    if (resetTitle) resetTitle.textContent = isSent ? 'Check your email' : 'Reset password';
+    if (resetIntro) {
+      resetIntro.textContent = isSent
+        ? `We've sent a reset link to ${normalizedEmail || 'your email address'}. Use the link in that email to set a new password.`
+        : `Enter your email address, we'll send you a reset link.`;
+    }
+    if (resetEmailField) resetEmailField.hidden = isSent;
+    if (resetSendBtn) resetSendBtn.textContent = isSent ? 'Send another link' : 'Send link';
+    if (resetBackBtn) resetBackBtn.textContent = isSent ? 'Back to login' : 'Back';
+    requestResize();
+  }
+
+  function setRegVerifyMessage(message, type){
+    if (!regVerifyMsg) return;
+    if (!message) {
+      regVerifyMsg.textContent = '';
+      regVerifyMsg.classList.remove('show', 'is-error', 'is-success');
+      requestResize();
+      return;
+    }
+    regVerifyMsg.textContent = message;
+    regVerifyMsg.classList.add('show');
+    regVerifyMsg.classList.toggle('is-error', type === 'error');
+    regVerifyMsg.classList.toggle('is-success', type === 'success');
+    requestResize();
+  }
+
+  function stopRegCodeTimer(){
+    if (regCodeTimer) {
+      clearInterval(regCodeTimer);
+      regCodeTimer = null;
+    }
+  }
+
+  function startRegCodeCooldown(seconds){
+    if (!regSendCodeBtn) return;
+    const total = Number.isFinite(seconds) ? Math.max(1, Math.floor(seconds)) : 60;
+    stopRegCodeTimer();
+    let remain = total;
+    regSendCodeBtn.disabled = true;
+    regSendCodeBtn.textContent = `Resend in ${remain}s`;
+    regCodeTimer = setInterval(() => {
+      remain -= 1;
+      if (remain <= 0) {
+        stopRegCodeTimer();
+        regSendCodeBtn.disabled = false;
+        regSendCodeBtn.textContent = 'Send code';
+        return;
+      }
+      regSendCodeBtn.textContent = `Resend in ${remain}s`;
+    }, 1000);
+  }
+
+  function setRegisterVerificationState(email, verified){
+    registerVerifiedEmail = verified ? normalizeEmail(email) : '';
+    const unlock = !!registerVerifiedEmail;
+    if (regPassInput) {
+      regPassInput.disabled = !unlock;
+      if (!unlock) regPassInput.value = '';
+    }
+    if (regPass2Input) {
+      regPass2Input.disabled = !unlock;
+      if (!unlock) regPass2Input.value = '';
+    }
+    if (btnRegisterDo) btnRegisterDo.disabled = !unlock;
+    if (!unlock) {
+      document.getElementById('reg-pass-err').style.display = 'none';
+      document.getElementById('reg-pass2-err').style.display = 'none';
+    }
+  }
+
+  function resetRegisterVerification(message){
+    setRegisterVerificationState('', false);
+    if (regEmailCodeInput) regEmailCodeInput.value = '';
+    if (message) setRegVerifyMessage(message, 'error');
+    else setRegVerifyMessage('', '');
+  }
+
+  function getRouteModeFromHash(hash = window.location.hash){
+    const normalizedHash = String(hash || '').trim().toLowerCase();
+    if (normalizedHash === '#login') return 'login';
+    if (normalizedHash === '#register' || normalizedHash === '#register-user') return 'register';
+    return 'login';
+  }
+
+  function setRouteLockedMode(mode){
+    routeLockedMode = mode;
+    document.body.classList.toggle('route-locked', !!mode);
+    if (tabs) tabs.hidden = !!mode;
+    if (btnGoRegister) btnGoRegister.hidden = !!mode;
+    if (btnBackLogin) btnBackLogin.hidden = !!mode;
+  }
+
+  function getAuthRouteTarget(mode){
+    return mode === 'register' ? 'login.html#register' : 'login.html#login';
+  }
+
+  function navigateToAuthMode(mode){
+    const nextHash = mode === 'register' ? '#register' : '#login';
+    if (window.location.hash === nextHash) {
+      applyRouteMode();
+      return;
+    }
+    window.location.href = getAuthRouteTarget(mode);
+  }
+
   function switchToLogin(showSuccess){
     tabLogin?.classList.add('active');
     tabRegisterUser?.classList.remove('active');
     panelLogin?.classList.add('active');
     panelRegister?.classList.remove('active');
+    stopRegCodeTimer();
     if (resetPanel) resetPanel.style.display = 'none';
     const succLogin = document.getElementById('login-success');
     succLogin.style.display = showSuccess ? 'block' : 'none';
@@ -512,15 +771,50 @@
     if (resetPanel) resetPanel.style.display = 'none';
     hideRegNotice();
     if (userExtra) userExtra.style.display = 'block';
+    stopRegCodeTimer();
+    if (regSendCodeBtn) {
+      regSendCodeBtn.disabled = false;
+      regSendCodeBtn.textContent = 'Send code';
+    }
+    resetRegisterVerification('');
     requestResize();
   }
 
-  tabLogin?.addEventListener('click', ()=>switchToLogin(false));
-  tabRegisterUser?.addEventListener('click', ()=>switchToRegister());
-  document.getElementById('btnGoRegister')?.addEventListener('click', ()=>switchToRegister());
+  function applyRouteMode(){
+    const mode = getRouteModeFromHash();
+    setRouteLockedMode(mode);
+    if (mode === 'register') {
+      switchToRegister();
+      return;
+    }
+    if (mode === 'login') {
+      switchToLogin(false);
+    }
+  }
+
+  tabLogin?.addEventListener('click', ()=> navigateToAuthMode('login'));
+  tabRegisterUser?.addEventListener('click', ()=> navigateToAuthMode('register'));
+  btnGoRegister?.addEventListener('click', ()=> navigateToAuthMode('register'));
   document.getElementById('email')?.addEventListener('input', hideLoginError);
   document.getElementById('password')?.addEventListener('input', hideLoginError);
-  document.getElementById('btnBackLogin')?.addEventListener('click', ()=>switchToLogin(false));
+  regEmailInput?.addEventListener('input', () => {
+    const current = normalizeEmail(regEmailInput.value);
+    if (registerVerifiedEmail && registerVerifiedEmail !== current) {
+      resetRegisterVerification('Email changed. Please verify the new email again.');
+    } else {
+      document.getElementById('reg-email-err').style.display = 'none';
+      if (!registerVerifiedEmail) setRegVerifyMessage('', '');
+    }
+  });
+  regEmailCodeInput?.addEventListener('input', () => {
+    const cleaned = String(regEmailCodeInput.value || '').replace(/\D/g, '').slice(0, 6);
+    if (regEmailCodeInput.value !== cleaned) regEmailCodeInput.value = cleaned;
+  });
+  resetEmail?.addEventListener('input', () => {
+    if (resetEmailErr) resetEmailErr.style.display = 'none';
+    setResetMessage('');
+  });
+  btnBackLogin?.addEventListener('click', ()=> navigateToAuthMode('login'));
   const openClubRegister = () => {
     const target = 'club register.html';
     if (window.self !== window.top) {
@@ -537,8 +831,8 @@
       if (!raw) return null;
       localStorage.removeItem('postLoginRedirect');
       const data = JSON.parse(raw);
-      if (data && data.page === 'join' && data.clubId) {
-        return `join.html?club=${encodeURIComponent(data.clubId)}`;
+      if (data && (data.page === 'join' || data.page === 'club') && data.clubId) {
+        return `club.html?club=${encodeURIComponent(data.clubId)}`;
       }
     }catch(e){
       try{ localStorage.removeItem('postLoginRedirect'); }catch(err){}
@@ -547,7 +841,9 @@
   }
 
   const isEmbedded = window.self !== window.top;
-  if (isEmbedded) document.body.classList.add('embedded');
+  if (isEmbedded) {
+    document.body.classList.add('embedded');
+  }
 
   const notifyParentSize = () => {
     if (!isEmbedded) return;
@@ -580,6 +876,14 @@
     return 'user';
   }
 
+  // Locked login landing rules:
+  // user -> home.html
+  // club -> club home.html
+  const LOCKED_LOGIN_TARGET = Object.freeze({
+    user: 'home.html',
+    club: 'club home.html'
+  });
+
   function isKnownClubEmail(email) {
     const em = String(email || '').trim().toLowerCase();
     if (!em) return false;
@@ -593,20 +897,24 @@
     }
   }
 
-  function getDefaultTarget(role) {
-    if (role) return resolveUserType(role) === 'club' ? 'club home.html' : 'home.html';
+  function getLockedUserType(role) {
+    if (role) return resolveUserType(role);
     try {
       const logged = JSON.parse(localStorage.getItem('loggedUser') || 'null');
-      if (logged && logged.type === 'club') return 'club home.html';
+      if (logged && logged.type === 'club') return 'club';
     } catch (e) { /* ignore */ }
-    return 'home.html';
+    return 'user';
+  }
+
+  function getDefaultTarget(role) {
+    return getLockedUserType(role) === 'club'
+      ? LOCKED_LOGIN_TARGET.club
+      : LOCKED_LOGIN_TARGET.user;
   }
 
   function redirectAfterLogin(role){
-    const userType = resolveUserType(role);
-    const target = userType === 'club'
-      ? getDefaultTarget(role)
-      : (consumePostLoginRedirect() || getDefaultTarget(role));
+    // Keep this rule fixed: always land by account type after login.
+    const target = getDefaultTarget(role);
     if (isEmbedded) {
       window.parent.postMessage({ type: 'auth-success', target }, '*');
       return;
@@ -646,7 +954,6 @@
          const role = data.role || data.type;
          let userType = resolveUserType(role);
          const resolvedEmail = (data.email || email).trim();
-         if (userType !== 'club' && isKnownClubEmail(resolvedEmail)) userType = 'club';
          localStorage.setItem('loggedUser', JSON.stringify({
            email: resolvedEmail,
            name: data.fullName,
@@ -693,27 +1000,127 @@
       localStorage.setItem('user', JSON.stringify(user));
 
       const role = user.role || user.type;
-      let userType = resolveUserType(role);
+      const userType = resolveUserType(role);
+      if (userType !== 'user') {
+        // Locked policy: Google sign-in is USER-only; CLUB must use email+password login.
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('loggedUser');
+        showLoginError('Google sign-in is only for user accounts. Club accounts must log in with email and password.');
+        return;
+      }
       const resolvedEmail = String(user.email || '').trim();
-      if (userType !== 'club' && isKnownClubEmail(resolvedEmail)) userType = 'club';
       localStorage.setItem('loggedUser', JSON.stringify({
         email: resolvedEmail,
         name: user.fullName,
         type: userType
       }));
 
-      redirectAfterLogin(userType === 'club' ? 'club' : role);
+      redirectAfterLogin(role);
     } catch (e) {
       console.error(e);
       showLoginError('Google login failed. Please try again.');
     }
   };
 
+  if (window.__googleGsi && window.__googleGsi.pendingCredential) {
+    const pendingGoogleCredential = window.__googleGsi.pendingCredential;
+    window.__googleGsi.pendingCredential = null;
+    window.handleGoogleCredential(pendingGoogleCredential);
+  }
+
+  async function handleRegisterSendCode(){
+    const email = normalizeEmail(regEmailInput?.value);
+    if (!emailRe.test(email)) {
+      document.getElementById('reg-email-err').style.display = 'block';
+      setRegVerifyMessage('Please enter a valid email address before requesting a code.', 'error');
+      return;
+    }
+    document.getElementById('reg-email-err').style.display = 'none';
+    setRegVerifyMessage('Sending verification code...', '');
+    regSendCodeBtn.disabled = true;
+    try {
+      const res = await fetch(AUTH_ENDPOINTS.registerCodeSend, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+
+      if (res.ok) {
+        setRegisterVerificationState('', false);
+        setRegVerifyMessage(`Verification code sent to ${email}.`, '');
+        startRegCodeCooldown(60);
+        return;
+      }
+
+      if (res.status === 429) {
+        let retryAfter = 60;
+        try {
+          const data = await res.json();
+          retryAfter = Number(data?.retryAfterSeconds || 60);
+        } catch (e) {
+          retryAfter = 60;
+        }
+        setRegVerifyMessage('Please wait before requesting another code.', 'error');
+        startRegCodeCooldown(retryAfter);
+        return;
+      }
+
+      const text = await res.text().catch(() => '');
+      setRegVerifyMessage(text || 'Unable to send verification code right now.', 'error');
+    } catch (err) {
+      setRegVerifyMessage('Network error. Please try again.', 'error');
+    } finally {
+      if (!regCodeTimer && regSendCodeBtn) {
+        regSendCodeBtn.disabled = false;
+        regSendCodeBtn.textContent = 'Send code';
+      }
+    }
+  }
+
+  async function handleRegisterVerifyCode(){
+    const email = normalizeEmail(regEmailInput?.value);
+    const code = String(regEmailCodeInput?.value || '').trim();
+    if (!emailRe.test(email)) {
+      document.getElementById('reg-email-err').style.display = 'block';
+      setRegVerifyMessage('Please enter a valid email address first.', 'error');
+      return;
+    }
+    if (!/^\d{6}$/.test(code)) {
+      setRegVerifyMessage('Verification code must be 6 digits.', 'error');
+      return;
+    }
+
+    regVerifyCodeBtn.disabled = true;
+    setRegVerifyMessage('Verifying code...', '');
+    try {
+      const res = await fetch(AUTH_ENDPOINTS.registerCodeVerify, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code })
+      });
+
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        setRegVerifyMessage(text || 'Verification failed. Please try again.', 'error');
+        setRegisterVerificationState('', false);
+        return;
+      }
+
+      setRegisterVerificationState(email, true);
+      setRegVerifyMessage('Email verified. You can now set your password and register.', 'success');
+    } catch (err) {
+      setRegVerifyMessage('Network error. Please try again.', 'error');
+    } finally {
+      regVerifyCodeBtn.disabled = false;
+    }
+  }
+
   async function handleRegister(){
     const username = document.getElementById('reg-username').value.trim();
-    const email  = document.getElementById('reg-email').value.trim();
-    const pass   = document.getElementById('reg-pass').value;
-    const pass2  = document.getElementById('reg-pass2').value;
+    const email  = normalizeEmail(regEmailInput?.value);
+    const pass   = regPassInput?.value || '';
+    const pass2  = regPass2Input?.value || '';
 
     hideLoginError();
     let ok = true;
@@ -723,7 +1130,11 @@
 
     if(!emailRe.test(email)){ document.getElementById('reg-email-err').style.display = 'block'; ok = false; }
     else document.getElementById('reg-email-err').style.display = 'none';
-    if(!pass){ document.getElementById('reg-pass-err').style.display = 'block'; ok = false; }
+    if (normalizeEmail(registerVerifiedEmail) !== email) {
+      setRegVerifyMessage('Please verify this email before creating your account.', 'error');
+      ok = false;
+    }
+    if(!registerPassRe.test(pass)){ document.getElementById('reg-pass-err').style.display = 'block'; ok = false; }
     else document.getElementById('reg-pass-err').style.display = 'none';
     if(pass !== pass2){ document.getElementById('reg-pass2-err').style.display = 'block'; ok = false; }
     else document.getElementById('reg-pass2-err').style.display = 'none';
@@ -731,7 +1142,7 @@
 
     let fullName = username || email.split('@')[0];
 
-    const btn = document.getElementById('btnRegisterDo');
+    const btn = btnRegisterDo || document.getElementById('btnRegisterDo');
     btn.disabled = true; btn.textContent = 'Registering...';
     hideRegNotice();
     try {
@@ -742,6 +1153,8 @@
       });
 
       if (res.ok) {
+        stopRegCodeTimer();
+        setRegisterVerificationState('', false);
         let saved = null;
         try { saved = await res.json(); } catch (e) { saved = null; }
         const profileToSave = saved || { fullName, email, role: 'user' };
@@ -774,28 +1187,90 @@
     }
   }
 
+  regSendCodeBtn?.addEventListener('click', handleRegisterSendCode);
+  regVerifyCodeBtn?.addEventListener('click', handleRegisterVerifyCode);
+
   document.getElementById('btnForgot')?.addEventListener('click', function(){
+    const loginEmail = normalizeEmail(document.getElementById('email')?.value);
     resetPanel.style.display = 'flex';
-    resetEmail.value = ''; resetEmailErr.style.display = 'none'; resetMsg.style.display = 'none';
+    resetRequestedEmail = loginEmail;
+    resetEmail.value = loginEmail;
+    resetEmailErr.style.display = 'none';
+    setResetPanelMode('form', loginEmail);
+    setResetMessage('');
     requestResize();
   });
   document.getElementById('btnResetBack')?.addEventListener('click', function(){
     resetPanel.style.display = 'none';
+    resetRequestedEmail = '';
+    setResetPanelMode('form', '');
+    setResetMessage('');
     requestResize();
   });
-  document.getElementById('btnResetSend')?.addEventListener('click', function(){
-    const em = resetEmail.value.trim();
-    if(!emailRe.test(em)){ resetEmailErr.style.display = 'block'; return; }
+  resetSendBtn?.addEventListener('click', async function(){
+    const email = normalizeEmail(resetEmailField?.hidden ? resetRequestedEmail : resetEmail?.value);
+    if(!emailRe.test(email)){
+      resetEmailErr.style.display = 'block';
+      setResetMessage('');
+      return;
+    }
+
     resetEmailErr.style.display = 'none';
-    resetMsg.textContent = 'Reset link sent to: ' + em;
-    resetMsg.style.display = 'block';
+    setResetMessage('');
+    resetRequestedEmail = email;
+    resetSendBtn.disabled = true;
+    resetSendBtn.textContent = 'Sending...';
+
+    try {
+      const res = await fetch(AUTH_ENDPOINTS.passwordResetRequest, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+
+      if (res.ok) {
+        setResetPanelMode('sent', email);
+        setResetMessage('');
+        return;
+      }
+
+      if (res.status === 429) {
+        let retryAfter = 60;
+        try {
+          const data = await res.json();
+          retryAfter = Number(data?.retryAfterSeconds || 60);
+        } catch (err) {
+          retryAfter = 60;
+        }
+        setResetMessage(`Please wait ${Math.max(1, Math.floor(retryAfter))} seconds before requesting another reset email.`, true);
+        return;
+      }
+
+      const text = await res.text().catch(() => '');
+      setResetMessage(text || 'Unable to send reset email right now.', true);
+    } catch (err) {
+      setResetMessage('Network error. Please try again.', true);
+    } finally {
+      resetSendBtn.disabled = false;
+      resetSendBtn.textContent = 'Send link';
+    }
   });
 
   document.getElementById('loginBtn')?.addEventListener('click', handleLogin);
   document.getElementById('btnRegisterDo')?.addEventListener('click', handleRegister);
+  resetRegisterVerification('');
+
+  window.addEventListener('hashchange', () => {
+    if (location.hash === '#register-club') {
+      openClubRegister();
+      return;
+    }
+    applyRouteMode();
+  });
 
   if(location.hash === '#register-club'){ openClubRegister(); }
-  else if(location.hash === '#register' || location.hash === '#register-user'){ switchToRegister(); }
+  else { applyRouteMode(); }
 </script>
 </body>
 </html>
+

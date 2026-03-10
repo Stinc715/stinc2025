@@ -1,17 +1,17 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Club Registration</title>
-  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="theme.css?v=20260220b">
   <style>
     body { margin: 0; }
     .club-register-page {
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      background: linear-gradient(160deg, #f6f7fb 0%, #eef1f6 40%, #e9eef6 100%);
+      background: var(--bg);
     }
     .page-back {
       position: fixed;
@@ -212,6 +212,67 @@
       background: rgba(239, 68, 68, 0.08);
       color: #b91c1c;
     }
+    .verify-box {
+      margin: -2px 0 12px;
+      padding: 10px;
+      border: 1px solid rgba(15, 23, 42, 0.1);
+      border-radius: 12px;
+      background: #f8fafc;
+    }
+    .verify-hint {
+      margin: 0 0 8px;
+      font-size: 12px;
+      color: #64748b;
+    }
+    .verify-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .verify-row + .verify-row {
+      margin-top: 8px;
+    }
+    .verify-row input {
+      flex: 1;
+    }
+    .verify-btn {
+      border: 1px solid rgba(15, 23, 42, 0.16);
+      border-radius: 10px;
+      background: #fff;
+      color: #0f172a;
+      height: 40px;
+      padding: 0 12px;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .verify-btn[disabled] {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .verify-msg {
+      display: none;
+      margin-top: 8px;
+      font-size: 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      background: rgba(59, 130, 246, 0.08);
+      color: #1f3bb3;
+      padding: 7px 9px;
+    }
+    .verify-msg.show {
+      display: block;
+    }
+    .verify-msg.is-error {
+      border-color: rgba(239, 68, 68, 0.35);
+      background: rgba(239, 68, 68, 0.08);
+      color: #b91c1c;
+    }
+    .verify-msg.is-success {
+      border-color: rgba(34, 197, 94, 0.35);
+      background: rgba(34, 197, 94, 0.1);
+      color: #166534;
+    }
     .info-overlay {
       position: fixed;
       inset: 0;
@@ -292,7 +353,7 @@
     }
   </style>
 </head>
-<body>
+<body class="page-with-footer">
   <div class="club-register-page">
     <button id="pageBack" class="link-back page-back" type="button">Back</button>
     <main class="club-register">
@@ -322,9 +383,21 @@
             <div id="clubEmailErr" class="error">Please enter a valid email address.</div>
           </div>
 
+          <div class="verify-box">
+            <p class="verify-hint">Verify your email first. Password setup unlocks after verification.</p>
+            <div class="verify-row">
+              <button id="clubSendCodeBtn" class="verify-btn" type="button">Send code</button>
+            </div>
+            <div class="verify-row">
+              <input id="clubEmailCodeInput" type="text" placeholder="6-digit code" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" />
+              <button id="clubVerifyCodeBtn" class="verify-btn" type="button">Verify</button>
+            </div>
+            <div id="clubVerifyMsg" class="verify-msg" role="status" aria-live="polite"></div>
+          </div>
+
           <div class="mb-3">
             <label for="clubPass">Password</label>
-            <input id="clubPass" type="password" placeholder="Enter your password" autocomplete="new-password" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+" title="Must include uppercase, lowercase, and a number." />
+            <input id="clubPass" type="password" placeholder="Enter your password" autocomplete="new-password" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+" title="Must include uppercase, lowercase, and a number." disabled />
             <div id="strengthWrap" class="strength-wrap" aria-live="polite">
               <span class="strength-label">Strength:</span>
               <span id="passStrength" class="strength-pill">Low</span>
@@ -334,12 +407,12 @@
 
           <div class="mb-3">
             <label for="clubPass2">Confirm password</label>
-            <input id="clubPass2" type="password" placeholder="Re-enter your password" autocomplete="new-password" />
+            <input id="clubPass2" type="password" placeholder="Re-enter your password" autocomplete="new-password" disabled />
             <div id="clubPass2Err" class="error">Passwords do not match.</div>
           </div>
 
           <div class="btn-row">
-            <button id="clubRegisterBtn" class="btn form-btn" type="button">Next</button>
+            <button id="clubRegisterBtn" class="btn form-btn" type="button" disabled>Next</button>
           </div>
         </div>
       </section>
@@ -369,6 +442,9 @@
     const API_BASE = "/api";
     // Register club accounts into the shared user_account table (role=club).
     const CLUB_REGISTER_ENDPOINT = `${API_BASE}/register`;
+    const CLUB_LOGIN_ENDPOINT = `${API_BASE}/login`;
+    const REGISTER_CODE_SEND_ENDPOINT = `${API_BASE}/auth/register/email-code/send`;
+    const REGISTER_CODE_VERIFY_ENDPOINT = `${API_BASE}/auth/register/email-code/verify`;
     const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const passRe = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/;
 
@@ -380,12 +456,19 @@
     const clubEmail = document.getElementById('clubEmail');
     const clubPass = document.getElementById('clubPass');
     const clubPass2 = document.getElementById('clubPass2');
+    const clubRegisterBtn = document.getElementById('clubRegisterBtn');
+    const clubSendCodeBtn = document.getElementById('clubSendCodeBtn');
+    const clubVerifyCodeBtn = document.getElementById('clubVerifyCodeBtn');
+    const clubEmailCodeInput = document.getElementById('clubEmailCodeInput');
+    const clubVerifyMsg = document.getElementById('clubVerifyMsg');
     const strengthWrap = document.getElementById('strengthWrap');
     const passStrength = document.getElementById('passStrength');
 
     const clubEmailErr = document.getElementById('clubEmailErr');
     const clubPassErr = document.getElementById('clubPassErr');
     const clubPass2Err = document.getElementById('clubPass2Err');
+    let verifiedClubEmail = '';
+    let clubCodeTimer = null;
 
     const showStatus = (text, isError) => {
       if (!statusMsg) return;
@@ -404,6 +487,73 @@
     const setErr = (el, show) => {
       if (!el) return;
       el.style.display = show ? 'block' : 'none';
+    };
+
+    const normalizeEmail = (value) => String(value || '').trim().toLowerCase();
+
+    const setVerifyMessage = (text, type) => {
+      if (!clubVerifyMsg) return;
+      if (!text) {
+        clubVerifyMsg.textContent = '';
+        clubVerifyMsg.classList.remove('show', 'is-error', 'is-success');
+        return;
+      }
+      clubVerifyMsg.textContent = text;
+      clubVerifyMsg.classList.add('show');
+      clubVerifyMsg.classList.toggle('is-error', type === 'error');
+      clubVerifyMsg.classList.toggle('is-success', type === 'success');
+    };
+
+    const clearClubTimer = () => {
+      if (clubCodeTimer) {
+        clearInterval(clubCodeTimer);
+        clubCodeTimer = null;
+      }
+    };
+
+    const startClubCooldown = (seconds) => {
+      if (!clubSendCodeBtn) return;
+      const total = Number.isFinite(seconds) ? Math.max(1, Math.floor(seconds)) : 60;
+      clearClubTimer();
+      let remain = total;
+      clubSendCodeBtn.disabled = true;
+      clubSendCodeBtn.textContent = `Resend in ${remain}s`;
+      clubCodeTimer = setInterval(() => {
+        remain -= 1;
+        if (remain <= 0) {
+          clearClubTimer();
+          clubSendCodeBtn.disabled = false;
+          clubSendCodeBtn.textContent = 'Send code';
+          return;
+        }
+        clubSendCodeBtn.textContent = `Resend in ${remain}s`;
+      }, 1000);
+    };
+
+    const setVerificationState = (email, verified) => {
+      verifiedClubEmail = verified ? normalizeEmail(email) : '';
+      const unlock = !!verifiedClubEmail;
+      if (clubPass) {
+        clubPass.disabled = !unlock;
+        if (!unlock) clubPass.value = '';
+      }
+      if (clubPass2) {
+        clubPass2.disabled = !unlock;
+        if (!unlock) clubPass2.value = '';
+      }
+      if (clubRegisterBtn) clubRegisterBtn.disabled = !unlock;
+      if (!unlock) {
+        if (strengthWrap) strengthWrap.classList.remove('is-visible');
+        setErr(clubPassErr, false);
+        setErr(clubPass2Err, false);
+      }
+    };
+
+    const resetVerification = (message) => {
+      setVerificationState('', false);
+      if (clubEmailCodeInput) clubEmailCodeInput.value = '';
+      if (message) setVerifyMessage(message, 'error');
+      else setVerifyMessage('', '');
     };
 
     const getStrength = (value) => {
@@ -433,6 +583,108 @@
     clubPass?.addEventListener('input', updateStrength);
     updateStrength();
 
+    clubEmail?.addEventListener('input', () => {
+      const current = normalizeEmail(clubEmail.value);
+      if (verifiedClubEmail && verifiedClubEmail !== current) {
+        resetVerification('Email changed. Please verify the new email again.');
+      } else {
+        setErr(clubEmailErr, false);
+        if (!verifiedClubEmail) setVerifyMessage('', '');
+      }
+    });
+    clubEmailCodeInput?.addEventListener('input', () => {
+      const cleaned = String(clubEmailCodeInput.value || '').replace(/\D/g, '').slice(0, 6);
+      if (clubEmailCodeInput.value !== cleaned) clubEmailCodeInput.value = cleaned;
+    });
+
+    const handleSendCode = async () => {
+      const email = normalizeEmail(clubEmail?.value);
+      if (!emailRe.test(email)) {
+        setErr(clubEmailErr, true);
+        setVerifyMessage('Please enter a valid email first.', 'error');
+        return;
+      }
+      setErr(clubEmailErr, false);
+      setVerifyMessage('Sending verification code...', '');
+      clubSendCodeBtn.disabled = true;
+      try {
+        const res = await fetch(REGISTER_CODE_SEND_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+
+        if (res.ok) {
+          setVerificationState('', false);
+          setVerifyMessage(`Verification code sent to ${email}.`, '');
+          startClubCooldown(60);
+          return;
+        }
+
+        if (res.status === 429) {
+          let retryAfter = 60;
+          try {
+            const data = await res.json();
+            retryAfter = Number(data?.retryAfterSeconds || 60);
+          } catch (e) {
+            retryAfter = 60;
+          }
+          setVerifyMessage('Please wait before requesting another code.', 'error');
+          startClubCooldown(retryAfter);
+          return;
+        }
+
+        const t = await res.text().catch(() => '');
+        setVerifyMessage(t || 'Unable to send verification code.', 'error');
+      } catch (err) {
+        setVerifyMessage('Network error. Please try again.', 'error');
+      } finally {
+        if (!clubCodeTimer && clubSendCodeBtn) {
+          clubSendCodeBtn.disabled = false;
+          clubSendCodeBtn.textContent = 'Send code';
+        }
+      }
+    };
+
+    const handleVerifyCode = async () => {
+      const email = normalizeEmail(clubEmail?.value);
+      const code = String(clubEmailCodeInput?.value || '').trim();
+      if (!emailRe.test(email)) {
+        setErr(clubEmailErr, true);
+        setVerifyMessage('Please enter a valid email first.', 'error');
+        return;
+      }
+      if (!/^\d{6}$/.test(code)) {
+        setVerifyMessage('Verification code must be 6 digits.', 'error');
+        return;
+      }
+      clubVerifyCodeBtn.disabled = true;
+      setVerifyMessage('Verifying code...', '');
+      try {
+        const res = await fetch(REGISTER_CODE_VERIFY_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, code })
+        });
+        if (!res.ok) {
+          const t = await res.text().catch(() => '');
+          setVerifyMessage(t || 'Verification failed. Please try again.', 'error');
+          setVerificationState('', false);
+          return;
+        }
+
+        setVerificationState(email, true);
+        setVerifyMessage('Email verified. You can now set password and continue.', 'success');
+      } catch (err) {
+        setVerifyMessage('Network error. Please try again.', 'error');
+      } finally {
+        clubVerifyCodeBtn.disabled = false;
+      }
+    };
+
+    clubSendCodeBtn?.addEventListener('click', handleSendCode);
+    clubVerifyCodeBtn?.addEventListener('click', handleVerifyCode);
+
     const resolveUserType = (role) => {
       const r = String(role || '').toLowerCase();
       if (r.includes('club') || r.includes('admin') || r.includes('leader')) return 'club';
@@ -457,12 +709,16 @@
     document.getElementById('clubRegisterBtn')?.addEventListener('click', async () => {
       clearStatus();
       let ok = true;
-      const email = clubEmail.value.trim();
+      const email = normalizeEmail(clubEmail.value);
       const pass = clubPass.value;
       const pass2 = clubPass2.value;
 
       setErr(clubEmailErr, !emailRe.test(email));
       if (!emailRe.test(email)) ok = false;
+      if (normalizeEmail(verifiedClubEmail) !== email) {
+        setVerifyMessage('Please verify this email before registering.', 'error');
+        ok = false;
+      }
       const passStrong = passRe.test(pass);
       setErr(clubPassErr, !passStrong);
       if (!passStrong) ok = false;
@@ -471,7 +727,7 @@
 
       if (!ok) return;
 
-      const btn = document.getElementById('clubRegisterBtn');
+      const btn = clubRegisterBtn || document.getElementById('clubRegisterBtn');
       btn.disabled = true;
       btn.textContent = 'Submitting...';
 
@@ -484,6 +740,8 @@
         });
 
         if (res.ok) {
+          clearClubTimer();
+          setVerificationState('', false);
           let saved = null;
           try { saved = await res.json(); } catch (e) { saved = null; }
           const profileToSave = saved || { fullName, email, role: 'club' };
@@ -495,10 +753,34 @@
             name: profileToSave.fullName || fullName,
             type: userType
           }));
-          showStatus('Registered successfully! Redirecting to club home...', false);
-          setTimeout(() => { window.location.href = 'club home.html'; }, 900);
+          // Auto-login to get JWT (register endpoint does not return token).
+          try {
+            const loginRes = await fetch(CLUB_LOGIN_ENDPOINT, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email, password: pass })
+            });
+            if (loginRes.ok) {
+              const loginData = await loginRes.json();
+              if (loginData && loginData.token) localStorage.setItem('token', loginData.token);
+              localStorage.setItem('user', JSON.stringify(loginData));
+              const role = loginData.role || loginData.type || 'club';
+              localStorage.setItem('loggedUser', JSON.stringify({
+                email: (loginData.email || email).trim(),
+                name: loginData.fullName || profileToSave.fullName || fullName,
+                type: resolveUserType(role)
+              }));
+            } else {
+              localStorage.removeItem('token');
+            }
+          } catch (e) {
+            localStorage.removeItem('token');
+          }
+
+          showStatus('Registered successfully! Redirecting to club profile...', false);
+          setTimeout(() => { window.location.href = 'onboarding.html'; }, 900);
         } else if (res.status === 409) {
-          showStatus('Email already exists. If you created a user account first, re-submit here with the same password to upgrade it to a club account.', true);
+          showStatus('姝ら偖绠卞凡缁忔敞鍐岃繃鐢ㄦ埛璐﹀彿锛屽闇€娉ㄥ唽淇变箰閮ㄨ处鍙凤紝闇€鏇存崲閭閲嶆柊娉ㄥ唽銆?, true);
         } else {
           const t = await res.text();
           showStatus(t || 'Registration failed. Please try again.', true);
@@ -510,6 +792,8 @@
         btn.textContent = 'Next';
       }
     });
+
+    resetVerification('');
 
     pageBack?.addEventListener('click', () => {
       if (window.history.length > 1) {
@@ -569,3 +853,4 @@
   </script>
 </body>
 </html>
+

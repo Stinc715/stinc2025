@@ -1,20 +1,49 @@
 (() => {
+  const AUTH_PAGE_VERSION = '20260308g';
+  const DEFAULT_DIALOG_HEIGHT = 560;
+  const MIN_DIALOG_HEIGHT = 320;
+  const DEFAULT_DIALOG_WIDTH = 520;
+  const MODE_LAYOUT = Object.freeze({
+    login: { width: 460, height: 500 },
+    register: { width: 520, height: 620 }
+  });
+  let requestedContentHeight = DEFAULT_DIALOG_HEIGHT;
+  let requestedDialogWidth = DEFAULT_DIALOG_WIDTH;
+
   const overlay = document.createElement('div');
   overlay.className = 'auth-overlay';
   overlay.innerHTML = `
     <div class="auth-dialog" role="dialog" aria-modal="true" aria-label="Sign in">
-      <button class="auth-close" type="button" aria-label="Close">×</button>
-      <iframe class="auth-frame" title="Sign in" src="login.html#login"></iframe>
+      <button class="auth-close" type="button" aria-label="Close">&times;</button>
+      <iframe class="auth-frame" title="Sign in" src="login.html?v=${AUTH_PAGE_VERSION}#login" allow="identity-credentials-get"></iframe>
     </div>
   `;
+
+  const getViewportHeightLimit = () => {
+    const viewportHeight = window.innerHeight || document.documentElement?.clientHeight || 0;
+    const styles = window.getComputedStyle(overlay);
+    const paddingTop = parseFloat(styles.paddingTop) || 0;
+    const paddingBottom = parseFloat(styles.paddingBottom) || 0;
+    const limit = Math.floor(viewportHeight - paddingTop - paddingBottom);
+    return Math.max(MIN_DIALOG_HEIGHT, limit);
+  };
 
   const resizeDialog = (height) => {
     const dialog = overlay.querySelector('.auth-dialog');
     const frame = overlay.querySelector('.auth-frame');
-    if (!dialog || !frame || !height) return;
-    const safeHeight = Math.max(320, Math.ceil(height));
+    if (!dialog || !frame) return;
+
+    if (typeof height === 'number' && Number.isFinite(height) && height > 0) {
+      requestedContentHeight = Math.max(MIN_DIALOG_HEIGHT, Math.ceil(height));
+    }
+
+    const viewportHeightLimit = getViewportHeightLimit();
+    const safeHeight = Math.min(requestedContentHeight, viewportHeightLimit);
+    dialog.style.width = `min(${requestedDialogWidth}px, calc(100vw - clamp(20px, 5vw, 40px)))`;
     frame.style.height = `${safeHeight}px`;
     dialog.style.height = `${safeHeight}px`;
+    dialog.style.maxHeight = `${viewportHeightLimit}px`;
+    dialog.classList.toggle('auth-dialog--clamped', requestedContentHeight > viewportHeightLimit);
   };
 
   const resizeFromFrame = () => {
@@ -40,9 +69,14 @@
   const openAuthModal = (mode = 'login') => {
     const frame = overlay.querySelector('.auth-frame');
     const hash = mode === 'register' ? '#register' : '#login';
-    if (frame) frame.src = `login.html${hash}`;
+    const layout = MODE_LAYOUT[mode] || MODE_LAYOUT.login;
+    requestedDialogWidth = layout.width;
+    requestedContentHeight = layout.height;
+    overlay.dataset.mode = mode;
+    if (frame) frame.src = `login.html?v=${AUTH_PAGE_VERSION}${hash}`;
     overlay.classList.add('open');
     document.body.classList.add('no-scroll');
+    resizeDialog();
   };
 
   const closeAuthModal = () => {
@@ -83,6 +117,11 @@
       resizeFromFrame();
       setTimeout(resizeFromFrame, 50);
     });
+    window.addEventListener('resize', () => {
+      if (!overlay.classList.contains('open')) return;
+      resizeDialog();
+      setTimeout(resizeFromFrame, 50);
+    });
     document.addEventListener('keydown', (evt) => {
       if (evt.key === 'Escape' && overlay.classList.contains('open')) {
         closeAuthModal();
@@ -90,7 +129,6 @@
     });
   };
 
-  // 立即暴露全局函数
   window.openAuthModal = (mode) => {
     ensureMounted();
     openAuthModal(mode);
@@ -98,7 +136,6 @@
   window.closeAuthModal = closeAuthModal;
   window.addEventListener('message', handleMessage);
 
-  // DOM 加载后设置事件监听
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       ensureMounted();

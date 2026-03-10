@@ -89,10 +89,259 @@
   const addCustomBtn = document.getElementById('addCustomType');
   const btnSave = document.getElementById('btnSave');
   const statusEl = document.getElementById('status');
+  const backBtn = document.querySelector('.back-link');
+  const stickyTitleEl = document.querySelector('header h2');
+  const heroTitleEl = document.querySelector('.hero h1');
+  const heroLeadEl = document.querySelector('.hero .lead');
+  const panelTitleEl = document.querySelector('.panel-header h2');
+  const panelSubtitleEl = document.querySelector('.panel-header p');
+  const panelBadgeEl = document.querySelector('.panel-badge');
+  const formBlocks = Array.from(document.querySelectorAll('.form-block'));
+  const nameBlockEl = formBlocks[0] || null;
+  const sportsBlockEl = formBlocks[1] || null;
+  const sportsLabelEl = sportsBlockEl?.querySelector('.label') || null;
+  const sportsHintEl = sportsBlockEl?.querySelector('.field-hint') || null;
+  const query = new URLSearchParams(window.location.search);
+  const editMode = String(query.get('mode') || '').trim().toLowerCase();
+  const isCategoryEditMode = editMode === 'category-edit';
+  const isNameEditMode = editMode === 'name-edit';
+  const isProfileEditMode = isCategoryEditMode || isNameEditMode;
+  const returnTarget = sanitizeReturnTarget(query.get('return'));
 
   if (!grid || !displayNameEl) {
     return;
   }
+
+  const requireClubLogin = () => {
+    const token = localStorage.getItem('token');
+    if (!token) return false;
+    try {
+      const u = JSON.parse(localStorage.getItem('loggedUser') || 'null');
+      if (!u || u.type !== 'club') return false;
+    } catch {
+      return false;
+    }
+    return true;
+  };
+
+  function sanitizeReturnTarget(value) {
+    const allowed = new Set(['club-info.html', 'club home.html', 'onboarding-location.html']);
+    const raw = String(value || '').trim();
+    return allowed.has(raw) ? raw : 'club-info.html';
+  }
+
+  function setBackTarget(target) {
+    if (!backBtn) return;
+    backBtn.onclick = () => {
+      window.location.href = target;
+    };
+  }
+
+  function configurePageMode() {
+    if (isNameEditMode) {
+      setBackTarget(returnTarget);
+      if (stickyTitleEl) stickyTitleEl.textContent = 'Edit club name';
+      if (heroTitleEl) heroTitleEl.textContent = 'Update your club name';
+      if (heroLeadEl) heroLeadEl.textContent = 'Change the club name shown on your club profile.';
+      if (panelTitleEl) panelTitleEl.textContent = 'Club name';
+      if (panelSubtitleEl) panelSubtitleEl.textContent = 'Save to update your club profile and database.';
+      if (panelBadgeEl) panelBadgeEl.textContent = 'Name edit';
+      if (nameBlockEl) nameBlockEl.hidden = false;
+      if (sportsBlockEl) sportsBlockEl.hidden = true;
+      if (displayNameEl) displayNameEl.readOnly = false;
+      if (btnSave) btnSave.textContent = 'Save name';
+      return;
+    }
+    if (isCategoryEditMode) {
+      setBackTarget(returnTarget);
+      if (stickyTitleEl) stickyTitleEl.textContent = 'Edit club categories';
+      if (heroTitleEl) heroTitleEl.textContent = 'Update your club categories';
+      if (heroLeadEl) heroLeadEl.textContent = 'Choose all sports or categories shown on your club profile.';
+      if (panelTitleEl) panelTitleEl.textContent = 'Category selections';
+      if (panelSubtitleEl) panelSubtitleEl.textContent = 'Save to update your club profile and database.';
+      if (panelBadgeEl) panelBadgeEl.textContent = 'Categories edit';
+      if (sportsLabelEl) sportsLabelEl.textContent = 'Club categories';
+      if (sportsHintEl) sportsHintEl.textContent = 'Select all categories to show on your club profile.';
+      if (nameBlockEl) nameBlockEl.hidden = true;
+      if (sportsBlockEl) sportsBlockEl.hidden = false;
+      if (displayNameEl) displayNameEl.readOnly = true;
+      if (btnSave) btnSave.textContent = 'Save categories';
+      return;
+    }
+    if (stickyTitleEl) stickyTitleEl.textContent = 'Club profile';
+    setBackTarget('club home.html');
+  }
+
+  const authFetch = (url, options = {}) => {
+    const token = localStorage.getItem('token');
+    const headers = { ...(options.headers || {}) };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return fetch(url, {
+      ...options,
+      credentials: options.credentials ?? 'include',
+      headers
+    });
+  };
+
+  const loadSelectedClubId = () => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('selectedClub') || 'null');
+      return stored?.id ?? null;
+    } catch {
+      return null;
+    }
+  };
+
+  const saveSelectedClub = (club) => {
+    const id = club?.id ?? club?.clubId ?? null;
+    if (!id) return;
+    const name = club?.name ?? club?.clubName ?? club?.title ?? `Club #${id}`;
+    const tags = Array.isArray(club?.tags) ? club.tags : [];
+    try { localStorage.setItem('selectedClub', JSON.stringify({ id: String(id), name, tags })); } catch {}
+  };
+
+  const pickClubFromMyClubs = (clubs) => {
+    const list = Array.isArray(clubs) ? clubs : [];
+    if (!list.length) return null;
+    const storedId = loadSelectedClubId();
+    if (storedId) {
+      const hit = list.find((c) => String(c.id ?? c.clubId) === String(storedId));
+      if (hit) return hit;
+    }
+    return list[0];
+  };
+
+  const saveCategorySelection = async (profile) => {
+    if (!requireClubLogin()) {
+      window.location.href = 'login.html#login';
+      return null;
+    }
+
+    const primaryCategory = String(profile?.sports?.[0] || '').trim();
+    if (!primaryCategory) {
+      throw new Error('Please choose at least one category.');
+    }
+
+    const clubsRes = await authFetch('/api/my/clubs');
+    if (!clubsRes.ok) {
+      throw new Error('Failed to load your club before updating category.');
+    }
+    const clubs = await clubsRes.json();
+    const pick = pickClubFromMyClubs(clubs);
+    const clubId = pick?.id ?? pick?.clubId ?? null;
+    if (!clubId) {
+      throw new Error('No club found to update.');
+    }
+
+    const res = await authFetch(`/api/clubs/${encodeURIComponent(clubId)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        category: primaryCategory,
+        tags: profile.sports
+      })
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(text || 'Failed to update club categories.');
+    }
+
+    const updatedClub = await res.json();
+    saveSelectedClub(updatedClub);
+    return updatedClub;
+  };
+
+  const saveNameSelection = async (profile) => {
+    if (!requireClubLogin()) {
+      window.location.href = 'login.html#login';
+      return null;
+    }
+
+    const clubName = String(profile?.displayName || '').trim();
+    if (!clubName) {
+      throw new Error('Please enter a club name.');
+    }
+
+    const clubsRes = await authFetch('/api/my/clubs');
+    if (!clubsRes.ok) {
+      throw new Error('Failed to load your club before updating name.');
+    }
+    const clubs = await clubsRes.json();
+    const pick = pickClubFromMyClubs(clubs);
+    const clubId = pick?.id ?? pick?.clubId ?? null;
+    if (!clubId) {
+      throw new Error('No club found to update.');
+    }
+
+    const res = await authFetch(`/api/clubs/${encodeURIComponent(clubId)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: clubName
+      })
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(text || 'Failed to update club name.');
+    }
+
+    const updatedClub = await res.json();
+    saveSelectedClub(updatedClub);
+    return updatedClub;
+  };
+
+  const hydrateFromBackend = async () => {
+    if (!requireClubLogin()) {
+      if (!isProfileEditMode) setBackTarget('home.html');
+      return;
+    }
+
+    if (statusEl) statusEl.textContent = 'Loading saved club profile...';
+    try {
+      const res = await authFetch('/api/my/clubs');
+      if (!res.ok) return;
+      const clubs = await res.json();
+      const pick = pickClubFromMyClubs(clubs);
+      if (!pick) {
+        if (!isCategoryEditMode) setBackTarget('home.html');
+        return;
+      }
+
+      const clubId = pick.id ?? pick.clubId ?? null;
+      const clubName = pick.name || pick.clubName || `Club #${clubId}`;
+      saveSelectedClub({ id: clubId, name: clubName });
+      if (!isProfileEditMode) setBackTarget('club home.html');
+      if (!clubId) return;
+
+      const detailRes = await authFetch(`/api/clubs/${encodeURIComponent(clubId)}`);
+      if (!detailRes.ok) return;
+      const detail = await detailRes.json();
+      saveSelectedClub(detail);
+
+      const name = String(detail?.name ?? detail?.clubName ?? '').trim();
+      const tags = Array.isArray(detail?.tags) ? detail.tags : [];
+      const category = String(detail?.category ?? (tags[0] || '') ?? '').trim();
+
+      const current = loadProfile() || { displayName: '', sports: [] };
+      const next = {
+        displayName: name || current.displayName || '',
+        sports: Array.isArray(current.sports) ? current.sports.slice() : []
+      };
+      if (tags.length) {
+        next.sports = uniqueList(tags.concat(next.sports || []));
+      } else if (category) {
+        next.sports = uniqueList([category].concat(next.sports || []));
+      }
+      saveProfileToStorage(next);
+      buildGrid();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      if (statusEl) statusEl.textContent = '';
+    }
+  };
 
   function matchEmoji(value) {
     const normalized = normalizeKey(value);
@@ -131,7 +380,8 @@
     btn.appendChild(span);
 
     btn.addEventListener('click', () => {
-      const selected = btn.classList.toggle('selected');
+      const selected = !btn.classList.contains('selected');
+      btn.classList.toggle('selected', selected);
       btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
       updateSaveState();
     });
@@ -200,7 +450,8 @@
         input.select();
         return;
       }
-      row.classList.toggle('selected');
+      const selected = !row.classList.contains('selected');
+      row.classList.toggle('selected', selected);
       updateSaveState();
     });
 
@@ -248,8 +499,11 @@
     const baseSet = new Set(sports.map((item) => normalizeKey(item)));
     const saved = profile && Array.isArray(profile.sports) ? profile.sports : [];
     const customValues = saved.filter((item) => !baseSet.has(normalizeKey(item)));
-    customValues.forEach((value) => addCustomRow(value, true));
-    if (!customValues.length) {
+    const valuesToRender = customValues;
+    valuesToRender.forEach((value) => {
+      addCustomRow(value, true);
+    });
+    if (!valuesToRender.length) {
       addCustomRow('');
     }
   }
@@ -262,10 +516,9 @@
     if (profile) {
       if (profile.displayName) displayNameEl.value = profile.displayName;
       if (Array.isArray(profile.sports)) {
-        const baseSet = new Set(sports.map((item) => normalizeKey(item)));
         Array.from(grid.children).forEach((ch) => {
-          const matched = baseSet.has(normalizeKey(ch.dataset.sport))
-            && profile.sports.some((item) => normalizeKey(item) === normalizeKey(ch.dataset.sport));
+          const chipKey = normalizeKey(ch.dataset.sport);
+          const matched = profile.sports.some((item) => normalizeKey(item) === chipKey);
           if (matched) {
             ch.classList.add('selected');
             ch.setAttribute('aria-pressed','true');
@@ -290,28 +543,60 @@
     const nameOk = (displayNameEl.value || '').trim().length > 0;
     const selected = selectedSports();
     const hasSport = selected.length > 0;
-    if (btnSave) btnSave.disabled = !nameOk && !hasSport;
+    if (btnSave) {
+      btnSave.disabled = isCategoryEditMode ? !hasSport : isNameEditMode ? !nameOk : (!nameOk && !hasSport);
+    }
 
     const parts = [];
-    if (nameOk) parts.push(`Club name: ${displayNameEl.value.trim()}`);
-    if (hasSport) parts.push(`Selected ${selected.length} sport(s)`);
+    if (!isCategoryEditMode && nameOk) parts.push(`Club name: ${displayNameEl.value.trim()}`);
+    if (!isNameEditMode && hasSport) parts.push(`Selected ${selected.length} ${isCategoryEditMode ? 'categories' : 'sport(s)'}`);
     if (statusEl) statusEl.textContent = parts.length ? parts.join(' - ') : '';
   }
 
-  function saveAndContinue(){
+  async function saveAndContinue(){
+    const currentProfile = loadProfile() || { displayName: '', sports: [] };
     const profile = {
       displayName: (displayNameEl.value || '').trim(),
-      sports: selectedSports()
+      sports: isNameEditMode
+        ? (Array.isArray(currentProfile.sports) ? currentProfile.sports.slice() : [])
+        : selectedSports()
     };
+
+    if ((isNameEditMode || !isCategoryEditMode) && !profile.displayName) {
+      if (statusEl) statusEl.textContent = 'Please enter a club name.';
+      return;
+    }
+    if (isCategoryEditMode && !profile.sports.length) {
+      if (statusEl) statusEl.textContent = 'Please choose at least one category.';
+      return;
+    }
+
+    if (btnSave) btnSave.disabled = true;
     try {
       saveProfileToStorage(profile);
-      if (statusEl) statusEl.textContent = 'Saved - continuing...';
-      setTimeout(() => {
-        window.location.href = 'onboarding-location.html';
-      }, 700);
+      if (isNameEditMode) {
+        if (statusEl) statusEl.textContent = 'Saving club name...';
+        await saveNameSelection(profile);
+        if (statusEl) statusEl.textContent = 'Club name saved - returning...';
+        window.location.href = returnTarget;
+        return;
+      }
+      if (isCategoryEditMode) {
+        if (statusEl) statusEl.textContent = 'Saving category...';
+        await saveCategorySelection(profile);
+        if (statusEl) statusEl.textContent = 'Category saved - returning...';
+        window.location.href = returnTarget;
+        return;
+      }
+
+      // Keep onboarding data as a local draft. The public club record is finalized on the last step.
+      if (statusEl) statusEl.textContent = 'Draft saved - continuing...';
+      window.location.href = 'onboarding-location.html';
     } catch (e){
-      if (statusEl) statusEl.textContent = 'Failed to save - please check browser settings.';
+      if (statusEl) statusEl.textContent = e?.message || 'Failed to save. Please try again.';
       console.error(e);
+    } finally {
+      updateSaveState();
     }
   }
 
@@ -363,5 +648,7 @@
     });
   }
 
+  configurePageMode();
   buildGrid();
+  hydrateFromBackend();
 })();

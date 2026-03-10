@@ -1,101 +1,94 @@
 package com.clubportal.controller;
 
 import com.clubportal.dto.RegisterRequest;
-import com.clubportal.model.UserAccount;
-import com.clubportal.repository.UserAccountRepository;
+import com.clubportal.model.User;
+import com.clubportal.repository.UserRepository;
 import com.clubportal.security.JwtUtil;
+import com.clubportal.service.RegistrationEmailVerificationService;
 import com.clubportal.util.PasswordEncryptionUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Comparator;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
 public class AuthController {
 
-    private final UserAccountRepository userRepo;
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+
+    private final UserRepository userRepo;
     private final PasswordEncryptionUtil passwordUtil;
     private final JwtUtil jwtUtil;
+    private final RegistrationEmailVerificationService verificationService;
 
-    public AuthController(UserAccountRepository userRepo, PasswordEncryptionUtil passwordUtil, JwtUtil jwtUtil) {
+    public AuthController(UserRepository userRepo,
+                          PasswordEncryptionUtil passwordUtil,
+                          JwtUtil jwtUtil,
+                          RegistrationEmailVerificationService verificationService) {
         this.userRepo = userRepo;
         this.passwordUtil = passwordUtil;
         this.jwtUtil = jwtUtil;
+        this.verificationService = verificationService;
     }
 
-    private static UserAccount.Role resolveRoleForRegistration(String role) {
-        if (role == null || role.isBlank()) return UserAccount.Role.STUDENT;
+    private static User.Role resolveRoleForRegistration(String role) {
+        if (role == null || role.isBlank()) return User.Role.USER;
 
         String r = role.trim().toUpperCase();
-        if (r.equals("CLUB") || r.equals("CLUB_LEADER") || r.equals("CLUBLEADER")) return UserAccount.Role.CLUB_LEADER;
-        if (r.equals("STUDENT") || r.equals("USER") || r.equals("MEMBER")) return UserAccount.Role.STUDENT;
+        if (r.equals("CLUB") || r.equals("CLUB_LEADER") || r.equals("CLUBLEADER")) return User.Role.CLUB;
+        if (r.equals("STUDENT") || r.equals("USER") || r.equals("MEMBER")) return User.Role.USER;
 
         // Never allow users to self-assign elevated roles (e.g. ADMIN) via public registration.
-        return UserAccount.Role.STUDENT;
+        return User.Role.USER;
     }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
         try {
-            // 1. 基础校验
             if (req.getFullName() == null || req.getFullName().isBlank()
                     || req.getEmail() == null || req.getEmail().isBlank()
                     || req.getPassword() == null || req.getPassword().isBlank()) {
                 return ResponseEntity.badRequest().body("Missing fields");
             }
 
-            UserAccount.Role requestedRole = resolveRoleForRegistration(req.getRole());
+            String normalizedEmail = normalizeEmail(req.getEmail());
+            if (normalizedEmail.isBlank()) {
+                return ResponseEntity.badRequest().body("Missing email");
+            }
 
-            // 2. 重复邮箱检测
-            // For club registration, allow promoting an existing "user" account to a "club" account
-            // when the password matches (prevents getting stuck after registering on the wrong tab).
-            var existingOpt = userRepo.findByEmail(req.getEmail());
-            if (existingOpt.isPresent()) {
-                UserAccount existing = existingOpt.get();
+            if (!verificationService.isVerifiedForRegistration(normalizedEmail)) {
+                return ResponseEntity.badRequest().body("Email verification required");
+            }
 
-                if (requestedRole == UserAccount.Role.CLUB_LEADER) {
-                    if (!passwordUtil.matches(req.getPassword(), existing.getPasswordHash())) {
-                        return ResponseEntity.status(409).body("Email already exists");
-                    }
+            User.Role requestedRole = resolveRoleForRegistration(req.getRole());
 
-                    // Never overwrite elevated roles; only promote user -> club.
-                    if (existing.getRole() == null || existing.getRole() == UserAccount.Role.STUDENT) {
-                        existing.setRole(UserAccount.Role.CLUB_LEADER);
-                    }
-                    if (existing.getFullName() == null || existing.getFullName().isBlank()) {
-                        existing.setFullName(req.getFullName());
-                    }
-
-                    UserAccount saved = userRepo.save(existing);
-                    return ResponseEntity.ok(java.util.Map.of(
-                            "id", saved.getId(),
-                            "fullName", saved.getFullName(),
-                            "email", saved.getEmail(),
-                            "role", saved.getRole() == null ? "user" : saved.getRole().toAccountType()
-                    ));
-                }
-
+            // One email can only own one account identity.
+            if (!userRepo.findAllByEmailIgnoreCase(normalizedEmail).isEmpty()) {
                 return ResponseEntity.status(409).body("Email already exists");
             }
 
-            // 3. 保存 —— 使用 BCrypt 加密密码
-            UserAccount u = new UserAccount();
-            u.setFullName(req.getFullName());
-            u.setEmail(req.getEmail());
-            u.setPasswordHash(passwordUtil.encodePassword(req.getPassword())); // 使用 BCrypt 加密
-            u.setRole(requestedRole);  // Allow club registration; never self-assign ADMIN
+            User u = new User();
+            u.setUsername(req.getFullName().trim());
+            u.setEmail(normalizedEmail);
+            u.setPasswordHash(passwordUtil.encodePassword(req.getPassword()));
+            u.setRole(requestedRole);
 
-            UserAccount saved = userRepo.save(u);
+            User saved = userRepo.save(u);
+            verificationService.consumeVerification(normalizedEmail);
             return ResponseEntity.ok(java.util.Map.of(
-                    "id", saved.getId(),
-                    "fullName", saved.getFullName(),
+                    "id", saved.getUserId(),
+                    "fullName", saved.getUsername(),
                     "email", saved.getEmail(),
                     "role", saved.getRole() == null ? "user" : saved.getRole().toAccountType()
             ));
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.status(409).body("Email already exists");
         } catch (Exception e) {
-            // 打印到控制台，便于你定位
             e.printStackTrace();
             return ResponseEntity.internalServerError().body("Internal error: " + e.getMessage());
         }
@@ -103,23 +96,70 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody java.util.Map<String, String> body) {
-        String email = body.get("email");
+        String email = normalizeEmail(body.get("email"));
         String password = body.get("password");
-        var user = userRepo.findByEmail(email).orElse(null);
-        if (user == null || !passwordUtil.matches(password, user.getPasswordHash())) {
+        if (email.isBlank() || password == null || password.isBlank()) {
             return ResponseEntity.status(401).body("Invalid email or password");
         }
-        // 返回给前端的结构（与前端预期一致）
+
+        List<User> candidates = userRepo.findAllByEmailIgnoreCase(email);
+        User user = findMatchingUser(candidates, password);
+        if (user == null) {
+            String trimmedPassword = password.trim();
+            if (!trimmedPassword.equals(password)) {
+                user = findMatchingUser(candidates, trimmedPassword);
+            }
+        }
+        if (user == null) {
+            log.warn("Login failed for email={} candidates={}", email, candidates.size());
+            return ResponseEntity.status(401).body("Invalid email or password");
+        }
+
         String role = (user.getRole() == null) ? "user" : user.getRole().toAccountType();
-        String token = jwtUtil.generateToken(user.getEmail(), role);
+        int nextSessionVersion = user.bumpSessionVersion();
+        User savedUser = userRepo.save(user);
+        String token = jwtUtil.generateToken(savedUser.getEmail(), role, nextSessionVersion);
 
         var resp = java.util.Map.of(
                 "token", token,
-                "id", user.getId(),
-                "fullName", user.getFullName(),
-                "email", user.getEmail(),
+                "id", savedUser.getUserId(),
+                "fullName", savedUser.getUsername(),
+                "email", savedUser.getEmail(),
                 "role", role
         );
         return ResponseEntity.ok(resp);
+    }
+
+    private User findMatchingUser(List<User> candidates, String rawPassword) {
+        if (rawPassword == null || rawPassword.isBlank()) return null;
+        return candidates.stream()
+                .filter(u -> safePasswordMatch(rawPassword, u.getPasswordHash()))
+                .sorted(byRolePriority())
+                .findFirst()
+                .orElse(null);
+    }
+
+    private boolean safePasswordMatch(String rawPassword, String encodedPassword) {
+        if (encodedPassword == null || encodedPassword.isBlank()) return false;
+        try {
+            return passwordUtil.matches(rawPassword, encodedPassword);
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    private static String normalizeEmail(String email) {
+        return email == null ? "" : email.trim().toLowerCase();
+    }
+
+    private static Comparator<User> byRolePriority() {
+        return Comparator
+                .comparingInt((User u) -> roleRank(u.getRole()))
+                .thenComparing(User::getUserId, java.util.Comparator.nullsLast(Integer::compareTo));
+    }
+
+    private static int roleRank(User.Role role) {
+        if (role == User.Role.CLUB || role == User.Role.ADMIN) return 0;
+        return 1;
     }
 }

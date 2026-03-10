@@ -1,9 +1,0 @@
-{
-  "files.autoSave": "afterDelay",
-  "files.autoSaveDelay": 2000,
-
-  "autoCommit.enable": true,
-  "autoCommit.message": "auto: update from VS Code",
-  "autoCommit.push": true,
-  "autoCommit.interval": 1
-}

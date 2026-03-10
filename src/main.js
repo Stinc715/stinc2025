@@ -12,7 +12,6 @@ import VenueOverview from './pages/VenueOverviewPage.vue'
 import Onboarding from './pages/OnboardingPage.vue'
 import OnboardingLocation from './pages/OnboardingLocationPage.vue'
 import Club from './pages/ClubPage.vue'
-import Join from './pages/JoinPage.vue'
 import User from './pages/UserPage.vue'
 import ClubRegister from './pages/ClubRegisterPage.vue'
 import ClubUpdates from './pages/ClubUpdatesPage.vue'
@@ -27,7 +26,7 @@ const routes = [
   { path: '/onboarding', component: Onboarding, name: 'Onboarding' },
   { path: '/onboarding-location', component: OnboardingLocation, name: 'OnboardingLocation' },
   { path: '/club', component: Club, name: 'Club' },
-  { path: '/join', component: Join, name: 'Join' },
+  { path: '/join', redirect: '/club' },
   { path: '/user', component: User, name: 'User' },
   { path: '/club-register', component: ClubRegister, name: 'ClubRegister' },
   { path: '/club-updates', component: ClubUpdates, name: 'ClubUpdates' },

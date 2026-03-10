@@ -3,7 +3,7 @@
 
 $SERVER_IP = "13.40.74.21"
 $SSH_KEY = "C:\Users\shenn\Sntc00715.pem"
-$SERVER_USER = "ubuntu"
+$SERVER_USER = "ec2-user"
 
 Write-Host "=========================================" -ForegroundColor Cyan
 Write-Host "  Club Portal 上传脚本" -ForegroundColor Cyan
@@ -19,7 +19,7 @@ if (-not (Test-Path $SSH_KEY)) {
 Write-Host "`n步骤 1: 打包前端文件..." -ForegroundColor Yellow
 $frontendZip = "frontend.zip"
 if (Test-Path $frontendZip) { Remove-Item $frontendZip -Force }
-Compress-Archive -Path "public\*" -DestinationPath $frontendZip
+Compress-Archive -Path "dist\*" -DestinationPath $frontendZip
 Write-Host "✅ 前端文件已打包: $frontendZip" -ForegroundColor Green
 
 # 2. 编译后端
@@ -57,8 +57,8 @@ Write-Host "连接到服务器并执行部署脚本..." -ForegroundColor Cyan
 
 ssh -i $SSH_KEY "${SERVER_USER}@${SERVER_IP}" @"
 echo '解压前端文件...'
-mkdir -p ~/deploy/public
-unzip -o ~/frontend.zip -d ~/deploy/public
+mkdir -p ~/deploy/dist
+unzip -o ~/frontend.zip -d ~/deploy/dist
 
 echo '创建部署目录...'
 mkdir -p ~/deploy
@@ -76,7 +76,7 @@ echo ''
 echo '或者手动部署:'
 echo '  1. 安装Nginx: sudo apt-get install nginx'
 echo '  2. 安装Java: sudo apt-get install openjdk-17-jdk'
-echo '  3. 复制前端: sudo cp -r ~/deploy/public/* /var/www/club-portal/'
+echo '  3. 复制前端: sudo cp -r ~/deploy/dist/* /var/www/club-portal/'
 echo '  4. 配置Nginx: sudo cp ~/deploy/nginx.conf /etc/nginx/sites-available/club-portal'
 echo '  5. 启动后端: java -jar ~/deploy/backend.jar'
 "@

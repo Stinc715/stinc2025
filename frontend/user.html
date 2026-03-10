@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Club Booking Portal - User Profile</title>
-  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="theme.css?v=20260220b">
   <style>
-    body { margin: 0; background: #fff; }
+    body { margin: 0; background: var(--bg); }
     header { position: sticky; top: 0; z-index: 10; border-bottom: none; }
     .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; }
     .header-wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -113,27 +113,137 @@
 
     .profile-shell .pad { padding: 6px 6px 12px; }
     .card .pad { padding: 16px; }
-    .booking-list { display: grid; gap: 12px; margin-top: 12px; }
+    .booking-shell { display: grid; gap: 12px; }
+    .booking-segment {
+      display: inline-flex;
+      gap: 8px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #f8fafc;
+      width: fit-content;
+      max-width: 100%;
+      flex-wrap: wrap;
+    }
+    .booking-segment-btn {
+      border: none;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+    .booking-segment-btn.active {
+      background: #111827;
+      color: #fff;
+    }
+    .booking-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 0 6px;
+      background: rgba(15, 23, 42, 0.1);
+      color: inherit;
+    }
+    .booking-list { display: grid; gap: 10px; margin-top: 0; }
     .booking-card {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      padding: 14px 0;
-      border: none;
-      border-bottom: none;
-      border-radius: 0;
-      background: transparent;
-      box-shadow: none;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
       transition: transform .25s var(--anim-base), box-shadow .25s var(--anim-base);
     }
-    .booking-card:last-child {
-      border-bottom: none;
+    .booking-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
     }
     .booking-meta { display: grid; gap: 4px; }
     .booking-title { font-weight: 700; font-size: 15px; }
     .booking-sub { color: var(--muted); font-size: 13px; }
     .booking-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .booking-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+    .booking-pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      padding: 4px 8px;
+      background: #f8fafc;
+      color: #334155;
+    }
+    .booking-pill.upcoming {
+      border-color: #bfdbfe;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+    .booking-pill.expired {
+      border-color: #e2e8f0;
+      background: #f8fafc;
+      color: #64748b;
+    }
+    .booking-pill.status-cancelled {
+      border-color: #fecaca;
+      background: #fef2f2;
+      color: #b91c1c;
+    }
+    .booking-pill.status-completed,
+    .booking-pill.status-confirmed {
+      border-color: #bbf7d0;
+      background: #f0fdf4;
+      color: #166534;
+    }
+    .booking-pill.status-pending {
+      border-color: #fde68a;
+      background: #fffbeb;
+      color: #92400e;
+    }
+    .booking-empty {
+      border: 1px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 14px;
+      color: #64748b;
+      font-size: 13px;
+      background: #f8fafc;
+    }
+    .booking-pill.membership-active {
+      border-color: #bbf7d0;
+      background: #f0fdf4;
+      color: #166534;
+    }
+    .booking-pill.membership-expired {
+      border-color: #e2e8f0;
+      background: #f8fafc;
+      color: #64748b;
+    }
+    .booking-pill.membership-scheduled {
+      border-color: #bfdbfe;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
     .btn {
       border-radius: 999px;
       padding: 8px 16px;
@@ -423,11 +533,14 @@
     @media (max-width: 720px) {
       .booking-card { flex-direction: column; align-items: flex-start; }
       .booking-actions { width: 100%; }
+      .booking-actions .btn { width: 100%; }
+      .booking-segment { width: 100%; }
+      .booking-segment-btn { flex: 1 1 auto; justify-content: center; }
       .header-wrap { flex-wrap: wrap; }
     }
   </style>
 </head>
-<body>
+<body class="page-with-footer">
   <header>
     <div class="wrap header-wrap">
       <div style="display:flex;align-items:center;gap:12px;">
@@ -443,6 +556,7 @@
         <aside class="side-nav" aria-label="Profile Sections">
         <div class="side-title">User Profile</div>
         <button class="side-link active" type="button" data-panel="bookings">My Bookings</button>
+        <button class="side-link" type="button" data-panel="memberships">Memberships</button>
         <button class="side-link" type="button" data-panel="info">Information</button>
         <div class="side-subnav" aria-label="Information Tabs">
           <button id="tabProfile" class="side-sublink active" type="button">Profile</button>
@@ -452,38 +566,22 @@
 
         <section class="panel active" id="panelBookings" data-panel="bookings">
           <div class="pad">
-            <div class="booking-list">
-              <div class="booking-card">
-                <div class="booking-meta">
-                  <div class="booking-title">Badminton Club</div>
-                  <div class="booking-sub">Friday 18:00 Training</div>
-                </div>
-                <div class="booking-actions">
-                  <button class="btn ghost small" type="button">Details</button>
-                  <button class="btn red small" type="button">Cancel</button>
-                </div>
+            <div class="booking-shell">
+              <div class="booking-segment" role="tablist" aria-label="Booking category">
+                <button id="bookingModeUpcoming" class="booking-segment-btn active" type="button" role="tab" aria-selected="true" data-mode="upcoming">
+                  Upcoming
+                  <span id="bookingUpcomingCount" class="booking-count">0</span>
+                </button>
+                <button id="bookingModeExpired" class="booking-segment-btn" type="button" role="tab" aria-selected="false" data-mode="expired">
+                  Expired
+                  <span id="bookingExpiredCount" class="booking-count">0</span>
+                </button>
               </div>
-              <div class="booking-card">
-                <div class="booking-meta">
-                  <div class="booking-title">Yoga Club</div>
-                  <div class="booking-sub">Saturday 10:00 Class</div>
-                </div>
-                <div class="booking-actions">
-                  <button class="btn ghost small" type="button">Details</button>
-                  <button class="btn red small" type="button">Cancel</button>
-                </div>
-              </div>
-              <div class="booking-card">
-                <div class="booking-meta">
-                  <div class="booking-title">Basketball Club</div>
-                  <div class="booking-sub">Sunday 15:00 Match</div>
-                </div>
-                <div class="booking-actions">
-                  <button class="btn ghost small" type="button">Details</button>
-                  <button class="btn red small" type="button">Cancel</button>
-                </div>
+              <div class="booking-list" id="bookingList">
+                <div class="muted">Loading bookings...</div>
               </div>
             </div>
+            <div id="bookingError" class="muted" style="display:none;margin-top:10px;"></div>
           </div>
         </section>
 
@@ -566,6 +664,17 @@
                 <button id="updatePassBtn" class="btn blue" type="button" style="flex:1">Update Password</button>
               </div>
             </div>
+          </div>
+        </section>
+
+        <section class="panel" id="panelMemberships" data-panel="memberships">
+          <div class="pad">
+            <div class="booking-shell">
+              <div class="booking-list" id="membershipList">
+                <div class="muted">Loading memberships...</div>
+              </div>
+            </div>
+            <div id="membershipError" class="muted" style="display:none;margin-top:10px;"></div>
           </div>
         </section>
       </div>
@@ -671,6 +780,16 @@
       const panelButtons = Array.from(document.querySelectorAll('.side-link'));
       const panels = Array.from(document.querySelectorAll('.panel'));
       const sideNav = document.querySelector('.side-nav');
+      const bookingListEl = document.getElementById('bookingList');
+      const bookingErrorEl = document.getElementById('bookingError');
+      const bookingModeUpcomingBtn = document.getElementById('bookingModeUpcoming');
+      const bookingModeExpiredBtn = document.getElementById('bookingModeExpired');
+      const bookingUpcomingCountEl = document.getElementById('bookingUpcomingCount');
+      const bookingExpiredCountEl = document.getElementById('bookingExpiredCount');
+      const membershipListEl = document.getElementById('membershipList');
+      const membershipErrorEl = document.getElementById('membershipError');
+      let bookingViewMode = 'upcoming';
+      let bookingItemsCache = [];
 
       const switchPanel = (panelKey) => {
         panelButtons.forEach((btn) => btn.classList.toggle('active', btn.dataset.panel === panelKey));
@@ -679,7 +798,15 @@
       };
 
       panelButtons.forEach((btn) => {
-        btn.addEventListener('click', () => switchPanel(btn.dataset.panel));
+        btn.addEventListener('click', () => {
+          const panelKey = btn.dataset.panel;
+          switchPanel(panelKey);
+          if (panelKey === 'bookings') {
+            loadBookings();
+          } else if (panelKey === 'memberships') {
+            loadMemberships();
+          }
+        });
       });
 
 
@@ -691,11 +818,163 @@
         }
       };
 
+      const AVATAR_STORAGE_KEY_LEGACY = 'profileAvatar';
+      const AVATAR_STORAGE_KEY_PREFIX = 'profileAvatar:';
+
+      const getAvatarStorageKey = () => {
+        const loggedUser = safeParse('loggedUser') || {};
+        const type = String(loggedUser.type || loggedUser.role || 'user').trim().toLowerCase() || 'user';
+        const email = String(loggedUser.email || '').trim().toLowerCase();
+        if (email) return `${AVATAR_STORAGE_KEY_PREFIX}${type}:${email}`;
+        const name = String(loggedUser.name || '').trim().toLowerCase();
+        if (name) return `${AVATAR_STORAGE_KEY_PREFIX}${type}:${name}`;
+        return `${AVATAR_STORAGE_KEY_PREFIX}${type}:anonymous`;
+      };
+
+      const parseAvatarStorageValue = (raw) => {
+        const text = String(raw || '').trim();
+        if (!text) return '';
+        try {
+          const parsed = JSON.parse(text);
+          return typeof parsed === 'string' ? parsed.trim() : '';
+        } catch {
+          // Backward compatibility: older builds stored plain string instead of JSON string.
+          return text;
+        }
+      };
+
+      const readStoredAvatar = () => {
+        const scopedKey = getAvatarStorageKey();
+        const scoped = parseAvatarStorageValue(localStorage.getItem(scopedKey));
+        return scoped || '';
+      };
+
+      const persistAvatar = (avatarUrl, { emit = true } = {}) => {
+        const normalized = String(avatarUrl || '').trim();
+        if (!normalized) return;
+        try {
+          localStorage.setItem(getAvatarStorageKey(), JSON.stringify(normalized));
+          localStorage.removeItem(AVATAR_STORAGE_KEY_LEGACY);
+        } catch (err) {
+          console.error(err);
+        }
+        try {
+          const profile = safeParse('profile') || {};
+          profile.avatarUrl = normalized;
+          profile.avatar = normalized;
+          localStorage.setItem('profile', JSON.stringify(profile));
+        } catch (err) {
+          console.error(err);
+        }
+        if (emit) {
+          window.dispatchEvent(new CustomEvent('profile-avatar-updated', { detail: { avatarUrl: normalized } }));
+        }
+      };
+
+      const applyAvatarPreview = (avatarUrl) => {
+        const normalized = String(avatarUrl || '').trim();
+        if (!avatarImg || !avatarPlaceholder) return;
+        if (normalized) {
+          avatarImg.src = normalized;
+          avatarImg.style.display = 'block';
+          avatarPlaceholder.style.display = 'none';
+          return;
+        }
+        avatarImg.removeAttribute('src');
+        avatarImg.style.display = 'none';
+        avatarPlaceholder.style.display = 'block';
+      };
+
+      const fileToAvatarDataUrl = async (file) => {
+        if (!file) return '';
+        const rawDataUrl = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
+          reader.onerror = () => resolve('');
+          reader.readAsDataURL(file);
+        });
+        if (!rawDataUrl) return '';
+
+        try {
+          const image = await new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error('Failed to decode image'));
+            img.src = rawDataUrl;
+          });
+          const maxSide = 256;
+          const ratio = Math.min(1, maxSide / Math.max(image.width || 1, image.height || 1));
+          const width = Math.max(1, Math.round((image.width || 1) * ratio));
+          const height = Math.max(1, Math.round((image.height || 1) * ratio));
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return rawDataUrl;
+          ctx.drawImage(image, 0, 0, width, height);
+          return canvas.toDataURL('image/jpeg', 0.84);
+        } catch {
+          return rawDataUrl;
+        }
+      };
+
+      const authFetch = (url, options = {}) => {
+        const token = localStorage.getItem('token');
+        const headers = { ...(options.headers || {}) };
+        if (token) headers.Authorization = `Bearer ${token}`;
+        return fetch(url, {
+          ...options,
+          credentials: options.credentials ?? 'include',
+          headers
+        });
+      };
+
+      const escapeHtml = (value) => String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+      const formatDateTime = (iso) => {
+        if (!iso || typeof iso !== 'string') return '--';
+        const dt = new Date(iso);
+        if (Number.isNaN(dt.getTime())) return iso;
+        const y = dt.getFullYear();
+        const m = String(dt.getMonth() + 1).padStart(2, '0');
+        const d = String(dt.getDate()).padStart(2, '0');
+        const hh = String(dt.getHours()).padStart(2, '0');
+        const mm = String(dt.getMinutes()).padStart(2, '0');
+        return `${y}-${m}-${d} ${hh}:${mm}`;
+      };
+
+      const formatPrice = (price) => {
+        const n = Number(price);
+        if (!Number.isFinite(n)) return 'GBP 0.00';
+        return `GBP ${n.toFixed(2)}`;
+      };
+
       // TODO: Replace with real backend endpoints.
       const profileApi = {
+        async getMyBookings() {
+          const res = await authFetch('/api/my/bookings');
+          if (!res.ok) {
+            const text = await res.text();
+            throw new Error(text || 'Failed to load bookings.');
+          }
+          return await res.json();
+        },
+        async getMyMemberships() {
+          const res = await authFetch('/api/my/memberships');
+          if (!res.ok) {
+            const text = await res.text();
+            throw new Error(text || 'Failed to load memberships.');
+          }
+          return await res.json();
+        },
         async getProfile() {
           try {
-            const res = await fetch('/api/profile', { credentials: 'include' });
+            const res = await authFetch('/api/profile');
             if (res.ok) return await res.json();
           } catch (err) {
             console.error(err);
@@ -704,10 +983,9 @@
         },
         async updateName(displayName) {
           try {
-            const res = await fetch('/api/profile', {
+            const res = await authFetch('/api/profile', {
               method: 'PATCH',
               headers: { 'Content-Type': 'application/json' },
-              credentials: 'include',
               body: JSON.stringify({ displayName })
             });
             if (res.ok) return await res.json();
@@ -718,10 +996,9 @@
         },
         async sendEmailCode(email) {
           try {
-            const res = await fetch('/api/profile/email/code', {
+            const res = await authFetch('/api/profile/email/code', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              credentials: 'include',
               body: JSON.stringify({ email })
             });
             if (res.ok) return await res.json();
@@ -732,10 +1009,9 @@
         },
         async updateEmail(email, code) {
           try {
-            const res = await fetch('/api/profile/email', {
+            const res = await authFetch('/api/profile/email', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              credentials: 'include',
               body: JSON.stringify({ email, code })
             });
             if (res.ok) return await res.json();
@@ -748,9 +1024,8 @@
           try {
             const formData = new FormData();
             formData.append('avatar', file);
-            const res = await fetch('/api/profile/avatar', {
+            const res = await authFetch('/api/profile/avatar', {
               method: 'POST',
-              credentials: 'include',
               body: formData
             });
             if (res.ok) return await res.json();
@@ -760,6 +1035,241 @@
           return null;
         }
       };
+
+      const bookingStatusClass = (statusRaw) => {
+        const normalized = String(statusRaw || '').trim().toLowerCase();
+        if (!normalized) return '';
+        return `status-${normalized.replace(/[^a-z0-9]+/g, '-')}`;
+      };
+
+      const bookingTimeMs = (raw) => {
+        const value = Date.parse(String(raw || ''));
+        return Number.isFinite(value) ? value : null;
+      };
+
+      const splitBookings = (items) => {
+        const source = Array.isArray(items) ? items : [];
+        const now = Date.now();
+        const upcoming = [];
+        const expired = [];
+
+        source.forEach((item) => {
+          const endMs = bookingTimeMs(item?.endTime);
+          const startMs = bookingTimeMs(item?.startTime);
+          const isExpired = endMs !== null ? endMs < now : (startMs !== null ? startMs < now : false);
+          if (isExpired) expired.push(item);
+          else upcoming.push(item);
+        });
+
+        upcoming.sort((a, b) => (bookingTimeMs(a?.startTime) ?? Number.MAX_SAFE_INTEGER) - (bookingTimeMs(b?.startTime) ?? Number.MAX_SAFE_INTEGER));
+        expired.sort((a, b) => (bookingTimeMs(b?.startTime) ?? 0) - (bookingTimeMs(a?.startTime) ?? 0));
+        return { upcoming, expired };
+      };
+
+      const renderBookingModeUi = (counts) => {
+        const upcomingCount = Number(counts?.upcoming || 0);
+        const expiredCount = Number(counts?.expired || 0);
+        if (bookingUpcomingCountEl) bookingUpcomingCountEl.textContent = String(upcomingCount);
+        if (bookingExpiredCountEl) bookingExpiredCountEl.textContent = String(expiredCount);
+
+        const upcomingActive = bookingViewMode === 'upcoming';
+        bookingModeUpcomingBtn?.classList.toggle('active', upcomingActive);
+        bookingModeExpiredBtn?.classList.toggle('active', !upcomingActive);
+        bookingModeUpcomingBtn?.setAttribute('aria-selected', upcomingActive ? 'true' : 'false');
+        bookingModeExpiredBtn?.setAttribute('aria-selected', upcomingActive ? 'false' : 'true');
+      };
+
+      const renderBookings = (items) => {
+        if (!bookingListEl) return;
+
+        bookingItemsCache = Array.isArray(items) ? items : [];
+        const { upcoming, expired } = splitBookings(bookingItemsCache);
+        renderBookingModeUi({ upcoming: upcoming.length, expired: expired.length });
+
+        const activeList = bookingViewMode === 'expired' ? expired : upcoming;
+        if (!activeList.length) {
+          bookingListEl.innerHTML = bookingViewMode === 'expired'
+            ? '<div class="booking-empty">No expired bookings yet.</div>'
+            : '<div class="booking-empty">No upcoming bookings yet. Go to Home and pick a club slot.</div>';
+          return;
+        }
+
+        const rows = activeList.map((item) => {
+          const clubName = escapeHtml(item?.clubName || 'Club');
+          const venueName = escapeHtml(item?.venueName || 'Venue');
+          const startLabel = formatDateTime(item?.startTime);
+          const endLabel = formatDateTime(item?.endTime);
+          const statusRaw = String(item?.status || 'PENDING').trim();
+          const statusLabel = escapeHtml(statusRaw || 'PENDING');
+          const statusClass = bookingStatusClass(statusRaw);
+          const priceLabel = escapeHtml(formatPrice(item?.price));
+          const clubId = Number(item?.clubId);
+          const detailBtn = Number.isFinite(clubId)
+            ? `<button class="btn ghost small" type="button" data-action="details" data-club-id="${clubId}">Details</button>`
+            : '';
+          const timeClass = bookingViewMode === 'expired' ? 'expired' : 'upcoming';
+          const timeLabel = bookingViewMode === 'expired' ? 'Expired' : 'Upcoming';
+
+          return `
+            <div class="booking-card">
+              <div class="booking-meta">
+                <div class="booking-title">${clubName}</div>
+                <div class="booking-sub">${venueName}</div>
+                <div class="booking-meta-row">
+                  <span class="booking-pill ${timeClass}">${timeLabel}</span>
+                  <span class="booking-pill ${escapeHtml(statusClass)}">${statusLabel}</span>
+                </div>
+                <div class="booking-sub">${escapeHtml(startLabel)} - ${escapeHtml(endLabel)}</div>
+                <div class="booking-sub">Price: ${priceLabel}</div>
+              </div>
+              <div class="booking-actions">${detailBtn}</div>
+            </div>
+          `;
+        }).join('');
+
+        bookingListEl.innerHTML = rows;
+        bookingListEl.querySelectorAll('button[data-action="details"]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const clubId = btn.getAttribute('data-club-id');
+            if (!clubId) return;
+            window.location.href = `club.html?club=${encodeURIComponent(clubId)}`;
+          });
+        });
+      };
+
+      const loadBookings = async () => {
+        if (!bookingListEl) return;
+
+        if (bookingErrorEl) {
+          bookingErrorEl.style.display = 'none';
+          bookingErrorEl.textContent = '';
+        }
+
+        bookingListEl.innerHTML = '<div class="muted">Loading bookings...</div>';
+        const token = localStorage.getItem('token');
+        if (!token) {
+          bookingListEl.innerHTML = '<div class="muted">Please log in to view your bookings.</div>';
+          return;
+        }
+
+        try {
+          const items = await profileApi.getMyBookings();
+          renderBookings(items);
+        } catch (err) {
+          console.error(err);
+          bookingListEl.innerHTML = '<div class="muted">Unable to load bookings right now.</div>';
+          if (bookingErrorEl) {
+            bookingErrorEl.textContent = (err && err.message) ? err.message : 'Failed to load bookings.';
+            bookingErrorEl.style.display = 'block';
+          }
+        }
+      };
+
+      const membershipStatusClass = (statusRaw) => {
+        const normalized = String(statusRaw || '').trim().toLowerCase();
+        if (normalized === 'active') return 'membership-active';
+        if (normalized === 'scheduled') return 'membership-scheduled';
+        return 'membership-expired';
+      };
+
+      const renderMemberships = (items) => {
+        if (!membershipListEl) return;
+
+        const rows = Array.isArray(items) ? items.slice() : [];
+        rows.sort((a, b) => {
+          const order = (value) => {
+            const key = String(value || '').trim().toUpperCase();
+            if (key === 'ACTIVE') return 0;
+            if (key === 'SCHEDULED') return 1;
+            return 2;
+          };
+          const first = order(a?.status) - order(b?.status);
+          if (first !== 0) return first;
+          return String(b?.endDate || '').localeCompare(String(a?.endDate || ''));
+        });
+
+        if (!rows.length) {
+          membershipListEl.innerHTML = '<div class="booking-empty">You have not purchased any club memberships yet.</div>';
+          return;
+        }
+
+        membershipListEl.innerHTML = rows.map((item) => {
+          const clubName = escapeHtml(item?.clubName || 'Club');
+          const planName = escapeHtml(item?.planName || 'Membership');
+          const statusLabel = escapeHtml(String(item?.status || 'ACTIVE'));
+          const statusClass = membershipStatusClass(item?.status);
+          const priceLabel = escapeHtml(formatPrice(item?.planPrice));
+          const discountLabel = `${escapeHtml(String(item?.discountPercent ?? 0))}% off`;
+          const startLabel = escapeHtml(String(item?.startDate || '--'));
+          const endLabel = escapeHtml(String(item?.endDate || '--'));
+          const clubId = Number(item?.clubId);
+          const detailBtn = Number.isFinite(clubId)
+            ? `<button class="btn ghost small" type="button" data-action="membership-details" data-club-id="${clubId}">Open club</button>`
+            : '';
+
+          return `
+            <div class="booking-card">
+              <div class="booking-meta">
+                <div class="booking-title">${clubName}</div>
+                <div class="booking-sub">${planName}</div>
+                <div class="booking-meta-row">
+                  <span class="booking-pill ${statusClass}">${statusLabel}</span>
+                  <span class="booking-pill">${discountLabel}</span>
+                </div>
+                <div class="booking-sub">${startLabel} - ${endLabel}</div>
+                <div class="booking-sub">Membership price: ${priceLabel}</div>
+              </div>
+              <div class="booking-actions">${detailBtn}</div>
+            </div>
+          `;
+        }).join('');
+
+        membershipListEl.querySelectorAll('button[data-action="membership-details"]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const clubId = btn.getAttribute('data-club-id');
+            if (!clubId) return;
+            window.location.href = `club.html?club=${encodeURIComponent(clubId)}`;
+          });
+        });
+      };
+
+      const loadMemberships = async () => {
+        if (!membershipListEl) return;
+
+        if (membershipErrorEl) {
+          membershipErrorEl.style.display = 'none';
+          membershipErrorEl.textContent = '';
+        }
+
+        membershipListEl.innerHTML = '<div class="muted">Loading memberships...</div>';
+        const token = localStorage.getItem('token');
+        if (!token) {
+          membershipListEl.innerHTML = '<div class="booking-empty">Please log in to view your memberships.</div>';
+          return;
+        }
+
+        try {
+          const items = await profileApi.getMyMemberships();
+          renderMemberships(items);
+        } catch (err) {
+          console.error(err);
+          membershipListEl.innerHTML = '<div class="booking-empty">Unable to load memberships right now.</div>';
+          if (membershipErrorEl) {
+            membershipErrorEl.textContent = (err && err.message) ? err.message : 'Failed to load memberships.';
+            membershipErrorEl.style.display = 'block';
+          }
+        }
+      };
+
+      const setBookingMode = (mode) => {
+        const next = mode === 'expired' ? 'expired' : 'upcoming';
+        if (bookingViewMode === next) return;
+        bookingViewMode = next;
+        renderBookings(bookingItemsCache);
+      };
+
+      bookingModeUpcomingBtn?.addEventListener('click', () => setBookingMode('upcoming'));
+      bookingModeExpiredBtn?.addEventListener('click', () => setBookingMode('expired'));
 
       const tabProfile = document.getElementById('tabProfile');
       const tabSecurity = document.getElementById('tabSecurity');
@@ -824,7 +1334,7 @@
         const localProfile = safeParse('profile');
         const loggedUser = safeParse('loggedUser');
         const userObj = safeParse('user');
-        const avatarData = safeParse('profileAvatar');
+        const avatarData = readStoredAvatar();
 
         const displayName = (profile && profile.displayName)
           || (localProfile && localProfile.displayName)
@@ -835,26 +1345,18 @@
           || (loggedUser && loggedUser.email)
           || (userObj && userObj.email)
           || '';
-        const avatarUrl = (profile && (profile.avatarUrl || profile.avatar))
-          || avatarData
-          || '';
+        const serverAvatar = String((profile && (profile.avatarUrl || profile.avatar)) || '').trim();
+        if (serverAvatar) {
+          persistAvatar(serverAvatar, { emit: false });
+        }
+        const avatarUrl = serverAvatar || avatarData || '';
 
         if (modalNameInput) modalNameInput.value = displayName || '';
         if (modalEmailInput) modalEmailInput.value = email || '';
         currentName = displayName || '';
         currentEmail = email || '';
         setEditing(false);
-
-        if (avatarImg && avatarPlaceholder) {
-          if (avatarUrl) {
-            avatarImg.src = avatarUrl;
-            avatarImg.style.display = 'block';
-            avatarPlaceholder.style.display = 'none';
-          } else {
-            avatarImg.style.display = 'none';
-            avatarPlaceholder.style.display = 'block';
-          }
-        }
+        applyAvatarPreview(avatarUrl);
       };
 
       const switchInfoTab = (tab) => {
@@ -1034,23 +1536,18 @@
       avatarInput?.addEventListener('change', async (event) => {
         const file = event.target.files && event.target.files[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = () => {
-          const result = reader.result;
-          if (typeof result !== 'string') return;
-          try {
-            localStorage.setItem('profileAvatar', JSON.stringify(result));
-          } catch (err) {
-            console.error(err);
-          }
-          if (avatarImg && avatarPlaceholder) {
-            avatarImg.src = result;
-            avatarImg.style.display = 'block';
-            avatarPlaceholder.style.display = 'none';
-          }
-        };
-        reader.readAsDataURL(file);
-        await profileApi.uploadAvatar(file);
+        const previewUrl = await fileToAvatarDataUrl(file);
+        if (previewUrl) {
+          persistAvatar(previewUrl);
+          applyAvatarPreview(previewUrl);
+        }
+
+        const uploaded = await profileApi.uploadAvatar(file);
+        const serverAvatar = String(uploaded?.avatarUrl || uploaded?.avatar || '').trim();
+        if (serverAvatar) {
+          persistAvatar(serverAvatar);
+          applyAvatarPreview(serverAvatar);
+        }
       });
 
       document.getElementById('updatePassBtn')?.addEventListener('click', () => {
@@ -1093,10 +1590,12 @@
       });
 
       loadAndDisplay();
+      loadBookings();
       switchPanel('bookings');
     });
   </script>
 
-  <script src="auth-modal.js" defer></script>
+  <script src="auth-modal.js?v=20260308g" defer></script>
 </body>
 </html>
+

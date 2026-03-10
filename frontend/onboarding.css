@@ -237,29 +237,29 @@ textarea:focus {
   background: #f8fafc;
 }
 
-.map-placeholder {
+.map-panel {
   border-radius: 16px;
   border: 1px solid rgba(148, 163, 184, 0.35);
   background: #ffffff;
-  padding: 18px;
+  padding: 14px;
   display: grid;
-  gap: 8px;
-  min-height: 140px;
+  gap: 10px;
 }
 
-.map-placeholder__badge {
-  width: fit-content;
-  padding: 0;
-  border-radius: 0;
-  background: transparent;
-  font-size: 12px;
-  font-weight: 600;
-  color: #6b7280;
+.map-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
 }
 
-.map-placeholder__body {
-  color: #6b7280;
-  font-size: 13px;
+.map-canvas {
+  width: 100%;
+  min-height: 300px;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: linear-gradient(180deg, #e8edf7 0%, #dbe4f1 100%);
+  overflow: hidden;
 }
 
 .promo-preview {
@@ -669,6 +669,14 @@ textarea:focus {
   font-size: 13px;
 }
 
+.status.ok {
+  color: #166534;
+}
+
+.status.err {
+  color: #b91c1c;
+}
+
 .note {
   margin-top: 16px;
   color: var(--muted);
@@ -716,6 +724,10 @@ textarea:focus {
 
   .panel {
     padding: 20px;
+  }
+
+  .map-toolbar {
+    grid-template-columns: 1fr;
   }
 
   .sports-grid {

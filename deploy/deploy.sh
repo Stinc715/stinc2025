@@ -35,7 +35,14 @@ sudo mkdir -p $BACKEND_DIR
 # 4. 部署前端
 echo ""
 echo "步骤 4: 部署前端静态文件..."
-sudo cp -r public/* $FRONTEND_DIR/
+if [ -d "frontend" ]; then
+    sudo cp -r frontend/* "$FRONTEND_DIR/"
+elif [ -d "dist" ]; then
+    sudo cp -r dist/* "$FRONTEND_DIR/"
+else
+    echo "Error: missing frontend/ (and dist/) to deploy frontend"
+    exit 1
+fi
 sudo chown -R www-data:www-data $FRONTEND_DIR
 sudo chmod -R 755 $FRONTEND_DIR
 echo "前端文件已复制到: $FRONTEND_DIR"
@@ -43,18 +50,39 @@ echo "前端文件已复制到: $FRONTEND_DIR"
 # 5. 部署后端
 echo ""
 echo "步骤 5: 部署后端JAR文件..."
+JAR_SRC=""
 if [ -f "backend/target/$BACKEND_JAR" ]; then
-    sudo cp backend/target/$BACKEND_JAR $BACKEND_DIR/
-    echo "后端JAR已复制到: $BACKEND_DIR"
-else
-    echo "错误: 未找到后端JAR文件，请先运行 mvn clean package"
+    JAR_SRC="backend/target/$BACKEND_JAR"
+elif [ -f "backend.jar" ]; then
+    JAR_SRC="backend.jar"
+elif [ -f "$BACKEND_JAR" ]; then
+    JAR_SRC="$BACKEND_JAR"
+fi
+
+if [ -z "$JAR_SRC" ]; then
+    echo "错误: 未找到后端JAR文件。请先运行 mvn clean package，或上传 backend.jar 到当前目录。"
     exit 1
 fi
+
+sudo cp "$JAR_SRC" "$BACKEND_DIR/$BACKEND_JAR"
+echo "后端JAR已复制到: $BACKEND_DIR/$BACKEND_JAR"
 
 # 6. 配置Nginx
 echo ""
 echo "步骤 6: 配置Nginx..."
-sudo cp deploy/nginx.conf $NGINX_CONF
+NGINX_SRC=""
+if [ -f "deploy/nginx.conf" ]; then
+    NGINX_SRC="deploy/nginx.conf"
+elif [ -f "nginx.conf" ]; then
+    NGINX_SRC="nginx.conf"
+fi
+
+if [ -z "$NGINX_SRC" ]; then
+    echo "错误: 未找到 nginx.conf（deploy/nginx.conf 或 nginx.conf）。"
+    exit 1
+fi
+
+sudo cp "$NGINX_SRC" "$NGINX_CONF"
 
 # 创建软链接
 if [ ! -L $NGINX_ENABLED ]; then
@@ -84,6 +112,7 @@ After=syslog.target network.target
 Type=simple
 User=ubuntu
 WorkingDirectory=$BACKEND_DIR
+EnvironmentFile=-/etc/club-portal-backend.env
 ExecStart=/usr/bin/java -jar $BACKEND_DIR/$BACKEND_JAR
 Restart=always
 RestartSec=10

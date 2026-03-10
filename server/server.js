@@ -1,11 +1,13 @@
 import http from 'http';
+import https from 'https';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, URL } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = 5173;
-const PUBLIC_DIR = path.join(__dirname, '..', 'public');
+const FRONTEND_DIR = path.join(__dirname, '..', 'frontend');
+const API_TARGET = process.env.API_TARGET || 'http://localhost:8080';
 
 const MIME_TYPES = {
   '.html': 'text/html',
@@ -20,8 +22,42 @@ const MIME_TYPES = {
 };
 
 const server = http.createServer((req, res) => {
+  // Proxy backend API so the frontend can keep using relative /api/... calls.
+  if (req.url && (req.url === '/api' || req.url.startsWith('/api/'))) {
+    const target = new URL(API_TARGET);
+    const isHttps = target.protocol === 'https:';
+    const proxy = isHttps ? https : http;
+
+    const headers = { ...req.headers };
+    headers.host = target.host;
+
+    const proxyReq = proxy.request(
+      {
+        protocol: target.protocol,
+        hostname: target.hostname,
+        port: target.port || (isHttps ? 443 : 80),
+        method: req.method,
+        path: req.url,
+        headers
+      },
+      (proxyRes) => {
+        res.writeHead(proxyRes.statusCode || 502, proxyRes.headers);
+        proxyRes.pipe(res, { end: true });
+      }
+    );
+
+    proxyReq.on('error', (err) => {
+      console.error('API proxy error:', err.message);
+      res.writeHead(502, { 'Content-Type': 'text/plain' });
+      res.end('Bad gateway');
+    });
+
+    req.pipe(proxyReq, { end: true });
+    return;
+  }
+
   let filePath = req.url === '/' ? '/index.html' : req.url;
-  filePath = path.join(PUBLIC_DIR, filePath);
+  filePath = path.join(FRONTEND_DIR, filePath);
 
   const extname = String(path.extname(filePath)).toLowerCase();
   const contentType = MIME_TYPES[extname] || 'application/octet-stream';
@@ -44,5 +80,5 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, () => {
   console.log(`✅ Static server running at http://localhost:${PORT}/`);
-  console.log(`📁 Serving files from: ${PUBLIC_DIR}`);
+  console.log(`📁 Serving files from: ${FRONTEND_DIR}`);
 });

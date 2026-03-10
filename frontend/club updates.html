@@ -3,11 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Club Booking Portal - Member Updates</title>
-  <link rel="stylesheet" href="theme.css" />
+  <title>Club Booking Portal - Memberships</title>
+  <link rel="stylesheet" href="theme.css?v=20260220b" />
   <style>
-    body { background: #f6f7fb; }
+    body { margin: 0; background: #fff; }
     header { background: #fff; border-bottom: 1px solid #eef0f4; }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+    .header-wrap {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 0;
+    }
     .back-link {
       display: inline-flex;
       align-items: center;
@@ -20,22 +28,820 @@
       cursor: pointer;
       padding: 8px 0;
     }
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
-    .header-wrap { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; padding: 18px 0; }
-    .page-shell { min-height: calc(100vh - 72px); }
+    .page-shell {
+      min-height: calc(100vh - 72px);
+      display: grid;
+      gap: 18px;
+      align-content: start;
+      align-items: start;
+      padding: 18px 0 24px;
+    }
+    .page-shell > .card {
+      width: 100%;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+    }
+    .card .pad { padding: 20px; }
+    .section-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .section-head h2 {
+      margin: 0;
+      font-size: 34px;
+      line-height: 1.05;
+    }
+    .section-head p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .section-tip {
+      margin-top: 10px;
+      color: #475569;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .section-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .toggle-btn {
+      min-width: 118px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 12px 18px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .toggle-btn:hover {
+      background: #f8fafc;
+    }
+    .section-body {
+      display: grid;
+      gap: 0;
+    }
+    .card.collapsed .section-body {
+      display: none;
+    }
+    .status-box {
+      display: none;
+      border: 1px solid #dbeafe;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+    .status-box.error {
+      display: block;
+      border-color: #fecaca;
+      background: #fef2f2;
+      color: #b91c1c;
+    }
+    .status-box.success {
+      display: block;
+      border-color: #bbf7d0;
+      background: #f0fdf4;
+      color: #166534;
+    }
+    .status-box.info {
+      display: block;
+    }
+    .plan-workflow {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .workflow-step {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid #dbeafe;
+      background: #f8fbff;
+      color: #1e3a8a;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .workflow-index {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      background: #dbeafe;
+      color: #1d4ed8;
+      font-size: 11px;
+      font-weight: 800;
+      flex: 0 0 auto;
+    }
+    .plan-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .plan-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+      background: #fff;
+      transition: border-color .2s ease, background-color .2s ease;
+    }
+    .plan-card.disabled {
+      background: #f8fafc;
+      border-style: dashed;
+    }
+    .plan-card.dirty {
+      border-color: #f59e0b;
+      background: #fffdf7;
+    }
+    .plan-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .plan-top h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+    .plan-duration {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .plan-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 66px;
+      height: 34px;
+      padding: 0 12px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #3730a3;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .field-grid {
+      display: grid;
+      gap: 12px;
+    }
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+    .field label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .field input,
+    .field textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font: inherit;
+      background: #fff;
+      color: var(--ink);
+    }
+    .field textarea {
+      min-height: 112px;
+      resize: vertical;
+    }
+    .plan-note {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .plan-save-state {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #f8fafc;
+      color: #475569;
+    }
+    .plan-save-state.saved {
+      border: 1px solid #dbeafe;
+      background: #f8fbff;
+      color: #1d4ed8;
+    }
+    .plan-save-state.dirty {
+      border: 1px solid #fde68a;
+      background: #fffbeb;
+      color: #b45309;
+    }
+    .plan-toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .plan-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .plan-toggle input {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      accent-color: #4338ca;
+    }
+    .plan-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .plan-availability {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .plan-save-btn {
+      min-width: 126px;
+      border: none;
+      border-radius: 999px;
+      padding: 10px 16px;
+      background: linear-gradient(135deg, #4f46e5, #4338ca);
+      color: #fff;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .plan-save-btn[disabled] {
+      opacity: .6;
+      cursor: not-allowed;
+    }
+    .save-btn {
+      min-width: 148px;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 18px;
+      background: linear-gradient(135deg, #4f46e5, #4338ca);
+      color: #fff;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .save-btn[disabled] {
+      opacity: .6;
+      cursor: not-allowed;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .stat-card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px 16px;
+      background: #fff;
+      display: grid;
+      gap: 6px;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .member-list {
+      display: grid;
+      gap: 12px;
+    }
+    .member-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      background: #fff;
+    }
+    .member-meta {
+      display: grid;
+      gap: 6px;
+    }
+    .member-name {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .member-sub {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .member-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #f8fafc;
+      color: #334155;
+    }
+    .pill.active {
+      border-color: #bbf7d0;
+      background: #f0fdf4;
+      color: #166534;
+    }
+    .pill.expired {
+      border-color: #e5e7eb;
+      background: #f8fafc;
+      color: #6b7280;
+    }
+    .pill.scheduled {
+      border-color: #bfdbfe;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+    .empty {
+      border: 1px dashed #cbd5e1;
+      border-radius: 16px;
+      padding: 18px;
+      color: #64748b;
+      background: #f8fafc;
+    }
+    @media (max-width: 980px) {
+      .plan-grid,
+      .stats-grid { grid-template-columns: 1fr; }
+      .section-head h2 { font-size: 28px; }
+    }
   </style>
 </head>
 <body>
   <header>
     <div class="wrap header-wrap">
-      <div style="display: flex; align-items: center; gap: 16px;">
-        <button class="back-link" onclick="window.location.href='club home.html'" type="button" aria-label="Back">← Back</button>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <button class="back-link" type="button" onclick="window.location.href='club home.html'" aria-label="Back">&larr; Back</button>
       </div>
-      <h2 style="margin: 0; font-size: 18px; font-weight: 600; justify-self: center;">Member updates</h2>
+      <h2 style="margin:0;font-size:18px;font-weight:600;justify-self:center;">Memberships</h2>
       <div></div>
     </div>
   </header>
+
   <main class="wrap page-shell">
+    <section class="card" data-section-card="plans">
+      <div class="pad">
+        <div class="section-head">
+          <div>
+            <h2>Membership plans</h2>
+            <p id="planIntro">Expand to edit these passes. Each card must be saved separately before members can see the change.</p>
+            <div class="section-tip">Turn a plan on or off, edit any fields, then click the save button on that same card to publish it.</div>
+          </div>
+          <div class="section-actions">
+            <button class="toggle-btn" type="button" data-toggle-section="plans" aria-expanded="false">Expand</button>
+          </div>
+        </div>
+        <div class="section-body" data-section-body="plans">
+          <div id="statusBox" class="status-box" aria-live="polite"></div>
+          <div class="plan-workflow" aria-hidden="true">
+            <div class="workflow-step"><span class="workflow-index">1</span><span>Toggle a pass on or off</span></div>
+            <div class="workflow-step"><span class="workflow-index">2</span><span>Edit price, discount, or text</span></div>
+            <div class="workflow-step"><span class="workflow-index">3</span><span>Save that card to make it live</span></div>
+          </div>
+          <div id="planGrid" class="plan-grid"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" data-section-card="members">
+      <div class="pad">
+        <div class="section-head" style="margin-bottom:14px;">
+          <div>
+            <h2 style="font-size:28px;">Club members</h2>
+            <p>See who currently holds a pass for this club.</p>
+          </div>
+          <div class="section-actions">
+            <button class="toggle-btn" type="button" data-toggle-section="members" aria-expanded="false">Expand</button>
+          </div>
+        </div>
+        <div class="section-body" data-section-body="members">
+          <div id="statsGrid" class="stats-grid"></div>
+          <div id="memberList" class="member-list"></div>
+        </div>
+      </div>
+    </section>
   </main>
+
+  <script>
+    const PLAN_TEMPLATES = Object.freeze([
+      { code: 'MONTHLY', name: 'Monthly Pass', durationDays: 30, description: 'Ideal for regular weekly bookings.' },
+      { code: 'QUARTERLY', name: 'Quarterly Pass', durationDays: 90, description: 'Good for players staying for a full season.' },
+      { code: 'HALF_YEAR', name: 'Half-year Pass', durationDays: 180, description: 'Balanced value for members booking through a half-year block.' },
+      { code: 'YEARLY', name: 'Yearly Pass', durationDays: 365, description: 'Best value for long-term members.' }
+    ]);
+
+    const planGridEl = document.getElementById('planGrid');
+    const statusBoxEl = document.getElementById('statusBox');
+    const statsGridEl = document.getElementById('statsGrid');
+    const memberListEl = document.getElementById('memberList');
+    const planIntroEl = document.getElementById('planIntro');
+    const sectionCards = Array.from(document.querySelectorAll('[data-section-card]'));
+
+    let activeClubId = null;
+    let activeClubName = '';
+
+    const safeParseJSON = (raw) => {
+      try { return JSON.parse(raw); } catch { return null; }
+    };
+
+    const escapeHtml = (value) => String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
+    const authFetch = (url, options = {}) => {
+      const token = localStorage.getItem('token') || '';
+      const headers = { ...(options.headers || {}) };
+      if (token) headers.Authorization = `Bearer ${token}`;
+      return fetch(url, {
+        ...options,
+        credentials: options.credentials ?? 'include',
+        headers
+      });
+    };
+
+    const formatPrice = (raw) => {
+      const num = Number(raw);
+      return Number.isFinite(num) ? `GBP ${num.toFixed(2)}` : 'GBP 0.00';
+    };
+
+    const formatDate = (raw) => {
+      if (!raw) return '--';
+      const date = new Date(raw);
+      if (Number.isNaN(date.getTime())) return String(raw);
+      return date.toISOString().slice(0, 10);
+    };
+
+    const showStatus = (message, type = 'info') => {
+      if (!statusBoxEl) return;
+      statusBoxEl.textContent = String(message || '').trim();
+      statusBoxEl.className = `status-box ${type}`;
+      statusBoxEl.style.display = message ? 'block' : 'none';
+    };
+
+    const normalizePlanPayload = (payload) => JSON.stringify({
+      planCode: String(payload?.planCode || '').toUpperCase(),
+      planName: String(payload?.planName || '').trim(),
+      price: Number(payload?.price || 0).toFixed(2),
+      discountPercent: String(Math.round(Number(payload?.discountPercent || 0))),
+      durationDays: String(Math.round(Number(payload?.durationDays || 0))),
+      enabled: Boolean(payload?.enabled),
+      description: String(payload?.description || '').trim()
+    });
+
+    const syncPlanCardState = (card, dirty) => {
+      if (!card) return;
+      card.classList.toggle('dirty', Boolean(dirty));
+      const stateEl = card.querySelector('[data-plan-save-state]');
+      if (stateEl) {
+        stateEl.textContent = dirty ? 'Unsaved changes' : 'Saved';
+        stateEl.className = `plan-save-state ${dirty ? 'dirty' : 'saved'}`;
+      }
+      const saveBtn = card.querySelector('[data-save-plan]');
+      if (saveBtn && !saveBtn.disabled) {
+        saveBtn.textContent = dirty ? 'Save changes' : 'Save this plan';
+      }
+    };
+
+    const setSectionCollapsed = (key, collapsed) => {
+      const card = document.querySelector(`[data-section-card="${key}"]`);
+      const btn = document.querySelector(`[data-toggle-section="${key}"]`);
+      if (!card || !btn) return;
+      card.classList.toggle('collapsed', collapsed);
+      btn.textContent = collapsed ? 'Expand' : 'Collapse';
+      btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      try {
+        localStorage.setItem(`clubUpdatesSection:${key}`, collapsed ? 'collapsed' : 'expanded');
+      } catch {}
+    };
+
+    const initSectionToggles = () => {
+      sectionCards.forEach((card) => {
+        const key = card.getAttribute('data-section-card');
+        if (!key) return;
+        setSectionCollapsed(key, true);
+      });
+
+      document.querySelectorAll('[data-toggle-section]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const key = btn.getAttribute('data-toggle-section');
+          const card = document.querySelector(`[data-section-card="${key}"]`);
+          if (!key || !card) return;
+          setSectionCollapsed(key, !card.classList.contains('collapsed'));
+        });
+      });
+    };
+
+    const resolveClubId = async () => {
+      const loggedUser = safeParseJSON(localStorage.getItem('loggedUser') || 'null');
+      if (!loggedUser || String(loggedUser.type || '').toLowerCase() !== 'club') {
+        window.location.href = 'login.html#login';
+        return null;
+      }
+
+      const res = await authFetch('/api/my/clubs');
+      if (!res.ok) return null;
+      const clubs = await res.json();
+      if (!Array.isArray(clubs) || clubs.length === 0) return null;
+
+      const selectedClub = safeParseJSON(localStorage.getItem('selectedClub') || 'null');
+      const selectedId = String(selectedClub?.id ?? selectedClub?.clubId ?? '');
+      const chosen = clubs.find((club) => String(club?.id ?? club?.clubId ?? '') === selectedId) || clubs[0];
+      const clubId = Number(chosen?.id ?? chosen?.clubId);
+      if (!Number.isFinite(clubId)) return null;
+
+      activeClubName = String(chosen?.name || chosen?.clubName || `Club #${clubId}`).trim();
+      try {
+        localStorage.setItem('selectedClub', JSON.stringify({ id: String(clubId), name: activeClubName }));
+      } catch {}
+      return clubId;
+    };
+
+    const buildPlanShape = (raw) => {
+      const base = PLAN_TEMPLATES.find((row) => row.code === String(raw?.planCode || '').toUpperCase());
+      return {
+        code: String(raw?.planCode || base?.code || '').toUpperCase(),
+        name: String(raw?.planName || base?.name || '').trim(),
+        durationDays: Number(raw?.durationDays ?? base?.durationDays ?? 0) || 0,
+        price: Number(raw?.price ?? 0) || 0,
+        discountPercent: Number(raw?.discountPercent ?? 0) || 0,
+        enabled: raw?.enabled !== false,
+        description: String(raw?.description || base?.description || '').trim()
+      };
+    };
+
+    const renderPlans = (plans) => {
+      const planMap = new Map((Array.isArray(plans) ? plans : []).map((plan) => [String(plan?.planCode || '').toUpperCase(), buildPlanShape(plan)]));
+      const cards = PLAN_TEMPLATES.map((template) => {
+        const plan = planMap.get(template.code) || buildPlanShape(template);
+        const enabled = plan.enabled !== false;
+        return `
+          <article class="plan-card ${enabled ? '' : 'disabled'}" data-plan-code="${template.code}">
+            <div class="plan-top">
+              <div>
+                <div class="plan-duration">${plan.durationDays} days</div>
+                <h3>${escapeHtml(plan.name || template.name)}</h3>
+              </div>
+              <div class="plan-badge">${escapeHtml(template.code === 'HALF_YEAR' ? 'HALF YEAR' : template.code.replace('LY', ''))}</div>
+            </div>
+            <div class="plan-toggle-row">
+              <label class="plan-toggle">
+                <input type="checkbox" data-field="enabled" ${enabled ? 'checked' : ''} />
+                <span>Offer this plan to members</span>
+              </label>
+              <span class="plan-availability">${enabled ? 'Visible on the club page' : 'Hidden from new purchases'}</span>
+            </div>
+            <div class="field-grid">
+              <div class="field">
+                <label>Plan name</label>
+                <input type="text" data-field="planName" value="${escapeHtml(plan.name || template.name)}" />
+              </div>
+              <div class="field">
+                <label>Price</label>
+                <input type="number" min="0" step="0.01" data-field="price" value="${escapeHtml(Number(plan.price || 0).toFixed(2))}" />
+              </div>
+              <div class="field">
+                <label>Booking discount %</label>
+                <input type="number" min="0" max="100" step="1" data-field="discountPercent" value="${escapeHtml(String(Math.round(Number(plan.discountPercent || 0))))}" />
+              </div>
+              <div class="field">
+                <label>Duration days</label>
+                <input type="number" min="1" step="1" data-field="durationDays" value="${escapeHtml(String(plan.durationDays || template.durationDays))}" />
+              </div>
+              <div class="field">
+                <label>Description</label>
+                <textarea data-field="description">${escapeHtml(plan.description || template.description)}</textarea>
+              </div>
+            </div>
+            <div class="plan-footer">
+              <div style="display:grid;gap:8px;">
+                <div class="plan-note">Members booking with this pass will pay the normal slot price minus this discount.</div>
+                <div class="plan-save-state saved" data-plan-save-state>Saved</div>
+              </div>
+              <button class="plan-save-btn" type="button" data-save-plan="${template.code}">Save this plan</button>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      planGridEl.innerHTML = cards;
+
+      planGridEl.querySelectorAll('[data-plan-code]').forEach((card) => {
+        const planCode = String(card.getAttribute('data-plan-code') || '').toUpperCase();
+        const updateCardState = () => {
+          const enabled = Boolean(card.querySelector('[data-field="enabled"]')?.checked);
+          card.classList.toggle('disabled', !enabled);
+          const label = card.querySelector('.plan-availability');
+          if (label) label.textContent = enabled ? 'Visible on the club page' : 'Hidden from new purchases';
+          const payload = readPlanPayload(planCode);
+          const dirty = payload ? normalizePlanPayload(payload) !== String(card.dataset.originalPayload || '') : false;
+          syncPlanCardState(card, dirty);
+        };
+
+        const payload = readPlanPayload(planCode);
+        if (payload) card.dataset.originalPayload = normalizePlanPayload(payload);
+
+        card.querySelectorAll('[data-field]').forEach((fieldEl) => {
+          const isCheckbox = fieldEl.matches('input[type="checkbox"]');
+          fieldEl.addEventListener(isCheckbox ? 'change' : 'input', updateCardState);
+          if (!isCheckbox) fieldEl.addEventListener('change', updateCardState);
+        });
+
+        updateCardState();
+      });
+
+      planGridEl.querySelectorAll('[data-save-plan]').forEach((btn) => {
+        btn.addEventListener('click', () => saveSinglePlan(btn.getAttribute('data-save-plan') || '', btn));
+      });
+    };
+
+    const readPlanPayload = (planCode) => {
+      const template = PLAN_TEMPLATES.find((row) => row.code === String(planCode || '').toUpperCase());
+      if (!template) return null;
+      const card = planGridEl.querySelector(`[data-plan-code="${template.code}"]`);
+      if (!card) return null;
+      const read = (field) => card.querySelector(`[data-field="${field}"]`);
+      return {
+        planCode: template.code,
+        planName: String(read('planName')?.value || template.name).trim(),
+        price: Number(read('price')?.value || 0),
+        discountPercent: Number(read('discountPercent')?.value || 0),
+        durationDays: Number(read('durationDays')?.value || template.durationDays),
+        enabled: Boolean(read('enabled')?.checked),
+        description: String(read('description')?.value || template.description).trim()
+      };
+    };
+
+    const loadPlans = async () => {
+      const res = await authFetch(`/api/my/clubs/${encodeURIComponent(String(activeClubId))}/membership-plans`);
+      if (!res.ok) throw new Error('Failed to load membership plans.');
+      const data = await res.json();
+      renderPlans(Array.isArray(data) ? data : []);
+    };
+
+    const memberStatusClass = (status) => {
+      const key = String(status || '').toLowerCase();
+      if (key === 'active') return 'active';
+      if (key === 'scheduled') return 'scheduled';
+      return 'expired';
+    };
+
+    const renderMembers = (items) => {
+      const list = Array.isArray(items) ? items : [];
+      const counts = {
+        total: list.length,
+        active: list.filter((row) => String(row?.status || '').toUpperCase() === 'ACTIVE').length,
+        scheduled: list.filter((row) => String(row?.status || '').toUpperCase() === 'SCHEDULED').length,
+        expired: list.filter((row) => String(row?.status || '').toUpperCase() === 'EXPIRED').length
+      };
+
+      statsGridEl.innerHTML = `
+        <div class="stat-card"><span class="stat-label">Total passes</span><span class="stat-value">${counts.total}</span></div>
+        <div class="stat-card"><span class="stat-label">Active</span><span class="stat-value">${counts.active}</span></div>
+        <div class="stat-card"><span class="stat-label">Scheduled</span><span class="stat-value">${counts.scheduled}</span></div>
+        <div class="stat-card"><span class="stat-label">Expired</span><span class="stat-value">${counts.expired}</span></div>
+      `;
+
+      if (!list.length) {
+        memberListEl.innerHTML = '<div class="empty">No member has purchased a pass for this club yet.</div>';
+        return;
+      }
+
+      memberListEl.innerHTML = list.map((member) => `
+        <article class="member-card">
+          <div class="member-meta">
+            <div class="member-name">${escapeHtml(member?.memberName || member?.email || `User #${member?.userId ?? '--'}`)}</div>
+            <div class="member-sub">${escapeHtml(member?.email || '')}</div>
+            <div class="member-sub">${escapeHtml(member?.planName || 'Membership')} • ${escapeHtml(formatDate(member?.startDate))} to ${escapeHtml(formatDate(member?.endDate))}</div>
+          </div>
+          <div class="member-right">
+            <span class="pill">${escapeHtml(formatPrice(member?.planPrice))}</span>
+            <span class="pill">${escapeHtml(String(member?.discountPercent ?? 0))}% off</span>
+            <span class="pill ${memberStatusClass(member?.status)}">${escapeHtml(member?.status || 'ACTIVE')}</span>
+          </div>
+        </article>
+      `).join('');
+    };
+
+    const loadMembers = async () => {
+      const res = await authFetch(`/api/my/clubs/${encodeURIComponent(String(activeClubId))}/memberships`);
+      if (!res.ok) throw new Error('Failed to load club memberships.');
+      const data = await res.json();
+      renderMembers(Array.isArray(data) ? data : []);
+    };
+
+    const saveSinglePlan = async (planCode, buttonEl) => {
+      const payload = readPlanPayload(planCode);
+      if (!payload || !buttonEl) return;
+      showStatus('');
+      buttonEl.disabled = true;
+      buttonEl.textContent = 'Saving...';
+      try {
+        const res = await authFetch(`/api/my/clubs/${encodeURIComponent(String(activeClubId))}/membership-plans`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify([payload])
+        });
+        if (!res.ok) {
+          const text = await res.text().catch(() => '');
+          throw new Error(text || 'Failed to save membership plans.');
+        }
+        await loadPlans();
+        showStatus(`${payload.planName || 'Membership plan'} saved. ${payload.enabled ? 'It is now live on the club page.' : 'It is now hidden from new purchases.'}`, 'success');
+      } catch (err) {
+        console.error(err);
+        showStatus(err?.message || 'Failed to save membership plans.', 'error');
+      } finally {
+        buttonEl.disabled = false;
+        const card = buttonEl.closest('[data-plan-code]');
+        const payloadAfter = readPlanPayload(planCode);
+        const dirtyAfter = card && payloadAfter
+          ? normalizePlanPayload(payloadAfter) !== String(card.dataset.originalPayload || '')
+          : false;
+        syncPlanCardState(card, dirtyAfter);
+      }
+    };
+    initSectionToggles();
+
+    (async () => {
+      try {
+        activeClubId = await resolveClubId();
+        if (!activeClubId) {
+          showStatus('No club is available for this account.', 'error');
+          planGridEl.innerHTML = '<div class="empty">No club found.</div>';
+          memberListEl.innerHTML = '<div class="empty">No club found.</div>';
+          return;
+        }
+
+        if (planIntroEl && activeClubName) {
+          planIntroEl.textContent = `Expand to edit the passes for ${activeClubName}. Each card must be saved separately before members can see the change.`;
+        }
+
+        await Promise.all([loadPlans(), loadMembers()]);
+      } catch (err) {
+        console.error(err);
+        showStatus(err?.message || 'Failed to load memberships.', 'error');
+        if (!planGridEl.innerHTML) planGridEl.innerHTML = '<div class="empty">Unable to load membership plans.</div>';
+        if (!memberListEl.innerHTML) memberListEl.innerHTML = '<div class="empty">Unable to load club memberships.</div>';
+      }
+    })();
+  </script>
 </body>
 </html>

@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Club Booking Portal · Club Page</title>
-  <link rel="stylesheet" href="theme.css">
+<title>Club Booking Portal - Club Page</title>
+  <link rel="stylesheet" href="theme.css?v=20260220b">
 <style>
   :root {
     --bg: #f7f7f8;
@@ -22,7 +22,7 @@
 
   body {
     margin: 0;
-    background: linear-gradient(#fff, #fafafa);
+    background: var(--bg);
     color: var(--ink);
     font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
   }
@@ -30,6 +30,7 @@
   .preview-banner {
     background: #fef08a;
     border-bottom: 2px solid #eab308;
+    display: none;
     padding: 12px 16px;
     text-align: center;
     font-weight: 600;
@@ -37,8 +38,7 @@
     font-size: 14px;
   }
 
-  header,
-  footer {
+  header {
     border-bottom: 1px solid var(--line);
     background: #fff;
     position: sticky;
@@ -47,7 +47,6 @@
   }
 
   header .wrap,
-  footer .wrap,
   .wrap {
     max-width: 1100px;
     margin: 0 auto;
@@ -145,8 +144,18 @@
   .card {
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 16px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
+    border-radius: 18px;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, .05);
+    transition: box-shadow .22s ease, border-color .22s ease;
+  }
+
+  .card:hover {
+    box-shadow: 0 12px 28px rgba(15, 23, 42, .08);
+    border-color: #dbe2ea;
+  }
+
+  .wrap > .card + .card {
+    margin-top: 18px;
   }
 
   .card .pad {
@@ -158,19 +167,109 @@
     font-size: 12px;
   }
 
-  .thumb {
-    height: 180px;
-    background: #f3f4f6;
-    border: 1px dashed var(--line);
+  .hero-carousel {
+    position: relative;
     border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: #f8fafc;
+  }
+
+  .hero-scroll {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .hero-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hero-slide {
+    min-width: 100%;
+    height: 220px;
+    scroll-snap-align: start;
+    user-select: none;
+    -webkit-user-drag: none;
+    background: #f3f4f6;
     color: var(--muted);
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
+  .hero-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .hero-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    background: rgba(15, 23, 42, 0.44);
+    color: #fff;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+  }
+
+  .hero-nav.prev { left: 10px; }
+  .hero-nav.next { right: 10px; }
+
+  .hero-nav[hidden] {
+    display: none;
+  }
+
+  .hero-dots {
+    position: absolute;
+    left: 50%;
+    bottom: 10px;
+    transform: translateX(-50%);
+    display: inline-flex;
+    gap: 6px;
+    padding: 6px 8px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.22);
+    z-index: 2;
+  }
+
+  .hero-dots:empty {
+    display: none;
+  }
+
+  .hero-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .hero-dot.active {
+    background: #fff;
+  }
+
   .chips {
     display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .category-chip-list {
+    display: inline-flex;
     gap: 8px;
     flex-wrap: wrap;
     align-items: center;
@@ -185,6 +284,21 @@
     align-items: center;
     gap: 6px;
   }
+  .chip-link {
+    border: none;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .chip-link:disabled {
+    cursor: default;
+    text-decoration: none;
+    opacity: 0.7;
+  }
 
   .chip-hours {
     gap: 10px;
@@ -193,6 +307,307 @@
 
   .chip-divider {
     color: var(--line);
+  }
+  .preview-topbar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .top-back-wrap {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-left: 10px;
+  }
+
+  .preview-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    justify-self: center;
+    text-align: center;
+    max-width: min(56vw, 560px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .top-right-wrap {
+    justify-self: end;
+    display: flex;
+    align-items: center;
+  }
+
+  .header-chat-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    border: 1px solid #bfdbfe;
+    background: #eff6ff;
+    color: #1d4ed8;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .18s ease, border-color .18s ease, transform .18s ease;
+  }
+
+  .header-chat-btn:hover {
+    background: #dbeafe;
+    border-color: #93c5fd;
+    transform: translateY(-1px);
+  }
+
+  .header-chat-btn:focus-visible {
+    outline: 2px solid #93c5fd;
+    outline-offset: 2px;
+  }
+
+  .header-chat-icon {
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  .club-chat-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.36);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease;
+    z-index: 2500;
+  }
+
+  .club-chat-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .club-chat-panel {
+    position: fixed;
+    right: 20px;
+    bottom: 18px;
+    width: min(390px, calc(100vw - 24px));
+    max-height: min(72vh, 620px);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 24px 48px rgba(15, 23, 42, 0.24);
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(14px) scale(.98);
+    transition: transform .2s ease, opacity .2s ease;
+    z-index: 2600;
+  }
+
+  .club-chat-panel.open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+  }
+
+  .club-chat-head {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: linear-gradient(135deg, #f8fbff, #eff6ff);
+  }
+
+  .club-chat-head h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .club-chat-head p {
+    margin: 3px 0 0;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.35;
+  }
+
+  .club-chat-badge {
+    border-radius: 999px;
+    border: 1px solid #bfdbfe;
+    background: #dbeafe;
+    color: #1e3a8a;
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+    line-height: 1;
+  }
+
+  .club-chat-close {
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  .club-chat-thread {
+    padding: 12px;
+    overflow: auto;
+    display: grid;
+    gap: 10px;
+    align-content: start;
+    background: #fbfcff;
+  }
+
+  .club-chat-empty {
+    border: 1px dashed #cbd5e1;
+    background: #f8fafc;
+    border-radius: 10px;
+    color: #475569;
+    font-size: 12px;
+    line-height: 1.45;
+    padding: 10px 12px;
+  }
+
+  .club-chat-msg {
+    display: grid;
+    gap: 4px;
+    justify-items: start;
+  }
+
+  .club-chat-msg.user {
+    justify-items: end;
+  }
+
+  .club-chat-row {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 8px;
+    max-width: 100%;
+  }
+
+  .club-chat-msg.user .club-chat-row {
+    flex-direction: row-reverse;
+  }
+
+  .club-chat-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    border: 1px solid #dbe2ea;
+    background: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    color: #334155;
+    font-size: 11px;
+    font-weight: 700;
+    flex: 0 0 auto;
+  }
+
+  .club-chat-avatar.user {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+    color: #1e3a8a;
+  }
+
+  .club-chat-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .club-chat-bubble {
+    max-width: min(82%, 300px);
+    border-radius: 12px;
+    padding: 9px 10px;
+    font-size: 12px;
+    line-height: 1.45;
+    border: 1px solid #dbe2ea;
+    background: #fff;
+    color: #0f172a;
+    word-break: break-word;
+  }
+
+  .club-chat-msg.user .club-chat-bubble {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+    color: #1e3a8a;
+  }
+
+  .club-chat-meta {
+    font-size: 11px;
+    color: #64748b;
+    line-height: 1.2;
+  }
+
+  .club-chat-form {
+    border-top: 1px solid var(--line);
+    background: #fff;
+    padding: 12px;
+    display: grid;
+    gap: 8px;
+  }
+
+  .club-chat-input {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font: inherit;
+    line-height: 1.4;
+    min-height: 70px;
+    padding: 8px 10px;
+    resize: vertical;
+    max-height: 160px;
+  }
+
+  .club-chat-send {
+    justify-self: end;
+    min-width: 92px;
+    border: 1px solid #1d4ed8;
+    border-radius: 999px;
+    background: #1d4ed8;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 8px 12px;
+    cursor: pointer;
+  }
+
+  .club-chat-send:hover {
+    background: #1e40af;
+    border-color: #1e40af;
+  }
+
+  body.club-chat-open {
+    overflow: hidden;
+  }
+
+  @media (max-width: 760px) {
+    .top-back-wrap {
+      padding-left: 2px;
+    }
+
+    .club-chat-panel {
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      width: auto;
+      max-height: 80vh;
+    }
   }
 .kpi {
     display: grid;
@@ -313,6 +728,22 @@
     min-height: 44px;
   }
 
+  .slot-booked {
+    padding: 8px 10px;
+    margin: 6px;
+    border: 1px solid #86efac;
+    background: #dcfce7;
+    border-radius: 10px;
+    text-align: center;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-height: 44px;
+  }
+
   .slot-label {
     font-size: 12px;
     font-weight: 600;
@@ -320,6 +751,10 @@
 
   .slot-full .slot-label {
     color: #6b7280;
+  }
+
+  .slot-booked .slot-label {
+    color: #166534;
   }
 
   .slot-price {
@@ -330,6 +765,23 @@
     border: 1px solid #bfdbfe;
     border-radius: 999px;
     padding: 2px 8px;
+  }
+
+  .slot-booked .slot-price {
+    color: #166534;
+    background: #f0fdf4;
+    border-color: #86efac;
+  }
+
+  .slot-capacity {
+    font-size: 11px;
+    font-weight: 600;
+    color: #475569;
+    line-height: 1.2;
+  }
+
+  .slot-booked .slot-capacity {
+    color: #166534;
   }
 
   .pill {
@@ -348,6 +800,53 @@
     background: transparent;
     color: #555;
     cursor: pointer;
+  }
+
+  .week-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 10px 2px 2px;
+    scroll-snap-type: x proximity;
+  }
+
+  .week-tab {
+    scroll-snap-align: start;
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: inherit;
+    white-space: nowrap;
+  }
+
+  .week-tab .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    color: #111;
+    font-size: 11px;
+    padding: 0 6px;
+  }
+
+  .week-tab.active {
+    background: #111;
+    border-color: #111;
+    color: #fff;
+  }
+
+  .week-tab.active .badge {
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
   }
 
   .info-overlay {
@@ -397,6 +896,7 @@
     cursor: pointer;
     color: var(--muted);
   }
+
   .back-link {
     display: inline-flex;
     align-items: center;
@@ -409,71 +909,285 @@
     cursor: pointer;
     padding: 8px 0;
   }
+  .club-title-trigger {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .club-title-trigger:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .club-title-trigger:focus-visible {
+    outline: 2px solid #93c5fd;
+    outline-offset: 4px;
+    border-radius: 6px;
+  }
+
+  .membership-section {
+    display: grid;
+    gap: 12px;
+  }
+
+  .membership-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .membership-copy {
+    display: grid;
+    gap: 4px;
+  }
+
+  .membership-head h3 {
+    margin: 0;
+    font-size: 16px;
+  }
+
+  .membership-head p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .membership-toggle {
+    border: 1px solid var(--line);
+    background: #fff;
+    color: #111827;
+    border-radius: 999px;
+    min-height: 38px;
+    padding: 0 14px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .membership-summary {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .membership-status {
+    border: 1px solid #bbf7d0;
+    background: #f0fdf4;
+    color: #166534;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .membership-plans-wrap[hidden] {
+    display: none !important;
+  }
+
+  .membership-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+    gap: 12px;
+  }
+
+  .membership-plan-card {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 14px;
+    display: grid;
+    gap: 8px;
+    background: #fff;
+  }
+
+  .membership-plan-card.active {
+    border-color: #bbf7d0;
+    background: #f8fff9;
+  }
+
+  .membership-plan-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .membership-plan-name {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  .membership-plan-duration {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .membership-plan-discount {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 64px;
+    padding: 0 10px;
+    height: 30px;
+    border-radius: 999px;
+    background: #eef2ff;
+    color: #3730a3;
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  .membership-plan-price {
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1.1;
+  }
+
+  .membership-plan-copy {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .membership-plan-btn {
+    border: 1px solid var(--line);
+    background: #fff;
+    color: #111827;
+    border-radius: 999px;
+    min-height: 36px;
+    padding: 0 14px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .membership-plan-btn.buy {
+    border-color: #c7d2fe;
+    background: #eef2ff;
+    color: #3730a3;
+  }
+
+  .membership-plan-btn.ghost {
+    border-color: var(--line);
+    background: #fff;
+    color: #111827;
+  }
+
+  .membership-plan-btn[disabled] {
+    opacity: .65;
+    cursor: not-allowed;
+  }
+
+  .slot-note {
+    font-size: 11px;
+    color: #0f766e;
+    font-weight: 700;
+    line-height: 1.2;
+  }
 </style>
 </head>
-<body>
-  <!-- 预览状态提示：显示这是上架前的预览版本 -->
+<body class="page-with-footer">
+  <!-- 棰勮鐘舵€佹彁绀猴細鏄剧ず杩欐槸涓婃灦鍓嶇殑棰勮鐗堟湰 -->
   <div class="preview-banner">
-    ⚠️ Preview: This is a preview before changes go live
+    鈿狅笍 Preview: This is a preview before changes go live
   </div>
 
-  <!-- 顶部导航栏：包含网站标题、返回首页链接和用户登录/注册入口 -->
+  <!-- 椤堕儴瀵艰埅鏍忥細鍖呭惈缃戠珯鏍囬銆佽繑鍥為椤甸摼鎺ュ拰鐢ㄦ埛鐧诲綍/娉ㄥ唽鍏ュ彛 -->
   <header>
-    <div class="wrap" style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px">
-      <div style="display:flex;align-items:center;gap:16px">
-        <button class="back-link" onclick="window.location.href = 'club home.html'" type="button" aria-label="Back">← Back</button>
+    <div class="wrap preview-topbar">
+      <div class="top-back-wrap">
+        <button class="back-link" id="btnBack" type="button" aria-label="Back">&larr; Back</button>
       </div>
-      <h2 style="margin:0;font-size:18px;font-weight:600;justify-self:center">Public preview</h2>
-      <div style="display:flex;gap:8px;align-items:center;justify-self:end">
-        <button class="btn blue" type="button">Confirm</button>
+      <h2 id="pageTitle" class="preview-title">Club</h2>
+      <div class="top-right-wrap">
+        <button id="openClubChatBtn" class="header-chat-btn" type="button" aria-label="Talk with club" aria-haspopup="dialog" aria-controls="clubChatPanel">
+          <span class="header-chat-icon" aria-hidden="true">&#x1F4AC;</span>
+        </button>
       </div>
     </div>
   </header>
 
-  <div class="wrap">
+  <main class="wrap page-main">
     <div class="card"><div class="pad">
-      <div class="thumb">Club cover / banner</div>
-      <h2>Club 1</h2>
-      <p class="muted">Suitable for all levels, regular evening training and friendlies.</p>
+      <div id="clubHero" class="hero-carousel" aria-label="Club gallery">
+        <div id="clubHeroScroll" class="hero-scroll">
+          <div class="hero-slide">Club cover / banner</div>
+        </div>
+        <button id="clubHeroPrev" class="hero-nav prev" type="button" aria-label="Previous image" hidden>&lsaquo;</button>
+        <button id="clubHeroNext" class="hero-nav next" type="button" aria-label="Next image" hidden>&rsaquo;</button>
+        <div id="clubHeroDots" class="hero-dots" aria-label="Image slides"></div>
+      </div>
+      <h2 id="clubTitle" class="club-title-trigger" role="button" tabindex="0" aria-label="View club contact details">Club</h2>
+      <p class="muted" id="clubDesc">Suitable for all levels, regular evening training and friendlies.</p>
       <div class="chips">
-        <span class="chip">&#x1F3F8; Badminton</span>
-        <span class="chip">&#x1F4CD; Hall A</span>
+        <div id="clubCategoryChips" class="category-chip-list">
+          <span class="chip"><span id="clubCategoryIcon" aria-hidden="true">&#x1F3DF;</span> <span id="clubCategory">Badminton</span></span>
+        </div>
+        <span class="chip">
+          <span aria-hidden="true">&#x1F4CD;</span>
+          <button id="clubLocationBtn" class="chip-link" type="button" aria-label="Open location in Google Maps">Hall A</button>
+        </span>
         <span class="chip chip-hours">
           <span>&#x1F552; Opening hours <span id="hoursLabel">08:00 - 24:00</span></span>
           <span class="chip-divider">|</span>
-          <span>Courts: 3</span>
+          <span id="clubCourts">Courts: 3</span>
         </span>
       </div>
     </div></div>
 
 
-    <!-- 俱乐部概况卡片：展示封面、描述、标签和关键指标 (KPI) -->
+    <!-- 淇变箰閮ㄦ鍐靛崱鐗囷細灞曠ず灏侀潰銆佹弿杩般€佹爣绛惧拰鍏抽敭鎸囨爣 (KPI) -->
     
 
-    <!-- 排程管理卡片：包含营业时间设置、场地管理和排程网格 -->
+    <!-- 鎺掔▼绠＄悊鍗＄墖锛氬寘鍚惀涓氭椂闂磋缃€佸満鍦扮鐞嗗拰鎺掔▼缃戞牸 -->
+    <div id="clubMembershipSection" class="card"><div class="pad membership-section">
+      <div class="membership-head">
+        <div class="membership-copy">
+          <h3>Member pricing</h3>
+          <p id="clubMembershipIntro">Optional passes can reduce booking prices at this club.</p>
+        </div>
+        <button id="clubMembershipToggle" class="membership-toggle" type="button" aria-expanded="false" aria-controls="membershipPlansWrap">View plans</button>
+      </div>
+      <div id="clubMembershipSummary" class="membership-summary" style="display:none;"></div>
+      <div id="clubMembershipStatus" class="membership-status" style="display:none;"></div>
+      <div id="membershipPlansWrap" class="membership-plans-wrap" hidden>
+        <div id="membershipPlans" class="membership-grid">
+          <div class="muted">Loading memberships...</div>
+        </div>
+      </div>
+    </div></div>
+
         <div class="card"><div class="pad">
-      <h3>Booking board</h3>
-      <p class="muted">Tap a slot to toggle between available and full (demo only).</p>
+      <div id="weekTabs" class="week-tabs" aria-label="Next 7 days"></div>
       <div id="schedule" style="margin-top:12px"></div>
     </div></div>
 
-    <!-- 成员列表卡片：展示俱乐部成员及管理操作 -->
-<!-- 风险操作区：删除俱乐部或重置数据 -->
-</div>
+    <!-- 鎴愬憳鍒楄〃鍗＄墖锛氬睍绀轰勘涔愰儴鎴愬憳鍙婄鐞嗘搷浣?-->
+<!-- 椋庨櫓鎿嶄綔鍖猴細鍒犻櫎淇变箰閮ㄦ垨閲嶇疆鏁版嵁 -->
+  </main>
 
-  <!-- 页脚：包含版权信息和辅助链接 -->
-  <footer>
-    <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;margin-top:24px">
-      <span class="site-footer__text">© <span id="y"></span> Club Booking Portal</span>
-      <div style="display:flex;gap:8px">
-        <button class="btn ghost info-trigger" type="button" data-info="privacy">Privacy</button>
-        <button class="btn ghost info-trigger" type="button" data-info="terms">Terms</button>
-        <button class="btn ghost info-trigger" type="button" data-info="help">Help</button>
+  <!-- 椤佃剼锛氬寘鍚増鏉冧俊鎭拰杈呭姪閾炬帴 -->
+  <footer class="site-footer">
+    <div class="site-footer__wrap">
+      <span class="site-footer__text">&copy; <span id="y"></span> Club Booking Portal</span>
+      <div class="site-footer__actions">
+        <button class="site-footer__btn info-trigger" type="button" data-info="privacy">Privacy</button>
+        <button class="site-footer__btn info-trigger" type="button" data-info="terms">Terms</button>
+        <button class="site-footer__btn info-trigger" type="button" data-info="help">Help</button>
       </div>
     </div>
   </footer>
 
-  <!-- 信息弹窗：用于显示隐私政策、服务条款等静态内容 -->
+  <!-- 淇℃伅寮圭獥锛氱敤浜庢樉绀洪殣绉佹斂绛栥€佹湇鍔℃潯娆剧瓑闈欐€佸唴瀹?-->
   <div id="infoOverlay" class="info-overlay" aria-hidden="true">
     <div class="info-card" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
       <button class="info-close" type="button" aria-label="Close">x</button>
@@ -482,10 +1196,103 @@
     </div>
   </div>
 
+  <div id="clubChatBackdrop" class="club-chat-backdrop" aria-hidden="true"></div>
+  <aside id="clubChatPanel" class="club-chat-panel" aria-hidden="true">
+    <div class="club-chat-head">
+      <div>
+        <h3 id="clubChatTitle">Talk with club</h3>
+        <p>Quick questions about booking and venue details.</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span id="clubChatBadge" class="club-chat-badge">0</span>
+        <button id="closeClubChatBtn" class="club-chat-close" type="button" aria-label="Close chat">&times;</button>
+      </div>
+    </div>
+    <div id="clubChatThread" class="club-chat-thread" aria-live="polite"></div>
+    <form id="clubChatForm" class="club-chat-form">
+      <textarea id="clubChatInput" class="club-chat-input" placeholder="Type your message..." maxlength="500"></textarea>
+      <button class="club-chat-send" type="submit">Send</button>
+    </form>
+  </aside>
+  <script src="ui-prompt.js?v=20260220b"></script>
   <script>
-    // 1. 用户会话管理
-    // 负责检查本地存储中的登录状态，并根据用户类型（普通用户或俱乐部管理员）渲染顶部导航栏的用户区域。
-    // 如果已登录，显示下拉菜单；如果未登录，显示登录/注册按钮。
+    // 1. 鐢ㄦ埛浼氳瘽绠＄悊
+    // 璐熻矗妫€鏌ユ湰鍦板瓨鍌ㄤ腑鐨勭櫥褰曠姸鎬侊紝骞舵牴鎹敤鎴风被鍨嬶紙鏅€氱敤鎴锋垨淇变箰閮ㄧ鐞嗗憳锛夋覆鏌撻《閮ㄥ鑸爮鐨勭敤鎴峰尯鍩熴€?
+    // 濡傛灉宸茬櫥褰曪紝鏄剧ず涓嬫媺鑿滃崟锛涘鏋滄湭鐧诲綍锛屾樉绀虹櫥褰?娉ㄥ唽鎸夐挳銆?
+    // Back always returns to the proper home page (not browser history).
+    const resolveBackHomeHref = () => {
+      try {
+        const logged = JSON.parse(localStorage.getItem('loggedUser') || 'null');
+        const role = String(logged?.type || logged?.role || '').trim().toLowerCase();
+        if (role.includes('club') || role.includes('admin') || role.includes('leader')) {
+          return 'club home.html';
+        }
+      } catch {}
+      return 'home.html';
+    };
+
+    document.getElementById('btnBack')?.addEventListener('click', () => {
+      window.location.href = resolveBackHomeHref();
+    });
+
+        const categoryIcon = (category) => {
+      const c = String(category || '').trim().toLowerCase();
+      if (c.includes('basket')) return '\u{1F3C0}';
+      if (c.includes('badminton')) return '\u{1F3F8}';
+      if (c.includes('table') && c.includes('tennis')) return '\u{1F3D3}';
+      if (c === 'tennis' || c.includes('lawn tennis')) return '\u{1F3BE}';
+      if (c.includes('volley')) return '\u{1F3D0}';
+      if (c.includes('football') || c.includes('soccer')) return '\u{26BD}';
+      if (c.includes('baseball')) return '\u{26BE}';
+      if (c.includes('rugby')) return '\u{1F3C9}';
+      if (c.includes('cricket')) return '\u{1F3CF}';
+      return '\u{1F3DF}';
+    };
+
+    const applyCategoryChip = (categoryValue) => {
+      const categoryChipsEl = document.getElementById('clubCategoryChips');
+      const values = Array.isArray(categoryValue)
+        ? categoryValue.map((value) => String(value || '').trim()).filter(Boolean)
+        : [String(categoryValue || '').trim()].filter(Boolean);
+      if (!categoryChipsEl || !values.length) return;
+      categoryChipsEl.innerHTML = values.map((text) => (
+        `<span class="chip"><span aria-hidden="true">${categoryIcon(text)}</span><span>${text}</span></span>`
+      )).join('');
+    };
+
+    const pageTitleEl = document.getElementById('pageTitle');
+    const setPageTitle = (name) => {
+      const label = String(name || '').trim() || 'Club';
+      if (pageTitleEl) pageTitleEl.textContent = label;
+      document.title = `${label} - Public preview`;
+    };
+
+    // 浠?localStorage 濉厖鍩烘湰淇变箰閮ㄦ憳瑕侊紙鍦ㄩ椤电偣鍑烩€滅珛鍗冲姞鍏モ€濇椂璁剧疆锛夈€?
+    (() => {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get('club');
+      let selected = null;
+      try {
+        selected = JSON.parse(localStorage.getItem('selectedClub') || 'null');
+      } catch {
+        selected = null;
+      }
+      if (q && (!selected || String(selected.id || '') !== String(q))) {
+        selected = { ...(selected || {}), id: q };
+      }
+
+      const name = selected?.name || selected?.club_name || '';
+      const tags = Array.isArray(selected?.tags) && selected.tags.length
+        ? selected.tags
+        : [selected?.category].filter(Boolean);
+
+      const clubTitleEl = document.getElementById('clubTitle');
+      const clubDescEl = document.getElementById('clubDesc');
+      if (name && clubTitleEl) clubTitleEl.textContent = name;
+      if (tags.length) applyCategoryChip(tags);
+      setPageTitle(name || clubTitleEl?.textContent || '');
+    })();
+
     const userArea = document.getElementById('userArea');
     if (userArea) {
       let savedUser = null;
@@ -497,7 +1304,7 @@
       }
 
       if (savedUser) {
-        // 已登录：渲染用户菜单（My/Club 按钮及下拉菜单）
+        // 宸茬櫥褰曪細娓叉煋鐢ㄦ埛鑿滃崟锛圡y/Club 鎸夐挳鍙婁笅鎷夎彍鍗曪級
         const isClub = (savedUser && savedUser.type) === 'club';
         const targetHref = isClub ? 'club.html' : 'user.html';
         const myLabel = isClub ? 'Club' : 'My';
@@ -516,14 +1323,14 @@
         const detailsBtn = document.getElementById('btnDetails');
         const logoutBtn = document.getElementById('btnLogout');
 
-        // 绑定详情按钮事件
+        // 缁戝畾璇︽儏鎸夐挳浜嬩欢
     if (detailsBtn) {
           detailsBtn.addEventListener('click', () => {
             window.location.href = targetHref;
           });
         }
 
-        // 绑定登出逻辑
+        // 缁戝畾鐧诲嚭閫昏緫
         if (logoutBtn) {
           logoutBtn.addEventListener('click', () => {
             localStorage.removeItem('loggedUser');
@@ -531,7 +1338,7 @@
           });
         }
 
-        // 下拉菜单交互逻辑（点击、悬停、键盘支持）
+        // 涓嬫媺鑿滃崟浜や簰閫昏緫锛堢偣鍑汇€佹偓鍋溿€侀敭鐩樻敮鎸侊級
         if (myBtn && menuEl) {
           let closeTimer = null;
           const wrapper = userArea ? userArea.querySelector('.user-menu') : null;
@@ -606,7 +1413,7 @@
           });
         }
       } else {
-        // 未登录：绑定登录/注册按钮事件
+        // 鏈櫥褰曪細缁戝畾鐧诲綍/娉ㄥ唽鎸夐挳浜嬩欢
         const loginBtn = document.getElementById('btnLogin');
         const registerBtn = document.getElementById('btnRegister');
         const openAuth = (mode) => {
@@ -618,204 +1425,1436 @@
       }
     }
 
-    // 2. 演示数据与状态管理
-    // 预留后端接口：当接入真实数据时，将 DB_API_BASE 指向后端地址。
-    const DB_API_BASE = '';
-    const AVAILABILITY_ENDPOINT = '/api/club/availability';
+    // 2. 婕旂ず鏁版嵁涓庣姸鎬佺鐞?
+    // 棰勭暀鍚庣鎺ュ彛锛氬綋鎺ュ叆鐪熷疄鏁版嵁鏃讹紝灏?DB_API_BASE 鎸囧悜鍚庣鍦板潃銆?
+    
 
-    const fetchAvailabilityFromApi = async () => {
-      if (!DB_API_BASE) return null;
+    // ---- 鐪熷疄棰勮鐪嬫澘 (鍩轰簬鏁版嵁搴? ----
+    // 鍏紑棰勮锛氭樉绀轰勘涔愰儴绠＄悊鍛樺彂甯冪殑鐩稿悓鏃堕棿娈碉紙鏈潵7澶╋級銆?
+    const authFetch = (url, options = {}) => {
+      const token = localStorage.getItem('token');
+      const headers = { ...(options.headers || {}) };
+      if (token) headers.Authorization = `Bearer ${token}`;
+      return fetch(url, {
+        ...options,
+        credentials: options.credentials ?? 'include',
+        headers
+      });
+    };
+
+    const escapeHtml = (s) => {
+      const str = String(s ?? '');
+      return str.replace(/[&<>"']/g, (ch) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[ch]));
+    };
+
+    const AVATAR_STORAGE_KEY_LEGACY = 'profileAvatar';
+    const AVATAR_STORAGE_KEY_PREFIX = 'profileAvatar:';
+
+    const getAvatarStorageKey = () => {
+      const loggedUser = getLoggedUser() || {};
+      const type = String(loggedUser.type || loggedUser.role || 'user').trim().toLowerCase() || 'user';
+      const email = String(loggedUser.email || '').trim().toLowerCase();
+      if (email) return `${AVATAR_STORAGE_KEY_PREFIX}${type}:${email}`;
+      const name = String(loggedUser.name || '').trim().toLowerCase();
+      if (name) return `${AVATAR_STORAGE_KEY_PREFIX}${type}:${name}`;
+      return `${AVATAR_STORAGE_KEY_PREFIX}${type}:anonymous`;
+    };
+
+    const parseAvatarStorageValue = (raw) => {
+      const text = String(raw || '').trim();
+      if (!text) return '';
       try {
-        const response = await fetch(`${DB_API_BASE}${AVAILABILITY_ENDPOINT}`);
-        if (!response.ok) throw new Error(`API ${response.status}`);
-        return await response.json();
-      } catch (error) {
-        console.warn('[club] availability API error', error);
+        const parsed = JSON.parse(text);
+        return typeof parsed === 'string' ? parsed.trim() : '';
+      } catch {
+        return text;
+      }
+    };
+
+    const readStoredAvatar = () => {
+      const scopedKey = getAvatarStorageKey();
+      const scoped = parseAvatarStorageValue(localStorage.getItem(scopedKey));
+      return scoped || '';
+    };
+
+    const localDateISO = (d) => {
+      const tzOffset = d.getTimezoneOffset() * 60000;
+      return new Date(d.getTime() - tzOffset).toISOString().slice(0, 10);
+    };
+    const parseDateISO = (isoDateTime) => String(isoDateTime || '').slice(0, 10);
+    const parseTimeHHMM = (isoDateTime) => {
+      const t = String(isoDateTime || '').split('T')[1] || '';
+      return t.slice(0, 5);
+    };
+    const parsePrice = (raw) => {
+      const n = Number(raw);
+      if (!Number.isFinite(n) || n < 0) return null;
+      return n;
+    };
+        const formatPrice = (raw) => {
+      const price = parsePrice(raw);
+      if (price === null) return '';
+      return `GBP ${price.toFixed(2)}`;
+    };
+
+    const isNumericId = (id) => /^[0-9]+$/.test(String(id || ''));
+    const getClubId = () => {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get('club');
+      if (q) return q;
+      try {
+        return JSON.parse(localStorage.getItem('selectedClub') || 'null')?.id ?? null;
+      } catch {
         return null;
       }
     };
 
-    // 预期返回结构示例（后端接入后替换）：
-    // {
-    //   courts: ["Court A", "Court B"],
-    //   slots: [
-    //     { court: "Court A", start: "08:00", end: "09:00", status: "ok" },
-    //     { court: "Court B", start: "08:00", end: "09:00", status: "full" }
-    //   ]
-    // }
-    const hydrateScheduleFromApi = (payload) => {
-      if (!payload || !Array.isArray(payload.courts)) return;
-      courts = payload.courts.slice();
-      Object.keys(scheduleData).forEach((key) => delete scheduleData[key]);
-      if (Array.isArray(payload.slots)) {
-        payload.slots.forEach((slot) => {
-          if (!slot || !slot.court || !slot.start) return;
-          const hour = Number(String(slot.start).split(':')[0]);
-          if (Number.isNaN(hour)) return;
-          if (!scheduleData[hour]) scheduleData[hour] = {};
-          scheduleData[hour][slot.court] = slot.status === 'full' ? 'full' : 'ok';
-        });
+    const scheduleEl = document.getElementById('schedule');
+    const weekTabsEl = document.getElementById('weekTabs');
+    const hoursLabelEl = document.getElementById('hoursLabel');
+    const clubCourtsEl = document.getElementById('clubCourts');
+    const clubLocationBtnEl = document.getElementById('clubLocationBtn');
+    const clubTitleEl = document.getElementById('clubTitle');
+    const clubDescEl = document.getElementById('clubDesc');
+    const membershipPlansEl = document.getElementById('membershipPlans');
+    const membershipPlansWrapEl = document.getElementById('membershipPlansWrap');
+    const clubMembershipStatusEl = document.getElementById('clubMembershipStatus');
+    const clubMembershipSummaryEl = document.getElementById('clubMembershipSummary');
+    const clubMembershipToggleEl = document.getElementById('clubMembershipToggle');
+    const clubMembershipIntroEl = document.getElementById('clubMembershipIntro');
+    const clubMembershipSectionEl = document.getElementById('clubMembershipSection');
+    const clubCategoryEl = document.getElementById('clubCategory');
+    const clubHeroScrollEl = document.getElementById('clubHeroScroll');
+    const clubHeroDotsEl = document.getElementById('clubHeroDots');
+    const clubHeroPrevEl = document.getElementById('clubHeroPrev');
+    const clubHeroNextEl = document.getElementById('clubHeroNext');
+    const openClubChatBtnEl = document.getElementById('openClubChatBtn');
+    const closeClubChatBtnEl = document.getElementById('closeClubChatBtn');
+    const clubChatPanelEl = document.getElementById('clubChatPanel');
+    const clubChatBackdropEl = document.getElementById('clubChatBackdrop');
+    const clubChatThreadEl = document.getElementById('clubChatThread');
+    const clubChatFormEl = document.getElementById('clubChatForm');
+    const clubChatInputEl = document.getElementById('clubChatInput');
+    const clubChatBadgeEl = document.getElementById('clubChatBadge');
+    const clubChatTitleEl = document.getElementById('clubChatTitle');
+
+    let heroImageUrls = [];
+    let heroActiveIndex = 0;
+    let heroAutoTimer = null;
+
+    let weekDays = [];
+    let weekFrom = null;
+    let weekTo = null;
+    let selectedDayISO = null;
+    let venues = [];
+    let weekSlots = [];
+    let clubMembershipPlans = [];
+    let myClubMembership = null;
+    let clubMembershipExpanded = false;
+    let clubMapLocationText = '';
+    let clubDisplayMeta = {
+      location: '',
+      placeId: '',
+      locationLat: null,
+      locationLng: null,
+      openingStart: '',
+      openingEnd: '',
+      courtsCount: null
+    };
+    let clubContactMeta = {
+      name: String(clubTitleEl?.textContent || '').trim(),
+      email: '',
+      phone: ''
+    };
+    let myBookedTimeslotIds = new Set();
+    const ACTIVE_BOOKING_STATUSES = new Set(['PENDING', 'APPROVED']);
+    const DISPLAY_LOCALE = 'en-US';
+
+    const safeParseJSON = (raw) => {
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return null;
       }
     };
 
-    // 定义场地列表和初始排程数据（模拟后端数据）。
-    // seed 对象用于生成确定性的伪随机初始状态，以便演示时看起来有数据。
-    let courts=['Court A','Court B','Court C'];
-    const scheduleData={};
-    const seed={
-      8:['ok','full','ok'],9:['ok','ok','ok'],10:['full','ok','ok'],11:['ok','ok','full'],
-      12:['ok','ok','ok'],13:['ok','full','ok'],14:['ok','ok','ok'],15:['full','ok','ok'],
-      16:['ok','ok','ok'],17:['ok','ok','full'],18:['ok','ok','ok'],19:['ok','full','ok'],
-      20:['ok','ok','ok'],21:['ok','ok','ok'],22:['ok','ok','ok'],23:['ok','ok','ok']
+    const stopHeroAutoPlay = () => {
+      if (heroAutoTimer) {
+        clearInterval(heroAutoTimer);
+        heroAutoTimer = null;
+      }
     };
-    // �
-    function ensureHour(hour){
-      if(!scheduleData[hour]) scheduleData[hour] = {};
-      courts.forEach((c,idx)=>{
-        if(!scheduleData[hour][c]){
-          const arr = seed[hour];
-          scheduleData[hour][c] = Array.isArray(arr) && idx < arr.length ? (arr[idx]==='full'?'full':'ok') : 'ok';
-        }
+
+    const syncHeroDots = () => {
+      if (!clubHeroDotsEl) return;
+      const dots = clubHeroDotsEl.querySelectorAll('.hero-dot');
+      dots.forEach((dot, idx) => {
+        dot.classList.toggle('active', idx === heroActiveIndex);
       });
-      // 移除已删除的场地
-      Object.keys(scheduleData[hour]).forEach(c=>{ if(!courts.includes(c)) delete scheduleData[hour][c]; });
-    }
-
-    // 3. DOM �
-    const scheduleEl=document.getElementById('schedule');
-    const openHour=document.getElementById('openHour');
-    const closeHour=document.getElementById('closeHour');
-    const hoursLabel=document.getElementById('hoursLabel');
-      const courtNameEl=document.getElementById('courtName');
-      const addCourtBtn=document.getElementById('addCourt');
-      const courtListEl=document.getElementById('courtList');
-
-      function pad(n){return String(n).padStart(2,'0');}
-      const slotPrice = (hour, court) => {
-        const base = 7;
-        const peak = hour >= 18 ? 2 : 0;
-        const courtOffset = courts.indexOf(court) % 2;
-        return base + peak + courtOffset;
-      };
-
-    // 动态生成小时选择下拉框的选项
-    // 用于填充开始时间和结束时间的选择器
-
-    function buildHourOptions(selectEl,defaultVal,max=24){
-      if(!selectEl) return;
-      selectEl.innerHTML='';
-      for(let i=0;i<=max;i++){
-        const opt=document.createElement('option');
-        opt.value=i; opt.textContent=`${i}:00`;
-        if(i===defaultVal) opt.selected=true;
-        selectEl.appendChild(opt);
-      }
-    }
-
-    // 4. 场地管理逻辑
-    // 渲染已添加的场地标签（Pills），并绑定删除事件。
-    // 当场地列表发生变化时，会触发排程表的重新渲染。
-    function renderCourts(){
-        if(!courtListEl) return;
-      courtListEl.innerHTML='';
-      courts.forEach((c,idx)=>{
-        const pill=document.createElement('span');
-        pill.className='pill';
-        pill.innerHTML = `${c} <button title="Remove" aria-label="Remove ${c}" data-idx="${idx}">×</button>`;
-        pill.querySelector('button').addEventListener('click',()=>{
-          // 移除场地并重新渲染
-          courts.splice(idx,1);
-          renderCourts();
-          renderSchedule(+openHour.value,+closeHour.value);
-        });
-        courtListEl.appendChild(pill);
-      });
-    }
-
-    const initSchedule = async () => {
-      const payload = await fetchAvailabilityFromApi();
-      if (payload) {
-        hydrateScheduleFromApi(payload);
-      }
-      renderCourts();
-      renderSchedule(+openHour.value, +closeHour.value);
     };
 
-    // 5. 排程表渲染核心逻辑
-    // 根据选定的营业时间范围（start 至 end），动态生成 CSS Grid 布局的排程表。
-    // 表格包含表头（时间/场地）和时间槽单元格。
-    function renderSchedule(start,end){
-        if(end<=start){
-          scheduleEl.innerHTML='<div class="muted" style="padding:12px">Closing hour must be later than opening hour.</div>';
-          return;
-        }
-        if(!courts.length){
-          scheduleEl.innerHTML='<div class="muted" style="padding:12px">Add at least one court or area to show the board.</div>';
-          return;
-        }
-        hoursLabel.textContent=`${pad(start)}:00 - ${pad(end)}:00`;
-        for(let h=start;h<end;h++) ensureHour(h);
+    const scrollHeroToIndex = (index, smooth = true) => {
+      if (!clubHeroScrollEl || !heroImageUrls.length) return;
+      const len = heroImageUrls.length;
+      heroActiveIndex = ((index % len) + len) % len;
+      const targetLeft = heroActiveIndex * clubHeroScrollEl.clientWidth;
+      clubHeroScrollEl.scrollTo({ left: targetLeft, behavior: smooth ? 'smooth' : 'auto' });
+      syncHeroDots();
+    };
 
-        const cols = courts.length + 1;
-        const template = `repeat(${cols}, minmax(120px, 1fr))`;
-        let html = `<div class="schedule-grid" style="grid-template-columns:${template}">`;
-        html += `<div class="cell head time">Time</div>`;
-        courts.forEach((c)=>{ html += `<div class="cell head">${c}</div>`; });
+    const startHeroAutoPlay = () => {
+      stopHeroAutoPlay();
+      if (!clubHeroScrollEl || heroImageUrls.length <= 1) return;
+      heroAutoTimer = window.setInterval(() => {
+        scrollHeroToIndex(heroActiveIndex + 1);
+      }, 4500);
+    };
 
-        for(let h=start; h<end; h++){
-          const next=h+1;
-          html += `<div class="cell time">${pad(h)}:00 - ${pad(next)}:00</div>`;
-          courts.forEach((c)=>{
-            const s = scheduleData[h]?.[c] || 'ok';
-            const cls = s==='full' ? 'slot-full' : 'slot-ok';
-            if(s === 'full'){
-              html += `<div class="cell"><div class="${cls}" data-hour="${h}" data-court="${encodeURIComponent(c)}" title="Fully booked"><div class="slot-label">Fully booked</div></div></div>`;
-              return;
-            }
-            const price = slotPrice(h,c);
-            const priceLabel = `$${price}`;
-            html += `<div class="cell"><div class="${cls}" data-hour="${h}" data-court="${encodeURIComponent(c)}" title="Available ${priceLabel}"><div class="slot-label">Available</div><div class="slot-price">${priceLabel}</div></div></div>`;
-          });
-        }
-        html += '</div>';
-        scheduleEl.innerHTML = html;
+    const renderHeroCarousel = (urls) => {
+      if (!clubHeroScrollEl || !clubHeroDotsEl) return;
+      stopHeroAutoPlay();
+      const list = Array.isArray(urls)
+        ? urls.map((u) => String(u || '').trim()).filter(Boolean)
+        : [];
+      heroImageUrls = list;
+      heroActiveIndex = 0;
+      clubHeroScrollEl.innerHTML = '';
+      clubHeroDotsEl.innerHTML = '';
 
-        scheduleEl.querySelectorAll('.slot-ok,.slot-full').forEach(cell=>{
-          cell.addEventListener('click',()=>{
-            const h = parseInt(cell.getAttribute('data-hour'),10);
-            const c = decodeURIComponent(cell.getAttribute('data-court'));
-            ensureHour(h);
-            scheduleData[h][c] = scheduleData[h][c] === 'ok' ? 'full' : 'ok';
-            renderSchedule(start,end);
-          });
-        });
+      if (!heroImageUrls.length) {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'hero-slide';
+        placeholder.textContent = 'Club cover / banner';
+        clubHeroScrollEl.appendChild(placeholder);
+        if (clubHeroPrevEl) clubHeroPrevEl.hidden = true;
+        if (clubHeroNextEl) clubHeroNextEl.hidden = true;
+        return;
       }
 
-      // 6. 初始化与事件绑定
-    // 初始化下拉菜单选项，设置默认的营业时间（08:00 - 24:00）。
-    buildHourOptions(openHour,8,23); // 开�?0..23
-    buildHourOptions(closeHour,24,24); // 结束 0..24（�
-    // 监听时间选择器的变化，实时更新排程表。
-    openHour?.addEventListener('change',()=>renderSchedule(+openHour.value,+closeHour.value));
-    closeHour?.addEventListener('change',()=>renderSchedule(+openHour.value,+closeHour.value));
+      heroImageUrls.forEach((url, idx) => {
+        const slide = document.createElement('div');
+        slide.className = 'hero-slide';
+        const img = document.createElement('img');
+        img.alt = `Club image ${idx + 1}`;
+        img.loading = idx === 0 ? 'eager' : 'lazy';
+        img.src = `${url}${url.includes('?') ? '&' : '?'}v=${Date.now()}-${idx}`;
+        slide.appendChild(img);
+        clubHeroScrollEl.appendChild(slide);
 
-    // 绑定添加场地按钮事件
-    // 验证输入是否为空或重复
-    addCourtBtn?.addEventListener('click',()=>{
-      const name = (courtNameEl.value||'').trim();
-      if(!name) return;
-      if(courts.includes(name)) return;
-      courts.push(name);
-      courtNameEl.value='';
-      initSchedule();
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = `hero-dot ${idx === 0 ? 'active' : ''}`.trim();
+        dot.setAttribute('aria-label', `Go to image ${idx + 1}`);
+        dot.addEventListener('click', () => scrollHeroToIndex(idx));
+        clubHeroDotsEl.appendChild(dot);
+      });
+
+      const hasMany = heroImageUrls.length > 1;
+      if (clubHeroPrevEl) clubHeroPrevEl.hidden = !hasMany;
+      if (clubHeroNextEl) clubHeroNextEl.hidden = !hasMany;
+      scrollHeroToIndex(0, false);
+      startHeroAutoPlay();
+    };
+
+    const loadClubImages = async (clubId) => {
+      renderHeroCarousel([]);
+      try {
+        const res = await authFetch(`/api/clubs/${encodeURIComponent(clubId)}/images`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const urls = Array.isArray(data)
+          ? data.map((item) => String(item?.url || '').trim()).filter(Boolean)
+          : [];
+        renderHeroCarousel(urls);
+      } catch (err) {
+        console.warn('[club] images error', err);
+      }
+    };
+
+    clubHeroPrevEl?.addEventListener('click', () => {
+      scrollHeroToIndex(heroActiveIndex - 1);
+      startHeroAutoPlay();
     });
 
-    // 初始渲染
-    renderCourts();
-    renderSchedule(8,24);
+    clubHeroNextEl?.addEventListener('click', () => {
+      scrollHeroToIndex(heroActiveIndex + 1);
+      startHeroAutoPlay();
+    });
 
-    // 7. 信息弹窗逻辑 (Privacy, Terms, Help)
-    // 处理页脚链接点击事件，显示对应的信息弹窗
+    clubHeroScrollEl?.addEventListener('scroll', () => {
+      if (!heroImageUrls.length) return;
+      const width = clubHeroScrollEl.clientWidth || 1;
+      const idx = Math.round(clubHeroScrollEl.scrollLeft / width);
+      const normalized = Math.max(0, Math.min(idx, heroImageUrls.length - 1));
+      if (normalized !== heroActiveIndex) {
+        heroActiveIndex = normalized;
+        syncHeroDots();
+      }
+    });
+
+    clubHeroScrollEl?.addEventListener('pointerdown', stopHeroAutoPlay);
+    clubHeroScrollEl?.addEventListener('pointerup', startHeroAutoPlay);
+    clubHeroScrollEl?.addEventListener('pointercancel', startHeroAutoPlay);
+    clubHeroScrollEl?.addEventListener('mouseleave', startHeroAutoPlay);
+
+    const showPageToast = (message, type = 'info') => {
+      const text = String(message || '').trim();
+      if (!text) return;
+      if (window.AppPrompt && typeof window.AppPrompt.toast === 'function') {
+        window.AppPrompt.toast(text, { type });
+        return;
+      }
+      const prefix = type === 'error' ? 'Error' : (type === 'warn' ? 'Notice' : 'Info');
+      window.alert(`${prefix}: ${text}`);
+    };
+
+    const openBookingConfirm = ({ venue, when, priceLabel }) => {
+      if (window.AppPrompt && typeof window.AppPrompt.confirm === 'function') {
+        return window.AppPrompt.confirm({
+          title: 'Confirm booking?',
+          message: `Venue: ${String(venue || 'Venue')}`,
+          details: [
+            `Time: ${String(when || '-')}`,
+            `Price: ${String(priceLabel || '-')}`
+          ],
+          okText: 'Continue',
+          cancelText: 'Cancel'
+        });
+      }
+      const text = [
+        `Venue: ${String(venue || 'Venue')}`,
+        `Time: ${String(when || '-')}`,
+        `Price: ${String(priceLabel || '-')}`,
+        '',
+        'Continue booking?'
+      ].join('\n');
+      return Promise.resolve(window.confirm(text));
+    };
+
+    const openCancelBookingConfirm = ({ venue, when, priceLabel }) => {
+      if (window.AppPrompt && typeof window.AppPrompt.confirm === 'function') {
+        return window.AppPrompt.confirm({
+          title: 'Cancel booking?',
+          message: `Venue: ${String(venue || 'Venue')}`,
+          details: [
+            `Time: ${String(when || '-')}`,
+            `Price: ${String(priceLabel || '-')}`,
+            'This will release the slot to other members.'
+          ],
+          okText: 'Cancel Booking',
+          cancelText: 'Keep'
+        });
+      }
+      const text = [
+        `Venue: ${String(venue || 'Venue')}`,
+        `Time: ${String(when || '-')}`,
+        `Price: ${String(priceLabel || '-')}`,
+        '',
+        'Cancel this booking?'
+      ].join('\n');
+      return Promise.resolve(window.confirm(text));
+    };
+
+    const resolveAccountType = (raw) => {
+      const role = String(raw || '').trim().toLowerCase();
+      if (!role) return '';
+      if (role.includes('club') || role.includes('admin') || role.includes('leader')) return 'club';
+      if (role.includes('user') || role.includes('member') || role.includes('student')) return 'user';
+      return '';
+    };
+
+    const getLoggedUser = () => {
+      const u = safeParseJSON(localStorage.getItem('loggedUser') || 'null');
+      if (!u || typeof u !== 'object') return null;
+      const type = resolveAccountType(u.type || u.role);
+      if (!type) return null;
+      return { ...u, type };
+    };
+
+    const refreshMyBookedTimeslotIds = async () => {
+      myBookedTimeslotIds = new Set();
+      const loggedUser = getLoggedUser();
+      const token = localStorage.getItem('token') || '';
+      if (!loggedUser || loggedUser.type !== 'user' || !token) return;
+      try {
+        const res = await authFetch('/api/my/bookings');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!Array.isArray(data)) return;
+        data.forEach((item) => {
+          const status = String(item?.status || '').toUpperCase();
+          if (!ACTIVE_BOOKING_STATUSES.has(status)) return;
+          const id = item?.timeslotId;
+          if (id !== undefined && id !== null) myBookedTimeslotIds.add(String(id));
+        });
+      } catch (err) {
+        console.warn('[club] my bookings error', err);
+      }
+    };
+
+    const updateSlotRemaining = (timeslotId, delta) => {
+      const id = String(timeslotId || '');
+      if (!id) return;
+      const slot = (weekSlots || []).find((s) => String(s?.timeslotId || '') === id);
+      if (!slot) return;
+      const remaining = Number(slot.remaining);
+      const maxCap = Number(slot.maxCapacity);
+      if (!Number.isFinite(remaining) || !Number.isFinite(maxCap)) return;
+      const next = Math.max(0, Math.min(maxCap, remaining + Number(delta || 0)));
+      slot.remaining = next;
+    };
+
+    const cancelMyBooking = async (slot) => {
+      const timeslotId = slot?.timeslotId;
+      if (timeslotId === undefined || timeslotId === null) return false;
+      try {
+        const res = await authFetch(`/api/timeslots/${encodeURIComponent(String(timeslotId))}/bookings/me`, {
+          method: 'DELETE'
+        });
+        if (!res.ok) {
+          const text = await res.text().catch(() => '');
+          if (res.status === 404) {
+            showPageToast('No active booking was found for this slot.', 'warn');
+          } else {
+            showPageToast(text || `Failed to cancel booking (${res.status}).`, 'error');
+          }
+          return false;
+        }
+
+        myBookedTimeslotIds.delete(String(timeslotId));
+        updateSlotRemaining(timeslotId, +1);
+        showPageToast('Booking cancelled successfully.', 'success');
+        renderWeekTabs();
+        renderScheduleForSelectedDay();
+        return true;
+      } catch (err) {
+        console.warn('[club] cancel booking error', err);
+        showPageToast('Failed to cancel booking. Please try again.', 'error');
+        return false;
+      }
+    };
+
+    const currentPageUrl = () => {
+      const file = window.location.pathname.split('/').pop() || 'club.html';
+      return `${file}${window.location.search || ''}`;
+    };
+
+    const formatDateLabel = (raw) => {
+      if (!raw) return '--';
+      const text = String(raw).trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
+      const date = new Date(text);
+      if (Number.isNaN(date.getTime())) return text;
+      return date.toISOString().slice(0, 10);
+    };
+
+    const renderMembershipSection = () => {
+      if (!membershipPlansEl || !clubMembershipSectionEl) return;
+
+      const hasActiveMembership = Boolean(myClubMembership && String(myClubMembership?.status || '').toUpperCase() === 'ACTIVE');
+      const availablePlans = Array.isArray(clubMembershipPlans) ? clubMembershipPlans : [];
+
+      if (clubMembershipIntroEl) {
+        clubMembershipIntroEl.textContent = hasActiveMembership
+          ? 'Your current pass already applies member pricing to eligible bookings.'
+          : 'Optional passes can reduce booking prices at this club.';
+      }
+
+      if (clubMembershipStatusEl) {
+        if (hasActiveMembership) {
+          clubMembershipStatusEl.style.display = 'block';
+          clubMembershipStatusEl.innerHTML = `Active pass: <strong>${escapeHtml(myClubMembership.planName || 'Membership')}</strong> until <strong>${escapeHtml(formatDateLabel(myClubMembership.endDate))}</strong>. Member pricing is applied automatically when you book.`;
+        } else {
+          clubMembershipStatusEl.style.display = 'none';
+          clubMembershipStatusEl.textContent = '';
+        }
+      }
+
+      if (!availablePlans.length) {
+        if (clubMembershipSummaryEl) {
+          clubMembershipSummaryEl.style.display = 'none';
+          clubMembershipSummaryEl.textContent = '';
+        }
+        if (clubMembershipToggleEl) {
+          clubMembershipToggleEl.style.display = 'none';
+          clubMembershipToggleEl.setAttribute('aria-expanded', 'false');
+        }
+        if (membershipPlansWrapEl) membershipPlansWrapEl.hidden = true;
+        if (hasActiveMembership) {
+          clubMembershipSectionEl.style.display = '';
+          membershipPlansEl.innerHTML = '<div class="muted">New memberships are currently unavailable for this club.</div>';
+        } else {
+          clubMembershipSectionEl.style.display = 'none';
+          membershipPlansEl.innerHTML = '';
+        }
+        return;
+      }
+
+      const availablePrices = availablePlans
+        .map((plan) => parsePrice(plan?.price))
+        .filter((price) => price !== null);
+      const lowestPrice = availablePrices.length ? Math.min(...availablePrices) : null;
+
+      if (clubMembershipSummaryEl) {
+        if (hasActiveMembership) {
+          clubMembershipSummaryEl.style.display = 'none';
+          clubMembershipSummaryEl.textContent = '';
+        } else {
+          const count = availablePlans.length;
+          clubMembershipSummaryEl.style.display = 'block';
+          clubMembershipSummaryEl.textContent = `${count} member pass${count === 1 ? '' : 'es'} available${lowestPrice === null ? '' : ` from ${formatPrice(lowestPrice)}`}.`;
+        }
+      }
+
+      if (clubMembershipToggleEl) {
+        clubMembershipToggleEl.style.display = '';
+        clubMembershipToggleEl.textContent = clubMembershipExpanded ? 'Hide plans' : 'View plans';
+        clubMembershipToggleEl.setAttribute('aria-expanded', clubMembershipExpanded ? 'true' : 'false');
+      }
+      if (membershipPlansWrapEl) membershipPlansWrapEl.hidden = !clubMembershipExpanded;
+
+      clubMembershipSectionEl.style.display = '';
+      membershipPlansEl.innerHTML = availablePlans.map((plan) => {
+        const isCurrentPlan = hasActiveMembership && Number(plan?.planId) === Number(myClubMembership?.planId);
+        const priceLabel = formatPrice(plan?.price) || 'GBP 0.00';
+        const discount = Number(plan?.discountPercent || 0);
+        const durationLabel = Number.isFinite(Number(plan?.durationDays)) ? `${plan.durationDays} days` : '--';
+        const planName = String(plan?.planName || 'Membership').trim() || 'Membership';
+        const description = String(plan?.description || '').trim() || `Save ${discount}% on eligible bookings.`;
+        const buttonLabel = isCurrentPlan ? 'Current plan' : (hasActiveMembership ? 'Already active' : 'Buy membership');
+        const buttonDisabled = isCurrentPlan || hasActiveMembership;
+        return `
+          <article class="membership-plan-card ${isCurrentPlan ? 'active' : ''}">
+            <div class="membership-plan-top">
+              <div>
+                <div class="membership-plan-duration">${escapeHtml(durationLabel)}</div>
+                <div class="membership-plan-name">${escapeHtml(planName)}</div>
+              </div>
+              <div class="membership-plan-discount">${escapeHtml(String(discount))}% off</div>
+            </div>
+            <div class="membership-plan-price">${escapeHtml(priceLabel)}</div>
+            <div class="membership-plan-copy">${escapeHtml(description)}</div>
+            <button class="membership-plan-btn ${buttonDisabled ? 'ghost' : 'buy'}" type="button" data-membership-plan-id="${escapeHtml(plan.planId)}" ${buttonDisabled ? 'disabled' : ''}>${escapeHtml(buttonLabel)}</button>
+          </article>
+        `;
+      }).join('');
+
+      membershipPlansEl.querySelectorAll('[data-membership-plan-id]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const planId = Number(btn.getAttribute('data-membership-plan-id'));
+          const plan = clubMembershipPlans.find((item) => Number(item?.planId) === planId);
+          if (plan) goToMembershipPayment(plan);
+        });
+      });
+    };
+
+    clubMembershipToggleEl?.addEventListener('click', () => {
+      clubMembershipExpanded = !clubMembershipExpanded;
+      renderMembershipSection();
+    });
+
+    const loadMembershipPlans = async () => {
+      const clubId = getClubId();
+      if (!clubId || !isNumericId(clubId)) {
+        clubMembershipPlans = [];
+        renderMembershipSection();
+        return;
+      }
+
+      try {
+        const res = await authFetch(`/api/clubs/${encodeURIComponent(clubId)}/membership-plans`);
+        if (!res.ok) {
+          clubMembershipPlans = [];
+          renderMembershipSection();
+          return;
+        }
+        const data = await res.json();
+        clubMembershipPlans = Array.isArray(data) ? data : [];
+      } catch (err) {
+        console.warn('[club] membership plans error', err);
+        clubMembershipPlans = [];
+      }
+      renderMembershipSection();
+    };
+
+    const loadMyMembership = async () => {
+      myClubMembership = null;
+      const loggedUser = getLoggedUser();
+      const token = localStorage.getItem('token') || '';
+      const clubId = getClubId();
+      if (!loggedUser || loggedUser.type !== 'user' || !token || !clubId || !isNumericId(clubId)) {
+        renderMembershipSection();
+        return;
+      }
+
+      try {
+        const res = await authFetch(`/api/my/clubs/${encodeURIComponent(clubId)}/membership`);
+        if (res.ok) {
+          myClubMembership = await res.json();
+        }
+      } catch (err) {
+        console.warn('[club] my membership error', err);
+      }
+      renderMembershipSection();
+    };
+
+    const consumePaymentFeedback = () => {
+      const data = safeParseJSON(localStorage.getItem('paymentFeedback') || 'null');
+      if (!data || typeof data !== 'object') return;
+      localStorage.removeItem('paymentFeedback');
+      if (data.message) showPageToast(String(data.message), 'info');
+    };
+
+    const goToMembershipPayment = (plan) => {
+      const loggedUser = getLoggedUser();
+      const token = localStorage.getItem('token') || '';
+      if (!loggedUser) {
+        try {
+          localStorage.setItem('postLoginRedirect', JSON.stringify({ page: 'club', clubId: getClubId() }));
+        } catch {}
+        window.location.href = 'login.html#login';
+        return;
+      }
+      if (loggedUser.type === 'club') {
+        showPageToast('Club accounts cannot purchase memberships. Please use a user account.', 'error');
+        return;
+      }
+      if (!token) {
+        showPageToast('Your session has expired. Please log in again.', 'error');
+        return;
+      }
+
+      const payload = {
+        paymentType: 'membership',
+        sourcePage: 'club',
+        clubId: String(getClubId() || ''),
+        clubName: String(clubContactMeta?.name || clubTitleEl?.textContent || 'Club'),
+        planId: Number(plan?.planId),
+        planName: String(plan?.planName || 'Membership'),
+        durationDays: Number(plan?.durationDays || 0),
+        discountPercent: Number(plan?.discountPercent || 0),
+        price: parsePrice(plan?.price),
+        returnUrl: currentPageUrl()
+      };
+      localStorage.setItem('pendingPayment', JSON.stringify(payload));
+      window.location.href = 'payment.html';
+    };
+
+    const goToMockPayment = (slot) => {
+      const payload = {
+        paymentType: 'booking',
+        sourcePage: 'club',
+        clubId: String(getClubId() || ''),
+        clubName: String(clubContactMeta?.name || clubTitleEl?.textContent || 'Club'),
+        timeslotId: Number(slot?.timeslotId),
+        venueName: String(slot?.venueName || ''),
+        startTime: String(slot?.startTime || ''),
+        endTime: String(slot?.endTime || ''),
+        maxCapacity: Number(slot?.maxCapacity),
+        remaining: Number(slot?.remaining),
+        price: parsePrice(slot?.price),
+        basePrice: parsePrice(slot?.basePrice),
+        membershipApplied: Boolean(slot?.membershipApplied),
+        membershipPlanName: String(slot?.membershipPlanName || ''),
+        returnUrl: currentPageUrl()
+      };
+      localStorage.setItem('pendingPayment', JSON.stringify(payload));
+      window.location.href = 'payment.html';
+    };
+
+    const initWeek = () => {
+      const base = new Date();
+      base.setHours(0, 0, 0, 0);
+      weekDays = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(base.getTime() + i * 24 * 60 * 60 * 1000);
+        weekDays.push({ date: d, iso: localDateISO(d) });
+      }
+      weekFrom = weekDays[0]?.iso || localDateISO(base);
+      weekTo = weekDays[6]?.iso || localDateISO(base);
+      if (!selectedDayISO) selectedDayISO = weekFrom;
+    };
+
+    const fmtWeekday = new Intl.DateTimeFormat(DISPLAY_LOCALE, { weekday: 'short' });
+    const fmtMonthDay = new Intl.DateTimeFormat(DISPLAY_LOCALE, { month: '2-digit', day: '2-digit' });
+    const dayLabel = (day) => `${fmtWeekday.format(day.date)} ${fmtMonthDay.format(day.date)}`;
+
+    const setClubLocationLabel = (locationText) => {
+      const normalized = String(locationText || '').trim();
+      clubMapLocationText = normalized;
+      if (!clubLocationBtnEl) return;
+
+      if (!normalized) {
+        clubLocationBtnEl.textContent = 'Not set';
+        clubLocationBtnEl.disabled = true;
+        return;
+      }
+      if (normalized.toLowerCase() === 'multiple') {
+        clubLocationBtnEl.textContent = normalized;
+        clubLocationBtnEl.disabled = true;
+        return;
+      }
+      clubLocationBtnEl.textContent = normalized;
+      clubLocationBtnEl.disabled = false;
+    };
+
+    const openClubLocationOnGoogleMaps = () => {
+      const target = String(clubMapLocationText || '').trim();
+      if (!target || target.toLowerCase() === 'multiple') return;
+      const placeId = String(clubDisplayMeta?.placeId || '').trim();
+      const lat = Number(clubDisplayMeta?.locationLat);
+      const lng = Number(clubDisplayMeta?.locationLng);
+      let url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(target)}`;
+      if (placeId) {
+        url += `&query_place_id=${encodeURIComponent(placeId)}`;
+      } else if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${lat},${lng}`)}`;
+      }
+      window.open(url, '_blank', 'noopener');
+    };
+
+    clubLocationBtnEl?.addEventListener('click', openClubLocationOnGoogleMaps);
+
+    const updateVenueChips = () => {
+      const courts = Array.isArray(venues) ? venues.length : 0;
+      if (clubCourtsEl) clubCourtsEl.textContent = `Courts: ${courts}`;
+
+      const locationOverride = String(clubDisplayMeta?.location || '').trim();
+      if (locationOverride) {
+        setClubLocationLabel(locationOverride);
+        return;
+      }
+      const uniq = [...new Set((venues || []).map(v => String(v?.location || '').trim()).filter(Boolean))];
+      if (uniq.length === 1) setClubLocationLabel(uniq[0]);
+      else if (uniq.length > 1) setClubLocationLabel('Multiple');
+      else setClubLocationLabel('');
+    };
+
+    const updateHoursChip = (daySlots) => {
+      if (!hoursLabelEl) return;
+      const openingStart = String(clubDisplayMeta?.openingStart || '').trim();
+      const openingEnd = String(clubDisplayMeta?.openingEnd || '').trim();
+      if (openingStart && openingEnd) {
+        hoursLabelEl.textContent = `${openingStart} - ${openingEnd}`;
+        return;
+      }
+      if (!Array.isArray(daySlots) || daySlots.length === 0) return;
+      let minStart = null;
+      let maxEnd = null;
+      daySlots.forEach((s) => {
+        const st = parseTimeHHMM(s?.startTime);
+        const en = parseTimeHHMM(s?.endTime);
+        if (st) minStart = minStart === null ? st : (st < minStart ? st : minStart);
+        if (en) maxEnd = maxEnd === null ? en : (en > maxEnd ? en : maxEnd);
+      });
+      if (minStart && maxEnd) hoursLabelEl.textContent = `${minStart} - ${maxEnd}`;
+    };
+
+    const renderWeekTabs = () => {
+      if (!weekTabsEl) return;
+      if (!weekDays.length) initWeek();
+
+      const counts = new Map();
+      (weekSlots || []).forEach((s) => {
+        const d = parseDateISO(s?.startTime);
+        counts.set(d, (counts.get(d) || 0) + 1);
+      });
+
+      weekTabsEl.innerHTML = '';
+      weekDays.forEach((day) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `week-tab ${day.iso === selectedDayISO ? 'active' : ''}`.trim();
+        const cnt = counts.get(day.iso) || 0;
+        btn.innerHTML = `<span>${escapeHtml(dayLabel(day))}</span><span class="badge">${cnt}</span>`;
+        btn.addEventListener('click', () => {
+          selectedDayISO = day.iso;
+          renderWeekTabs();
+          renderScheduleForSelectedDay();
+        });
+        weekTabsEl.appendChild(btn);
+      });
+    };
+
+    const renderScheduleForSelectedDay = () => {
+      if (!scheduleEl) return;
+      if (!selectedDayISO) selectedDayISO = weekFrom;
+
+      if (!venues.length) {
+        scheduleEl.innerHTML = '<div class="muted" style="padding:12px">No venues yet.</div>';
+        return;
+      }
+
+      const daySlots = (weekSlots || []).filter(s => parseDateISO(s?.startTime) === selectedDayISO);
+      updateHoursChip(daySlots);
+      if (daySlots.length === 0) {
+        scheduleEl.innerHTML = `<div class="muted" style="padding:12px">No time slots for ${escapeHtml(selectedDayISO)}.</div>`;
+        return;
+      }
+
+      const renderableSlots = daySlots.filter((s) => {
+        const id = s?.venueId;
+        if (id === undefined || id === null) return false;
+        const st = parseTimeHHMM(s?.startTime);
+        const en = parseTimeHHMM(s?.endTime);
+        return !!st && !!en;
+      });
+      if (!renderableSlots.length) {
+        scheduleEl.innerHTML = `<div class="muted" style="padding:12px">No valid time slots for ${escapeHtml(selectedDayISO)}.</div>`;
+        return;
+      }
+
+      const visibleVenueIds = new Set(renderableSlots.map((s) => String(s.venueId)));
+      const venueById = new Map();
+      (venues || []).forEach((v) => {
+        const id = v?.venueId;
+        if (id === undefined || id === null) return;
+        venueById.set(String(id), v);
+      });
+      renderableSlots.forEach((s) => {
+        const id = s?.venueId;
+        if (id === undefined || id === null) return;
+        const sid = String(id);
+        if (!venueById.has(sid)) {
+          venueById.set(sid, { venueId: id, name: s?.venueName || `Venue ${sid}` });
+        }
+      });
+      const visibleVenues = [];
+      (venues || []).forEach((v) => {
+        const id = v?.venueId;
+        if (id === undefined || id === null) return;
+        const sid = String(id);
+        if (visibleVenueIds.has(sid)) {
+          visibleVenues.push(venueById.get(sid) || v);
+        }
+      });
+      visibleVenueIds.forEach((sid) => {
+        const exists = visibleVenues.some((v) => String(v?.venueId) === sid);
+        if (!exists) visibleVenues.push(venueById.get(sid));
+      });
+      const rowsMap = new Map();
+      renderableSlots.forEach((s) => {
+        const st = parseTimeHHMM(s?.startTime);
+        const en = parseTimeHHMM(s?.endTime);
+        if (!st || !en) return;
+        const key = `${st}|${en}`;
+        if (!rowsMap.has(key)) rowsMap.set(key, { st, en, label: `${st} - ${en}` });
+      });
+      const rows = [...rowsMap.values()].sort((a, b) => (a.st < b.st ? -1 : a.st > b.st ? 1 : 0));
+      if (rows.length === 0) {
+        scheduleEl.innerHTML = '<div class="muted" style="padding:12px">No schedule rows.</div>';
+        return;
+      }
+
+      const lookup = new Map();
+      const slotById = new Map();
+      renderableSlots.forEach((s) => {
+        const st = parseTimeHHMM(s?.startTime);
+        const en = parseTimeHHMM(s?.endTime);
+        if (!st || !en) return;
+        const venueId = s?.venueId;
+        if (venueId === undefined || venueId === null) return;
+        const key = `${venueId}|${st}|${en}`;
+        if (!lookup.has(key)) lookup.set(key, s);
+      });
+
+      const activeVenues = visibleVenues.filter((v) => {
+        return rows.some((r) => lookup.has(`${v?.venueId}|${r.st}|${r.en}`));
+      });
+      const finalVenues = activeVenues.length ? activeVenues : visibleVenues;
+
+      const cols = finalVenues.length + 1;
+      const template = `repeat(${cols}, minmax(120px, 1fr))`;
+      let html = `<div class="schedule-grid" style="grid-template-columns:${template}">`;
+      html += `<div class="cell head time">Time</div>`;
+      finalVenues.forEach((v) => {
+        html += `<div class="cell head">${escapeHtml(v?.name || v?.venueName || `Venue ${v?.venueId ?? ''}`)}</div>`;
+      });
+
+      rows.forEach((r) => {
+        html += `<div class="cell time">${escapeHtml(r.label)}</div>`;
+        finalVenues.forEach((v) => {
+          const key = `${v?.venueId}|${r.st}|${r.en}`;
+          const slot = lookup.get(key) || null;
+          if (!slot) {
+            html += `<div class="cell"><div class="muted" style="padding:10px 8px">-</div></div>`;
+            return;
+          }
+          const slotId = slot?.timeslotId;
+          if (slotId === undefined || slotId === null) {
+            html += `<div class="cell"><div class="muted" style="padding:10px 8px">-</div></div>`;
+            return;
+          }
+          slotById.set(String(slotId), slot);
+          const remaining = Number(slot.remaining);
+          const maxCap = Number(slot.maxCapacity);
+          const hasCap = Number.isFinite(remaining) && Number.isFinite(maxCap);
+          const isFull = hasCap ? remaining <= 0 : false;
+          const isBookedByMe = myBookedTimeslotIds.has(String(slotId));
+          const cls = isBookedByMe ? 'slot-booked' : (isFull ? 'slot-full' : 'slot-ok');
+          const priceLabel = formatPrice(slot.price);
+          const basePriceLabel = formatPrice(slot.basePrice);
+          const membershipApplied = Boolean(slot.membershipApplied) && parsePrice(slot.basePrice) !== null && parsePrice(slot.price) !== null && Number(slot.price) <= Number(slot.basePrice);
+          const capBits = [];
+          if (membershipApplied && basePriceLabel && priceLabel && basePriceLabel !== priceLabel) {
+            capBits.push(`Regular: ${basePriceLabel}`);
+          }
+          if (hasCap) {
+            capBits.push(`Capacity: ${remaining}/${maxCap}`);
+          }
+          const capLabel = capBits.join(' • ');
+          const topMetaLabel = isBookedByMe ? 'You already booked this slot' : (membershipApplied ? `Member ${priceLabel}` : priceLabel);
+          const stateTitle = isBookedByMe ? 'Booked by you' : (isFull ? 'Fully booked' : 'Available');
+          const stateLabel = isBookedByMe ? 'Booked' : (isFull ? 'Fully booked' : 'Available');
+          html += `<div class="cell"><div class="${cls}" data-timeslot-id="${escapeHtml(slotId)}" title="${stateTitle}"><div class="slot-label">${stateLabel}</div>${topMetaLabel ? `<div class="slot-price">${escapeHtml(topMetaLabel)}</div>` : ''}${membershipApplied ? `<div class="slot-note">${escapeHtml(String(slot.membershipPlanName || 'Membership'))}</div>` : ''}${capLabel ? `<div class="slot-capacity">${escapeHtml(capLabel)}</div>` : ''}</div></div>`;
+        });
+      });
+
+      html += '</div>';
+      scheduleEl.innerHTML = html;
+
+      scheduleEl.querySelectorAll('[data-timeslot-id]').forEach((cell) => {
+        cell.addEventListener('click', async () => {
+          const timeslotId = cell.getAttribute('data-timeslot-id');
+          if (!timeslotId) return;
+          const slot = slotById.get(String(timeslotId));
+          if (!slot) return;
+
+          const loggedUser = getLoggedUser();
+          const token = localStorage.getItem('token') || '';
+          const isBookedByMe = cell.classList.contains('slot-booked') || myBookedTimeslotIds.has(String(timeslotId));
+
+          if (isBookedByMe) {
+            if (!loggedUser || loggedUser.type !== 'user' || !token) {
+              showPageToast('Please log in with a user account to manage your bookings.', 'warn');
+              return;
+            }
+            const priceLabel = formatPrice(slot.price) || 'GBP 0.00';
+            const when = `${parseDateISO(slot.startTime)} ${parseTimeHHMM(slot.startTime)} - ${parseTimeHHMM(slot.endTime)}`;
+            const venue = String(slot.venueName || 'Venue');
+            const okCancel = await openCancelBookingConfirm({ venue, when, priceLabel });
+            if (!okCancel) return;
+            await cancelMyBooking(slot);
+            return;
+          }
+
+          if (cell.classList.contains('slot-full')) {
+            showPageToast('This slot is fully booked.', 'warn');
+            return;
+          }
+
+          if (!loggedUser) {
+            try {
+              localStorage.setItem('postLoginRedirect', JSON.stringify({ page: 'club', clubId: getClubId() }));
+            } catch {}
+            window.location.href = 'login.html#login';
+            return;
+          }
+          if (loggedUser.type === 'club') {
+            showPageToast('Club accounts cannot book slots. Please use a user account.', 'error');
+            return;
+          }
+          if (!token) {
+            showPageToast('Your session has expired. Please log in again from Home.', 'error');
+            return;
+          }
+
+          const priceLabel = `${formatPrice(slot.price) || 'GBP 0.00'}${slot.membershipApplied ? ` (${String(slot.membershipPlanName || 'Membership')})` : ''}`;
+          const when = `${parseDateISO(slot.startTime)} ${parseTimeHHMM(slot.startTime)} - ${parseTimeHHMM(slot.endTime)}`;
+          const venue = String(slot.venueName || 'Venue');
+          const ok = await openBookingConfirm({ venue, when, priceLabel });
+          if (!ok) return;
+
+          goToMockPayment(slot);
+        });
+      });
+    };
+
+    const initBoard = async () => {
+      if (!scheduleEl) return;
+
+      const clubId = getClubId();
+      if (!clubId || !isNumericId(clubId)) {
+        scheduleEl.innerHTML = '<div class="muted" style="padding:12px">Select a real club from Home to see time slots.</div>';
+        return;
+      }
+
+      initWeek();
+      scheduleEl.innerHTML = '<div class="muted" style="padding:12px">Loading...</div>';
+
+      // 鏄剧ず淇变箰閮ㄨ鎯?
+      try {
+        const res = await authFetch(`/api/clubs/${encodeURIComponent(clubId)}`);
+        if (res.ok) {
+          const club = await res.json();
+          if (clubTitleEl && club?.name) clubTitleEl.textContent = club.name;
+          if (clubDescEl) clubDescEl.textContent = String(club?.description || club?.desc || 'No description available.');
+          const tags = Array.isArray(club?.tags) && club.tags.length
+            ? club.tags
+            : [club?.category].filter(Boolean);
+          if (tags.length) applyCategoryChip(tags);
+          clubDisplayMeta = {
+            location: String(club?.location || '').trim(),
+            placeId: String(club?.placeId || '').trim(),
+            locationLat: Number.isFinite(Number(club?.locationLat)) ? Number(club.locationLat) : null,
+            locationLng: Number.isFinite(Number(club?.locationLng)) ? Number(club.locationLng) : null,
+            openingStart: String(club?.openingStart || '').trim(),
+            openingEnd: String(club?.openingEnd || '').trim(),
+            courtsCount: Number.isFinite(Number(club?.courtsCount)) ? Number(club.courtsCount) : null
+          };
+          clubContactMeta = {
+            name: String(club?.name || clubTitleEl?.textContent || 'Club').trim(),
+            email: String(club?.email || '').trim(),
+            phone: String(club?.phone || '').trim()
+          };
+          setPageTitle(club?.name || clubTitleEl?.textContent || '');
+        }
+      } catch (err) {
+        console.warn('[club] club details error', err);
+      }
+
+      await Promise.all([
+        loadMembershipPlans(),
+        loadMyMembership()
+      ]);
+
+      await loadClubImages(clubId);
+
+      // 鏄剧ず鍦哄湴
+      try {
+        const res = await authFetch(`/api/clubs/${encodeURIComponent(clubId)}/venues`);
+        if (res.ok) {
+          const data = await res.json();
+          venues = Array.isArray(data) ? data.slice() : [];
+          venues.sort((a, b) => String(a?.name || '').localeCompare(String(b?.name || '')));
+        }
+      } catch (err) {
+        console.warn('[club] venues error', err);
+      }
+
+      // 鏄剧ず鏈潵7澶╃殑鏃堕棿娈?
+      try {
+        const res = await authFetch(`/api/clubs/${encodeURIComponent(clubId)}/timeslots?from=${encodeURIComponent(weekFrom)}&to=${encodeURIComponent(weekTo)}`);
+        if (res.ok) {
+          const data = await res.json();
+          weekSlots = Array.isArray(data) ? data : [];
+        } else {
+          const text = await res.text().catch(() => '');
+          throw new Error(text || `Failed to load time slots (${res.status})`);
+        }
+      } catch (err) {
+        console.warn('[club] timeslots error', err);
+        scheduleEl.innerHTML = '<div class="muted" style="padding:12px">Failed to load time slots.</div>';
+        return;
+      }
+
+      await refreshMyBookedTimeslotIds();
+
+      // 鑻ユ湭杩斿洖鍦哄湴鏁版嵁锛屽垯浣跨敤鏃堕棿娈典腑鐨勫満鍦板悕绉般€?
+      if (!venues.length && weekSlots.length) {
+        const map = new Map();
+        weekSlots.forEach((s) => {
+          const id = s?.venueId;
+          if (id === undefined || id === null) return;
+          if (!map.has(String(id))) map.set(String(id), { venueId: id, name: s?.venueName || `Venue ${id}` });
+        });
+        venues = [...map.values()].sort((a, b) => String(a?.name || '').localeCompare(String(b?.name || '')));
+      }
+
+      updateVenueChips();
+
+      // 浼樺厛鏄剧ず鏈夋椂闂存鐨勬棩鏈熴€?
+      const daysWithSlots = new Set(weekSlots.map(s => parseDateISO(s?.startTime)).filter(Boolean));
+      const firstDay = weekDays.find(d => daysWithSlots.has(d.iso))?.iso || weekFrom;
+      if (firstDay) selectedDayISO = firstDay;
+
+      renderWeekTabs();
+      renderScheduleForSelectedDay();
+    };
+
+    consumePaymentFeedback();
+    initBoard();
+
+    const CHAT_POLL_VISIBLE_MS = 2500;
+    const CHAT_POLL_HIDDEN_MS = 8000;
+    let chatMessages = [];
+    let chatUnreadCount = 0;
+    let chatLoading = false;
+    let chatLoadError = '';
+    let chatPollTimer = null;
+    let chatPollInFlight = false;
+
+    const sanitizeChatText = (raw) => {
+      return String(raw || '')
+        .replace(/\r\n/g, '\n')
+        .replace(/\u0000/g, '')
+        .trim();
+    };
+
+    const resolveClubChatName = () => {
+      const label = String(clubContactMeta?.name || clubTitleEl?.textContent || 'Club').trim();
+      return label || 'Club';
+    };
+
+    const formatChatTimestamp = (raw) => {
+      if (!raw) return 'Just now';
+      const date = new Date(raw);
+      if (Number.isNaN(date.getTime())) return 'Just now';
+      return new Intl.DateTimeFormat('en-GB', {
+        month: 'short',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(date);
+    };
+
+    const getChatClubId = () => {
+      const clubId = getClubId();
+      if (!clubId || !isNumericId(clubId)) return '';
+      return String(clubId);
+    };
+
+    const readErrorText = async (res) => {
+      try {
+        const text = await res.text();
+        return String(text || '').trim() || `Request failed (${res.status})`;
+      } catch {
+        return `Request failed (${res.status})`;
+      }
+    };
+
+    const ensureUserChatAuth = ({ redirectOnMissing = false, notify = false } = {}) => {
+      const loggedUser = getLoggedUser();
+      const token = localStorage.getItem('token') || '';
+
+      if (!loggedUser) {
+        if (notify) showPageToast('Please log in with a user account to chat with clubs.', 'warn');
+        if (redirectOnMissing) {
+          try {
+            localStorage.setItem('postLoginRedirect', JSON.stringify({ page: 'club', clubId: getClubId() }));
+          } catch {}
+          window.location.href = 'login.html#login';
+        }
+        return { ok: false, reason: 'not_logged_in' };
+      }
+      if (loggedUser.type !== 'user') {
+        if (notify) showPageToast('Please use a user account to chat with clubs.', 'warn');
+        return { ok: false, reason: 'wrong_role' };
+      }
+      if (!token) {
+        if (notify) showPageToast('Your session has expired. Please log in again.', 'error');
+        if (redirectOnMissing) {
+          try {
+            localStorage.setItem('postLoginRedirect', JSON.stringify({ page: 'club', clubId: getClubId() }));
+          } catch {}
+          window.location.href = 'login.html#login';
+        }
+        return { ok: false, reason: 'missing_token' };
+      }
+      return { ok: true, reason: '' };
+    };
+
+    const normalizeChatMessage = (raw) => {
+      if (!raw || typeof raw !== 'object') return null;
+      const sender = String(raw.sender || '').toLowerCase() === 'club' ? 'club' : 'user';
+      const text = sanitizeChatText(raw.text || '');
+      if (!text) return null;
+      const author = String(raw.authorName || (sender === 'club' ? resolveClubChatName() : 'You')).trim();
+      return {
+        messageId: raw.messageId ?? null,
+        sender,
+        text,
+        author: author || (sender === 'club' ? resolveClubChatName() : 'You'),
+        createdAt: String(raw.createdAt || '')
+      };
+    };
+
+    const chatAvatarInitialFor = (msg) => {
+      const sender = String(msg?.sender || '').toLowerCase() === 'club' ? 'club' : 'user';
+      const source = sender === 'club'
+        ? resolveClubChatName()
+        : String(msg?.author || 'You');
+      return String(source || '').trim().charAt(0).toUpperCase() || '?';
+    };
+
+    const chatAvatarHtmlFor = (msg) => {
+      const sender = String(msg?.sender || '').toLowerCase() === 'club' ? 'club' : 'user';
+      const avatarUrl = sender === 'user' ? readStoredAvatar() : '';
+      if (avatarUrl) {
+        return `<span class="club-chat-avatar ${sender}" aria-hidden="true"><img src="${escapeHtml(avatarUrl)}" alt=""></span>`;
+      }
+      return `<span class="club-chat-avatar ${sender}" aria-hidden="true"><span>${escapeHtml(chatAvatarInitialFor(msg))}</span></span>`;
+    };
+
+    const updateChatBadge = () => {
+      if (!clubChatBadgeEl) return;
+      const count = chatUnreadCount > 0 ? chatUnreadCount : chatMessages.length;
+      clubChatBadgeEl.textContent = String(count || 0);
+    };
+
+    const renderClubChatThread = (shouldScrollBottom = false) => {
+      if (!clubChatThreadEl) return;
+      if (clubChatTitleEl) clubChatTitleEl.textContent = `Talk with ${resolveClubChatName()}`;
+      updateChatBadge();
+
+      if (chatLoading && !chatMessages.length) {
+        clubChatThreadEl.innerHTML = `
+          <div class="club-chat-empty">
+            Loading messages...
+          </div>
+        `;
+        return;
+      }
+
+      if (chatLoadError && !chatMessages.length) {
+        clubChatThreadEl.innerHTML = `
+          <div class="club-chat-empty">
+            ${escapeHtml(chatLoadError)}
+          </div>
+        `;
+        return;
+      }
+
+      if (!chatMessages.length) {
+        clubChatThreadEl.innerHTML = `
+          <div class="club-chat-empty">
+            Start a conversation with the club. Your messages are stored in your account.
+          </div>
+        `;
+        return;
+      }
+
+      clubChatThreadEl.innerHTML = chatMessages.map((msg) => {
+        const textHtml = escapeHtml(String(msg?.text || '')).replace(/\n/g, '<br>');
+        const timeLabel = formatChatTimestamp(msg?.createdAt);
+        const avatarHtml = chatAvatarHtmlFor(msg);
+        return `
+          <div class="club-chat-msg ${msg.sender}">
+            <div class="club-chat-row">${avatarHtml}<div class="club-chat-bubble">${textHtml}</div></div>
+            <div class="club-chat-meta">${escapeHtml(msg.author)} · ${escapeHtml(timeLabel)}</div>
+          </div>
+        `;
+      }).join('');
+
+      if (shouldScrollBottom) {
+        clubChatThreadEl.scrollTop = clubChatThreadEl.scrollHeight;
+      }
+    };
+
+    const markUserChatRead = async (clubId) => {
+      if (!clubId || chatUnreadCount <= 0) return;
+      try {
+        const res = await authFetch(`/api/clubs/${encodeURIComponent(clubId)}/chat/read`, { method: 'POST' });
+        if (!res.ok) return;
+        chatUnreadCount = 0;
+        renderClubChatThread();
+      } catch (err) {
+        console.warn('[club] chat read error', err);
+      }
+    };
+
+    const fetchUserChatThread = async ({ scrollBottom = false, markRead = false } = {}) => {
+      const auth = ensureUserChatAuth();
+      const clubId = getChatClubId();
+      if (!auth.ok || !clubId) {
+        chatMessages = [];
+        chatUnreadCount = 0;
+        chatLoadError = !clubId ? 'Select a valid club to chat.' : 'Please log in with a user account to chat.';
+        chatLoading = false;
+        renderClubChatThread();
+        return;
+      }
+
+      chatLoading = true;
+      if (!chatMessages.length) renderClubChatThread();
+      try {
+        const res = await authFetch(`/api/clubs/${encodeURIComponent(clubId)}/chat/messages`);
+        if (!res.ok) {
+          const msg = await readErrorText(res);
+          chatLoadError = msg;
+          if (res.status === 401 || res.status === 403) {
+            chatMessages = [];
+            chatUnreadCount = 0;
+          }
+          return;
+        }
+
+        const data = await res.json();
+        const list = Array.isArray(data?.messages) ? data.messages.map(normalizeChatMessage).filter(Boolean) : [];
+        chatMessages = list;
+        chatUnreadCount = Math.max(0, Number(data?.unreadCount) || 0);
+        chatLoadError = '';
+        renderClubChatThread(scrollBottom);
+
+        if (markRead && chatUnreadCount > 0) {
+          await markUserChatRead(clubId);
+        }
+      } catch (err) {
+        console.warn('[club] chat load error', err);
+        chatLoadError = 'Failed to load messages. Please try again.';
+      } finally {
+        chatLoading = false;
+        renderClubChatThread(scrollBottom);
+      }
+    };
+
+    const stopChatPolling = () => {
+      if (chatPollTimer) {
+        clearInterval(chatPollTimer);
+        chatPollTimer = null;
+      }
+    };
+
+    const runUserChatPoll = async () => {
+      if (chatPollInFlight) return;
+      if (!clubChatPanelEl?.classList.contains('open')) return;
+      chatPollInFlight = true;
+      try {
+        await fetchUserChatThread({ scrollBottom: false, markRead: true });
+      } finally {
+        chatPollInFlight = false;
+      }
+    };
+
+    const scheduleChatPolling = () => {
+      stopChatPolling();
+      if (!clubChatPanelEl?.classList.contains('open')) return;
+      const interval = document.hidden ? CHAT_POLL_HIDDEN_MS : CHAT_POLL_VISIBLE_MS;
+      chatPollTimer = window.setInterval(runUserChatPoll, interval);
+    };
+
+    const startChatPolling = () => {
+      scheduleChatPolling();
+      runUserChatPoll();
+    };
+
+    const setClubChatOpen = (open) => {
+      const visible = Boolean(open);
+      clubChatPanelEl?.classList.toggle('open', visible);
+      clubChatBackdropEl?.classList.toggle('open', visible);
+      clubChatPanelEl?.setAttribute('aria-hidden', visible ? 'false' : 'true');
+      clubChatBackdropEl?.setAttribute('aria-hidden', visible ? 'false' : 'true');
+      document.body.classList.toggle('club-chat-open', visible);
+
+      if (visible) {
+        fetchUserChatThread({ scrollBottom: true, markRead: true });
+        startChatPolling();
+        window.setTimeout(() => clubChatInputEl?.focus(), 60);
+      } else {
+        stopChatPolling();
+      }
+    };
+
+    openClubChatBtnEl?.addEventListener('click', () => {
+      const auth = ensureUserChatAuth({ redirectOnMissing: true, notify: true });
+      if (!auth.ok) return;
+      setClubChatOpen(true);
+    });
+    closeClubChatBtnEl?.addEventListener('click', () => setClubChatOpen(false));
+    clubChatBackdropEl?.addEventListener('click', () => setClubChatOpen(false));
+
+    document.addEventListener('keydown', (evt) => {
+      if (evt.key === 'Escape' && clubChatPanelEl?.classList.contains('open')) {
+        setClubChatOpen(false);
+      }
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (!clubChatPanelEl?.classList.contains('open')) return;
+      scheduleChatPolling();
+      if (!document.hidden) runUserChatPoll();
+    });
+
+    window.addEventListener('focus', () => {
+      if (!clubChatPanelEl?.classList.contains('open')) return;
+      scheduleChatPolling();
+      runUserChatPoll();
+    });
+
+    clubChatFormEl?.addEventListener('submit', async (evt) => {
+      evt.preventDefault();
+      const auth = ensureUserChatAuth({ redirectOnMissing: true, notify: true });
+      if (!auth.ok) return;
+
+      const clubId = getChatClubId();
+      if (!clubId) {
+        showPageToast('Select a valid club before sending messages.', 'warn');
+        return;
+      }
+
+      const text = sanitizeChatText(clubChatInputEl?.value || '');
+      if (!text) return;
+
+      try {
+        const res = await authFetch(`/api/clubs/${encodeURIComponent(clubId)}/chat/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+        if (!res.ok) {
+          const msg = await readErrorText(res);
+          if (res.status === 401 || res.status === 403) {
+            chatLoadError = 'Your current session cannot send member messages. Please sign in with a user account.';
+            renderClubChatThread(false);
+          }
+          showPageToast(msg, 'error');
+          return;
+        }
+
+        const savedPayload = await res.json().catch(() => null);
+        const saved = normalizeChatMessage(savedPayload);
+        const messageId = Number(saved?.messageId);
+        if (!saved || !Number.isFinite(messageId)) {
+          chatLoadError = 'Message was not confirmed by the server. Please refresh and try again.';
+          renderClubChatThread(false);
+          showPageToast('Message was not saved by server.', 'error');
+          fetchUserChatThread({ scrollBottom: false, markRead: false });
+          return;
+        }
+
+        chatMessages.push(saved);
+        chatLoadError = '';
+        chatUnreadCount = 0;
+        if (clubChatInputEl) clubChatInputEl.value = '';
+        renderClubChatThread(true);
+
+        fetchUserChatThread({ scrollBottom: true, markRead: false });
+      } catch (err) {
+        console.warn('[club] chat send error', err);
+        showPageToast('Failed to send message. Please try again.', 'error');
+      }
+    });
+
+    const isAvatarStorageKey = (key) =>
+      key === AVATAR_STORAGE_KEY_LEGACY
+      || (typeof key === 'string' && key.startsWith(AVATAR_STORAGE_KEY_PREFIX));
+    window.addEventListener('storage', (evt) => {
+      if (isAvatarStorageKey(evt.key)) {
+        if (clubChatPanelEl?.classList.contains('open')) {
+          renderClubChatThread(false);
+        }
+        return;
+      }
+      if (evt.key === 'token' || evt.key === 'loggedUser' || evt.key === 'selectedClub') {
+        if (clubChatPanelEl?.classList.contains('open')) {
+          fetchUserChatThread({ scrollBottom: false, markRead: true });
+        } else {
+          fetchUserChatThread({ scrollBottom: false, markRead: false });
+        }
+      }
+    });
+
+    window.setTimeout(() => fetchUserChatThread({ scrollBottom: false, markRead: false }), 1200);
+    renderClubChatThread();
+
+    // 7. 淇℃伅寮圭獥閫昏緫 (Privacy, Terms, Help)
+    // 澶勭悊椤佃剼閾炬帴鐐瑰嚮浜嬩欢锛屾樉绀哄搴旂殑淇℃伅寮圭獥
     const infoOverlay = document.getElementById('infoOverlay');
     const infoTitle = document.getElementById('infoTitle');
     const infoBody = document.getElementById('infoBody');
@@ -861,6 +2900,31 @@
       document.body.classList.remove('no-scroll');
     };
 
+
+    const openClubContactInfo = () => {
+      if (!infoOverlay) return;
+      const clubName = String(clubContactMeta?.name || clubTitleEl?.textContent || 'Club').trim() || 'Club';
+      const email = String(clubContactMeta?.email || '').trim();
+      const phone = String(clubContactMeta?.phone || '').trim();
+
+      if (infoTitle) infoTitle.textContent = `${clubName} contact details`;
+      if (infoBody) {
+        infoBody.innerHTML = `
+          <p><strong>Email:</strong> ${email ? escapeHtml(email) : 'Not provided.'}</p>
+          <p><strong>Phone:</strong> ${phone ? escapeHtml(phone) : 'Not provided.'}</p>
+        `;
+      }
+      infoOverlay.classList.add('open');
+      document.body.classList.add('no-scroll');
+    };
+
+    clubTitleEl?.addEventListener('click', openClubContactInfo);
+    clubTitleEl?.addEventListener('keydown', (evt) => {
+      if (evt.key === 'Enter' || evt.key === ' ') {
+        evt.preventDefault();
+        openClubContactInfo();
+      }
+    });
     document.querySelectorAll('.info-trigger').forEach((btn) => {
       btn.addEventListener('click', () => openInfo(btn.dataset.info));
     });
@@ -870,5 +2934,8 @@
     document.getElementById('y').textContent=new Date().getFullYear();
   </script>
 
-  <script src="auth-modal.js" defer></script>
+  <script src="auth-modal.js?v=20260308g" defer></script>
   
+
+
+

@@ -1,0 +1,361 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Club Booking Portal - Payment</title>
+<link rel="stylesheet" href="theme.css?v=20260220b">
+<style>
+  body {
+    margin: 0;
+    background: #f7f8fb;
+  }
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-bottom: 1px solid var(--line);
+    background: #fff;
+  }
+  .wrap {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+  .header-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #2563eb;
+    text-decoration: none;
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 0;
+  }
+  .card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
+  }
+  .card .pad {
+    padding: 18px;
+  }
+  .muted {
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-top: 14px;
+  }
+  .summary-item {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fbfcff;
+    padding: 12px;
+    display: grid;
+    gap: 4px;
+  }
+  .summary-item span:first-child {
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .summary-item span:last-child {
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .status {
+    margin-top: 14px;
+    font-size: 13px;
+    color: #1f3bb3;
+    background: rgba(59, 130, 246, .08);
+    border: 1px solid rgba(59, 130, 246, .25);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: none;
+  }
+  .status.error {
+    color: #b91c1c;
+    background: rgba(239, 68, 68, .08);
+    border-color: rgba(239, 68, 68, .35);
+  }
+  .actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+  .btn {
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    border: 1px solid var(--line);
+    cursor: pointer;
+  }
+  .btn.blue {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #fff;
+  }
+  .btn.ghost {
+    background: #fff;
+    color: #111;
+  }
+  .btn[disabled] {
+    opacity: .6;
+    cursor: not-allowed;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="wrap header-wrap">
+      <button id="btnBack" class="back-link" type="button" aria-label="Back">&larr; Back</button>
+      <h2 id="pageTitle" style="margin:0;font-size:18px;font-weight:600;">Confirm payment</h2>
+      <div></div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="card">
+      <div class="pad">
+        <h3 id="cardTitle" style="margin:0;">Confirm and pay</h3>
+        <p id="cardDesc" class="muted" style="margin:8px 0 0;">This is a placeholder payment page for test flow only. No real charge is made.</p>
+        <div class="summary" id="summary"></div>
+        <div id="statusBox" class="status"></div>
+        <div class="actions">
+          <button id="payBtn" class="btn blue" type="button">Simulate payment success</button>
+          <button id="cancelBtn" class="btn ghost" type="button">Cancel</button>
+          <button id="loginBtn" class="btn ghost" type="button" style="display:none;">Go to login</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const safeParseJSON = (raw) => {
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return null;
+      }
+    };
+
+    const draft = safeParseJSON(localStorage.getItem('pendingPayment') || 'null');
+    const token = localStorage.getItem('token') || '';
+    const loggedUser = safeParseJSON(localStorage.getItem('loggedUser') || 'null');
+
+    const summaryEl = document.getElementById('summary');
+    const statusBox = document.getElementById('statusBox');
+    const payBtn = document.getElementById('payBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const loginBtn = document.getElementById('loginBtn');
+    const btnBack = document.getElementById('btnBack');
+    const pageTitleEl = document.getElementById('pageTitle');
+    const cardTitleEl = document.getElementById('cardTitle');
+    const cardDescEl = document.getElementById('cardDesc');
+
+    const draftType = String(draft?.paymentType || draft?.kind || 'booking').trim().toLowerCase() === 'membership'
+      ? 'membership'
+      : 'booking';
+
+    const formatDateTime = (iso) => {
+      if (!iso || typeof iso !== 'string') return '--';
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return iso;
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      return `${y}-${m}-${day} ${hh}:${mm}`;
+    };
+
+    const formatPrice = (raw) => {
+      const n = Number(raw);
+      if (!Number.isFinite(n)) return 'GBP 0.00';
+      return `GBP ${n.toFixed(2)}`;
+    };
+
+    const getReturnUrl = () => {
+      const value = String(draft?.returnUrl || '').trim();
+      return value || 'club.html';
+    };
+
+    const goBack = () => {
+      window.location.href = getReturnUrl();
+    };
+
+    const showStatus = (msg, isError = false) => {
+      if (!statusBox) return;
+      statusBox.textContent = msg;
+      statusBox.classList.toggle('error', !!isError);
+      statusBox.style.display = 'block';
+    };
+
+    const requireValidDraft = () => {
+      const valid = draftType === 'membership'
+        ? Number.isFinite(Number(draft?.planId))
+        : Number.isFinite(Number(draft?.timeslotId));
+      if (!draft || !valid) {
+        showStatus(draftType === 'membership'
+          ? 'Missing membership data. Please go back and choose a plan again.'
+          : 'Missing booking data. Please go back and select a slot again.', true);
+        if (payBtn) payBtn.disabled = true;
+        return false;
+      }
+      return true;
+    };
+
+    const renderPageText = () => {
+      if (draftType === 'membership') {
+        if (pageTitleEl) pageTitleEl.textContent = 'Membership payment';
+        if (cardTitleEl) cardTitleEl.textContent = 'Confirm membership purchase';
+        if (cardDescEl) cardDescEl.textContent = 'This is a placeholder payment page for membership purchases. No real charge is made.';
+        if (payBtn) payBtn.textContent = 'Simulate membership purchase';
+        return;
+      }
+      if (pageTitleEl) pageTitleEl.textContent = 'Booking payment';
+      if (cardTitleEl) cardTitleEl.textContent = 'Confirm and pay';
+      if (cardDescEl) cardDescEl.textContent = 'This is a placeholder payment page for test flow only. No real charge is made.';
+      if (payBtn) payBtn.textContent = 'Simulate payment success';
+    };
+
+    const renderSummary = () => {
+      if (!summaryEl) return;
+      if (!draft) {
+        summaryEl.innerHTML = '';
+        return;
+      }
+      const items = draftType === 'membership'
+        ? [
+            ['Club', String(draft.clubName || draft.clubId || '--')],
+            ['Plan', String(draft.planName || 'Membership')],
+            ['Duration', Number.isFinite(Number(draft.durationDays)) ? `${draft.durationDays} days` : '--'],
+            ['Discount', Number.isFinite(Number(draft.discountPercent)) ? `${Number(draft.discountPercent)}% off bookings` : '--'],
+            ['Price', formatPrice(draft.price)]
+          ]
+        : [
+            ['Club ID', String(draft.clubId || '--')],
+            ['Venue', String(draft.venueName || 'Venue')],
+            ['Start', formatDateTime(draft.startTime)],
+            ['End', formatDateTime(draft.endTime)],
+            ['Capacity', Number.isFinite(Number(draft.maxCapacity)) ? String(draft.maxCapacity) : '--'],
+            ['Price', formatPrice(draft.price)]
+          ];
+      summaryEl.innerHTML = items.map(([k, v]) => (
+        `<div class="summary-item"><span>${k}</span><span>${v}</span></div>`
+      )).join('');
+    };
+
+    const isUserAccount = () => {
+      if (!loggedUser || typeof loggedUser !== 'object') return false;
+      return String(loggedUser.type || '').toLowerCase() === 'user';
+    };
+
+    const authFetch = (url, options = {}) => {
+      const headers = { ...(options.headers || {}) };
+      if (token) headers.Authorization = `Bearer ${token}`;
+      return fetch(url, {
+        ...options,
+        credentials: options.credentials ?? 'include',
+        headers
+      });
+    };
+
+    const markAndReturn = (message, isError = false) => {
+      localStorage.setItem('paymentFeedback', JSON.stringify({
+        type: isError ? 'error' : 'success',
+        message
+      }));
+      goBack();
+    };
+
+    const handlePay = async () => {
+      if (!requireValidDraft()) return;
+      if (!token) {
+        showStatus('Your session is missing. Please log in again.', true);
+        if (loginBtn) loginBtn.style.display = 'inline-flex';
+        return;
+      }
+      if (!isUserAccount()) {
+        showStatus('Only user accounts can complete booking payments.', true);
+        return;
+      }
+
+      if (payBtn) {
+        payBtn.disabled = true;
+        payBtn.textContent = 'Processing...';
+      }
+      try {
+        const res = draftType === 'membership'
+          ? await authFetch(`/api/membership-plans/${encodeURIComponent(String(draft.planId))}/purchase`, {
+              method: 'POST'
+            })
+          : await authFetch(`/api/timeslots/${encodeURIComponent(String(draft.timeslotId))}/bookings`, {
+              method: 'POST'
+            });
+        if (res.ok) {
+          localStorage.removeItem('pendingPayment');
+          markAndReturn(
+            draftType === 'membership'
+              ? 'Membership purchased successfully.'
+              : 'Payment successful. Booking confirmed.',
+            false
+          );
+          return;
+        }
+        const text = await res.text().catch(() => '');
+        if (res.status === 401) {
+          showStatus(text || 'Session expired. Please log in again.', true);
+          if (loginBtn) loginBtn.style.display = 'inline-flex';
+          return;
+        }
+        showStatus(text || (draftType === 'membership'
+          ? 'Payment completed but membership activation failed.'
+          : 'Payment completed but booking failed.'), true);
+      } catch (err) {
+        console.error(err);
+        showStatus('Network error. Please try again.', true);
+      } finally {
+        if (payBtn) {
+          payBtn.disabled = false;
+          payBtn.textContent = draftType === 'membership'
+            ? 'Simulate membership purchase'
+            : 'Simulate payment success';
+        }
+      }
+    };
+
+    btnBack?.addEventListener('click', goBack);
+    cancelBtn?.addEventListener('click', goBack);
+    payBtn?.addEventListener('click', handlePay);
+    loginBtn?.addEventListener('click', () => {
+      try {
+        localStorage.setItem('postLoginRedirect', JSON.stringify({
+          page: 'payment',
+          returnUrl: getReturnUrl()
+        }));
+      } catch {}
+      window.location.href = 'login.html#login';
+    });
+
+    renderPageText();
+    renderSummary();
+    requireValidDraft();
+  </script>
+</body>
+</html>
+
