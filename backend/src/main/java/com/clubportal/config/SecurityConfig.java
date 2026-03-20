@@ -81,6 +81,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/login", "/api/register").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/public/config").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/public/users/**").permitAll()
                 .requestMatchers("/api/my/clubs/*/chat/**").hasAnyRole("CLUB", "ADMIN")
                 .requestMatchers("/api/clubs/*/chat/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/clubs/**").permitAll()

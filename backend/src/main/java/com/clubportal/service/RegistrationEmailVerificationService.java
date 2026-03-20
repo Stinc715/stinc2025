@@ -1,19 +1,19 @@
 package com.clubportal.service;
 
+import com.clubportal.model.RegistrationEmailVerification;
+import com.clubportal.repository.RegistrationEmailVerificationRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.time.Instant;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
 
 @Service
 public class RegistrationEmailVerificationService {
 
     private final SecureRandom random = new SecureRandom();
-    private final Map<String, PendingCode> pendingCodes = new ConcurrentHashMap<>();
-    private final Map<String, Instant> verifiedEmails = new ConcurrentHashMap<>();
+    private final RegistrationEmailVerificationRepository verificationRepo;
 
     @Value("${app.auth.register.code-ttl-seconds:600}")
     private long codeTtlSeconds;
@@ -24,73 +24,113 @@ public class RegistrationEmailVerificationService {
     @Value("${app.auth.register.verified-ttl-seconds:1800}")
     private long verifiedTtlSeconds;
 
-    public SendCodeResult issueCode(String normalizedEmail) {
-        Instant now = Instant.now();
-        cleanupExpired(normalizedEmail, now);
+    public RegistrationEmailVerificationService(RegistrationEmailVerificationRepository verificationRepo) {
+        this.verificationRepo = verificationRepo;
+    }
 
-        PendingCode existing = pendingCodes.get(normalizedEmail);
-        if (existing != null) {
-            long elapsed = now.getEpochSecond() - existing.sentAt().getEpochSecond();
+    public SendCodeResult issueCode(String normalizedEmail) {
+        String email = normalizeEmail(normalizedEmail);
+        if (email.isBlank()) {
+            return SendCodeResult.rateLimited(1);
+        }
+
+        Instant now = Instant.now();
+        cleanupExpired(now);
+
+        RegistrationEmailVerification row = verificationRepo.findByEmailIgnoreCase(email).orElse(null);
+        if (row != null && row.getSentAt() != null && row.getExpiresAt() != null && row.getExpiresAt().isAfter(now)) {
+            long elapsed = now.getEpochSecond() - row.getSentAt().getEpochSecond();
             long retryAfter = resendCooldownSeconds - elapsed;
             if (retryAfter > 0) {
                 return SendCodeResult.rateLimited(retryAfter);
             }
         }
 
+        if (row == null) {
+            row = new RegistrationEmailVerification();
+            row.setEmail(email);
+        }
+
         String code = String.format("%06d", random.nextInt(1_000_000));
-        PendingCode next = new PendingCode(code, now, now.plusSeconds(Math.max(60, codeTtlSeconds)));
-        pendingCodes.put(normalizedEmail, next);
-        verifiedEmails.remove(normalizedEmail);
-        return SendCodeResult.sent(code, next.expiresAt(), resendCooldownSeconds);
+        Instant expiresAt = now.plusSeconds(Math.max(60, codeTtlSeconds));
+        row.setVerificationCode(code);
+        row.setSentAt(now);
+        row.setExpiresAt(expiresAt);
+        row.setVerifiedUntil(null);
+        verificationRepo.save(row);
+        return SendCodeResult.sent(code, expiresAt, resendCooldownSeconds);
     }
 
     public boolean verifyCode(String normalizedEmail, String code) {
-        if (code == null || code.isBlank()) return false;
+        String email = normalizeEmail(normalizedEmail);
+        String normalizedCode = safe(code);
+        if (email.isBlank() || normalizedCode.isBlank()) return false;
 
         Instant now = Instant.now();
-        cleanupExpired(normalizedEmail, now);
+        cleanupExpired(now);
 
-        PendingCode existing = pendingCodes.get(normalizedEmail);
-        if (existing == null) return false;
-        if (!existing.code().equals(code.trim())) return false;
-        if (existing.expiresAt().isBefore(now)) {
-            pendingCodes.remove(normalizedEmail);
+        RegistrationEmailVerification row = verificationRepo.findByEmailIgnoreCase(email).orElse(null);
+        if (row == null) return false;
+        if (!normalizedCode.equals(row.getVerificationCode())) return false;
+        if (row.getExpiresAt() == null || !row.getExpiresAt().isAfter(now)) {
+            verificationRepo.delete(row);
             return false;
         }
 
-        pendingCodes.remove(normalizedEmail);
-        verifiedEmails.put(normalizedEmail, now.plusSeconds(Math.max(60, verifiedTtlSeconds)));
+        row.setVerificationCode(null);
+        row.setExpiresAt(null);
+        row.setVerifiedUntil(now.plusSeconds(Math.max(60, verifiedTtlSeconds)));
+        verificationRepo.save(row);
         return true;
     }
 
     public boolean isVerifiedForRegistration(String normalizedEmail) {
+        String email = normalizeEmail(normalizedEmail);
+        if (email.isBlank()) return false;
+
         Instant now = Instant.now();
-        cleanupExpired(normalizedEmail, now);
-        Instant verifiedUntil = verifiedEmails.get(normalizedEmail);
-        return verifiedUntil != null && verifiedUntil.isAfter(now);
+        cleanupExpired(now);
+
+        RegistrationEmailVerification row = verificationRepo.findByEmailIgnoreCase(email).orElse(null);
+        return row != null && row.getVerifiedUntil() != null && row.getVerifiedUntil().isAfter(now);
     }
 
     public void consumeVerification(String normalizedEmail) {
-        verifiedEmails.remove(normalizedEmail);
-        pendingCodes.remove(normalizedEmail);
+        String email = normalizeEmail(normalizedEmail);
+        if (email.isBlank()) return;
+        verificationRepo.findByEmailIgnoreCase(email).ifPresent(verificationRepo::delete);
     }
 
     public long verificationTtlSeconds() {
         return Math.max(60, verifiedTtlSeconds);
     }
 
-    private void cleanupExpired(String normalizedEmail, Instant now) {
-        PendingCode pending = pendingCodes.get(normalizedEmail);
-        if (pending != null && !pending.expiresAt().isAfter(now)) {
-            pendingCodes.remove(normalizedEmail);
+    private void cleanupExpired(Instant now) {
+        List<RegistrationEmailVerification> expired = verificationRepo.findByExpiresAtBeforeAndVerifiedUntilBefore(now, now);
+        if (!expired.isEmpty()) {
+            verificationRepo.deleteAll(expired);
         }
-        Instant verifiedUntil = verifiedEmails.get(normalizedEmail);
-        if (verifiedUntil != null && !verifiedUntil.isAfter(now)) {
-            verifiedEmails.remove(normalizedEmail);
-        }
+        verificationRepo.findAll().stream()
+                .filter(row -> shouldDelete(row, now))
+                .forEach(verificationRepo::delete);
     }
 
-    private record PendingCode(String code, Instant sentAt, Instant expiresAt) {}
+    private static boolean shouldDelete(RegistrationEmailVerification row, Instant now) {
+        boolean codeExpired = row.getVerificationCode() == null
+                || row.getExpiresAt() == null
+                || !row.getExpiresAt().isAfter(now);
+        boolean verifiedExpired = row.getVerifiedUntil() == null
+                || !row.getVerifiedUntil().isAfter(now);
+        return codeExpired && verifiedExpired;
+    }
+
+    private static String safe(String value) {
+        return value == null ? "" : value.trim();
+    }
+
+    private static String normalizeEmail(String value) {
+        return safe(value).toLowerCase();
+    }
 
     public record SendCodeResult(boolean success, String code, Instant expiresAt, long retryAfterSeconds) {
         public static SendCodeResult sent(String code, Instant expiresAt, long retryAfterSeconds) {

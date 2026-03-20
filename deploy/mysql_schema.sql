@@ -12,11 +12,79 @@ CREATE TABLE IF NOT EXISTS `user` (
   `email` VARCHAR(120) NOT NULL,
   `password_hash` VARCHAR(255) NOT NULL,
   `phone` VARCHAR(40) DEFAULT NULL,
+  `avatar_file_name` VARCHAR(255) DEFAULT NULL,
+  `avatar_mime_type` VARCHAR(120) DEFAULT NULL,
+  `avatar_updated_at` DATETIME DEFAULT NULL,
   `role` VARCHAR(20) NOT NULL DEFAULT 'USER',
+  `session_version` INT NOT NULL DEFAULT 1,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `uk_user_email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+SET @user_avatar_file_name_col_exists := (
+  SELECT COUNT(*)
+  FROM information_schema.columns
+  WHERE table_schema = DATABASE()
+    AND table_name = 'user'
+    AND column_name = 'avatar_file_name'
+);
+SET @user_avatar_file_name_sql := IF(
+  @user_avatar_file_name_col_exists = 0,
+  'ALTER TABLE `user` ADD COLUMN `avatar_file_name` VARCHAR(255) NULL AFTER `phone`',
+  'SELECT 1'
+);
+PREPARE user_avatar_file_name_stmt FROM @user_avatar_file_name_sql;
+EXECUTE user_avatar_file_name_stmt;
+DEALLOCATE PREPARE user_avatar_file_name_stmt;
+
+SET @user_avatar_mime_type_col_exists := (
+  SELECT COUNT(*)
+  FROM information_schema.columns
+  WHERE table_schema = DATABASE()
+    AND table_name = 'user'
+    AND column_name = 'avatar_mime_type'
+);
+SET @user_avatar_mime_type_sql := IF(
+  @user_avatar_mime_type_col_exists = 0,
+  'ALTER TABLE `user` ADD COLUMN `avatar_mime_type` VARCHAR(120) NULL AFTER `avatar_file_name`',
+  'SELECT 1'
+);
+PREPARE user_avatar_mime_type_stmt FROM @user_avatar_mime_type_sql;
+EXECUTE user_avatar_mime_type_stmt;
+DEALLOCATE PREPARE user_avatar_mime_type_stmt;
+
+SET @user_avatar_updated_at_col_exists := (
+  SELECT COUNT(*)
+  FROM information_schema.columns
+  WHERE table_schema = DATABASE()
+    AND table_name = 'user'
+    AND column_name = 'avatar_updated_at'
+);
+SET @user_avatar_updated_at_sql := IF(
+  @user_avatar_updated_at_col_exists = 0,
+  'ALTER TABLE `user` ADD COLUMN `avatar_updated_at` DATETIME NULL AFTER `avatar_mime_type`',
+  'SELECT 1'
+);
+PREPARE user_avatar_updated_at_stmt FROM @user_avatar_updated_at_sql;
+EXECUTE user_avatar_updated_at_stmt;
+DEALLOCATE PREPARE user_avatar_updated_at_stmt;
+
+SET @user_session_version_col_exists := (
+  SELECT COUNT(*)
+  FROM information_schema.columns
+  WHERE table_schema = DATABASE()
+    AND table_name = 'user'
+    AND column_name = 'session_version'
+);
+SET @user_session_version_sql := IF(
+  @user_session_version_col_exists = 0,
+  'ALTER TABLE `user` ADD COLUMN `session_version` INT NOT NULL DEFAULT 1 AFTER `role`',
+  'SELECT 1'
+);
+PREPARE user_session_version_stmt FROM @user_session_version_sql;
+EXECUTE user_session_version_stmt;
+DEALLOCATE PREPARE user_session_version_stmt;
 
 -- 2) Club
 CREATE TABLE IF NOT EXISTS `club` (
@@ -366,4 +434,43 @@ CREATE TABLE IF NOT EXISTS `chat_message` (
   KEY `idx_chat_message_user_unread` (`user_id`, `sender`, `read_by_user`, `created_at`),
   CONSTRAINT `fk_chat_message_club` FOREIGN KEY (`club_id`) REFERENCES `club` (`club_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_chat_message_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `registration_email_verification` (
+  `verification_id` INT NOT NULL AUTO_INCREMENT,
+  `email` VARCHAR(120) NOT NULL,
+  `verification_code` VARCHAR(6) DEFAULT NULL,
+  `sent_at` DATETIME DEFAULT NULL,
+  `expires_at` DATETIME DEFAULT NULL,
+  `verified_until` DATETIME DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`verification_id`),
+  UNIQUE KEY `uk_registration_email_verification_email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `password_reset_token` (
+  `password_reset_id` INT NOT NULL AUTO_INCREMENT,
+  `email` VARCHAR(120) NOT NULL,
+  `reset_token` VARCHAR(255) NOT NULL,
+  `sent_at` DATETIME NOT NULL,
+  `expires_at` DATETIME NOT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`password_reset_id`),
+  UNIQUE KEY `uk_password_reset_token_token` (`reset_token`),
+  UNIQUE KEY `uk_password_reset_token_email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `profile_email_change_verification` (
+  `verification_id` INT NOT NULL AUTO_INCREMENT,
+  `user_id` INT NOT NULL,
+  `pending_email` VARCHAR(120) NOT NULL,
+  `verification_code` VARCHAR(6) NOT NULL,
+  `sent_at` DATETIME NOT NULL,
+  `expires_at` DATETIME NOT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`verification_id`),
+  UNIQUE KEY `uk_profile_email_change_user` (`user_id`),
+  UNIQUE KEY `uk_profile_email_change_email` (`pending_email`),
+  KEY `idx_profile_email_change_expires_at` (`expires_at`),
+  CONSTRAINT `fk_profile_email_change_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

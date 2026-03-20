@@ -1,5 +1,4 @@
 import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -32,7 +31,7 @@ const copyPlainScriptFiles = () => ({
 
 export default defineConfig({
   root: 'frontend',
-  plugins: [vue(), copyPlainScriptFiles()],
+  plugins: [copyPlainScriptFiles()],
   server: {
     port: 5173,
     open: true,

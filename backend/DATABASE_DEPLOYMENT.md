@@ -1,6 +1,11 @@
 ## Backend Database Setup
 
-This backend uses MySQL.
+The deployment target for this backend is MySQL.
+
+Important detail:
+
+- local `dev` profile currently defaults to H2 unless datasource env vars are overridden
+- deployment scripts and schema files target MySQL
 
 ### Required Environment Variables (Profile: `dev`)
 
@@ -33,7 +38,7 @@ This project uses 9 core business tables:
 - `club_admin`
 - `transaction`
 
-Create/update them by running `backend/schema.sql` against your AWS RDS database.
+Create/update them by running `deploy/mysql_schema.sql` against your AWS RDS database.
 
 Notes:
 

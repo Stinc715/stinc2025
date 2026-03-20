@@ -34,7 +34,7 @@ The live product is mostly a multi-page static HTML application, not a SPA.
 
 Important detail:
 
-- `package.json` includes Vue and `src/main.js`, but the currently deployed product behavior is primarily driven by the HTML files in `frontend/`
+- `frontend/` is the actual app root used by the current Vite build
 - each page contains its own inline JavaScript and directly calls `/api/...`
 - Vite is used mainly as a build pipeline that copies/bundles assets into `dist/`
 
@@ -149,15 +149,15 @@ Backend:
 How it works:
 
 1. frontend requests a verification code
-2. backend stores the pending code in memory
+2. backend stores the pending code in the `registration_email_verification` table
 3. email is sent through `MailService`
 4. verification marks the email as temporarily approved for registration
 5. `AuthController.register` refuses registration unless the email has been verified
 
-Important limitation:
+Current note:
 
-- registration verification state is in-memory, not persisted to MySQL
-- service restart clears pending verification state
+- verification state is persisted
+- expired rows are cleaned lazily during verification-related requests, not by a separate scheduler
 
 ### 4.5 Password reset
 
@@ -175,15 +175,15 @@ Frontend:
 How it works:
 
 1. user requests reset link from login modal
-2. `PasswordResetService` generates an in-memory token
+2. `PasswordResetService` generates a token row in `password_reset_token`
 3. email is sent with a reset URL
 4. reset page validates token
 5. confirm endpoint consumes token and updates the password
 
-Important limitation:
+Current note:
 
-- like registration codes, reset tokens are in-memory
-- restart clears pending reset tokens
+- reset tokens are persisted
+- expired rows are cleaned lazily during password-reset requests, not by a separate scheduler
 
 ### 4.6 Google login
 
@@ -685,11 +685,9 @@ Backed endpoints that definitely exist:
 
 Important honesty note:
 
-- `frontend/user.html` still contains client code for `/api/profile/avatar` and `/api/profile/email/code`
-- those endpoints are not present in the current backend controllers
-- so avatar upload and email-code verification inside the user center are frontend-prepared but not backend-complete
-
-This should be treated as a known gap, not as a finished feature.
+- `frontend/user.html` now has backend support for avatar upload and email-code verification
+- the relevant endpoints are handled by `ProfileController` and `PublicUserController`
+- this area should now be treated as implemented, subject to normal integration testing
 
 ## 12. Club Workspace Shell
 
@@ -871,17 +869,15 @@ Club-only pages:
 
 ### 18.3 The deployed app is page-based, not component-driven
 
-Even though Vue is present in the repo, the current production feature set is maintained mostly through standalone HTML files with inline scripts.
+The current production feature set is maintained mostly through standalone HTML files with inline scripts.
 
 ## 19. Known Gaps and Technical Debt
 
 The most important current gaps are:
 
 1. `payment.html` is still a simulated payment flow.
-2. registration verification and password reset tokens are stored in memory, not in the database.
-3. `frontend/user.html` references avatar upload and email-code endpoints that do not exist in the current backend.
-4. the codebase still contains traces of an older Vue app structure that is not the main production path.
-5. some deployment and generated artifacts are mixed into the working tree, so operational and source concerns are not fully separated.
+2. local development defaults to H2 while deployment scripts target MySQL, so cross-environment drift still needs attention.
+3. some deployment and generated artifacts are mixed into the working tree, so operational and source concerns are not fully separated.
 
 ## 20. Suggested Reading Order for New Developers
 

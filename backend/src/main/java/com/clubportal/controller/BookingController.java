@@ -44,7 +44,9 @@ import java.util.Set;
 @RequestMapping("/api")
 public class BookingController {
 
-    private static final List<String> ACTIVE_BOOKING_STATUSES = List.of("PENDING", "APPROVED");
+    private static final List<String> OCCUPIED_BOOKING_STATUSES = List.of("PENDING", "APPROVED", "CHECKED");
+    private static final List<String> USER_CANCELABLE_BOOKING_STATUSES = List.of("PENDING", "APPROVED");
+    private static final List<String> CLUB_VISIBLE_BOOKING_STATUSES = List.of("PENDING", "APPROVED", "CHECKED", "CANCELLED");
 
     private final TimeSlotRepository timeSlotRepo;
     private final BookingRecordRepository bookingRepo;
@@ -92,12 +94,12 @@ public class BookingController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Time slot not found");
         }
 
-        boolean already = bookingRepo.existsByUserIdAndTimeslotIdAndStatusIn(me.getUserId(), timeslotId, ACTIVE_BOOKING_STATUSES);
+        boolean already = bookingRepo.existsByUserIdAndTimeslotIdAndStatusIn(me.getUserId(), timeslotId, OCCUPIED_BOOKING_STATUSES);
         if (already) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Already booked");
         }
 
-        long booked = bookingRepo.countByTimeslotIdAndStatusIn(timeslotId, ACTIVE_BOOKING_STATUSES);
+        long booked = bookingRepo.countByTimeslotIdAndStatusIn(timeslotId, OCCUPIED_BOOKING_STATUSES);
         if (booked >= slot.getMaxCapacity()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Time slot is full");
         }
@@ -138,7 +140,7 @@ public class BookingController {
         Optional<BookingRecord> active = bookingRepo.findFirstByUserIdAndTimeslotIdAndStatusInOrderByBookingTimeDesc(
                 me.getUserId(),
                 timeslotId,
-                ACTIVE_BOOKING_STATUSES
+                USER_CANCELABLE_BOOKING_STATUSES
         );
         if (active.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No active booking found for this time slot");
@@ -294,7 +296,7 @@ public class BookingController {
                 .filter(Objects::nonNull)
                 .toList();
 
-        List<BookingRecord> bookings = bookingRepo.findByTimeslotIdInAndStatusInOrderByBookingTimeAsc(slotIds, ACTIVE_BOOKING_STATUSES);
+        List<BookingRecord> bookings = bookingRepo.findByTimeslotIdInOrderByBookingTimeAsc(slotIds);
         Map<Integer, TimeSlot> slotById = slots.stream().collect(java.util.stream.Collectors.toMap(TimeSlot::getTimeslotId, slot -> slot));
 
         Set<Integer> userIds = bookings.stream()
@@ -368,13 +370,65 @@ public class BookingController {
                             slot.getEndTime(),
                             slot.getMaxCapacity(),
                             normalizePrice(slot.getPrice()),
-                            members.size(),
-                            members
+                    members.stream().filter(member -> isOccupiedStatus(member.status())).count(),
+                    members
                     );
                 })
                 .toList();
 
         return ResponseEntity.ok(out);
+    }
+
+    @PatchMapping("/my/clubs/{clubId}/bookings/{bookingId}/status")
+    @Transactional
+    public ResponseEntity<?> updateClubBookingStatus(@PathVariable Integer clubId,
+                                                     @PathVariable Integer bookingId,
+                                                     @RequestBody Map<String, Object> body) {
+        if (!clubRepo.existsById(clubId)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Club not found");
+        }
+
+        User me = currentUserService.requireUser();
+        ResponseEntity<?> denied = requireClubAdmin(me, clubId);
+        if (denied != null) return denied;
+
+        BookingRecord booking = bookingRepo.findById(bookingId).orElse(null);
+        if (booking == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Booking not found");
+        }
+
+        TimeSlot slot = timeSlotRepo.findById(booking.getTimeslotId()).orElse(null);
+        if (slot == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Time slot not found");
+        }
+        Venue venue = venueRepo.findById(slot.getVenueId()).orElse(null);
+        if (venue == null || !clubId.equals(venue.getClubId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You can only manage your own club bookings");
+        }
+
+        String nextStatus = normalizeStatus(body.get("status"));
+        if (nextStatus.isBlank()) {
+            return ResponseEntity.badRequest().body("Missing booking status");
+        }
+        if (!isKnownStatus(nextStatus)) {
+            return ResponseEntity.badRequest().body("Unsupported booking status");
+        }
+
+        String currentStatus = normalizeStatus(booking.getStatus());
+        if (!isAllowedTransition(currentStatus, nextStatus)) {
+            return ResponseEntity.badRequest().body("Invalid booking status transition");
+        }
+
+        if (isOccupiedStatus(nextStatus) && !isOccupiedStatus(currentStatus)) {
+            long occupied = bookingRepo.countByTimeslotIdAndStatusIn(slot.getTimeslotId(), OCCUPIED_BOOKING_STATUSES);
+            if (occupied >= slot.getMaxCapacity()) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("Time slot is full");
+            }
+        }
+
+        booking.setStatus(nextStatus);
+        BookingRecord saved = bookingRepo.save(booking);
+        return ResponseEntity.ok(new BookingResponse(saved.getBookingId(), saved.getTimeslotId(), saved.getStatus()));
     }
 
     private ResponseEntity<?> requireClubAdmin(User me, Integer clubId) {
@@ -392,6 +446,31 @@ public class BookingController {
 
     private static String safe(String s) {
         return s == null ? "" : s.trim();
+    }
+
+    private static boolean isKnownStatus(String status) {
+        return CLUB_VISIBLE_BOOKING_STATUSES.contains(status);
+    }
+
+    private static boolean isOccupiedStatus(String status) {
+        return OCCUPIED_BOOKING_STATUSES.contains(normalizeStatus(status));
+    }
+
+    private static String normalizeStatus(Object status) {
+        return status == null ? "" : String.valueOf(status).trim().toUpperCase();
+    }
+
+    private static boolean isAllowedTransition(String currentStatus, String nextStatus) {
+        String current = normalizeStatus(currentStatus);
+        String next = normalizeStatus(nextStatus);
+        if (current.equals(next)) return true;
+        return switch (current) {
+            case "PENDING" -> next.equals("APPROVED") || next.equals("CANCELLED");
+            case "APPROVED" -> next.equals("PENDING") || next.equals("CHECKED") || next.equals("CANCELLED");
+            case "CHECKED" -> next.equals("APPROVED") || next.equals("CANCELLED");
+            case "CANCELLED" -> next.equals("PENDING") || next.equals("APPROVED");
+            default -> false;
+        };
     }
 
     private static BigDecimal normalizePrice(BigDecimal price) {

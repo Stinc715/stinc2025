@@ -42,6 +42,15 @@ public class User {
     @Column(name = "phone", length = 40)
     private String phone;
 
+    @Column(name = "avatar_file_name", length = 255)
+    private String avatarFileName;
+
+    @Column(name = "avatar_mime_type", length = 120)
+    private String avatarMimeType;
+
+    @Column(name = "avatar_updated_at")
+    private LocalDateTime avatarUpdatedAt;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 20)
     private Role role = Role.USER;
@@ -62,6 +71,12 @@ public class User {
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
+    public String getAvatarFileName() { return avatarFileName; }
+    public void setAvatarFileName(String avatarFileName) { this.avatarFileName = avatarFileName; }
+    public String getAvatarMimeType() { return avatarMimeType; }
+    public void setAvatarMimeType(String avatarMimeType) { this.avatarMimeType = avatarMimeType; }
+    public LocalDateTime getAvatarUpdatedAt() { return avatarUpdatedAt; }
+    public void setAvatarUpdatedAt(LocalDateTime avatarUpdatedAt) { this.avatarUpdatedAt = avatarUpdatedAt; }
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
     public Integer getSessionVersion() { return sessionVersion; }

@@ -167,6 +167,14 @@
       flex-wrap: wrap;
       justify-content: flex-end;
     }
+    .member-line-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      width: 100%;
+    }
     .member-pill {
       display: inline-flex;
       align-items: center;
@@ -236,6 +244,10 @@
       cursor: pointer;
       transition: all 0.2s ease;
       box-shadow: none;
+    }
+    .btn[disabled] {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
     .btn:hover {
       background: #e3e6e9;
@@ -433,6 +445,22 @@
       });
     };
 
+    const readTextSafe = async (res) => {
+      try {
+        const contentType = String(res.headers.get('content-type') || '').toLowerCase();
+        if (contentType.includes('application/json')) {
+          const data = await res.json();
+          if (data && typeof data.message === 'string' && data.message.trim()) {
+            return data.message.trim();
+          }
+          return JSON.stringify(data || {});
+        }
+        return await res.text();
+      } catch {
+        return '';
+      }
+    };
+
     const localDateISO = (d) => {
       const tzOffset = d.getTimezoneOffset() * 60000;
       return new Date(d.getTime() - tzOffset).toISOString().slice(0, 10);
@@ -477,6 +505,37 @@
       checked: 'Checked-in',
       cancelled: 'Cancelled'
     }[status] || 'Pending');
+
+    const memberActionsHtml = (member) => {
+      const status = statusKey(member?.status);
+      const bookingId = Number(member?.bookingId);
+      if (!Number.isFinite(bookingId)) return '';
+
+      const actions = [];
+      if (status === 'pending') {
+        actions.push({ status: 'APPROVED', label: 'Approve', className: 'approve' });
+        actions.push({ status: 'CANCELLED', label: 'Cancel', className: 'cancel' });
+      } else if (status === 'approved') {
+        actions.push({ status: 'CHECKED', label: 'Check-in', className: 'checkin' });
+        actions.push({ status: 'PENDING', label: 'Revert', className: 'ghost' });
+        actions.push({ status: 'CANCELLED', label: 'Cancel', className: 'cancel' });
+      } else if (status === 'checked') {
+        actions.push({ status: 'APPROVED', label: 'Mark approved', className: 'ghost' });
+        actions.push({ status: 'CANCELLED', label: 'Cancel', className: 'cancel' });
+      } else if (status === 'cancelled') {
+        actions.push({ status: 'PENDING', label: 'Reopen', className: 'ghost' });
+        actions.push({ status: 'APPROVED', label: 'Approve', className: 'approve' });
+      }
+
+      if (!actions.length) return '';
+      return `
+        <div class="member-line-actions">
+          ${actions.map((action) => (
+            `<button class="btn small ${escapeHtml(action.className)}" type="button" data-booking-id="${escapeHtml(String(bookingId))}" data-next-status="${escapeHtml(action.status)}">${escapeHtml(action.label)}</button>`
+          )).join('')}
+        </div>
+      `;
+    };
 
     const resolveClubId = async () => {
       const loggedUser = safeParseJSON(localStorage.getItem('loggedUser') || 'null');
@@ -575,6 +634,7 @@
                   <span class="member-pill">${pricePaid}</span>
                   ${membershipPlan ? `<span class="member-pill ${membershipStatusClass(membershipStatus)}">${escapeHtml(membershipPlan)}</span>` : ''}
                 </div>
+                ${memberActionsHtml(m)}
               </div>
             `;
           }).join('')
@@ -589,11 +649,11 @@
               <div class="booking-sub">Price: ${priceLabel}</div>
             </div>
             <div class="booking-right">
-              <span class="status approved">Booked ${escapeHtml(capLabel)}</span>
+              <span class="status approved">Occupied ${escapeHtml(capLabel)}</span>
             </div>
           </div>
           <details class="members-menu">
-            <summary>Booked members (${members.length})</summary>
+            <summary>Booking records (${members.length})</summary>
             <div class="members-list">${membersHtml}</div>
           </details>
         </div>
@@ -678,6 +738,47 @@
         }
       }
     };
+
+    const updateBookingStatus = async (bookingId, nextStatus, buttonEl) => {
+      if (!activeClubId || !bookingId || !nextStatus) return;
+      const previousText = buttonEl ? buttonEl.textContent : '';
+      if (buttonEl) {
+        buttonEl.disabled = true;
+        buttonEl.textContent = 'Saving...';
+      }
+      try {
+        const res = await authFetch(`/api/my/clubs/${encodeURIComponent(String(activeClubId))}/bookings/${encodeURIComponent(String(bookingId))}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: nextStatus })
+        });
+        if (!res.ok) {
+          throw new Error((await readTextSafe(res)) || 'Failed to update booking status.');
+        }
+        await refreshData();
+      } catch (err) {
+        console.error(err);
+        window.alert((err && err.message) ? err.message : 'Failed to update booking status.');
+      } finally {
+        if (buttonEl) {
+          buttonEl.disabled = false;
+          buttonEl.textContent = previousText;
+        }
+      }
+    };
+
+    const handleBookingActionClick = (event) => {
+      const button = event.target.closest('[data-booking-id][data-next-status]');
+      if (!button) return;
+      event.preventDefault();
+      const bookingId = Number(button.getAttribute('data-booking-id'));
+      const nextStatus = String(button.getAttribute('data-next-status') || '').trim().toUpperCase();
+      if (!Number.isFinite(bookingId) || !nextStatus) return;
+      updateBookingStatus(bookingId, nextStatus, button);
+    };
+
+    listEl?.addEventListener('click', handleBookingActionClick);
+    groupedView?.addEventListener('click', handleBookingActionClick);
 
     refreshBtn?.addEventListener('click', refreshData);
 

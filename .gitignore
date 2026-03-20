@@ -19,7 +19,5 @@ backend/*.jar.original
 backend/.github/
 
 demo-core-loop.ps1
-backend/API_CONTRACT.md
-backend/schema.sql
 
 .DS_Store

@@ -21,6 +21,7 @@ public interface BookingRecordRepository extends JpaRepository<BookingRecord, In
     long countByTimeslotIdAndStatusIn(Integer timeslotId, Collection<String> statuses);
     boolean existsByUserIdAndTimeslotIdAndStatusIn(Integer userId, Integer timeslotId, Collection<String> statuses);
     List<BookingRecord> findByTimeslotIdInAndStatusInOrderByBookingTimeAsc(Collection<Integer> timeslotIds, Collection<String> statuses);
+    List<BookingRecord> findByTimeslotIdInOrderByBookingTimeAsc(Collection<Integer> timeslotIds);
 
     interface TimeslotCount {
         Integer getTimeslotId();

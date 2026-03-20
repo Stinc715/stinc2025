@@ -11,11 +11,6 @@
     "check:prompts": "node scripts/check-prompts.mjs"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.4",
     "vite": "^5.4.2"
-  },
-  "dependencies": {
-    "vue": "^3.4.31",
-    "vue-router": "^4.4.3"
   }
 }

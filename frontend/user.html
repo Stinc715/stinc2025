@@ -929,6 +929,79 @@
         });
       };
 
+      const readTextSafe = async (res) => {
+        try {
+          const contentType = String(res.headers.get('content-type') || '').toLowerCase();
+          if (contentType.includes('application/json')) {
+            const data = await res.json();
+            if (data && typeof data.message === 'string' && data.message.trim()) {
+              return data.message.trim();
+            }
+            return JSON.stringify(data || {});
+          }
+          return await res.text();
+        } catch {
+          return '';
+        }
+      };
+
+      const persistSessionToken = (token) => {
+        const normalized = String(token || '').trim();
+        if (!normalized) return;
+        try {
+          localStorage.setItem('token', normalized);
+        } catch (err) {
+          console.error(err);
+        }
+      };
+
+      const syncLocalProfileState = (payload) => {
+        const profilePayload = payload && typeof payload === 'object' ? payload : {};
+        const displayName = String(profilePayload.displayName || profilePayload.fullName || profilePayload.name || '').trim();
+        const email = String(profilePayload.email || '').trim();
+        const avatarUrl = String(profilePayload.avatarUrl || profilePayload.avatar || '').trim();
+        const role = String(profilePayload.role || '').trim().toLowerCase() || 'user';
+
+        const profile = safeParse('profile') || {};
+        const loggedUser = safeParse('loggedUser') || {};
+        const userObj = safeParse('user') || {};
+
+        if (displayName) {
+          profile.displayName = displayName;
+          profile.fullName = displayName;
+          profile.name = displayName;
+          loggedUser.name = displayName;
+          userObj.fullName = displayName;
+          userObj.name = displayName;
+        }
+        if (email) {
+          profile.email = email;
+          loggedUser.email = email;
+          userObj.email = email;
+        }
+        if (avatarUrl) {
+          profile.avatarUrl = avatarUrl;
+          profile.avatar = avatarUrl;
+        }
+        if (role) {
+          profile.role = role;
+          loggedUser.type = role;
+          userObj.role = role;
+        }
+
+        try {
+          localStorage.setItem('profile', JSON.stringify(profile));
+          localStorage.setItem('loggedUser', JSON.stringify(loggedUser));
+          localStorage.setItem('user', JSON.stringify(userObj));
+        } catch (err) {
+          console.error(err);
+        }
+
+        if (avatarUrl) {
+          persistAvatar(avatarUrl, { emit: false });
+        }
+      };
+
       const escapeHtml = (value) => String(value ?? '')
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
@@ -954,7 +1027,6 @@
         return `GBP ${n.toFixed(2)}`;
       };
 
-      // TODO: Replace with real backend endpoints.
       const profileApi = {
         async getMyBookings() {
           const res = await authFetch('/api/my/bookings');
@@ -973,66 +1045,67 @@
           return await res.json();
         },
         async getProfile() {
-          try {
-            const res = await authFetch('/api/profile');
-            if (res.ok) return await res.json();
-          } catch (err) {
-            console.error(err);
+          const res = await authFetch('/api/profile');
+          if (!res.ok) {
+            throw new Error((await readTextSafe(res)) || 'Failed to load profile.');
           }
-          return null;
+          return await res.json();
         },
         async updateName(displayName) {
-          try {
-            const res = await authFetch('/api/profile', {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ displayName })
-            });
-            if (res.ok) return await res.json();
-          } catch (err) {
-            console.error(err);
+          const res = await authFetch('/api/profile', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ displayName })
+          });
+          if (!res.ok) {
+            throw new Error((await readTextSafe(res)) || 'Failed to update name.');
           }
-          return null;
+          return await res.json();
         },
         async sendEmailCode(email) {
-          try {
-            const res = await authFetch('/api/profile/email/code', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email })
-            });
-            if (res.ok) return await res.json();
-          } catch (err) {
-            console.error(err);
+          const res = await authFetch('/api/profile/email/code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+          });
+          if (!res.ok) {
+            throw new Error((await readTextSafe(res)) || 'Failed to send verification code.');
           }
-          return null;
+          return await res.json();
         },
         async updateEmail(email, code) {
-          try {
-            const res = await authFetch('/api/profile/email', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email, code })
-            });
-            if (res.ok) return await res.json();
-          } catch (err) {
-            console.error(err);
+          const res = await authFetch('/api/profile/email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, code })
+          });
+          if (!res.ok) {
+            throw new Error((await readTextSafe(res)) || 'Failed to update email.');
           }
-          return null;
+          return await res.json();
         },
         async uploadAvatar(file) {
-          try {
-            const formData = new FormData();
-            formData.append('avatar', file);
-            const res = await authFetch('/api/profile/avatar', {
-              method: 'POST',
-              body: formData
-            });
-            if (res.ok) return await res.json();
-          } catch (err) {
-            console.error(err);
+          const formData = new FormData();
+          formData.append('avatar', file);
+          const res = await authFetch('/api/profile/avatar', {
+            method: 'POST',
+            body: formData
+          });
+          if (!res.ok) {
+            throw new Error((await readTextSafe(res)) || 'Failed to upload avatar.');
           }
-          return null;
+          return await res.json();
+        },
+        async updatePassword(currentPassword, newPassword) {
+          const res = await authFetch('/api/profile/password', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ currentPassword, newPassword })
+          });
+          if (!res.ok) {
+            throw new Error((await readTextSafe(res)) || 'Failed to update password.');
+          }
+          return await res.json();
         }
       };
 
@@ -1330,7 +1403,13 @@
       };
 
       const loadAndDisplay = async () => {
-        const profile = await profileApi.getProfile();
+        let profile = null;
+        try {
+          profile = await profileApi.getProfile();
+          if (profile) syncLocalProfileState(profile);
+        } catch (err) {
+          console.error(err);
+        }
         const localProfile = safeParse('profile');
         const loggedUser = safeParse('loggedUser');
         const userObj = safeParse('user');
@@ -1391,26 +1470,17 @@
           setEditing(false);
           return;
         }
-        const updated = await profileApi.updateName(newName);
-        if (!updated) {
-          const profile = safeParse('profile') || {};
-          const loggedUser = safeParse('loggedUser') || {};
-          const userObj = safeParse('user') || {};
-
-          profile.displayName = newName;
-          loggedUser.name = newName;
-          userObj.fullName = newName;
-
-          try {
-            localStorage.setItem('profile', JSON.stringify(profile));
-            localStorage.setItem('loggedUser', JSON.stringify(loggedUser));
-            localStorage.setItem('user', JSON.stringify(userObj));
-          } catch (err) {
-            console.error(err);
-          }
+        try {
+          const updated = await profileApi.updateName(newName);
+          syncLocalProfileState(updated);
+        } catch (err) {
+          console.error(err);
+          window.alert((err && err.message) ? err.message : 'Failed to update name.');
+          return;
         }
 
         currentName = newName;
+        if (modalNameInput) modalNameInput.value = newName;
         setEditing(false);
         toggleConfirm(false);
       };
@@ -1445,7 +1515,7 @@
       emailOverlay?.addEventListener('click', (event) => {
         if (event.target === emailOverlay) closeEmailModalFn();
       });
-      sendEmailCodeBtn?.addEventListener('click', () => {
+      sendEmailCodeBtn?.addEventListener('click', async () => {
         if (!sendEmailCodeBtn || sendEmailCodeBtn.disabled) return;
         const emailValue = (newEmailInput?.value || '').trim();
         const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue);
@@ -1460,22 +1530,33 @@
           emailUpdateErr.textContent = '';
           emailUpdateErr.style.display = 'none';
         }
-        profileApi.sendEmailCode(emailValue);
-        codeRemaining = 120;
         sendEmailCodeBtn.disabled = true;
-        sendEmailCodeBtn.textContent = `Resend in ${codeRemaining}s`;
-        if (codeTimer) clearInterval(codeTimer);
-        codeTimer = setInterval(() => {
-          codeRemaining -= 1;
-          if (codeRemaining <= 0) {
-            clearInterval(codeTimer);
-            codeTimer = null;
-            sendEmailCodeBtn.disabled = false;
-            sendEmailCodeBtn.textContent = 'Send code';
-            return;
-          }
+        sendEmailCodeBtn.textContent = 'Sending...';
+        try {
+          await profileApi.sendEmailCode(emailValue);
+          codeRemaining = 60;
           sendEmailCodeBtn.textContent = `Resend in ${codeRemaining}s`;
-        }, 1000);
+          if (codeTimer) clearInterval(codeTimer);
+          codeTimer = setInterval(() => {
+            codeRemaining -= 1;
+            if (codeRemaining <= 0) {
+              clearInterval(codeTimer);
+              codeTimer = null;
+              sendEmailCodeBtn.disabled = false;
+              sendEmailCodeBtn.textContent = 'Send code';
+              return;
+            }
+            sendEmailCodeBtn.textContent = `Resend in ${codeRemaining}s`;
+          }, 1000);
+        } catch (err) {
+          console.error(err);
+          sendEmailCodeBtn.disabled = false;
+          sendEmailCodeBtn.textContent = 'Send code';
+          if (emailUpdateErr) {
+            emailUpdateErr.textContent = (err && err.message) ? err.message : 'Failed to send verification code.';
+            emailUpdateErr.style.display = 'block';
+          }
+        }
       });
       confirmEmailBtn?.addEventListener('click', async () => {
         const nextEmail = (newEmailInput?.value || '').trim();
@@ -1498,16 +1579,29 @@
           emailUpdateErr.textContent = '';
           emailUpdateErr.style.display = 'none';
         }
-        const updated = await profileApi.updateEmail(nextEmail, code);
-        if (!updated) {
+        let updated;
+        try {
+          updated = await profileApi.updateEmail(nextEmail, code);
+        } catch (err) {
+          console.error(err);
           if (emailUpdateErr) {
-            emailUpdateErr.textContent = 'Verification failed. Please check the code and try again.';
+            emailUpdateErr.textContent = (err && err.message) ? err.message : 'Verification failed. Please check the code and try again.';
             emailUpdateErr.style.display = 'block';
           }
           return;
         }
+        persistSessionToken(updated?.token);
+        syncLocalProfileState(updated);
         currentEmail = nextEmail;
         if (modalEmailInput) modalEmailInput.value = nextEmail;
+        if (codeTimer) {
+          clearInterval(codeTimer);
+          codeTimer = null;
+        }
+        if (sendEmailCodeBtn) {
+          sendEmailCodeBtn.disabled = false;
+          sendEmailCodeBtn.textContent = 'Send code';
+        }
         closeEmailModalFn();
       });
 
@@ -1536,21 +1630,31 @@
       avatarInput?.addEventListener('change', async (event) => {
         const file = event.target.files && event.target.files[0];
         if (!file) return;
+        const previousAvatar = String(avatarImg?.getAttribute('src') || readStoredAvatar() || '').trim();
         const previewUrl = await fileToAvatarDataUrl(file);
         if (previewUrl) {
-          persistAvatar(previewUrl);
           applyAvatarPreview(previewUrl);
         }
 
-        const uploaded = await profileApi.uploadAvatar(file);
-        const serverAvatar = String(uploaded?.avatarUrl || uploaded?.avatar || '').trim();
-        if (serverAvatar) {
-          persistAvatar(serverAvatar);
-          applyAvatarPreview(serverAvatar);
+        try {
+          const uploaded = await profileApi.uploadAvatar(file);
+          const serverAvatar = String(uploaded?.avatarUrl || uploaded?.avatar || '').trim();
+          if (serverAvatar) {
+            persistAvatar(serverAvatar);
+            applyAvatarPreview(serverAvatar);
+          }
+        } catch (err) {
+          console.error(err);
+          if (previousAvatar) {
+            applyAvatarPreview(previousAvatar);
+          } else {
+            applyAvatarPreview('');
+          }
+          window.alert((err && err.message) ? err.message : 'Failed to upload avatar.');
         }
       });
 
-      document.getElementById('updatePassBtn')?.addEventListener('click', () => {
+      document.getElementById('updatePassBtn')?.addEventListener('click', async () => {
         currentPassErr.style.display = 'none';
         newPassErr.style.display = 'none';
         confirmPassErr.style.display = 'none';
@@ -1581,11 +1685,36 @@
 
         const updateBtn = document.getElementById('updatePassBtn');
         if (updateBtn) {
-          updateBtn.textContent = 'Password updated';
+          updateBtn.disabled = true;
+          updateBtn.textContent = 'Updating...';
+        }
+        try {
+          const updated = await profileApi.updatePassword(currentPass, newPass);
+          persistSessionToken(updated?.token);
+          if (updateBtn) {
+            updateBtn.textContent = 'Password updated';
+          }
           setTimeout(() => {
-            updateBtn.textContent = 'Update Password';
+            if (updateBtn) {
+              updateBtn.disabled = false;
+              updateBtn.textContent = 'Update Password';
+            }
             resetSecurity();
           }, 900);
+        } catch (err) {
+          console.error(err);
+          const message = (err && err.message) ? err.message : 'Failed to update password.';
+          if (/current password/i.test(message)) {
+            currentPassErr.textContent = message;
+            currentPassErr.style.display = 'block';
+          } else {
+            newPassErr.textContent = message;
+            newPassErr.style.display = 'block';
+          }
+          if (updateBtn) {
+            updateBtn.disabled = false;
+            updateBtn.textContent = 'Update Password';
+          }
         }
       });
 

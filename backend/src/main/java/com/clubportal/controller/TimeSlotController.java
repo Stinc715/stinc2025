@@ -27,7 +27,7 @@ import java.util.*;
 @RequestMapping("/api/clubs/{clubId}")
 public class TimeSlotController {
 
-    private static final List<String> ACTIVE_BOOKING_STATUSES = List.of("PENDING", "APPROVED");
+    private static final List<String> ACTIVE_BOOKING_STATUSES = List.of("PENDING", "APPROVED", "CHECKED");
 
     private final ClubRepository clubRepo;
     private final VenueRepository venueRepo;

@@ -780,7 +780,7 @@
           showStatus('Registered successfully! Redirecting to club profile...', false);
           setTimeout(() => { window.location.href = 'onboarding.html'; }, 900);
         } else if (res.status === 409) {
-          showStatus('姝ら偖绠卞凡缁忔敞鍐岃繃鐢ㄦ埛璐﹀彿锛屽闇€娉ㄥ唽淇变箰閮ㄨ处鍙凤紝闇€鏇存崲閭閲嶆柊娉ㄥ唽銆?, true);
+          showStatus('This email is already registered. Please use a different email for club registration.', true);
         } else {
           const t = await res.text();
           showStatus(t || 'Registration failed. Please try again.', true);

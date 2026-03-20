@@ -63,6 +63,7 @@ public class VerificationEmailSenderService {
     private SendEmailResult sendEmail(String toEmail, String subject, String text, String context) {
         try {
             mailService.sendPlainText(toEmail, subject, text);
+            log.info("Sent {} email to {}", context, toEmail);
             return SendEmailResult.ok();
         } catch (MailAuthenticationException ex) {
             log.error("SMTP auth failed when sending {} email to {}", context, toEmail, ex);
