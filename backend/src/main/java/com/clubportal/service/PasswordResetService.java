@@ -2,20 +2,25 @@ package com.clubportal.service;
 
 import com.clubportal.model.PasswordResetToken;
 import com.clubportal.repository.PasswordResetTokenRepository;
+import com.clubportal.util.KeyedLockService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.function.Supplier;
 
 @Service
 public class PasswordResetService {
 
     private final SecureRandom random = new SecureRandom();
     private final PasswordResetTokenRepository tokenRepo;
+    private final KeyedLockService keyedLockService;
+    private final TransactionTemplate transactionTemplate;
 
     @Value("${app.auth.password-reset.token-ttl-seconds:3600}")
     private long tokenTtlSeconds;
@@ -23,8 +28,12 @@ public class PasswordResetService {
     @Value("${app.auth.password-reset.resend-cooldown-seconds:60}")
     private long resendCooldownSeconds;
 
-    public PasswordResetService(PasswordResetTokenRepository tokenRepo) {
+    public PasswordResetService(PasswordResetTokenRepository tokenRepo,
+                                KeyedLockService keyedLockService,
+                                TransactionTemplate transactionTemplate) {
         this.tokenRepo = tokenRepo;
+        this.keyedLockService = keyedLockService;
+        this.transactionTemplate = transactionTemplate;
     }
 
     public IssueResetResult issueReset(String normalizedEmail) {
@@ -32,7 +41,13 @@ public class PasswordResetService {
         if (email.isBlank()) {
             return IssueResetResult.rateLimited(1);
         }
+        return keyedLockService.withLock(
+                "password-reset:" + email,
+                () -> inTransaction(() -> issueResetLocked(email))
+        );
+    }
 
+    private IssueResetResult issueResetLocked(String email) {
         Instant now = Instant.now();
         cleanupExpired(now);
 
@@ -101,6 +116,10 @@ public class PasswordResetService {
 
     public long tokenTtlSeconds() {
         return Math.max(300, tokenTtlSeconds);
+    }
+
+    private <T> T inTransaction(Supplier<T> action) {
+        return transactionTemplate.execute(status -> action.get());
     }
 
     private void cleanupExpired(Instant now) {

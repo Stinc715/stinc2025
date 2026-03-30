@@ -20,6 +20,7 @@ import com.clubportal.repository.UserMembershipRepository;
 import com.clubportal.repository.UserRepository;
 import com.clubportal.repository.VenueRepository;
 import com.clubportal.service.CurrentUserService;
+import com.clubportal.service.CheckoutSessionService;
 import com.clubportal.service.MembershipService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -58,6 +59,7 @@ public class BookingController {
     private final UserMembershipRepository userMembershipRepo;
     private final MembershipPlanRepository membershipPlanRepo;
     private final MembershipService membershipService;
+    private final CheckoutSessionService checkoutSessionService;
 
     public BookingController(TimeSlotRepository timeSlotRepo,
                              BookingRecordRepository bookingRepo,
@@ -68,7 +70,8 @@ public class BookingController {
                              CurrentUserService currentUserService,
                              UserMembershipRepository userMembershipRepo,
                              MembershipPlanRepository membershipPlanRepo,
-                             MembershipService membershipService) {
+                             MembershipService membershipService,
+                             CheckoutSessionService checkoutSessionService) {
         this.timeSlotRepo = timeSlotRepo;
         this.bookingRepo = bookingRepo;
         this.venueRepo = venueRepo;
@@ -79,54 +82,14 @@ public class BookingController {
         this.userMembershipRepo = userMembershipRepo;
         this.membershipPlanRepo = membershipPlanRepo;
         this.membershipService = membershipService;
+        this.checkoutSessionService = checkoutSessionService;
     }
 
     @PostMapping("/timeslots/{timeslotId}/bookings")
     @Transactional
     public ResponseEntity<?> createBooking(@PathVariable Integer timeslotId) {
-        User me = currentUserService.requireUser();
-        if (me.getRole() == null || me.getRole() != User.Role.USER) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Only user accounts can book");
-        }
-
-        TimeSlot slot = timeSlotRepo.findByIdForUpdate(timeslotId).orElse(null);
-        if (slot == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Time slot not found");
-        }
-
-        boolean already = bookingRepo.existsByUserIdAndTimeslotIdAndStatusIn(me.getUserId(), timeslotId, OCCUPIED_BOOKING_STATUSES);
-        if (already) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Already booked");
-        }
-
-        long booked = bookingRepo.countByTimeslotIdAndStatusIn(timeslotId, OCCUPIED_BOOKING_STATUSES);
-        if (booked >= slot.getMaxCapacity()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Time slot is full");
-        }
-
-        Venue venue = venueRepo.findById(slot.getVenueId()).orElse(null);
-        if (venue == null || venue.getClubId() == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Venue not found");
-        }
-
-        Optional<MembershipService.ActiveMembershipContext> activeMembership = membershipService.findActiveMembership(
-                me.getUserId(),
-                venue.getClubId(),
-                LocalDate.now()
-        );
-        BigDecimal pricePaid = activeMembership
-                .map(ctx -> membershipService.calculateDiscountedPrice(slot.getPrice(), ctx.plan().getDiscountPercent()))
-                .orElse(membershipService.normalizePrice(slot.getPrice()));
-
-        BookingRecord br = new BookingRecord();
-        br.setUserId(me.getUserId());
-        br.setTimeslotId(timeslotId);
-        br.setStatus("PENDING");
-        br.setPricePaid(pricePaid);
-        br.setUserMembershipId(activeMembership.map(ctx -> ctx.membership().getUserMembershipId()).orElse(null));
-
-        BookingRecord saved = bookingRepo.save(br);
-        return ResponseEntity.ok(new BookingResponse(saved.getBookingId(), saved.getTimeslotId(), saved.getStatus()));
+        return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED)
+                .body("Create a checkout session first via /api/payments/checkout-sessions");
     }
 
     @DeleteMapping("/timeslots/{timeslotId}/bookings/me")
@@ -147,6 +110,13 @@ public class BookingController {
         }
 
         BookingRecord booking = active.get();
+        if (booking.getBookingId() == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No active booking found for this time slot");
+        }
+        booking = bookingRepo.findByIdForUpdate(booking.getBookingId()).orElse(null);
+        if (booking == null || !USER_CANCELABLE_BOOKING_STATUSES.contains(normalizeStatus(booking.getStatus()))) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Booking can no longer be cancelled");
+        }
         booking.setStatus("CANCELLED");
         BookingRecord saved = bookingRepo.save(booking);
         return ResponseEntity.ok(new BookingResponse(saved.getBookingId(), saved.getTimeslotId(), saved.getStatus()));
@@ -250,7 +220,8 @@ public class BookingController {
                     basePrice,
                     plan == null ? "" : safe(plan.getPlanName()),
                     plan == null ? BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP) : membershipService.normalizeDiscount(plan.getDiscountPercent()),
-                    plan != null
+                    plan != null,
+                    safe(record.getBookingVerificationCode())
             ));
         }
 
@@ -350,7 +321,8 @@ public class BookingController {
                     record.getBookingTime(),
                     pricePaid,
                     plan == null ? "" : safe(plan.getPlanName()),
-                    membership == null ? "" : membershipService.effectiveStatus(membership, LocalDate.now())
+                    membership == null ? "" : membershipService.effectiveStatus(membership, LocalDate.now()),
+                    safe(record.getBookingVerificationCode())
             );
             membersBySlot.computeIfAbsent(record.getTimeslotId(), k -> new ArrayList<>()).add(member);
         }
@@ -392,14 +364,18 @@ public class BookingController {
         ResponseEntity<?> denied = requireClubAdmin(me, clubId);
         if (denied != null) return denied;
 
-        BookingRecord booking = bookingRepo.findById(bookingId).orElse(null);
-        if (booking == null) {
+        BookingRecord bookingSnapshot = bookingRepo.findById(bookingId).orElse(null);
+        if (bookingSnapshot == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Booking not found");
         }
 
-        TimeSlot slot = timeSlotRepo.findById(booking.getTimeslotId()).orElse(null);
+        TimeSlot slot = timeSlotRepo.findByIdForUpdate(bookingSnapshot.getTimeslotId()).orElse(null);
         if (slot == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Time slot not found");
+        }
+        BookingRecord booking = bookingRepo.findByIdForUpdate(bookingId).orElse(null);
+        if (booking == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Booking not found");
         }
         Venue venue = venueRepo.findById(slot.getVenueId()).orElse(null);
         if (venue == null || !clubId.equals(venue.getClubId())) {
@@ -421,7 +397,8 @@ public class BookingController {
 
         if (isOccupiedStatus(nextStatus) && !isOccupiedStatus(currentStatus)) {
             long occupied = bookingRepo.countByTimeslotIdAndStatusIn(slot.getTimeslotId(), OCCUPIED_BOOKING_STATUSES);
-            if (occupied >= slot.getMaxCapacity()) {
+            long held = checkoutSessionService.countActiveBookingHolds(slot.getTimeslotId(), java.time.Instant.now());
+            if (occupied + held >= slot.getMaxCapacity()) {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body("Time slot is full");
             }
         }

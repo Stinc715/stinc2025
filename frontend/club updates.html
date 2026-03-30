@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Club Booking Portal - Memberships</title>
-  <link rel="stylesheet" href="theme.css?v=20260220b" />
+  <title>Club Booking Portal - Memberships & Chat Replies</title>
+  <link rel="stylesheet" href="theme.css?v=20260324a" />
   <style>
     body { margin: 0; background: #fff; }
     header { background: #fff; border-bottom: 1px solid #eef0f4; }
@@ -21,12 +21,26 @@
       align-items: center;
       gap: 6px;
       font-size: 14px;
-      color: #0066cc;
+      font-weight: 600;
+      color: #64748b;
       text-decoration: none;
-      border: none;
-      background: none;
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      background: rgba(255, 255, 255, 0.9);
       cursor: pointer;
-      padding: 8px 0;
+      padding: 8px 12px;
+      border-radius: 999px;
+      box-shadow: 0 8px 18px rgba(29, 29, 31, 0.08);
+      transition: color .2s ease, border-color .2s ease, background .2s ease, transform .2s ease, box-shadow .2s ease;
+    }
+    .back-link::before {
+      content: '<';
+    }
+    .back-link:hover {
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.96);
+      border-color: rgba(100, 116, 139, 0.28);
+      box-shadow: 0 12px 22px rgba(29, 29, 31, 0.12);
+      transform: translateY(-1px);
     }
     .page-shell {
       min-height: calc(100vh - 72px);
@@ -222,7 +236,8 @@
       letter-spacing: .04em;
     }
     .field input,
-    .field textarea {
+    .field textarea,
+    .field select {
       width: 100%;
       border: 1px solid var(--line);
       border-radius: 12px;
@@ -234,6 +249,80 @@
     .field textarea {
       min-height: 112px;
       resize: vertical;
+    }
+    .secondary-btn {
+      min-width: 118px;
+      border: 1px solid #c7d2fe;
+      border-radius: 999px;
+      padding: 12px 18px;
+      background: #eef2ff;
+      color: #3730a3;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .secondary-btn:hover {
+      background: #e0e7ff;
+    }
+    .secondary-btn.danger {
+      border-color: #fecaca;
+      background: #fff1f2;
+      color: #be123c;
+    }
+    .kb-list {
+      display: grid;
+      gap: 14px;
+    }
+    .kb-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+      background: #fff;
+      transition: border-color .2s ease, background-color .2s ease;
+    }
+    .kb-card.dirty {
+      border-color: #f59e0b;
+      background: #fffdf7;
+    }
+    .kb-card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .kb-card-head h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+    .kb-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+    }
+    .field.span-full {
+      grid-column: 1 / -1;
+    }
+    .field-note {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .kb-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .kb-actions-main {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-left: auto;
     }
     .plan-note {
       color: var(--muted);
@@ -304,21 +393,6 @@
       cursor: pointer;
     }
     .plan-save-btn[disabled] {
-      opacity: .6;
-      cursor: not-allowed;
-    }
-    .save-btn {
-      min-width: 148px;
-      border: none;
-      border-radius: 999px;
-      padding: 12px 18px;
-      background: linear-gradient(135deg, #4f46e5, #4338ca);
-      color: #fff;
-      font: inherit;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .save-btn[disabled] {
       opacity: .6;
       cursor: not-allowed;
     }
@@ -417,7 +491,8 @@
     }
     @media (max-width: 980px) {
       .plan-grid,
-      .stats-grid { grid-template-columns: 1fr; }
+      .stats-grid,
+      .kb-grid { grid-template-columns: 1fr; }
       .section-head h2 { font-size: 28px; }
     }
   </style>
@@ -426,9 +501,9 @@
   <header>
     <div class="wrap header-wrap">
       <div style="display:flex;align-items:center;gap:16px;">
-        <button class="back-link" type="button" onclick="window.location.href='club home.html'" aria-label="Back">&larr; Back</button>
+        <button class="back-link" type="button" onclick="window.location.href='club home.html'" aria-label="Back">Back</button>
       </div>
-      <h2 style="margin:0;font-size:18px;font-weight:600;justify-self:center;">Memberships</h2>
+      <h2 style="margin:0;font-size:18px;font-weight:600;justify-self:center;">Memberships &amp; chat replies</h2>
       <div></div>
     </div>
   </header>
@@ -475,6 +550,26 @@
         </div>
       </div>
     </section>
+
+    <section class="card" data-section-card="chat-kb">
+      <div class="pad">
+        <div class="section-head" style="margin-bottom:14px;">
+          <div>
+            <h2 style="font-size:28px;">Chat knowledge base</h2>
+            <p>Add the question and the standard reply. Similarity, phrasing, and language matching are handled automatically by the chatbot.</p>
+            <div class="section-tip">This only applies to low-risk questions. Refunds, payment issues, booking actions, and human handoff still stay on the existing safety path.</div>
+          </div>
+          <div class="section-actions">
+            <button class="secondary-btn" id="addKbEntryBtn" type="button">Add entry</button>
+            <button class="toggle-btn" type="button" data-toggle-section="chat-kb" aria-expanded="false">Expand</button>
+          </div>
+        </div>
+        <div class="section-body" data-section-body="chat-kb">
+          <div id="kbStatusBox" class="status-box" aria-live="polite"></div>
+          <div id="kbList" class="kb-list"></div>
+        </div>
+      </div>
+    </section>
   </main>
 
   <script>
@@ -489,11 +584,15 @@
     const statusBoxEl = document.getElementById('statusBox');
     const statsGridEl = document.getElementById('statsGrid');
     const memberListEl = document.getElementById('memberList');
+    const kbListEl = document.getElementById('kbList');
+    const kbStatusBoxEl = document.getElementById('kbStatusBox');
+    const addKbEntryBtnEl = document.getElementById('addKbEntryBtn');
     const planIntroEl = document.getElementById('planIntro');
     const sectionCards = Array.from(document.querySelectorAll('[data-section-card]'));
 
     let activeClubId = null;
     let activeClubName = '';
+    let kbDraftCounter = 0;
 
     const safeParseJSON = (raw) => {
       try { return JSON.parse(raw); } catch { return null; }
@@ -536,6 +635,13 @@
       statusBoxEl.style.display = message ? 'block' : 'none';
     };
 
+    const showKbStatus = (message, type = 'info') => {
+      if (!kbStatusBoxEl) return;
+      kbStatusBoxEl.textContent = String(message || '').trim();
+      kbStatusBoxEl.className = `status-box ${type}`;
+      kbStatusBoxEl.style.display = message ? 'block' : 'none';
+    };
+
     const normalizePlanPayload = (payload) => JSON.stringify({
       planCode: String(payload?.planCode || '').toUpperCase(),
       planName: String(payload?.planName || '').trim(),
@@ -544,6 +650,11 @@
       durationDays: String(Math.round(Number(payload?.durationDays || 0))),
       enabled: Boolean(payload?.enabled),
       description: String(payload?.description || '').trim()
+    });
+
+    const normalizeKbPayload = (payload) => JSON.stringify({
+      questionTitle: String(payload?.questionTitle || '').trim(),
+      answerText: String(payload?.answerText || '').trim()
     });
 
     const syncPlanCardState = (card, dirty) => {
@@ -736,6 +847,227 @@
       renderPlans(Array.isArray(data) ? data : []);
     };
 
+    const readKbPayload = (card) => {
+      if (!card) return null;
+      const read = (field) => card.querySelector(`[data-kb-field="${field}"]`);
+      return {
+        questionTitle: String(read('questionTitle')?.value || '').trim(),
+        answerText: String(read('answerText')?.value || '').trim(),
+        triggerKeywords: String(read('triggerKeywords')?.value || '')
+          .split(/[\r\n,;，；]+/)
+          .map((value) => value.trim())
+          .filter(Boolean),
+        exampleQuestions: String(read('exampleQuestions')?.value || '')
+          .split(/[\r\n]+/)
+          .map((value) => value.trim())
+          .filter(Boolean),
+        language: String(read('language')?.value || 'ANY').toUpperCase(),
+        priority: Math.max(0, Math.round(Number(read('priority')?.value || 0))),
+        enabled: true
+      };
+    };
+
+    const syncKbCardState = (card) => {
+      if (!card) return;
+      const payload = readKbPayload(card);
+      const dirty = payload ? normalizeKbPayload(payload) !== String(card.dataset.originalPayload || '') : false;
+      const stateEl = card.querySelector('[data-kb-save-state]');
+      card.classList.toggle('dirty', dirty);
+      if (stateEl) {
+        stateEl.textContent = dirty ? 'Unsaved changes' : 'Saved';
+        stateEl.className = `plan-save-state ${dirty ? 'dirty' : 'saved'}`;
+      }
+      const titleEl = card.querySelector('[data-kb-card-title]');
+      if (titleEl) {
+        titleEl.textContent = payload?.questionTitle || 'New chat reply';
+      }
+    };
+
+    const bindKbCard = (card) => {
+      if (!card) return;
+      card.querySelectorAll('[data-kb-field]').forEach((fieldEl) => {
+        const isCheckbox = fieldEl.matches('input[type="checkbox"]');
+        fieldEl.addEventListener(isCheckbox ? 'change' : 'input', () => syncKbCardState(card));
+        if (!isCheckbox) fieldEl.addEventListener('change', () => syncKbCardState(card));
+      });
+      card.querySelector('[data-save-kb]')?.addEventListener('click', () => saveKbEntry(card));
+      card.querySelector('[data-delete-kb]')?.addEventListener('click', () => deleteKbEntry(card));
+      syncKbCardState(card);
+    };
+
+    const renderKbCard = (entry) => {
+      const entryId = entry?.id ?? `draft-${++kbDraftCounter}`;
+      const questionTitle = String(entry?.questionTitle || '').trim();
+      const answerText = String(entry?.answerText || '').trim();
+      return `
+        <article class="kb-card" data-kb-id="${escapeHtml(String(entryId))}">
+          <div class="kb-card-head">
+            <div style="display:grid;gap:8px;">
+              <h3 data-kb-card-title>${escapeHtml(questionTitle || 'New chat reply')}</h3>
+              <div class="field-note">The chatbot handles close phrasings, similarity, and language matching automatically for this club reply.</div>
+            </div>
+            <span class="plan-save-state saved" data-kb-save-state>Saved</span>
+          </div>
+          <div class="kb-grid">
+            <div class="field">
+              <label>Question</label>
+              <input type="text" data-kb-field="questionTitle" value="${escapeHtml(questionTitle)}" />
+            </div>
+            <div class="field span-full">
+              <label>Standard reply</label>
+              <textarea data-kb-field="answerText">${escapeHtml(answerText)}</textarea>
+              <div class="field-note">Write the exact reply members should receive when this club-specific question is matched.</div>
+            </div>
+          </div>
+          <div class="kb-actions">
+            <div class="field-note">Low-risk FAQ only. High-risk requests still stay on the existing safe chat path.</div>
+            <div class="kb-actions-main">
+              <button class="secondary-btn danger" type="button" data-delete-kb>Delete</button>
+              <button class="plan-save-btn" type="button" data-save-kb>Save reply</button>
+            </div>
+          </div>
+        </article>
+      `;
+    };
+
+    const renderKbEntries = (entries) => {
+      const list = Array.isArray(entries) ? entries : [];
+      if (!list.length) {
+        kbListEl.innerHTML = '<div class="empty">No chat knowledge base entries yet. Add your first custom FAQ reply for this club.</div>';
+        return;
+      }
+
+      kbListEl.innerHTML = list.map((entry) => renderKbCard(entry)).join('');
+      kbListEl.querySelectorAll('[data-kb-id]').forEach((card, index) => {
+        const entry = list[index];
+        card.dataset.originalPayload = normalizeKbPayload(entry);
+        bindKbCard(card);
+      });
+    };
+
+    const prependKbDraftCard = () => {
+      const cardMarkup = renderKbCard({
+        id: `draft-${++kbDraftCounter}`,
+        questionTitle: '',
+        answerText: ''
+      });
+      if (kbListEl.querySelector('.empty')) {
+        kbListEl.innerHTML = '';
+      }
+      kbListEl.insertAdjacentHTML('afterbegin', cardMarkup);
+      const firstCard = kbListEl.querySelector('[data-kb-id]');
+      if (firstCard) {
+        firstCard.dataset.originalPayload = '';
+        bindKbCard(firstCard);
+        firstCard.querySelector('[data-kb-field="questionTitle"]')?.focus();
+      }
+      setSectionCollapsed('chat-kb', false);
+    };
+
+    const loadChatKb = async () => {
+      const res = await authFetch(`/api/my/clubs/${encodeURIComponent(String(activeClubId))}/chat-kb`);
+      if (!res.ok) throw new Error('Failed to load chat knowledge base.');
+      const data = await res.json();
+      renderKbEntries(Array.isArray(data) ? data : []);
+    };
+
+    const readApiErrorMessage = async (res, fallback) => {
+      const defaultMessage = fallback || 'Request failed.';
+      if (!res) return defaultMessage;
+      const contentType = String(res.headers?.get?.('content-type') || '').toLowerCase();
+      if (contentType.includes('application/json')) {
+        const data = await res.json().catch(() => null);
+        if (data && typeof data.message === 'string' && data.message.trim()) return data.message.trim();
+        if (data && typeof data.error === 'string' && data.error.trim()) return data.error.trim();
+      }
+      const text = await res.text().catch(() => '');
+      if (text) {
+        try {
+          const parsed = JSON.parse(text);
+          if (parsed && typeof parsed.message === 'string' && parsed.message.trim()) return parsed.message.trim();
+          if (parsed && typeof parsed.error === 'string' && parsed.error.trim()) return parsed.error.trim();
+        } catch (_) {
+          return text;
+        }
+      }
+      return defaultMessage;
+    };
+
+    const saveKbEntry = async (card) => {
+      const payload = readKbPayload(card);
+      if (!payload) return;
+      if (!payload.questionTitle) {
+        showKbStatus('Question is required.', 'error');
+        card.querySelector('[data-kb-field="questionTitle"]')?.focus();
+        return;
+      }
+      if (!payload.answerText) {
+        showKbStatus('Standard reply is required.', 'error');
+        card.querySelector('[data-kb-field="answerText"]')?.focus();
+        return;
+      }
+
+      const saveBtn = card.querySelector('[data-save-kb]');
+      const entryId = String(card.getAttribute('data-kb-id') || '');
+      const isDraft = entryId.startsWith('draft-');
+      showKbStatus('');
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+      }
+
+      try {
+        const res = await authFetch(isDraft
+          ? `/api/my/clubs/${encodeURIComponent(String(activeClubId))}/chat-kb`
+          : `/api/my/clubs/${encodeURIComponent(String(activeClubId))}/chat-kb/${encodeURIComponent(entryId)}`, {
+          method: isDraft ? 'POST' : 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) {
+          throw new Error(await readApiErrorMessage(res, 'Failed to save chat reply.'));
+        }
+        await loadChatKb();
+        showKbStatus(`${payload.questionTitle} saved for ${activeClubName || 'this club'}.`, 'success');
+      } catch (err) {
+        console.error(err);
+        showKbStatus(err?.message || 'Failed to save chat reply.', 'error');
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Save reply';
+        }
+      }
+    };
+
+    const deleteKbEntry = async (card) => {
+      const entryId = String(card?.getAttribute('data-kb-id') || '');
+      if (!entryId) return;
+      if (entryId.startsWith('draft-')) {
+        card.remove();
+        if (!kbListEl.querySelector('[data-kb-id]')) {
+          kbListEl.innerHTML = '<div class="empty">No chat knowledge base entries yet. Add your first custom FAQ reply for this club.</div>';
+        }
+        showKbStatus('Draft chat reply removed.', 'success');
+        return;
+      }
+
+      showKbStatus('');
+      try {
+        const res = await authFetch(`/api/my/clubs/${encodeURIComponent(String(activeClubId))}/chat-kb/${encodeURIComponent(entryId)}`, {
+          method: 'DELETE'
+        });
+        if (!res.ok) {
+          throw new Error(await readApiErrorMessage(res, 'Failed to delete chat reply.'));
+        }
+        await loadChatKb();
+        showKbStatus('Chat reply deleted.', 'success');
+      } catch (err) {
+        console.error(err);
+        showKbStatus(err?.message || 'Failed to delete chat reply.', 'error');
+      }
+    };
+
     const memberStatusClass = (status) => {
       const key = String(status || '').toLowerCase();
       if (key === 'active') return 'active';
@@ -818,6 +1150,12 @@
         syncPlanCardState(card, dirtyAfter);
       }
     };
+
+    addKbEntryBtnEl?.addEventListener('click', () => {
+      showKbStatus('');
+      prependKbDraftCard();
+    });
+
     initSectionToggles();
 
     (async () => {
@@ -827,6 +1165,7 @@
           showStatus('No club is available for this account.', 'error');
           planGridEl.innerHTML = '<div class="empty">No club found.</div>';
           memberListEl.innerHTML = '<div class="empty">No club found.</div>';
+          kbListEl.innerHTML = '<div class="empty">No club found.</div>';
           return;
         }
 
@@ -834,12 +1173,14 @@
           planIntroEl.textContent = `Expand to edit the passes for ${activeClubName}. Each card must be saved separately before members can see the change.`;
         }
 
-        await Promise.all([loadPlans(), loadMembers()]);
+        await Promise.all([loadPlans(), loadMembers(), loadChatKb()]);
       } catch (err) {
         console.error(err);
         showStatus(err?.message || 'Failed to load memberships.', 'error');
+        showKbStatus(err?.message || 'Failed to load chat knowledge base.', 'error');
         if (!planGridEl.innerHTML) planGridEl.innerHTML = '<div class="empty">Unable to load membership plans.</div>';
         if (!memberListEl.innerHTML) memberListEl.innerHTML = '<div class="empty">Unable to load club memberships.</div>';
+        if (!kbListEl.innerHTML) kbListEl.innerHTML = '<div class="empty">Unable to load chat knowledge base.</div>';
       }
     })();
   </script>

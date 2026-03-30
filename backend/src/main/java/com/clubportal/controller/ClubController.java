@@ -22,6 +22,7 @@ import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -131,13 +132,14 @@ public class ClubController {
     }
 
     @PostMapping(value = "/{clubId}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Transactional
     public ResponseEntity<?> uploadClubImages(@PathVariable Integer clubId,
                                               @RequestParam("files") List<MultipartFile> files) {
         User me = currentUserService.requireUser();
         if (!canManageClub(me, clubId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You can only manage your own club");
         }
-        if (!clubRepo.existsById(clubId)) {
+        if (clubRepo.findByIdForUpdate(clubId).isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Club not found");
         }
         if (files == null || files.isEmpty()) {
@@ -203,20 +205,26 @@ public class ClubController {
     }
 
     @PutMapping("/{clubId}/images/{imageId}/primary")
+    @Transactional
     public ResponseEntity<?> setPrimaryClubImage(@PathVariable Integer clubId, @PathVariable Integer imageId) {
         User me = currentUserService.requireUser();
         if (!canManageClub(me, clubId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You can only manage your own club");
         }
-
-        ClubImage selected = clubImageRepo.findByImageIdAndClubId(imageId, clubId).orElse(null);
-        if (selected == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Image not found");
+        if (clubRepo.findByIdForUpdate(clubId).isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Club not found");
         }
 
         List<ClubImage> images = clubImageRepo.findByClubId(clubId);
         if (images.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No images found");
+        }
+        ClubImage selected = images.stream()
+                .filter(image -> image.getImageId() != null && image.getImageId().equals(imageId))
+                .findFirst()
+                .orElse(null);
+        if (selected == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Image not found");
         }
         for (ClubImage image : images) {
             boolean isPrimary = image.getImageId() != null && image.getImageId().equals(imageId);
@@ -224,15 +232,18 @@ public class ClubController {
         }
         clubImageRepo.saveAll(images);
 
-        ClubImage refreshed = clubImageRepo.findByImageIdAndClubId(imageId, clubId).orElse(selected);
-        return ResponseEntity.ok(toImageResponse(clubId, refreshed));
+        return ResponseEntity.ok(toImageResponse(clubId, selected));
     }
 
     @DeleteMapping("/{clubId}/images/{imageId}")
+    @Transactional
     public ResponseEntity<?> deleteClubImage(@PathVariable Integer clubId, @PathVariable Integer imageId) {
         User me = currentUserService.requireUser();
         if (!canManageClub(me, clubId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You can only manage your own club");
+        }
+        if (clubRepo.findByIdForUpdate(clubId).isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Club not found");
         }
 
         ClubImage image = clubImageRepo.findByImageIdAndClubId(imageId, clubId).orElse(null);

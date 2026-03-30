@@ -17,8 +17,12 @@ public class JwtUtil {
     private final Key key;
 
     public JwtUtil(@Value("${jwt.secret}") String secret) {
+        String normalized = secret == null ? "" : secret.trim();
+        if (normalized.length() < 32) {
+            throw new IllegalStateException("JWT_SECRET must be configured and at least 32 characters long");
+        }
         // HS256 requires a sufficiently long secret. Keep config-driven to avoid committing secrets.
-        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+        this.key = Keys.hmacShaKeyFor(normalized.getBytes());
     }
 
     public String generateToken(String email, String role) {

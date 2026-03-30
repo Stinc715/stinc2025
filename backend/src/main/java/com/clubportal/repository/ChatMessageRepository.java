@@ -11,6 +11,7 @@ import java.util.List;
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, Integer> {
     List<ChatMessage> findByClubIdAndUserIdOrderByCreatedAtAscMessageIdAsc(Integer clubId, Integer userId);
     List<ChatMessage> findByClubIdOrderByCreatedAtDescMessageIdDesc(Integer clubId);
+    ChatMessage findTopByClubIdAndUserIdAndSenderOrderByCreatedAtDescMessageIdDesc(Integer clubId, Integer userId, String sender);
     long countByClubIdAndUserIdAndSenderAndReadByUserFalse(Integer clubId, Integer userId, String sender);
     long countByClubIdAndUserIdAndSenderAndReadByClubFalse(Integer clubId, Integer userId, String sender);
 
@@ -36,4 +37,3 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Intege
             """)
     int markUserMessagesReadByClub(@Param("clubId") Integer clubId, @Param("userId") Integer userId);
 }
-

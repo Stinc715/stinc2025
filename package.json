@@ -8,6 +8,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "vite preview",
+    "test": "npm run test:frontend && npm run test:backend",
+    "test:frontend": "node --test tests/frontend/regression.test.mjs",
+    "test:backend": "mvn -f backend/pom.xml test",
     "check:prompts": "node scripts/check-prompts.mjs"
   },
   "devDependencies": {

@@ -1,5 +1,7 @@
 package com.clubportal.controller;
 
+import com.clubportal.service.CheckoutSessionService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +19,16 @@ public class PublicConfigController {
     @Value("${google.oauth.client-id:}")
     private String googleOauthClientId;
 
+    @Value("${app.payments.currency:GBP}")
+    private String paymentCurrency;
+
+    private final CheckoutSessionService checkoutSessionService;
+
+    @Autowired
+    public PublicConfigController(CheckoutSessionService checkoutSessionService) {
+        this.checkoutSessionService = checkoutSessionService;
+    }
+
     @GetMapping("/config")
     public Map<String, Object> getPublicConfig() {
         String key = safe(googleMapsApiKey);
@@ -25,7 +37,10 @@ public class PublicConfigController {
                 "googleMapsApiKey", key,
                 "googleMapsEnabled", !key.isBlank(),
                 "googleOauthClientId", oauthClientId,
-                "googleOauthEnabled", !oauthClientId.isBlank()
+                "googleOauthEnabled", !oauthClientId.isBlank(),
+                "paymentsEnabled", checkoutSessionService.paymentsEnabled(),
+                "paymentProvider", checkoutSessionService.paymentProvider(),
+                "paymentCurrency", safe(paymentCurrency).isBlank() ? "GBP" : safe(paymentCurrency).toUpperCase()
         );
     }
 

@@ -49,6 +49,8 @@ if [[ ! -f "$schema_path" ]]; then
   exit 1
 fi
 
+migration_dir="/home/ec2-user/deploy/migrations"
+
 # Parse: jdbc:mysql://HOST:PORT/DB?params
 url="${DB_URL#jdbc:mysql://}"
 hostport="${url%%/*}"
@@ -66,5 +68,15 @@ export MYSQL_PWD="$DB_PASSWORD"
 echo "[schema] Target: ${host}:${port}/${db}"
 echo "[schema] Applying schema..."
 mysql -h "$host" -P "$port" -u "$DB_USERNAME" -D "$db" < "$schema_path"
+
+if [[ -d "$migration_dir" ]]; then
+  shopt -s nullglob
+  migration_files=("$migration_dir"/*.sql)
+  shopt -u nullglob
+  for migration_path in "${migration_files[@]}"; do
+    echo "[schema] Applying migration $(basename "$migration_path")..."
+    mysql -h "$host" -P "$port" -u "$DB_USERNAME" -D "$db" < "$migration_path"
+  done
+fi
 
 echo "[schema] Done."

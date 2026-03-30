@@ -34,9 +34,10 @@ body::after {
 }
 
 .wrap {
-  max-width: 980px;
+  width: min(1760px, calc(100vw - 56px));
+  max-width: none;
   margin: 36px auto 60px;
-  padding: 24px;
+  padding: 28px 32px;
   position: relative;
   z-index: 1;
 }
@@ -65,7 +66,7 @@ body::after {
   margin-top: 18px;
   display: grid;
   gap: 10px;
-  padding: 18px 20px;
+  padding: 24px 28px;
   border-radius: 20px;
   border: 1px solid rgba(15, 23, 42, 0.08);
   background: #ffffff;
@@ -120,7 +121,7 @@ body::after {
   border-radius: 22px;
   border: 1px solid var(--line);
   box-shadow: var(--shadow-1);
-  padding: 26px;
+  padding: 30px 32px;
   display: grid;
   gap: 22px;
   position: relative;
@@ -248,14 +249,14 @@ textarea:focus {
 
 .map-toolbar {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
   align-items: center;
 }
 
 .map-canvas {
   width: 100%;
-  min-height: 300px;
+  min-height: 360px;
   border-radius: 14px;
   border: 1px solid rgba(148, 163, 184, 0.35);
   background: linear-gradient(180deg, #e8edf7 0%, #dbe4f1 100%);
@@ -277,17 +278,20 @@ textarea:focus {
 
 .promo-gallery {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 280px));
+  gap: 16px;
+  justify-content: start;
 }
 
 .promo-thumb {
   width: 100%;
-  height: 110px;
+  display: block;
+  aspect-ratio: 4 / 3;
+  height: auto;
   object-fit: cover;
   border-radius: 12px;
   border: 1px solid rgba(148, 163, 184, 0.35);
-  background: #ffffff;
+  background: #f8fafc;
 }
 
 .promo-card {
@@ -298,6 +302,7 @@ textarea:focus {
   border: 1px solid rgba(148, 163, 184, 0.25);
   background: #ffffff;
   position: relative;
+  overflow: hidden;
   cursor: grab;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
@@ -325,12 +330,17 @@ textarea:focus {
 
 .promo-cover {
   font-size: 11px;
-  font-weight: 600;
-  color: #1d4ed8;
-  background: rgba(37, 99, 235, 0.12);
-  padding: 4px 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #ffffff;
+  background: rgba(15, 23, 42, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.28);
+  backdrop-filter: blur(10px);
+  padding: 6px 12px;
   border-radius: 999px;
   pointer-events: none;
+  text-shadow: 0 1px 2px rgba(15, 23, 42, 0.35);
 }
 
 .promo-delete {
@@ -717,8 +727,27 @@ textarea:focus {
   }
 }
 
+@media (min-width: 1280px) {
+  .wrap {
+    width: min(1880px, calc(100vw - 64px));
+  }
+
+  .hero {
+    padding: 28px 34px;
+  }
+
+  .panel {
+    padding: 34px 36px;
+  }
+
+  .map-canvas {
+    min-height: 420px;
+  }
+}
+
 @media (max-width: 700px) {
   .wrap {
+    width: auto;
     padding: 18px;
   }
 

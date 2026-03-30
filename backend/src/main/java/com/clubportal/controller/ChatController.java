@@ -5,14 +5,22 @@ import com.clubportal.dto.ChatMarkReadResponse;
 import com.clubportal.dto.ChatMessageCreateRequest;
 import com.clubportal.dto.ChatMessageResponse;
 import com.clubportal.dto.ChatThreadResponse;
+import com.clubportal.model.ChatSession;
 import com.clubportal.model.ChatMessage;
 import com.clubportal.model.Club;
+import com.clubportal.model.HandoffReason;
+import com.clubportal.model.MessageSenderType;
 import com.clubportal.model.User;
 import com.clubportal.repository.ChatMessageRepository;
 import com.clubportal.repository.ClubAdminRepository;
 import com.clubportal.repository.ClubRepository;
 import com.clubportal.repository.UserRepository;
+import com.clubportal.service.ChatMessageService;
+import com.clubportal.service.ChatRealtimeService;
+import com.clubportal.service.ChatSessionService;
 import com.clubportal.service.CurrentUserService;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +30,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -45,17 +56,26 @@ public class ChatController {
     private final UserRepository userRepo;
     private final ClubAdminRepository clubAdminRepo;
     private final ChatMessageRepository chatMessageRepo;
+    private final ChatMessageService chatMessageService;
+    private final ChatRealtimeService chatRealtimeService;
+    private final ChatSessionService chatSessionService;
 
     public ChatController(CurrentUserService currentUserService,
                           ClubRepository clubRepo,
                           UserRepository userRepo,
                           ClubAdminRepository clubAdminRepo,
-                          ChatMessageRepository chatMessageRepo) {
+                          ChatMessageRepository chatMessageRepo,
+                          ChatMessageService chatMessageService,
+                          ChatRealtimeService chatRealtimeService,
+                          ChatSessionService chatSessionService) {
         this.currentUserService = currentUserService;
         this.clubRepo = clubRepo;
         this.userRepo = userRepo;
         this.clubAdminRepo = clubAdminRepo;
         this.chatMessageRepo = chatMessageRepo;
+        this.chatMessageService = chatMessageService;
+        this.chatRealtimeService = chatRealtimeService;
+        this.chatSessionService = chatSessionService;
     }
 
     // User side: fetch own conversation with club.
@@ -70,21 +90,29 @@ public class ChatController {
         if (me.getRole() != User.Role.USER) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Only user accounts can access this chat");
         }
+        ChatSession session = chatSessionService.getOrCreateSession(clubId, me.getUserId());
+        return ResponseEntity.ok(buildUserThreadResponse(club, me, session));
+    }
 
-        List<ChatMessage> rows = chatMessageRepo.findByClubIdAndUserIdOrderByCreatedAtAscMessageIdAsc(clubId, me.getUserId());
-        List<ChatMessageResponse> messages = rows.stream()
-                .map(msg -> toMessageResponse(msg, safe(club.getClubName()), safe(me.getUsername())))
-                .toList();
+    @GetMapping(value = "/clubs/{clubId}/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter streamUserMessages(@PathVariable Integer clubId, HttpServletResponse response) {
+        Club club = clubRepo.findById(clubId).orElse(null);
+        if (club == null) {
+            throw new ChatStreamException(HttpStatus.NOT_FOUND, "Club not found");
+        }
 
-        long unread = chatMessageRepo.countByClubIdAndUserIdAndSenderAndReadByUserFalse(clubId, me.getUserId(), SENDER_CLUB);
-        return ResponseEntity.ok(new ChatThreadResponse(
-                clubId,
-                safe(club.getClubName()),
-                me.getUserId(),
-                safe(me.getUsername()),
-                unread,
-                messages
-        ));
+        User me = currentUserService.requireUser();
+        if (me.getRole() != User.Role.USER) {
+            throw new ChatStreamException(HttpStatus.FORBIDDEN, "Only user accounts can access this chat");
+        }
+
+        prepareSseResponse(response);
+        return chatRealtimeService.subscribeUserThread(clubId, me.getUserId());
+    }
+
+    @ExceptionHandler(ChatStreamException.class)
+    public ResponseEntity<String> handleChatStreamError(ChatStreamException ex) {
+        return ResponseEntity.status(ex.status).body(ex.getMessage());
     }
 
     // User side: send message to club.
@@ -107,16 +135,14 @@ public class ChatController {
             return ResponseEntity.badRequest().body("Message text is required (1-500 chars)");
         }
 
-        ChatMessage row = new ChatMessage();
-        row.setClubId(clubId);
-        row.setUserId(me.getUserId());
-        row.setSender(SENDER_USER);
-        row.setMessageText(text);
-        row.setReadByClub(false);
-        row.setReadByUser(true);
-
-        ChatMessage saved = chatMessageRepo.save(row);
-        return ResponseEntity.ok(toMessageResponse(saved, safe(club.getClubName()), safe(me.getUsername())));
+        try {
+            ChatMessageService.ChatSendResult result = chatMessageService.sendUserMessage(clubId, me.getUserId(), text);
+            ChatSession session = chatSessionService.getOrCreateSession(clubId, me.getUserId());
+            notifyChatSendAfterCommit(clubId, me.getUserId(), result);
+            return ResponseEntity.ok(buildUserThreadResponse(club, me, session));
+        } catch (ResponseStatusException ex) {
+            return ResponseEntity.status(ex.getStatusCode()).body(ex.getReason());
+        }
     }
 
     // User side: mark club messages as read.
@@ -133,6 +159,9 @@ public class ChatController {
         }
 
         int updated = chatMessageRepo.markClubMessagesReadByUser(clubId, me.getUserId());
+        if (updated > 0) {
+            notifyChatChangeAfterCommit(clubId, me.getUserId(), null);
+        }
         return ResponseEntity.ok(new ChatMarkReadResponse(updated));
     }
 
@@ -175,6 +204,7 @@ public class ChatController {
         }
 
         Set<Integer> userIds = grouped.keySet();
+        Map<Integer, ChatSession> sessionByUserId = chatSessionService.getOrCreateSessions(clubId, userIds);
         Map<Integer, User> userById = userRepo.findAllById(userIds).stream()
                 .collect(Collectors.toMap(User::getUserId, it -> it));
 
@@ -182,6 +212,7 @@ public class ChatController {
         for (Map.Entry<Integer, ConversationAccumulator> entry : grouped.entrySet()) {
             Integer userId = entry.getKey();
             ConversationAccumulator acc = entry.getValue();
+            ChatSession session = sessionByUserId.get(userId);
             User user = userById.get(userId);
 
             String userName = user == null ? ("User #" + userId) : safe(user.getUsername());
@@ -197,11 +228,33 @@ public class ChatController {
                     acc.lastMessageText,
                     acc.lastMessageAt,
                     acc.unreadCount,
-                    acc.totalMessages
+                    acc.totalMessages,
+                    session == null ? null : session.getSessionId(),
+                    normalizeChatMode(session),
+                    session == null ? null : session.getHandoffRequestedAt(),
+                    normalizeHandoffReason(session),
+                    normalizeClubUnreadCount(session)
             ));
         }
 
         return ResponseEntity.ok(out);
+    }
+
+    @GetMapping(value = "/my/clubs/{clubId}/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter streamClubConversations(@PathVariable Integer clubId, HttpServletResponse response) {
+        Club club = clubRepo.findById(clubId).orElse(null);
+        if (club == null) {
+            throw new ChatStreamException(HttpStatus.NOT_FOUND, "Club not found");
+        }
+
+        User me = currentUserService.requireUser();
+        ResponseEntity<?> denied = requireClubAdmin(me, clubId);
+        if (denied != null) {
+            throw new ChatStreamException(HttpStatus.valueOf(denied.getStatusCode().value()), String.valueOf(denied.getBody()));
+        }
+
+        prepareSseResponse(response);
+        return chatRealtimeService.subscribeClubConversations(clubId);
     }
 
     // Club side: fetch one conversation.
@@ -221,6 +274,7 @@ public class ChatController {
         if (targetUser == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
+        ChatSession session = chatSessionService.getOrCreateSession(clubId, userId);
 
         List<ChatMessage> rows = chatMessageRepo.findByClubIdAndUserIdOrderByCreatedAtAscMessageIdAsc(clubId, userId);
         List<ChatMessageResponse> messages = rows.stream()
@@ -234,7 +288,12 @@ public class ChatController {
                 userId,
                 safe(targetUser.getUsername()),
                 unread,
-                messages
+                messages,
+                session.getSessionId(),
+                normalizeChatMode(session),
+                session.getHandoffRequestedAt(),
+                normalizeHandoffReason(session),
+                normalizeClubUnreadCount(session)
         ));
     }
 
@@ -263,16 +322,13 @@ public class ChatController {
             return ResponseEntity.badRequest().body("Message text is required (1-500 chars)");
         }
 
-        ChatMessage row = new ChatMessage();
-        row.setClubId(clubId);
-        row.setUserId(userId);
-        row.setSender(SENDER_CLUB);
-        row.setMessageText(text);
-        row.setReadByClub(true);
-        row.setReadByUser(false);
-
-        ChatMessage saved = chatMessageRepo.save(row);
-        return ResponseEntity.ok(toMessageResponse(saved, safe(club.getClubName()), safe(targetUser.getUsername())));
+        try {
+            ChatMessageService.ChatSendResult result = chatMessageService.sendClubMessage(clubId, userId, text);
+            notifyChatSendAfterCommit(clubId, userId, result);
+            return ResponseEntity.ok(toMessageResponse(result.responseMessage(), safe(club.getClubName()), safe(targetUser.getUsername())));
+        } catch (ResponseStatusException ex) {
+            return ResponseEntity.status(ex.getStatusCode()).body(ex.getReason());
+        }
     }
 
     // Club side: mark user messages as read.
@@ -292,8 +348,44 @@ public class ChatController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
 
+        ChatSession session = chatSessionService.getOrCreateSession(clubId, userId);
         int updated = chatMessageRepo.markUserMessagesReadByClub(clubId, userId);
+        if (updated > 0 || normalizeClubUnreadCount(session) > 0) {
+            chatSessionService.resetClubUnreadCount(session.getSessionId());
+            notifyChatChangeAfterCommit(clubId, userId, null);
+        }
         return ResponseEntity.ok(new ChatMarkReadResponse(updated));
+    }
+
+    private void notifyChatChangeAfterCommit(Integer clubId, Integer userId, Integer messageId) {
+        chatRealtimeService.afterCommit(() -> {
+            chatRealtimeService.notifyThreadUpdated(clubId, userId, messageId);
+            chatRealtimeService.notifyConversationUpdated(clubId, userId, messageId);
+        });
+    }
+
+    private void notifyUserThreadAfterCommit(Integer clubId, Integer userId, Integer messageId) {
+        chatRealtimeService.afterCommit(() -> chatRealtimeService.notifyThreadUpdated(clubId, userId, messageId));
+    }
+
+    private void notifyChatSendAfterCommit(Integer clubId, Integer userId, ChatMessageService.ChatSendResult result) {
+        if (result == null) {
+            return;
+        }
+        Integer messageId = result.latestMessageId();
+        if (result.notifyUserThread() && result.notifyClubConversation()) {
+            notifyChatChangeAfterCommit(clubId, userId, messageId);
+            return;
+        }
+        if (result.notifyUserThread()) {
+            notifyUserThreadAfterCommit(clubId, userId, messageId);
+        }
+    }
+
+    private static void prepareSseResponse(HttpServletResponse response) {
+        response.setHeader("Cache-Control", "no-cache");
+        response.setHeader("X-Accel-Buffering", "no");
+        response.setHeader("Connection", "keep-alive");
     }
 
     private ResponseEntity<?> requireClubAdmin(User me, Integer clubId) {
@@ -312,8 +404,13 @@ public class ChatController {
     }
 
     private ChatMessageResponse toMessageResponse(ChatMessage msg, String clubName, String userName) {
-        boolean fromClub = SENDER_CLUB.equalsIgnoreCase(msg.getSender());
-        String authorName = fromClub ? clubName : userName;
+        MessageSenderType senderType = MessageSenderType.fromRaw(msg.getSender());
+        String authorName = switch (senderType) {
+            case CLUB -> clubName;
+            case ASSISTANT -> "Assistant";
+            case SYSTEM -> "System";
+            case USER -> userName;
+        };
         return new ChatMessageResponse(
                 msg.getMessageId(),
                 msg.getClubId(),
@@ -321,14 +418,61 @@ public class ChatController {
                 normalizeSender(msg.getSender()),
                 safe(msg.getMessageText()),
                 authorName,
+                safe(msg.getAnswerSource()),
+                msg.getMatchedFaqId(),
+                msg.isHandoffSuggested(),
                 msg.isReadByClub(),
                 msg.isReadByUser(),
                 msg.getCreatedAt()
         );
     }
 
+    private ChatThreadResponse buildUserThreadResponse(Club club, User me, ChatSession session) {
+        List<ChatMessage> rows = chatMessageRepo.findByClubIdAndUserIdOrderByCreatedAtAscMessageIdAsc(club.getClubId(), me.getUserId());
+        List<ChatMessageResponse> messages = rows.stream()
+                .map(msg -> toMessageResponse(msg, safe(club.getClubName()), safe(me.getUsername())))
+                .toList();
+
+        long unread = chatMessageRepo.countByClubIdAndUserIdAndSenderAndReadByUserFalse(club.getClubId(), me.getUserId(), SENDER_CLUB);
+        return new ChatThreadResponse(
+                club.getClubId(),
+                safe(club.getClubName()),
+                me.getUserId(),
+                safe(me.getUsername()),
+                unread,
+                messages,
+                session.getSessionId(),
+                normalizeChatMode(session),
+                session.getHandoffRequestedAt(),
+                normalizeHandoffReason(session),
+                normalizeClubUnreadCount(session)
+        );
+    }
+
     private static String normalizeSender(String sender) {
-        return SENDER_CLUB.equalsIgnoreCase(safe(sender)) ? "club" : "user";
+        return switch (MessageSenderType.fromRaw(sender)) {
+            case CLUB -> "club";
+            case ASSISTANT -> "assistant";
+            case SYSTEM -> "system";
+            case USER -> "user";
+        };
+    }
+
+    private static String normalizeChatMode(ChatSession session) {
+        if (session == null || session.getChatMode() == null) {
+            return "AI";
+        }
+        return session.getChatMode().name();
+    }
+
+    private static String normalizeHandoffReason(ChatSession session) {
+        HandoffReason reason = session == null ? null : session.getHandoffReason();
+        return reason == null ? null : reason.name();
+    }
+
+    private static int normalizeClubUnreadCount(ChatSession session) {
+        Integer unreadCount = session == null ? null : session.getClubUnreadCount();
+        return unreadCount == null ? 0 : Math.max(0, unreadCount);
     }
 
     private static String normalizeMessageText(String raw) {
@@ -353,5 +497,13 @@ public class ChatController {
         long unreadCount;
         long totalMessages;
     }
-}
 
+    private static class ChatStreamException extends RuntimeException {
+        private final HttpStatus status;
+
+        private ChatStreamException(HttpStatus status, String message) {
+            super(message);
+            this.status = status;
+        }
+    }
+}

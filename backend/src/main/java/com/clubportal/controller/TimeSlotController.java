@@ -10,8 +10,13 @@ import com.clubportal.repository.ClubAdminRepository;
 import com.clubportal.repository.ClubRepository;
 import com.clubportal.repository.TimeSlotRepository;
 import com.clubportal.repository.VenueRepository;
+import com.clubportal.service.ClubVisibleTimeslotService;
+import com.clubportal.service.CheckoutSessionService;
 import com.clubportal.service.CurrentUserService;
 import com.clubportal.service.MembershipService;
+import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,13 +25,13 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
 
 @RestController
 @RequestMapping("/api/clubs/{clubId}")
 public class TimeSlotController {
 
+    private static final Logger log = LoggerFactory.getLogger(TimeSlotController.class);
     private static final List<String> ACTIVE_BOOKING_STATUSES = List.of("PENDING", "APPROVED", "CHECKED");
 
     private final ClubRepository clubRepo;
@@ -36,6 +41,8 @@ public class TimeSlotController {
     private final ClubAdminRepository clubAdminRepo;
     private final CurrentUserService currentUserService;
     private final MembershipService membershipService;
+    private final CheckoutSessionService checkoutSessionService;
+    private final ClubVisibleTimeslotService clubVisibleTimeslotService;
 
     public TimeSlotController(ClubRepository clubRepo,
                               VenueRepository venueRepo,
@@ -43,7 +50,9 @@ public class TimeSlotController {
                               BookingRecordRepository bookingRepo,
                               ClubAdminRepository clubAdminRepo,
                               CurrentUserService currentUserService,
-                              MembershipService membershipService) {
+                              MembershipService membershipService,
+                              CheckoutSessionService checkoutSessionService,
+                              ClubVisibleTimeslotService clubVisibleTimeslotService) {
         this.clubRepo = clubRepo;
         this.venueRepo = venueRepo;
         this.timeSlotRepo = timeSlotRepo;
@@ -51,13 +60,16 @@ public class TimeSlotController {
         this.clubAdminRepo = clubAdminRepo;
         this.currentUserService = currentUserService;
         this.membershipService = membershipService;
+        this.checkoutSessionService = checkoutSessionService;
+        this.clubVisibleTimeslotService = clubVisibleTimeslotService;
     }
 
     // User-facing query: list time slots for a club in a date range.
     @GetMapping("/timeslots")
     public ResponseEntity<?> listClubTimeslots(@PathVariable Integer clubId,
                                                @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-                                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+                                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+                                               HttpServletRequest request) {
         if (!clubRepo.existsById(clubId)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Club not found");
         }
@@ -65,71 +77,39 @@ public class TimeSlotController {
             return ResponseEntity.badRequest().body("Invalid date range");
         }
 
-        List<Venue> venues = venueRepo.findByClubId(clubId);
-        if (venues.isEmpty()) {
-            return ResponseEntity.ok(List.of());
-        }
-
-        Map<Integer, String> venueNameById = new HashMap<>();
-        List<Integer> venueIds = new ArrayList<>();
-        for (Venue v : venues) {
-            venueIds.add(v.getVenueId());
-            venueNameById.put(v.getVenueId(), safe(v.getVenueName()));
-        }
-
-        LocalDateTime startInclusive = from.atStartOfDay();
-        LocalDateTime endExclusive = to.plusDays(1).atStartOfDay();
-        List<TimeSlot> slots = timeSlotRepo.findByVenueIdInAndStartTimeBetween(venueIds, startInclusive, endExclusive);
-
-        List<Integer> slotIds = slots.stream().map(TimeSlot::getTimeslotId).toList();
-        Map<Integer, Long> bookedBySlotId = new HashMap<>();
-        if (!slotIds.isEmpty()) {
-            for (BookingRecordRepository.TimeslotCount c : bookingRepo.countByTimeslotIdsAndStatuses(slotIds, ACTIVE_BOOKING_STATUSES)) {
-                bookedBySlotId.put(c.getTimeslotId(), c.getCnt());
-            }
-        }
-
         User viewer = currentUserService.findUserOrNull();
-        final Optional<MembershipService.ActiveMembershipContext> activeMembership =
-                viewer != null && viewer.getRole() == User.Role.USER
-                        ? membershipService.findActiveMembership(viewer.getUserId(), clubId, LocalDate.now())
-                        : Optional.empty();
-        final String activeMembershipPlanName = activeMembership.map(ctx -> safe(ctx.plan().getPlanName())).orElse("");
-        final BigDecimal activeMembershipDiscount = activeMembership
-                .map(ctx -> membershipService.normalizeDiscount(ctx.plan().getDiscountPercent()))
-                .orElse(membershipService.normalizeDiscount(null));
-        final boolean activeMembershipApplied = activeMembership.isPresent();
-
-        List<TimeSlotResponse> out = slots.stream()
-                .sorted(Comparator
-                        .comparing(TimeSlot::getStartTime)
-                        .thenComparing(TimeSlot::getVenueId)
-                        .thenComparing(TimeSlot::getTimeslotId))
-                .map(ts -> {
-                    long booked = bookedBySlotId.getOrDefault(ts.getTimeslotId(), 0L);
-                    long remaining = Math.max(0L, (long) ts.getMaxCapacity() - booked);
-                    BigDecimal basePrice = membershipService.normalizePrice(ts.getPrice());
-                    BigDecimal effectivePrice = activeMembership
-                            .map(ctx -> membershipService.calculateDiscountedPrice(basePrice, ctx.plan().getDiscountPercent()))
-                            .orElse(basePrice);
-                    return new TimeSlotResponse(
-                            ts.getTimeslotId(),
-                            ts.getVenueId(),
-                            clubId,
-                            venueNameById.getOrDefault(ts.getVenueId(), ""),
-                            ts.getStartTime(),
-                            ts.getEndTime(),
-                            ts.getMaxCapacity(),
-                            effectivePrice,
-                            booked,
-                            remaining,
-                            basePrice,
-                            activeMembershipPlanName,
-                            activeMembershipDiscount,
-                            activeMembershipApplied
-                    );
-                })
-                .toList();
+        Integer viewerUserId = viewer == null ? null : viewer.getUserId();
+        log.info("[CLUB_CHAT_DEBUG] PAGE_VISIBLE_SLOTS request: path={}, clubId={}, userId={}, from={}, to={}",
+                request == null ? "/api/clubs/" + clubId + "/timeslots" : request.getRequestURI(),
+                clubId,
+                viewerUserId,
+                from,
+                to);
+        List<TimeSlotResponse> out = clubVisibleTimeslotService.listVisibleTimeslots(
+                clubId,
+                viewer,
+                from,
+                to,
+                "club-page"
+        );
+        log.info("[CLUB_CHAT_DEBUG] PAGE_VISIBLE_SLOTS count: clubId={}, userId={}, count={}",
+                clubId,
+                viewerUserId,
+                out.size());
+        for (int i = 0; i < out.size(); i++) {
+            TimeSlotResponse slot = out.get(i);
+            log.info("[CLUB_CHAT_DEBUG] PAGE_VISIBLE_SLOTS[{}]: venueName={}, startTime={}, endTime={}, remaining={}, price={}, basePrice={}, membershipApplied={}, membershipPlanName={}, membershipDiscountPercent={}",
+                    i,
+                    slot == null ? null : slot.venueName(),
+                    slot == null ? null : slot.startTime(),
+                    slot == null ? null : slot.endTime(),
+                    slot == null ? null : slot.remaining(),
+                    slot == null ? null : slot.price(),
+                    slot == null ? null : slot.basePrice(),
+                    slot == null ? null : slot.membershipApplied(),
+                    slot == null ? null : slot.membershipPlanName(),
+                    slot == null ? null : slot.membershipDiscountPercent());
+        }
 
         return ResponseEntity.ok(out);
     }
@@ -228,8 +208,9 @@ public class TimeSlotController {
         }
 
         long booked = bookingRepo.countByTimeslotIdAndStatusIn(ts.getTimeslotId(), ACTIVE_BOOKING_STATUSES);
-        if (booked > maxCap) {
-            return ResponseEntity.badRequest().body("maxCapacity cannot be less than current booked count");
+        long held = checkoutSessionService.countActiveBookingHolds(ts.getTimeslotId(), java.time.Instant.now());
+        if (booked + held > maxCap) {
+            return ResponseEntity.badRequest().body("maxCapacity cannot be less than current booked and held count");
         }
 
         BigDecimal price = req.getPrice() == null ? normalizePrice(ts.getPrice()) : normalizePrice(req.getPrice());
@@ -243,7 +224,7 @@ public class TimeSlotController {
         ts.setPrice(price);
 
         TimeSlot saved = timeSlotRepo.save(ts);
-        long remaining = Math.max(0L, (long) saved.getMaxCapacity() - booked);
+        long remaining = Math.max(0L, (long) saved.getMaxCapacity() - booked - held);
         return ResponseEntity.ok(new TimeSlotResponse(
                 saved.getTimeslotId(),
                 saved.getVenueId(),

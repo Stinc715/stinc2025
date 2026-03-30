@@ -12,7 +12,11 @@ public record ChatConversationSummaryResponse(
         String lastMessageText,
         LocalDateTime lastMessageAt,
         long unreadCount,
-        long totalMessages
+        long totalMessages,
+        Integer sessionId,
+        String chatMode,
+        LocalDateTime handoffRequestedAt,
+        String handoffReason,
+        int clubUnreadCount
 ) {
 }
-

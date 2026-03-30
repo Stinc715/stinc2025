@@ -31,6 +31,9 @@ public class BookingRecord {
     @Column(name = "user_membership_id")
     private Integer userMembershipId;
 
+    @Column(name = "booking_verification_code", length = 6)
+    private String bookingVerificationCode;
+
     public Integer getBookingId() { return bookingId; }
     public void setBookingId(Integer bookingId) { this.bookingId = bookingId; }
     public Integer getUserId() { return userId; }
@@ -45,4 +48,6 @@ public class BookingRecord {
     public void setPricePaid(java.math.BigDecimal pricePaid) { this.pricePaid = pricePaid; }
     public Integer getUserMembershipId() { return userMembershipId; }
     public void setUserMembershipId(Integer userMembershipId) { this.userMembershipId = userMembershipId; }
+    public String getBookingVerificationCode() { return bookingVerificationCode; }
+    public void setBookingVerificationCode(String bookingVerificationCode) { this.bookingVerificationCode = bookingVerificationCode; }
 }

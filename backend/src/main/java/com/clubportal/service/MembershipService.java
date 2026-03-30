@@ -158,7 +158,6 @@ public class MembershipService {
                 ));
 
         List<MembershipPlan> created = new java.util.ArrayList<>(existing);
-        boolean enableMissingPlansByDefault = existing.isEmpty();
         for (String code : STANDARD_PLAN_CODES) {
             if (existingByCode.containsKey(code)) continue;
             MembershipPlan plan = new MembershipPlan();
@@ -168,7 +167,7 @@ public class MembershipService {
             plan.setDurationDays(defaultDurationDays(code));
             plan.setPrice(defaultPlanPrice(code));
             plan.setDiscountPercent(defaultPlanDiscount(code));
-            plan.setEnabled(enableMissingPlansByDefault);
+            plan.setEnabled(false);
             plan.setDescription(defaultDescription(code, plan.getDiscountPercent()));
             created.add(membershipPlanRepo.save(plan));
         }

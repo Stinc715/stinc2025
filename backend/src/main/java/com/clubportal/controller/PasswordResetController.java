@@ -39,7 +39,7 @@ public class PasswordResetController {
     private final UserRepository userRepo;
     private final PasswordEncryptionUtil passwordUtil;
 
-    @Value("${app.public.base-url:https://www.club-portal.xyz}")
+    @Value("${app.public.base-url:}")
     private String publicBaseUrl;
 
     public PasswordResetController(PasswordResetService passwordResetService,
@@ -185,7 +185,7 @@ public class PasswordResetController {
             return trimTrailingSlash(scheme + "://" + serverName + suffix);
         }
 
-        return "https://www.club-portal.xyz";
+        return "http://localhost:5173";
     }
 
     private static boolean isPublicHttpUrl(String value) {

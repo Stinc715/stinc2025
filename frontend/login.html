@@ -207,16 +207,6 @@
   #reset-box p{ margin:0 0 12px;font-size:13px;color:#6b7280; }
   #reset-msg{ font-size:12px;color:#1d4ed8;background:#eff6ff;border:1px solid #bfdbfe;padding:6px 8px;border-radius:8px;display:none;margin-bottom:10px; }
   #reset-msg.is-error{ color:#b91c1c;background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.35); }
-  .status-dialog{ position:fixed; inset:0; background:rgba(15,23,42,.35); display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .25s ease; z-index:1200; padding:24px; backdrop-filter:blur(2px); }
-  .status-dialog.active{ opacity:1; pointer-events:auto; }
-  .status-dialog__card{ width:min(380px,90vw); background:#fff; border-radius:22px; padding:34px 30px 26px; text-align:center; box-shadow:none; transform:translateY(24px); transition:transform .3s ease; }
-  .status-dialog.active .status-dialog__card{ transform:translateY(0); }
-  .status-dialog__icon{ width:70px;height:70px;border-radius:18px;margin:0 auto 18px;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;color:#fff;background:linear-gradient(135deg,#2563eb,#1d4ed8);box-shadow:none; }
-  .status-dialog[data-mode="success"] .status-dialog__icon{ background:linear-gradient(135deg,#3b82f6,#1d4ed8);box-shadow:none; }
-  .status-dialog__title{ font-size:22px;margin:0 0 8px;color:#0f172a; }
-  .status-dialog__text{ margin:0 0 22px;color:#4b5563;font-size:14px; }
-  .status-dialog__btn{ border:none;border-radius:999px;width:100%;max-width:220px;margin:0 auto;height:46px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-size:15px;font-weight:600;cursor:pointer;box-shadow:none; }
-  .status-dialog__btn:active{ transform:translateY(1px); }
   .divider::before,.divider::after{content:"";flex:1;height:1px;background:#e5e7eb;}
   .form-alert{display:none;margin:10px 0;padding:10px 12px;border-radius:12px;border:1px solid rgba(47,93,255,.25);background:rgba(47,93,255,.08);color:#1f3bb3;font-size:13px;animation:fadeUp .2s ease both;}
   .verify-box{margin:-4px 0 14px;padding:10px;border:1px solid #e5e7eb;border-radius:12px;background:#f8fafc;}
@@ -381,7 +371,7 @@
       </div>
       <div class="btn-row">
         <button id="btnRegisterDo" class="btn" type="button" disabled>Register</button>
-        <button id="btnBackLogin" class="btn light" type="button">Back to login</button>
+        <button id="btnBackLogin" class="btn light" type="button">Back</button>
       </div>
     </div>
     </div><!-- end panels-container -->
@@ -407,25 +397,23 @@
     </div>
   </div>
 
-  <div id="status-dialog" class="status-dialog" aria-hidden="true" data-mode="success">
-    <div class="status-dialog__card" role="alertdialog" aria-labelledby="status-dialog-title" aria-describedby="status-dialog-text">
-      <div class="status-dialog__icon" id="status-dialog-icon" aria-hidden="true">&#10003;</div>
-      <p id="status-dialog-title" class="status-dialog__title"></p>
-      <p id="status-dialog-text" class="status-dialog__text"></p>
-      <button type="button" id="status-dialog-btn" class="status-dialog__btn">OK</button>
-    </div>
-  </div>
-
   <!-- Google Identity Services SDK -->
   <script src="https://accounts.google.com/gsi/client?hl=en" async defer></script>
   <script>
     (function(){
-      var DEFAULT_GOOGLE_CLIENT_ID = '885940597719-mtcoo82k9bbksvuj786nsj7iombqtsli.apps.googleusercontent.com';
       window.__googleGsi = window.__googleGsi || { ready: false, rendered: false, pendingCredential: null, clientId: '' };
       window.__googleGsi.ready = false;
       window.__googleGsi.rendered = false;
       window.__googleGsi.pendingCredential = null;
       window.__googleGsi.clientId = '';
+      var googleSigninShell = document.querySelector('.google-signin-shell');
+      var googleDivider = document.querySelector('.login-social-section .divider');
+
+      function setGoogleSigninVisible(visible){
+        var display = visible ? '' : 'none';
+        if (googleSigninShell) googleSigninShell.style.display = display;
+        if (googleDivider) googleDivider.style.display = display;
+      }
 
       function flushGoogleCredential(response){
         if (!response) return;
@@ -448,16 +436,19 @@
             return res.json();
           })
           .then(function(data){
-            var serverClientId = resolveGoogleClientIdFromConfig(data);
-            return serverClientId || DEFAULT_GOOGLE_CLIENT_ID;
+            return resolveGoogleClientIdFromConfig(data);
           })
           .catch(function(){
-            return DEFAULT_GOOGLE_CLIENT_ID;
+            return '';
           });
       }
 
       loadGoogleClientId().then(function(clientId){
-        if (!clientId) return;
+        if (!clientId) {
+          setGoogleSigninVisible(false);
+          return;
+        }
+        setGoogleSigninVisible(true);
         window.__googleGsi.clientId = clientId;
         var attempts = 0;
         var t = setInterval(function(){
@@ -495,7 +486,6 @@
   </script>
   <script>
   const API_BASE = "/api";
-  // TODO: Replace with real backend endpoints (user + club auth).
   const AUTH_ENDPOINTS = {
     userLogin: `${API_BASE}/login`,
     clubLogin: `${API_BASE}/clubs/login`,
@@ -542,16 +532,8 @@
   const resetSendBtn = document.getElementById('btnResetSend');
   const resetBackBtn = document.getElementById('btnResetBack');
 
-  const statusDialog = document.getElementById('status-dialog');
-  const statusDialogTitle = document.getElementById('status-dialog-title');
-  const statusDialogText = document.getElementById('status-dialog-text');
-  const statusDialogBtn = document.getElementById('status-dialog-btn');
-  const statusDialogIcon = document.getElementById('status-dialog-icon');
-  let statusDialogCb = null;
-
   const togglePasswordBtn = document.getElementById('togglePassword');
   const passwordInput = document.getElementById('password');
-  let routeLockedMode = '';
   let registerVerifiedEmail = '';
   let regCodeTimer = null;
   let resetRequestedEmail = '';
@@ -584,27 +566,6 @@
       togglePasswordBtn.setAttribute('aria-label', isVisible ? 'Show password' : 'Hide password');
     });
   }
-
-  function showStatusDialog({ title = '', message = '', buttonText = 'OK', icon = 'success', onConfirm = null } = {}){
-    if (!statusDialog) return;
-    statusDialogTitle.textContent = title;
-    statusDialogText.textContent = message;
-    statusDialogBtn.textContent = buttonText;
-    statusDialogIcon.innerHTML = icon === 'success' ? '&#10003;' : '&#9432;';
-    statusDialog.dataset.mode = icon;
-    statusDialog.classList.add('active');
-    statusDialog.setAttribute('aria-hidden','false');
-    statusDialogCb = typeof onConfirm === 'function' ? onConfirm : null;
-  }
-  function hideStatusDialog(){
-    if (!statusDialog) return;
-    statusDialog.classList.remove('active');
-    statusDialog.setAttribute('aria-hidden','true');
-    if(statusDialogCb){ const cb = statusDialogCb; statusDialogCb = null; cb(); }
-  }
-  statusDialogBtn?.addEventListener('click', hideStatusDialog);
-  statusDialog?.addEventListener('click', (evt)=>{ if(evt.target === statusDialog){ hideStatusDialog(); } });
-  document.addEventListener('keydown', (evt)=>{ if(evt.key === 'Escape' && statusDialog?.classList.contains('active')){ hideStatusDialog(); } });
 
   function setRegNotice(title, message, isError = false){
     if (!regSuccess) return;
@@ -652,7 +613,7 @@
     }
     if (resetEmailField) resetEmailField.hidden = isSent;
     if (resetSendBtn) resetSendBtn.textContent = isSent ? 'Send another link' : 'Send link';
-    if (resetBackBtn) resetBackBtn.textContent = isSent ? 'Back to login' : 'Back';
+    if (resetBackBtn) resetBackBtn.textContent = 'Back';
     requestResize();
   }
 
@@ -730,7 +691,6 @@
   }
 
   function setRouteLockedMode(mode){
-    routeLockedMode = mode;
     document.body.classList.toggle('route-locked', !!mode);
     if (tabs) tabs.hidden = !!mode;
     if (btnGoRegister) btnGoRegister.hidden = !!mode;
@@ -825,21 +785,6 @@
   };
   clubSwitch?.addEventListener('click', openClubRegister);
 
-  function consumePostLoginRedirect(){
-    try{
-      const raw = localStorage.getItem('postLoginRedirect');
-      if (!raw) return null;
-      localStorage.removeItem('postLoginRedirect');
-      const data = JSON.parse(raw);
-      if (data && (data.page === 'join' || data.page === 'club') && data.clubId) {
-        return `club.html?club=${encodeURIComponent(data.clubId)}`;
-      }
-    }catch(e){
-      try{ localStorage.removeItem('postLoginRedirect'); }catch(err){}
-    }
-    return null;
-  }
-
   const isEmbedded = window.self !== window.top;
   if (isEmbedded) {
     document.body.classList.add('embedded');
@@ -884,37 +829,41 @@
     club: 'club home.html'
   });
 
-  function isKnownClubEmail(email) {
-    const em = String(email || '').trim().toLowerCase();
-    if (!em) return false;
-    try {
-      const raw = localStorage.getItem('clubPortal.clubEmails');
-      if (!raw) return false;
-      const list = JSON.parse(raw);
-      return Array.isArray(list) && list.includes(em);
-    } catch (e) {
-      return false;
-    }
-  }
-
-  function getLockedUserType(role) {
-    if (role) return resolveUserType(role);
-    try {
-      const logged = JSON.parse(localStorage.getItem('loggedUser') || 'null');
-      if (logged && logged.type === 'club') return 'club';
-    } catch (e) { /* ignore */ }
-    return 'user';
-  }
-
   function getDefaultTarget(role) {
-    return getLockedUserType(role) === 'club'
+    let type = role ? resolveUserType(role) : 'user';
+    if (!role) {
+      try {
+        const logged = JSON.parse(localStorage.getItem('loggedUser') || 'null');
+        if (logged && logged.type === 'club') type = 'club';
+      } catch (e) { /* ignore */ }
+    }
+    return type === 'club'
       ? LOCKED_LOGIN_TARGET.club
       : LOCKED_LOGIN_TARGET.user;
   }
 
+  function normalizeReturnToTarget(raw) {
+    const value = String(raw || '').trim();
+    if (!value) return '';
+    if (/^[a-z][a-z0-9+.-]*:/i.test(value)) return '';
+    const normalized = value.replace(/^\.\/+/, '').replace(/^\/+/, '');
+    if (!normalized || normalized.includes('..') || /[\r\n]/.test(normalized)) return '';
+    if (!/^[^?#]+\.html(?:[?#].*)?$/i.test(normalized)) return '';
+    return normalized;
+  }
+
+  function consumeReturnToQueryTarget(role) {
+    const params = new URLSearchParams(window.location.search);
+    const target = normalizeReturnToTarget(params.get('returnTo'));
+    if (!target) return '';
+    if ((target.startsWith('payment.html') || target.startsWith('club.html')) && resolveUserType(role) !== 'user') {
+      return '';
+    }
+    return target;
+  }
+
   function redirectAfterLogin(role){
-    // Keep this rule fixed: always land by account type after login.
-    const target = getDefaultTarget(role);
+    const target = consumeReturnToQueryTarget(role) || getDefaultTarget(role);
     if (isEmbedded) {
       window.parent.postMessage({ type: 'auth-success', target }, '*');
       return;
@@ -1158,6 +1107,8 @@
         let saved = null;
         try { saved = await res.json(); } catch (e) { saved = null; }
         const profileToSave = saved || { fullName, email, role: 'user' };
+        if (profileToSave && profileToSave.token) localStorage.setItem('token', profileToSave.token);
+        else localStorage.removeItem('token');
         localStorage.setItem('user', JSON.stringify(profileToSave));
         const role = profileToSave.role || profileToSave.type || 'user';
         const userType = resolveUserType(role);

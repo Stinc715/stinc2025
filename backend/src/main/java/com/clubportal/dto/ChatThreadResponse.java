@@ -1,5 +1,6 @@
 package com.clubportal.dto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public record ChatThreadResponse(
@@ -8,7 +9,11 @@ public record ChatThreadResponse(
         Integer userId,
         String userName,
         long unreadCount,
-        List<ChatMessageResponse> messages
+        List<ChatMessageResponse> messages,
+        Integer sessionId,
+        String chatMode,
+        LocalDateTime handoffRequestedAt,
+        String handoffReason,
+        int clubUnreadCount
 ) {
 }
-

@@ -4,29 +4,83 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Club onboarding - Set up your club profile</title>
-  <link rel="stylesheet" href="theme.css?v=20260220b">
-  <link rel="stylesheet" href="onboarding.css?v=20260220b">
+  <link rel="stylesheet" href="theme.css?v=20260324a">
+  <link rel="stylesheet" href="onboarding.css?v=20260327f">
+  <script>
+    (function() {
+      const query = new URLSearchParams(window.location.search);
+      const editMode = String(query.get('mode') || '').trim().toLowerCase();
+      if (editMode === 'name-edit' || editMode === 'category-edit') return;
+      if (window.__clubOnboardingBackGuardInstalled) return;
+      window.__clubOnboardingBackGuardInstalled = true;
+
+      const pushOnboardingLockState = () => {
+        const currentState = (window.history.state && typeof window.history.state === 'object')
+          ? window.history.state
+          : {};
+        window.history.pushState({ ...currentState, onboardingLock: true }, '', window.location.href);
+      };
+
+      const initialState = (window.history.state && typeof window.history.state === 'object')
+        ? window.history.state
+        : {};
+      window.history.replaceState({ ...initialState, onboardingEntry: true }, '', window.location.href);
+      pushOnboardingLockState();
+
+      window.addEventListener('popstate', () => {
+        pushOnboardingLockState();
+      });
+
+      window.addEventListener('pageshow', (event) => {
+        if (!event.persisted) return;
+        const state = (window.history.state && typeof window.history.state === 'object')
+          ? window.history.state
+          : {};
+        if (!state.onboardingLock) {
+          pushOnboardingLockState();
+        }
+      });
+    })();
+  </script>
   <style>
+    .header-side {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      min-height: 40px;
+    }
     .back-link {
       display: inline-flex;
       align-items: center;
       gap: 6px;
       font-size: 14px;
-      color: #0066cc;
+      font-weight: 600;
+      color: #64748b;
       text-decoration: none;
-      border: none;
-      background: none;
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      background: rgba(255, 255, 255, 0.9);
       cursor: pointer;
-      padding: 8px 0;
+      padding: 8px 12px;
+      border-radius: 999px;
+      box-shadow: 0 8px 18px rgba(29, 29, 31, 0.08);
+      transition: color .2s ease, border-color .2s ease, background .2s ease, transform .2s ease, box-shadow .2s ease;
+    }
+    .back-link::before {
+      content: '<';
+    }
+    .back-link:hover {
+      color: #111827;
+      background: rgba(255, 255, 255, 0.96);
+      border-color: rgba(100, 116, 139, 0.28);
+      box-shadow: 0 12px 22px rgba(29, 29, 31, 0.12);
+      transform: translateY(-1px);
     }
   </style>
 </head>
 <body class="page-with-footer">
   <header style="position: sticky; top: 0; z-index: 10; border-bottom: 1px solid #e5e7eb; background: white; padding: 12px 0;">
-    <div class="wrap" style="max-width: 980px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px;">
-      <div style="display: flex; align-items: center; gap: 16px;">
-        <button class="back-link" onclick="window.location.href = 'club home.html'" type="button" aria-label="Back">¡û Back</button>
-      </div>
+    <div class="wrap" style="width: min(1760px, calc(100vw - 56px)); max-width: none; margin: 0 auto; padding: 0 32px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px;">
+      <div class="header-side" aria-hidden="true"></div>
       <h2 style="margin: 0; font-size: 18px; font-weight: 600; justify-self: center;">Club profile</h2>
       <div></div>
     </div>
@@ -44,7 +98,7 @@
           <h2>Profile details</h2>
           <p>Finish in under a minute.</p>
         </div>
-        <span class="panel-badge">Step 1 of 2</span>
+        <span class="panel-badge">Step 1 of 3</span>
       </div>
 
       <div class="form-block">
@@ -72,7 +126,6 @@
 
       <div id="status" class="status" aria-live="polite"></div>
     </section>
-
   </main>
 
   <footer class="site-footer">
@@ -86,8 +139,7 @@
     </div>
   </footer>
 
-  <script src="onboarding.js?v=20260309b" defer></script>
-  <script src="auth-modal.js?v=20260308g" defer></script>
+  <script type="module" src="onboarding.js?v=20260327f"></script>
+  <script type="module" src="auth-modal.js?v=20260324a"></script>
 </body>
 </html>
-

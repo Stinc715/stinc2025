@@ -1,10 +1,10 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Club Booking Portal - Club Home</title>
-  <link rel="stylesheet" href="theme.css?v=20260220b">
+  <link rel="stylesheet" href="theme.css?v=20260324a">
   <style>
     html,
     body {
@@ -132,23 +132,6 @@
       letter-spacing: -0.01em;
       line-height: 1.2;
     }
-    .workspace-sub {
-      margin: 0;
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.45;
-    }
-    .club-chip {
-      border: 1px solid rgba(15, 23, 42, 0.12);
-      background: rgba(15, 23, 42, 0.04);
-      color: #0f172a;
-      border-radius: 12px;
-      padding: 10px;
-      font-size: 12px;
-      font-weight: 600;
-      line-height: 1.35;
-      word-break: break-word;
-    }
     .workspace-menu {
       position: relative;
       z-index: 1;
@@ -215,40 +198,6 @@
       color: var(--muted);
       line-height: 1.3;
     }
-    .workspace-nav-foot {
-      position: relative;
-      z-index: 1;
-      margin-top: auto;
-      padding: 8px;
-      border-top: 1px dashed rgba(15, 23, 42, 0.12);
-      display: grid;
-      gap: 8px;
-    }
-    .workspace-quick-btn {
-      border: 1px solid rgba(15, 23, 42, 0.12);
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.9);
-      color: #0f172a;
-      font-size: 12px;
-      font-weight: 600;
-      line-height: 1.25;
-      padding: 9px 10px;
-      text-decoration: none;
-      display: inline-flex;
-      justify-content: center;
-      align-items: center;
-      transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
-    }
-    .workspace-quick-btn:hover {
-      border-color: rgba(15, 23, 42, 0.18);
-      background: #ffffff;
-      transform: translateY(-1px);
-    }
-    .workspace-quick-btn.is-disabled {
-      opacity: 0.56;
-      pointer-events: none;
-      cursor: not-allowed;
-    }
     .workspace-main {
       display: grid;
       grid-template-rows: auto minmax(0, 1fr);
@@ -274,19 +223,6 @@
       gap: 6px;
       min-width: 0;
     }
-    .section-pill {
-      width: fit-content;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(47, 93, 255, 0.2);
-      background: rgba(47, 93, 255, 0.1);
-      color: #1e40af;
-      font-size: 11px;
-      font-weight: 700;
-      line-height: 1;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
     .workspace-head h2 {
       margin: 0;
       font-size: clamp(20px, 2.4vw, 30px);
@@ -301,17 +237,6 @@
       color: var(--muted);
       line-height: 1.45;
       max-width: 720px;
-    }
-    .workspace-tools {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .workspace-tools .btn {
-      min-height: 38px;
-      border-radius: 999px;
-      font-weight: 600;
     }
     .frame-shell {
       position: relative;
@@ -421,6 +346,149 @@
       cursor: pointer;
       color: var(--muted);
     }
+    .guide-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(8px);
+      z-index: 3200;
+    }
+    .guide-overlay.open {
+      display: flex;
+    }
+    .guide-card {
+      position: relative;
+      width: min(680px, 94vw);
+      display: grid;
+      gap: 18px;
+      padding: 30px;
+      border-radius: 24px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background: #ffffff;
+      box-shadow: 0 28px 70px rgba(15, 23, 42, 0.16);
+    }
+    .guide-kicker {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(37, 99, 235, 0.1);
+      color: #1d4ed8;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .guide-card h3 {
+      margin: 0;
+      font-family: "Sora", sans-serif;
+      font-size: clamp(26px, 3vw, 36px);
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      color: #0f172a;
+    }
+    .guide-card p {
+      margin: 0;
+      color: #475569;
+      font-size: 16px;
+      line-height: 1.65;
+    }
+    .guide-club {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.06);
+      color: #0f172a;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .guide-grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .guide-step {
+      display: grid;
+      gap: 10px;
+      padding: 18px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 18px;
+      background: #f8fafc;
+    }
+    .guide-step h4 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.25;
+      color: #0f172a;
+    }
+    .guide-step p {
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .guide-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding-top: 4px;
+    }
+    .guide-actions-main {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .guide-btn {
+      min-width: 190px;
+      min-height: 44px;
+      font-weight: 700;
+      border-radius: 999px;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      background: #ffffff;
+      color: #0f172a;
+    }
+    .guide-btn.primary {
+      border-color: transparent;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #ffffff;
+      box-shadow: 0 16px 30px rgba(37, 99, 235, 0.24);
+    }
+    .guide-skip {
+      border: 0;
+      background: transparent;
+      color: #64748b;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 8px 0;
+    }
+    .guide-skip:hover {
+      color: #0f172a;
+    }
+    .guide-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 38px;
+      height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      border-radius: 999px;
+      background: #ffffff;
+      color: #64748b;
+      font-size: 20px;
+      cursor: pointer;
+    }
     @media (max-width: 1100px) {
       .workspace {
         grid-template-columns: 260px minmax(0, 1fr);
@@ -467,8 +535,8 @@
       .workspace-menu {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
-      .workspace-nav-foot {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+      .guide-grid {
+        grid-template-columns: 1fr;
       }
     }
     @media (max-width: 640px) {
@@ -486,17 +554,25 @@
       .workspace-menu {
         grid-template-columns: 1fr;
       }
-      .workspace-nav-foot {
-        grid-template-columns: 1fr;
-      }
       .workspace-head {
         padding: 12px;
       }
-      .workspace-tools {
+      .guide-overlay {
+        padding: 12px;
+      }
+      .guide-card {
+        padding: 24px 18px 20px;
+        gap: 16px;
+      }
+      .guide-actions-main {
         width: 100%;
       }
-      .workspace-tools .btn {
-        flex: 1 1 auto;
+      .guide-btn {
+        width: 100%;
+      }
+      .guide-skip {
+        width: 100%;
+        text-align: center;
       }
     }
   </style>
@@ -545,8 +621,8 @@
           <button class="workspace-tab" type="button" data-section="updates">
             <span class="workspace-tab-icon" aria-hidden="true">U</span>
             <span class="workspace-tab-copy">
-              <span class="workspace-tab-title">Memberships</span>
-              <span class="workspace-tab-desc">Manage plans and active members</span>
+              <span class="workspace-tab-title">Memberships &amp; FAQ</span>
+              <span class="workspace-tab-desc">Manage plans, members, and chat replies</span>
             </span>
           </button>
           <button class="workspace-tab" type="button" data-section="chats">
@@ -573,11 +649,11 @@
             <span class="frame-spinner" aria-hidden="true"></span>
             <span id="frameLoadingText">Loading section...</span>
           </div>
-          <iframe class="section-frame active" data-section="info" data-src="club-info.html?v=20260225i" src="club-info.html?v=20260225i" title="Club information panel" loading="eager"></iframe>
-          <iframe class="section-frame" data-section="venues" data-src="club-admin.html?v=20260309f" title="Venues and time slots panel" loading="lazy"></iframe>
-          <iframe class="section-frame" data-section="bookings" data-src="club bookings.html" title="Member bookings panel" loading="lazy"></iframe>
-          <iframe class="section-frame" data-section="updates" data-src="club updates.html?v=20260310-memberships-f" title="Memberships panel" loading="lazy"></iframe>
-          <iframe class="section-frame" data-section="chats" data-src="club chat.html?v=20260309e" title="Member chats panel" loading="lazy"></iframe>
+          <iframe class="section-frame active" data-section="info" src="club-info.html?v=20260225i" title="Club information panel" loading="eager"></iframe>
+          <iframe class="section-frame" data-section="venues" title="Venues and time slots panel" loading="lazy"></iframe>
+          <iframe class="section-frame" data-section="bookings" title="Member bookings panel" loading="lazy"></iframe>
+          <iframe class="section-frame" data-section="updates" title="Memberships and chat replies panel" loading="lazy"></iframe>
+          <iframe class="section-frame" data-section="chats" title="Member chats panel" loading="lazy"></iframe>
         </div>
       </section>
     </section>
@@ -602,11 +678,40 @@
     </div>
   </div>
 
+  <div id="dashboardGuideOverlay" class="guide-overlay" aria-hidden="true">
+    <div class="guide-card" role="dialog" aria-modal="true" aria-labelledby="dashboardGuideTitle">
+      <button id="dashboardGuideCloseBtn" class="guide-close" type="button" aria-label="Close">&times;</button>
+      <span class="guide-kicker">First-time guide</span>
+      <h3 id="dashboardGuideTitle">Your club workspace is ready.</h3>
+      <p id="dashboardGuideClubName" class="guide-club" hidden></p>
+      <p>Add at least one time slot and decide whether to offer membership cards. You can also skip this for now and come back later from the left menu.</p>
+      <div class="guide-grid">
+        <article class="guide-step">
+          <h4>Venues and time slots</h4>
+          <p>Open your venue setup page and publish the first bookable time slot for members.</p>
+        </article>
+        <article class="guide-step">
+          <h4>Memberships</h4>
+          <p>Review the default membership cards and manually turn on the plans you want to sell.</p>
+        </article>
+      </div>
+      <div class="guide-actions">
+        <div class="guide-actions-main">
+          <button id="dashboardGuideVenuesBtn" class="btn guide-btn primary" type="button">Set time slots</button>
+          <button id="dashboardGuideMembershipsBtn" class="btn guide-btn" type="button">Set membership cards</button>
+        </div>
+        <button id="dashboardGuideSkipBtn" class="guide-skip" type="button">Skip for now</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const LOCKED_LOGIN_TARGET = Object.freeze({
       user: 'home.html',
       club: 'club home.html'
     });
+    const DASHBOARD_GUIDE_PENDING_KEY = 'clubPortal.pendingDashboardGuide';
+    const DASHBOARD_GUIDE_SEEN_PREFIX = 'clubPortal.dashboardGuideSeen.';
 
     const SECTION_CONFIG = Object.freeze({
       info: {
@@ -625,9 +730,9 @@
         src: 'club bookings.html'
       },
       updates: {
-        title: 'Memberships',
-        desc: 'Set membership plans and review active members.',
-        src: 'club updates.html?v=20260310-memberships-f'
+        title: 'Memberships & FAQ',
+        desc: 'Set membership plans, review active members, and manage club chat replies.',
+        src: 'club updates.html?v=20260328-chat-kb-b'
       },
       chats: {
         title: 'Member chats',
@@ -670,7 +775,6 @@
       localStorage.removeItem('token');
       localStorage.removeItem('loggedUser');
       localStorage.removeItem('user');
-      localStorage.removeItem('postLoginRedirect');
     };
 
     const forceLogout = (target = 'login.html#login') => {
@@ -715,7 +819,7 @@
         }
         const clubs = await res.json();
         if (!Array.isArray(clubs) || clubs.length === 0) {
-          window.location.href = 'onboarding.html';
+          window.location.replace('onboarding.html');
           return null;
         }
 
@@ -739,7 +843,6 @@
       }
     };
 
-    const selectedClubChipEl = document.getElementById('selectedClubChip');
     const sectionTitleEl = document.getElementById('sectionTitle');
     const sectionDescEl = document.getElementById('sectionDesc');
     const frameShellEl = document.getElementById('frameShell');
@@ -749,6 +852,12 @@
     const framesBySection = new Map(
       Array.from(document.querySelectorAll('.section-frame')).map((frame) => [frame.dataset.section, frame])
     );
+    const dashboardGuideOverlay = document.getElementById('dashboardGuideOverlay');
+    const dashboardGuideClubNameEl = document.getElementById('dashboardGuideClubName');
+    const dashboardGuideVenuesBtn = document.getElementById('dashboardGuideVenuesBtn');
+    const dashboardGuideMembershipsBtn = document.getElementById('dashboardGuideMembershipsBtn');
+    const dashboardGuideSkipBtn = document.getElementById('dashboardGuideSkipBtn');
+    const dashboardGuideCloseBtn = document.getElementById('dashboardGuideCloseBtn');
 
     const decodeJwtPayload = (token) => {
       const raw = String(token || '').trim();
@@ -779,6 +888,7 @@
     let sessionCheckTimer = null;
     let sessionCheckInFlight = false;
     let currentTokenSessionVersion = getTokenSessionVersion(localStorage.getItem('token') || '');
+    let dashboardGuideClubId = '';
 
     const normalizeSection = (raw) => {
       const key = String(raw || '').trim().toLowerCase();
@@ -797,20 +907,6 @@
       const base = SECTION_CONFIG[section]?.src || SECTION_CONFIG.info.src;
       if (!forceReload) return base;
       return `${base}${base.includes('?') ? '&' : '?'}_=${Date.now()}`;
-    };
-
-    const syncSelectedClubChip = () => {
-      if (!selectedClubChipEl) return;
-      const selected = parseJsonSafe(localStorage.getItem('selectedClub') || 'null');
-      const id = selected?.id ?? selected?.clubId ?? '';
-      const name = selected?.name || selected?.clubName || '';
-      if (!id && !name) {
-        selectedClubChipEl.textContent = 'Selected club: -';
-      } else {
-        const label = id ? `${name || 'Club'} (#${id})` : (name || 'Club');
-        selectedClubChipEl.textContent = `Selected club: ${label}`;
-      }
-
     };
 
     const updateUrlSection = (section) => {
@@ -856,7 +952,7 @@
         console.warn('Unable to style embedded section:', err);
       }
     };
-    const syncFrameHeight = (frame, options = {}) => {
+    const syncFrameHeight = (frame) => {
       if (!frame) return;
       try {
         const shellHeight = frameShellEl ? Math.max(0, Math.ceil(frameShellEl.clientHeight)) : 0;
@@ -870,10 +966,10 @@
 
     const scheduleFrameHeightSync = (frame) => {
       if (!frame) return;
-      syncFrameHeight(frame, { allowShrink: true });
-      window.setTimeout(() => syncFrameHeight(frame, { allowShrink: true }), 120);
-      window.setTimeout(() => syncFrameHeight(frame, { allowShrink: true }), 360);
-      window.setTimeout(() => syncFrameHeight(frame, { allowShrink: true }), 760);
+      syncFrameHeight(frame);
+      window.setTimeout(() => syncFrameHeight(frame), 120);
+      window.setTimeout(() => syncFrameHeight(frame), 360);
+      window.setTimeout(() => syncFrameHeight(frame), 760);
     };
 
     const clearFrameWatchdog = (section) => {
@@ -965,7 +1061,6 @@
         clearFrameWatchdog(section);
         applyEmbedStyle(frame);
         scheduleFrameHeightSync(frame);
-        syncSelectedClubChip();
         if (frame.dataset.section === activeSection) {
           setFrameLoading(false);
         }
@@ -991,7 +1086,6 @@
       localStorage.removeItem('loggedUser');
       localStorage.removeItem('user');
       localStorage.removeItem('selectedClub');
-      localStorage.removeItem('postLoginRedirect');
       window.location.href = 'home.html';
     });
 
@@ -1022,7 +1116,6 @@
           return;
         }
       }
-      syncSelectedClubChip();
       scheduleFrameHeightSync(framesBySection.get(activeSection));
     });
 
@@ -1036,8 +1129,7 @@
     });
 
     window.setInterval(() => {
-      syncSelectedClubChip();
-      syncFrameHeight(framesBySection.get(activeSection), { allowShrink: false });
+      syncFrameHeight(framesBySection.get(activeSection));
     }, 1400);
 
     const checkSessionAlive = async () => {
@@ -1064,6 +1156,91 @@
         window.clearInterval(sessionCheckTimer);
       }
       sessionCheckTimer = window.setInterval(checkSessionAlive, SESSION_CHECK_INTERVAL_MS);
+    };
+
+    const getDashboardGuideSeenKey = (clubId) => `${DASHBOARD_GUIDE_SEEN_PREFIX}${clubId}`;
+
+    const resolveSelectedClub = (clubs = []) => {
+      const stored = parseJsonSafe(localStorage.getItem('selectedClub') || 'null');
+      const storedId = stored?.id != null ? String(stored.id) : '';
+      if (storedId) {
+        const match = Array.isArray(clubs)
+          ? clubs.find((club) => String(club?.id ?? club?.clubId ?? '') === storedId)
+          : null;
+        return {
+          id: storedId,
+          name: String(stored?.name || match?.name || match?.clubName || '').trim()
+        };
+      }
+
+      const first = Array.isArray(clubs) ? clubs[0] : null;
+      if (!first) return { id: '', name: '' };
+      return {
+        id: String(first.id ?? first.clubId ?? ''),
+        name: String(first.name || first.clubName || '').trim()
+      };
+    };
+
+    const markDashboardGuideHandled = (clubId = dashboardGuideClubId) => {
+      try {
+        sessionStorage.removeItem(DASHBOARD_GUIDE_PENDING_KEY);
+      } catch {}
+      if (!clubId) return;
+      try {
+        localStorage.setItem(getDashboardGuideSeenKey(clubId), '1');
+      } catch {}
+    };
+
+    const closeDashboardGuide = ({ markSeen = true } = {}) => {
+      if (!dashboardGuideOverlay) return;
+      if (markSeen) markDashboardGuideHandled();
+      dashboardGuideOverlay.classList.remove('open');
+      dashboardGuideOverlay.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('no-scroll');
+    };
+
+    const openDashboardGuide = ({ id = '', name = '' } = {}) => {
+      if (!dashboardGuideOverlay) return;
+      dashboardGuideClubId = String(id || '').trim();
+      if (dashboardGuideClubNameEl) {
+        const clubName = String(name || '').trim();
+        dashboardGuideClubNameEl.textContent = clubName;
+        dashboardGuideClubNameEl.hidden = !clubName;
+      }
+      dashboardGuideOverlay.classList.add('open');
+      dashboardGuideOverlay.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('no-scroll');
+      dashboardGuideVenuesBtn?.focus();
+    };
+
+    const maybeOpenDashboardGuide = (clubs = []) => {
+      let pendingGuide = false;
+      try {
+        pendingGuide = sessionStorage.getItem(DASHBOARD_GUIDE_PENDING_KEY) === '1';
+      } catch {}
+      if (!pendingGuide || !dashboardGuideOverlay) return;
+
+      const club = resolveSelectedClub(clubs);
+      if (!club.id) {
+        markDashboardGuideHandled('');
+        return;
+      }
+
+      let alreadySeen = false;
+      try {
+        alreadySeen = localStorage.getItem(getDashboardGuideSeenKey(club.id)) === '1';
+      } catch {}
+      if (alreadySeen) {
+        markDashboardGuideHandled(club.id);
+        return;
+      }
+
+      openDashboardGuide(club);
+    };
+
+    const jumpFromGuideToSection = (section) => {
+      closeDashboardGuide({ markSeen: true });
+      activateSection(section, { updateUrl: true });
     };
 
     const infoOverlay = document.getElementById('infoOverlay');
@@ -1118,15 +1295,23 @@
       if (evt.target === infoOverlay) closeInfo();
     });
     infoOverlay?.querySelector('.info-close')?.addEventListener('click', closeInfo);
+    dashboardGuideOverlay?.addEventListener('click', (evt) => {
+      if (evt.target === dashboardGuideOverlay) closeDashboardGuide({ markSeen: true });
+    });
+    dashboardGuideCloseBtn?.addEventListener('click', () => closeDashboardGuide({ markSeen: true }));
+    dashboardGuideSkipBtn?.addEventListener('click', () => closeDashboardGuide({ markSeen: true }));
+    dashboardGuideVenuesBtn?.addEventListener('click', () => jumpFromGuideToSection('venues'));
+    dashboardGuideMembershipsBtn?.addEventListener('click', () => jumpFromGuideToSection('updates'));
 
     (async () => {
+      let clubs = null;
       try {
-        await ensureClubProfileReady();
+        clubs = await ensureClubProfileReady();
       } catch (err) {
         console.error('Failed to initialize club workspace:', err);
       } finally {
-        syncSelectedClubChip();
         activateSection(getInitialSection(), { updateUrl: true });
+        maybeOpenDashboardGuide(clubs);
         startSessionGuard();
         checkSessionAlive();
       }

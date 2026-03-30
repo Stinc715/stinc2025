@@ -2,11 +2,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnBack = document.getElementById('btnBack');
   const btnFinish = document.getElementById('btnFinish');
   const locationInput = document.getElementById('clubLocationInput');
-  const mapSearchInput = document.getElementById('clubMapSearchInput');
   const mapCanvasEl = document.getElementById('clubMapCanvas');
   const mapStatusEl = document.getElementById('clubMapStatus');
-  const mapSetKeyBtn = document.getElementById('clubMapSetKeyBtn');
 
+  const ONBOARDING_DRAFT_STORAGE_KEY = 'clubPortal.onboardingDraft';
   const GOOGLE_MAPS_API_KEY_STORAGE_KEY = 'clubPortal.googleMapsApiKey';
   const DEFAULT_MAP_CENTER = Object.freeze({ lat: 51.5074, lng: -0.1278 });
 
@@ -25,9 +24,30 @@ document.addEventListener('DOMContentLoaded', () => {
     lng: null
   };
 
+  const readOnboardingDraft = () => {
+    try {
+      return JSON.parse(sessionStorage.getItem(ONBOARDING_DRAFT_STORAGE_KEY) || 'null') || {};
+    } catch {
+      return {};
+    }
+  };
+
+  const writeOnboardingDraft = (draft) => {
+    try {
+      sessionStorage.setItem(ONBOARDING_DRAFT_STORAGE_KEY, JSON.stringify(draft || {}));
+    } catch {
+      // Ignore sessionStorage errors.
+    }
+    try {
+      localStorage.removeItem('clubProfile');
+    } catch {
+      // Ignore localStorage errors.
+    }
+  };
+
   const loadClubProfile = () => {
     try {
-      return JSON.parse(localStorage.getItem('clubProfile') || 'null') || {};
+      return readOnboardingDraft();
     } catch {
       return {};
     }
@@ -35,9 +55,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const saveClubProfile = (profile) => {
     try {
-      localStorage.setItem('clubProfile', JSON.stringify(profile));
+      writeOnboardingDraft(profile);
     } catch {
-      // Ignore localStorage errors.
+      // Ignore storage errors.
     }
   };
 
@@ -48,15 +68,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const setMapStatus = (text, kind = '') => {
     if (!mapStatusEl) return;
-    mapStatusEl.textContent = text || '';
+    const normalized = String(text || '').trim();
+    mapStatusEl.textContent = normalized;
     mapStatusEl.className = `status ${kind}`.trim();
+    mapStatusEl.hidden = !normalized;
   };
 
-  const updateMapUi = () => {
-    const hasServerKey = !!String(serverGoogleMapsApiKey || '').trim();
-    if (mapSetKeyBtn) {
-      mapSetKeyBtn.textContent = hasServerKey ? 'Override Maps API key' : 'Set Maps API key';
-    }
+  const updateNavigationState = () => {
+    const hasAddress = String(locationInput?.value || savedLocation.address || '').trim().length > 0;
+    if (btnFinish) btnFinish.disabled = !hasAddress;
   };
 
   const readSavedLocation = () => {
@@ -103,7 +123,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const normalized = String(address || '').trim();
     suppressLocationFieldSync = true;
     if (locationInput) locationInput.value = normalized;
-    if (mapSearchInput) mapSearchInput.value = normalized;
     suppressLocationFieldSync = false;
   };
 
@@ -131,7 +150,6 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const res = await fetch('/api/public/config', { credentials: 'same-origin' });
       if (!res.ok) {
-        updateMapUi();
         return '';
       }
       const data = await res.json();
@@ -142,46 +160,11 @@ document.addEventListener('DOMContentLoaded', () => {
           localStorage.setItem(GOOGLE_MAPS_API_KEY_STORAGE_KEY, key);
         } catch {}
       }
-      updateMapUi();
       return key;
     } catch (err) {
       console.warn('[onboarding-location] public config load failed', err);
-      updateMapUi();
       return '';
     }
-  };
-
-  const promptGoogleMapsApiKey = async () => {
-    const current = getStoredGoogleMapsApiKey();
-    let next = null;
-    if (window.AppPrompt && typeof window.AppPrompt.prompt === 'function') {
-      next = await window.AppPrompt.prompt({
-        title: 'Set Maps API key',
-        message: 'Enter Google Maps JavaScript API key.',
-        label: 'API key',
-        defaultValue: current,
-        okText: 'Save',
-        cancelText: 'Cancel'
-      });
-    } else {
-      next = window.prompt('Enter Google Maps JavaScript API key', current);
-    }
-    const key = String(next || '').trim();
-    if (!key) {
-      setMapStatus('Google Maps API key was not updated.', 'err');
-      return false;
-    }
-    try {
-      localStorage.setItem(GOOGLE_MAPS_API_KEY_STORAGE_KEY, key);
-    } catch {}
-    mapApiLoadPromise = null;
-    mapInstance = null;
-    mapMarker = null;
-    mapGeocoder = null;
-    mapAutocomplete = null;
-    setMapStatus('Google Maps API key saved. Reloading map...', '');
-    updateMapUi();
-    return true;
   };
 
   const loadGoogleMapsApi = async () => {
@@ -268,6 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setMapMarkerPosition({ lat: locationLat, lng: locationLng }, 15);
     }
     persistLocation();
+    updateNavigationState();
     if (statusText) setMapStatus(statusText, 'ok');
   };
 
@@ -349,14 +333,14 @@ document.addEventListener('DOMContentLoaded', () => {
           reverseGeocodeFromMap(location);
         });
 
-        if (mapSearchInput) {
-          mapAutocomplete = new maps.places.Autocomplete(mapSearchInput, {
+        if (locationInput) {
+          mapAutocomplete = new maps.places.Autocomplete(locationInput, {
             fields: ['formatted_address', 'geometry', 'name', 'place_id']
           });
           mapAutocomplete.addListener('place_changed', () => {
             const place = mapAutocomplete.getPlace();
             const loc = place?.geometry?.location;
-            const address = String(place?.formatted_address || place?.name || mapSearchInput.value || '').trim();
+            const address = String(place?.formatted_address || place?.name || locationInput.value || '').trim();
             if (!loc || !address) {
               setMapStatus('Please choose a valid search result.', 'err');
               return;
@@ -382,33 +366,25 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (currentAddress) {
         await geocodeAddressToMap(currentAddress, { showStatus: false });
       }
-      setMapStatus('Google Maps ready. Search or click map to select address.', '');
+      setMapStatus('', '');
     } catch (err) {
       console.error(err);
       setMapStatus('Failed to initialize Google Maps picker.', 'err');
     }
   };
 
-  updateMapUi();
   setSavedLocation(readSavedLocation());
   if (savedLocation.address) {
     setLocationInputs(savedLocation.address);
   }
-
-  mapSetKeyBtn?.addEventListener('click', async () => {
-    const updated = await promptGoogleMapsApiKey();
-    if (!updated) return;
-    await initMapPicker();
-    const address = String(locationInput?.value || '').trim();
-    if (address) {
-      await geocodeAddressToMap(address, { showStatus: false });
-    }
-  });
+  updateNavigationState();
 
   locationInput?.addEventListener('input', () => {
     if (suppressLocationFieldSync) return;
     clearSavedLocationMetadata(String(locationInput.value || '').trim());
     persistLocation();
+    setMapStatus('', '');
+    updateNavigationState();
   });
 
   locationInput?.addEventListener('blur', async () => {
@@ -427,22 +403,19 @@ document.addEventListener('DOMContentLoaded', () => {
     await geocodeAddressToMap(address, { showStatus: true });
   });
 
-  mapSearchInput?.addEventListener('keydown', async (event) => {
-    if (event.key !== 'Enter') return;
-    event.preventDefault();
-    const q = String(mapSearchInput.value || '').trim();
-    if (!q) return;
-    if (!mapInstance) await initMapPicker();
-    if (!mapInstance) return;
-    await geocodeAddressToMap(q, { showStatus: true });
-  });
-
   btnBack?.addEventListener('click', () => {
     persistLocation();
     window.location.href = 'onboarding.html';
   });
 
   btnFinish?.addEventListener('click', () => {
+    const address = String(locationInput?.value || savedLocation.address || '').trim();
+    if (!address) {
+      setMapStatus('Please enter your club location before continuing.', 'err');
+      locationInput?.focus();
+      updateNavigationState();
+      return;
+    }
     persistLocation();
     window.location.href = 'onboarding-promo.html';
   });

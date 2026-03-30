@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE:dev}
+    active: ${SPRING_PROFILES_ACTIVE:prod}
   servlet:
     multipart:
       max-file-size: ${MULTIPART_MAX_FILE_SIZE:10MB}
@@ -9,3 +9,67 @@ spring:
     properties:
       hibernate:
         globally_quoted_identifiers: true
+  mail:
+    host: ${SPRING_MAIL_HOST:smtp-relay.brevo.com}
+    port: ${SPRING_MAIL_PORT:587}
+    username: ${SPRING_MAIL_USERNAME:}
+    password: "${SPRING_MAIL_PASSWORD:}"
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
+google:
+  oauth:
+    client-id: ${GOOGLE_OAUTH_CLIENT_ID:}
+
+jwt:
+  secret: ${JWT_SECRET:}
+
+app:
+  mail:
+    from: ${APP_MAIL_FROM:${MAIL_FROM:}}
+  public:
+    base-url: ${APP_PUBLIC_BASE_URL:}
+    google-maps-api-key: ${GOOGLE_MAPS_JS_API_KEY:}
+  email:
+    from: ${APP_MAIL_FROM:${MAIL_FROM:no-reply@club-portal.xyz}}
+  auth:
+    register:
+      code-ttl-seconds: ${REGISTER_CODE_TTL_SECONDS:600}
+      resend-cooldown-seconds: ${REGISTER_CODE_RESEND_COOLDOWN_SECONDS:60}
+      verified-ttl-seconds: ${REGISTER_VERIFIED_TTL_SECONDS:1800}
+    password-reset:
+      token-ttl-seconds: ${PASSWORD_RESET_TOKEN_TTL_SECONDS:3600}
+      resend-cooldown-seconds: ${PASSWORD_RESET_RESEND_COOLDOWN_SECONDS:60}
+  payments:
+    mode: ${APP_PAYMENTS_MODE:VIRTUAL}
+    currency: ${APP_PAYMENTS_CURRENCY:GBP}
+    booking-hold-ttl-seconds: ${APP_PAYMENTS_BOOKING_HOLD_TTL_SECONDS:600}
+    stripe:
+      secret-key: ${STRIPE_SECRET_KEY:}
+      webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+      api-base-url: ${STRIPE_API_BASE_URL:https://api.stripe.com}
+  llm:
+    enabled: ${APP_LLM_ENABLED:true}
+    api-key: ${APP_LLM_API_KEY:${OPENAI_API_KEY:}}
+    api-base-url: ${APP_LLM_API_BASE_URL:https://api.openai.com}
+    model: ${APP_LLM_MODEL:gpt-5-mini}
+    embedding-model: ${APP_LLM_EMBEDDING_MODEL:text-embedding-3-small}
+  chat:
+    kb:
+      matcher:
+        best-score-threshold: ${APP_CHAT_KB_MATCHER_BEST_SCORE_THRESHOLD:0.75}
+        min-score-gap: ${APP_CHAT_KB_MATCHER_MIN_SCORE_GAP:0.05}
+      guard:
+        high-risk-keywords: ${APP_CHAT_KB_GUARD_HIGH_RISK_KEYWORDS:退款,退钱,退费,投诉,赔偿,争议,法律,律师,报警,起诉,人工客服,人工处理,特殊情况,refund,complaint,dispute,legal,lawyer,human agent,special case}
+        realtime-keywords: ${APP_CHAT_KB_GUARD_REALTIME_KEYWORDS:今天,现在,目前,当前,此刻,临时,刚刚,还剩,还有位置,名额,空位,现在还能,today,now,currently,available now,remaining,left,available today}
+  security:
+    cors:
+      allowed-origin-patterns: ${APP_SECURITY_CORS_ALLOWED_ORIGIN_PATTERNS:https://club-portal.xyz,https://www.club-portal.xyz}

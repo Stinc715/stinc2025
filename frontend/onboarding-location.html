@@ -4,12 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Club onboarding - Location details</title>
-  <link rel="stylesheet" href="theme.css?v=20260220b">
-  <link rel="stylesheet" href="onboarding.css?v=20260220b">
+  <link rel="stylesheet" href="theme.css?v=20260324a">
+  <link rel="stylesheet" href="onboarding.css?v=20260327f">
 </head>
 <body class="page-with-footer">
   <main class="wrap">
-    <a class="link-back back-pill" href="onboarding.html">Back to profile</a>
+    <a class="link-back back-pill" href="onboarding.html">Back</a>
     <header class="hero">
       <span class="hero-kicker">Club setup</span>
       <h1>Location details</h1>
@@ -20,23 +20,17 @@
       <div class="panel-header">
         <div>
           <h2>Club location</h2>
-          <p>Pick a real address with Google Maps or type one manually.</p>
         </div>
         <span class="panel-badge">Step 2 of 3</span>
       </div>
 
       <div class="form-block">
         <label for="clubLocationInput" class="label">Club location</label>
-        <input id="clubLocationInput" type="text" placeholder="Select on map or enter full address">
+        <input id="clubLocationInput" type="text" placeholder="Search on Google Maps or enter full address">
         <div class="map-panel">
-          <div class="map-toolbar">
-            <input id="clubMapSearchInput" type="text" placeholder="Search address on Google Maps">
-            <button id="clubMapSetKeyBtn" class="btn ghost" type="button">Set Maps API key</button>
-          </div>
           <div id="clubMapCanvas" class="map-canvas" aria-label="Club address map"></div>
-          <p id="clubMapStatus" class="status" aria-live="polite"></p>
+          <p id="clubMapStatus" class="status" aria-live="polite" hidden></p>
         </div>
-        <div class="field-hint">This will be shown on your public club page.</div>
       </div>
 
       <div class="actions">
@@ -57,9 +51,9 @@
     </div>
   </footer>
 
-  <script src="ui-prompt.js?v=20260309b" defer></script>
-  <script src="onboarding-location.js?v=20260309a" defer></script>
-  <script src="auth-modal.js?v=20260308g" defer></script>
+  <script type="module" src="ui-prompt.js?v=20260309b"></script>
+  <script type="module" src="onboarding-location.js?v=20260327f"></script>
+  <script type="module" src="auth-modal.js?v=20260324a"></script>
 </body>
 </html>
 

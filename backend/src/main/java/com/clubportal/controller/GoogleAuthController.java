@@ -4,9 +4,12 @@ import com.clubportal.dto.AuthResponse;
 import com.clubportal.dto.GoogleLoginRequest;
 import com.clubportal.model.User;
 import com.clubportal.repository.UserRepository;
+import com.clubportal.security.StreamAuthCookieService;
 import com.clubportal.security.JwtUtil;
 import com.clubportal.service.GoogleAuthService;
 import com.clubportal.service.GoogleLoginPolicyException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -23,13 +26,16 @@ public class GoogleAuthController {
     private final GoogleAuthService googleAuthService;
     private final UserRepository userRepo;
     private final JwtUtil jwtUtil;
+    private final StreamAuthCookieService streamAuthCookieService;
 
     public GoogleAuthController(GoogleAuthService googleAuthService,
                                 UserRepository userRepo,
-                                JwtUtil jwtUtil) {
+                                JwtUtil jwtUtil,
+                                StreamAuthCookieService streamAuthCookieService) {
         this.googleAuthService = googleAuthService;
         this.userRepo = userRepo;
         this.jwtUtil = jwtUtil;
+        this.streamAuthCookieService = streamAuthCookieService;
     }
 
     /**
@@ -37,7 +43,9 @@ public class GoogleAuthController {
      * { "credential": "eyJhbGciOiJSUzI1NiIsImtpZCI6..." }
      */
     @PostMapping("/google")
-    public ResponseEntity<?> googleLogin(@RequestBody GoogleLoginRequest req) {
+    public ResponseEntity<?> googleLogin(@RequestBody GoogleLoginRequest req,
+                                         HttpServletRequest request,
+                                         HttpServletResponse response) {
         try {
             if (req == null || req.getCredential() == null || req.getCredential().isBlank()) {
                 return ResponseEntity.badRequest().body("Missing credential");
@@ -57,6 +65,7 @@ public class GoogleAuthController {
             int nextSessionVersion = user.bumpSessionVersion();
             User savedUser = userRepo.save(user);
             String token = jwtUtil.generateToken(savedUser.getEmail(), auth.getRole(), nextSessionVersion);
+            streamAuthCookieService.writeStreamToken(request, response, token);
             return ResponseEntity.ok(Map.of(
                     "token", token,
                     "id", savedUser.getUserId(),

@@ -2,18 +2,23 @@ package com.clubportal.service;
 
 import com.clubportal.model.RegistrationEmailVerification;
 import com.clubportal.repository.RegistrationEmailVerificationRepository;
+import com.clubportal.util.KeyedLockService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.List;
+import java.util.function.Supplier;
 
 @Service
 public class RegistrationEmailVerificationService {
 
     private final SecureRandom random = new SecureRandom();
     private final RegistrationEmailVerificationRepository verificationRepo;
+    private final KeyedLockService keyedLockService;
+    private final TransactionTemplate transactionTemplate;
 
     @Value("${app.auth.register.code-ttl-seconds:600}")
     private long codeTtlSeconds;
@@ -24,8 +29,12 @@ public class RegistrationEmailVerificationService {
     @Value("${app.auth.register.verified-ttl-seconds:1800}")
     private long verifiedTtlSeconds;
 
-    public RegistrationEmailVerificationService(RegistrationEmailVerificationRepository verificationRepo) {
+    public RegistrationEmailVerificationService(RegistrationEmailVerificationRepository verificationRepo,
+                                                KeyedLockService keyedLockService,
+                                                TransactionTemplate transactionTemplate) {
         this.verificationRepo = verificationRepo;
+        this.keyedLockService = keyedLockService;
+        this.transactionTemplate = transactionTemplate;
     }
 
     public SendCodeResult issueCode(String normalizedEmail) {
@@ -33,7 +42,13 @@ public class RegistrationEmailVerificationService {
         if (email.isBlank()) {
             return SendCodeResult.rateLimited(1);
         }
+        return keyedLockService.withLock(
+                "registration-code:" + email,
+                () -> inTransaction(() -> issueCodeLocked(email))
+        );
+    }
 
+    private SendCodeResult issueCodeLocked(String email) {
         Instant now = Instant.now();
         cleanupExpired(now);
 
@@ -103,6 +118,10 @@ public class RegistrationEmailVerificationService {
 
     public long verificationTtlSeconds() {
         return Math.max(60, verifiedTtlSeconds);
+    }
+
+    private <T> T inTransaction(Supplier<T> action) {
+        return transactionTemplate.execute(status -> action.get());
     }
 
     private void cleanupExpired(Instant now) {

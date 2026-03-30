@@ -4,12 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Club onboarding - Promotion</title>
-  <link rel="stylesheet" href="theme.css?v=20260220b">
-  <link rel="stylesheet" href="onboarding.css?v=20260220b">
+  <link rel="stylesheet" href="theme.css?v=20260324a">
+  <link rel="stylesheet" href="onboarding.css?v=20260327f">
 </head>
 <body class="page-with-footer">
   <main class="wrap">
-    <a class="link-back back-pill" href="onboarding-location.html">Back to location</a>
+    <a class="link-back back-pill" href="onboarding-location.html">Back</a>
     <header class="hero">
       <span class="hero-kicker">Club setup</span>
       <h1>Club promotion</h1>
@@ -26,12 +26,11 @@
       </div>
 
       <div class="form-block">
-        <label for="promoImageUrl" class="label">Club photos</label>
-        <input id="promoImageUrl" class="promo-input" type="text" placeholder="Paste image URLs (comma separated)">
+        <label for="promoImageFile" class="label">Club photos</label>
         <div class="promo-upload">
           <input id="promoImageFile" class="file-input" type="file" accept="image/*" multiple>
           <label class="file-button" for="promoImageFile">Upload photos</label>
-          <span class="file-help">JPG, PNG, or WEBP â€?multiple files supported</span>
+          <span class="file-help">JPG, PNG, or WEBP; multiple files supported.</span>
         </div>
         <div id="promoGallery" class="promo-gallery" aria-live="polite"></div>
         <div class="field-hint">Add multiple images for your club gallery.</div>
@@ -41,7 +40,7 @@
       <div class="form-block">
         <label for="promoText" class="label">Promo text</label>
         <textarea id="promoText" placeholder="Tell members why your club is great..."></textarea>
-        <div class="field-hint">Keep it short (1â€? sentences).</div>
+        <div class="field-hint">Keep it short (1-2 sentences).</div>
       </div>
 
       <div class="actions">
@@ -62,8 +61,7 @@
     </div>
   </footer>
 
-  <script src="onboarding-promo.js?v=20260220b" defer></script>
-  <script src="auth-modal.js?v=20260308g" defer></script>
+  <script type="module" src="onboarding-promo.js?v=20260327d"></script>
+  <script type="module" src="auth-modal.js?v=20260324a"></script>
 </body>
 </html>
-

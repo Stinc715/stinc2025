@@ -1,10 +1,10 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Club Booking Portal - Member Bookings</title>
-  <link rel="stylesheet" href="theme.css?v=20260220b">
+  <link rel="stylesheet" href="theme.css?v=20260324a">
   <style>
     body { margin: 0; background: var(--bg); }
     header { 
@@ -31,59 +31,32 @@
       align-items: center;
       gap: 6px;
       font-size: 14px;
-      color: #0066cc;
+      font-weight: 600;
+      color: #64748b;
       text-decoration: none;
-      border: none;
-      background: none;
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      background: rgba(255, 255, 255, 0.9);
       cursor: pointer;
-      padding: 8px 0;
+      padding: 8px 12px;
+      border-radius: 999px;
+      box-shadow: 0 8px 18px rgba(29, 29, 31, 0.08);
+      transition: color .2s ease, border-color .2s ease, background .2s ease, transform .2s ease, box-shadow .2s ease;
     }
-    .site-title-link { 
-      color: inherit; 
-      text-decoration: none; 
-      font-weight: 700;
+    .back-link::before {
+      content: '<';
     }
-    .page-head { 
-      display: flex; 
-      align-items: center; 
-      justify-content: space-between; 
-      gap: 16px; 
-      margin: 20px 0 16px; 
-      flex-wrap: wrap;
-    }
-    .page-head h2 { 
-      margin: 0; 
-      font-size: 28px;
-    }
-    .page-head p { 
-      margin: 4px 0 0; 
-      color: var(--muted);
+    .back-link:hover {
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.96);
+      border-color: rgba(100, 116, 139, 0.28);
+      box-shadow: 0 12px 22px rgba(29, 29, 31, 0.12);
+      transform: translateY(-1px);
     }
     .card .pad { padding: 16px; }
     .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
     .stat-card { border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: #fff; }
     .stat-label { display: block; font-size: 12px; color: var(--muted); }
     .stat-value { display: block; font-size: 20px; font-weight: 700; margin-top: 4px; }
-    .filter-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-    .filter-btn { 
-      border: none; 
-      background: transparent; 
-      color: var(--muted); 
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .filter-btn:hover {
-      background: rgba(15, 23, 42, 0.06);
-      color: var(--ink);
-    }
-    .filter-btn.active { 
-      background: #2563eb;
-      color: #fff;
-    }
     .list { margin-top: 16px; display: grid; gap: 12px; }
     .booking-card { 
       padding: 16px;
@@ -192,6 +165,13 @@
       background: #f0fdf4;
       color: #166534;
     }
+    .member-pill.code {
+      border-color: #c7d2fe;
+      background: #eef2ff;
+      color: #3730a3;
+      letter-spacing: 0.12em;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
     .member-pill.expired {
       border-color: #e2e8f0;
       background: #f8fafc;
@@ -207,10 +187,7 @@
       width: 100px;
       display: inline-block;
     }
-    .status.pending { background: #fef3c7; color: #b45309; }
     .status.approved { background: #dcfce7; color: #16a34a; }
-    .status.checked { background: #dbeafe; color: #2563eb; }
-    .status.cancelled { background: #fee2e2; color: #dc2626; }
     .booking-title { font-weight: 700; font-size: 15px; }
     .booking-sub { color: var(--muted); font-size: 13px; }
     .group-section {
@@ -257,14 +234,6 @@
     .btn:active {
       background: #d4d8dc;
       transform: translateY(0);
-      box-shadow: none;
-    }
-    .btn.blue {
-      background: #f1f3f5;
-      color: #1e293b;
-    }
-    .btn.blue:hover {
-      background: #e3e6e9;
       box-shadow: none;
     }
     .btn.approve {
@@ -350,7 +319,7 @@
   <header>
     <div class="wrap header-wrap" style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px;">
       <div style="display: flex; align-items: center; gap: 16px;">
-        <button class="back-link" onclick="window.location.href = 'club home.html'" type="button" aria-label="Back">&larr; Back</button>
+        <button class="back-link" onclick="window.location.href = 'club home.html'" type="button" aria-label="Back">Back</button>
       </div>
       <h2 style="margin: 0; font-size: 18px; font-weight: 600; justify-self: center;">Member bookings</h2>
       <div class="header-actions" style="justify-self: end;">
@@ -381,18 +350,9 @@
           </div>
         </div>
 
-        <div id="sportTypeFilter" style="display: none; margin-top: 12px;">
-          <span style="font-size: 13px; font-weight: 600; color: var(--muted);">Sport type:</span>
-          <div class="filter-row" style="margin-top: 8px;">
-            <button class="btn ghost filter-btn active" type="button" data-sport="all">All</button>
-            <button class="btn ghost filter-btn" type="button" data-sport="basketball">Basketball</button>
-            <button class="btn ghost filter-btn" type="button" data-sport="tabletennis">Table Tennis</button>
-          </div>
-        </div>
       </div>
     </section>
 
-    <div class="list" id="bookingList"></div>
     <div class="list" id="groupedView" style="display: none;"></div>
     <div id="empty" class="muted" style="display:none;padding:12px;">No bookings found.</div>
   </main>
@@ -417,10 +377,8 @@
   </div>
 
   <script>
-    const listEl = document.getElementById('bookingList');
     const groupedView = document.getElementById('groupedView');
     const emptyEl = document.getElementById('empty');
-    const sportTypeFilter = document.getElementById('sportTypeFilter');
     const refreshBtn = document.getElementById('refreshBtn');
 
     let slotBookings = [];
@@ -623,6 +581,7 @@
         ? members.map((m) => {
             const membershipPlan = String(m?.membershipPlanName || '').trim();
             const membershipStatus = String(m?.membershipStatus || '').trim();
+            const verificationCode = String(m?.bookingVerificationCode || '').trim();
             const pricePaid = escapeHtml(formatPrice(m?.pricePaid));
             return `
               <div class="member-line">
@@ -632,6 +591,7 @@
                 </div>
                 <div class="member-line-pills">
                   <span class="member-pill">${pricePaid}</span>
+                  ${verificationCode ? `<span class="member-pill code" title="Member check-in verification code">Code ${escapeHtml(verificationCode)}</span>` : ''}
                   ${membershipPlan ? `<span class="member-pill ${membershipStatusClass(membershipStatus)}">${escapeHtml(membershipPlan)}</span>` : ''}
                 </div>
                 ${memberActionsHtml(m)}
@@ -660,23 +620,7 @@
       `;
     };
 
-    const renderList = (slots) => {
-      if (!listEl || !emptyEl) return;
-      if (!Array.isArray(slots) || slots.length === 0) {
-        listEl.innerHTML = '';
-        emptyEl.style.display = 'block';
-        return;
-      }
-      emptyEl.style.display = 'none';
-      const rows = slots
-        .slice()
-        .sort((a, b) => String(a?.startTime || '').localeCompare(String(b?.startTime || '')))
-        .map((slot) => renderSlotCard(slot))
-        .join('');
-      listEl.innerHTML = rows;
-    };
-
-    const renderGroupedView = (slots, groupBy) => {
+    const renderGroupedView = (slots) => {
       if (!groupedView || !emptyEl) return;
       groupedView.innerHTML = '';
       if (!Array.isArray(slots) || slots.length === 0) {
@@ -686,9 +630,7 @@
 
       const groups = new Map();
       slots.forEach((slot) => {
-        const key = groupBy === 'venue'
-          ? String(slot?.venueName || 'Unknown venue')
-          : String(slot?.startTime || '').slice(0, 10);
+        const key = String(slot?.startTime || '').slice(0, 10);
         if (!groups.has(key)) groups.set(key, []);
         groups.get(key).push(slot);
       });
@@ -699,7 +641,7 @@
         section.className = 'group-section';
         const header = document.createElement('div');
         header.className = 'group-header';
-        header.textContent = groupBy === 'venue' ? `Venue: ${key}` : `Date: ${key}`;
+        header.textContent = `Date: ${key}`;
         section.appendChild(header);
         const list = document.createElement('div');
         list.className = 'group-list';
@@ -711,15 +653,7 @@
       emptyEl.style.display = keys.length ? 'none' : 'block';
     };
 
-    const renderByTime = () => {
-      if (sportTypeFilter) sportTypeFilter.style.display = 'none';
-      if (listEl) listEl.style.display = 'none';
-      if (groupedView) groupedView.style.display = 'block';
-      renderGroupedView(slotBookings, 'time');
-    };
-
     const refreshData = async () => {
-      if (listEl) listEl.innerHTML = '';
       if (groupedView) groupedView.innerHTML = '';
       if (emptyEl) {
         emptyEl.style.display = 'block';
@@ -729,7 +663,8 @@
         slotBookings = await loadSlotBookings();
         renderStats(slotBookings);
         if (emptyEl) emptyEl.textContent = 'No bookings found.';
-        renderByTime();
+        if (groupedView) groupedView.style.display = 'grid';
+        renderGroupedView(slotBookings);
       } catch (err) {
         console.error(err);
         if (emptyEl) {
@@ -777,7 +712,6 @@
       updateBookingStatus(bookingId, nextStatus, button);
     };
 
-    listEl?.addEventListener('click', handleBookingActionClick);
     groupedView?.addEventListener('click', handleBookingActionClick);
 
     refreshBtn?.addEventListener('click', refreshData);

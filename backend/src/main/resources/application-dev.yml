@@ -15,54 +15,20 @@ spring:
   h2:
     console:
       enabled: true
-  servlet:
-    multipart:
-      max-file-size: 10MB
-      max-request-size: 50MB
-  mail:
-    host: ${SPRING_MAIL_HOST:smtp-relay.brevo.com}
-    port: ${SPRING_MAIL_PORT:587}
-    username: ${SPRING_MAIL_USERNAME:}
-    password: "${SPRING_MAIL_PASSWORD:}"
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-            required: true
-          connectiontimeout: 5000
-          timeout: 5000
-          writetimeout: 5000
   security:
     debug: true
 
-google:
-  oauth:
-    client-id: ${GOOGLE_OAUTH_CLIENT_ID:885940597719-mtcoo82k9bbksvuj786nsj7iombqtsli.apps.googleusercontent.com}
-
-jwt:
-  # Override in env for production.
-  secret: ${JWT_SECRET:change-this-to-a-very-long-secret-key-123456789012345}
-
 app:
-  mail:
-    from: ${APP_MAIL_FROM:${MAIL_FROM:}}
   public:
     base-url: ${APP_PUBLIC_BASE_URL:http://localhost:5173}
-    google-maps-api-key: ${GOOGLE_MAPS_JS_API_KEY:}
-  email:
-    from: ${APP_MAIL_FROM:${MAIL_FROM:no-reply@club-portal.xyz}}
-  auth:
-    register:
-      code-ttl-seconds: ${REGISTER_CODE_TTL_SECONDS:600}
-      resend-cooldown-seconds: ${REGISTER_CODE_RESEND_COOLDOWN_SECONDS:60}
-      verified-ttl-seconds: ${REGISTER_VERIFIED_TTL_SECONDS:1800}
-    password-reset:
-      token-ttl-seconds: ${PASSWORD_RESET_TOKEN_TTL_SECONDS:3600}
-      resend-cooldown-seconds: ${PASSWORD_RESET_RESEND_COOLDOWN_SECONDS:60}
+  security:
+    cors:
+      allowed-origin-patterns: ${APP_SECURITY_CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:*,http://127.0.0.1:*}
 
 logging:
   level:
     org.springframework.security: DEBUG
     org.springframework.security.web.FilterChainProxy: DEBUG
+
+jwt:
+  secret: ${JWT_SECRET:dev-local-jwt-secret-12345678901234567890}

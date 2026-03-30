@@ -3,9 +3,12 @@ package com.clubportal.controller;
 import com.clubportal.dto.RegisterRequest;
 import com.clubportal.model.User;
 import com.clubportal.repository.UserRepository;
+import com.clubportal.security.StreamAuthCookieService;
 import com.clubportal.security.JwtUtil;
 import com.clubportal.service.RegistrationEmailVerificationService;
 import com.clubportal.util.PasswordEncryptionUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -25,15 +28,18 @@ public class AuthController {
     private final PasswordEncryptionUtil passwordUtil;
     private final JwtUtil jwtUtil;
     private final RegistrationEmailVerificationService verificationService;
+    private final StreamAuthCookieService streamAuthCookieService;
 
     public AuthController(UserRepository userRepo,
                           PasswordEncryptionUtil passwordUtil,
                           JwtUtil jwtUtil,
-                          RegistrationEmailVerificationService verificationService) {
+                          RegistrationEmailVerificationService verificationService,
+                          StreamAuthCookieService streamAuthCookieService) {
         this.userRepo = userRepo;
         this.passwordUtil = passwordUtil;
         this.jwtUtil = jwtUtil;
         this.verificationService = verificationService;
+        this.streamAuthCookieService = streamAuthCookieService;
     }
 
     private static User.Role resolveRoleForRegistration(String role) {
@@ -48,7 +54,9 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
+    public ResponseEntity<?> register(@RequestBody RegisterRequest req,
+                                      HttpServletRequest request,
+                                      HttpServletResponse response) {
         try {
             if (req.getFullName() == null || req.getFullName().isBlank()
                     || req.getEmail() == null || req.getEmail().isBlank()
@@ -78,14 +86,13 @@ public class AuthController {
             u.setPasswordHash(passwordUtil.encodePassword(req.getPassword()));
             u.setRole(requestedRole);
 
+            int nextSessionVersion = u.bumpSessionVersion();
             User saved = userRepo.save(u);
             verificationService.consumeVerification(normalizedEmail);
-            return ResponseEntity.ok(java.util.Map.of(
-                    "id", saved.getUserId(),
-                    "fullName", saved.getUsername(),
-                    "email", saved.getEmail(),
-                    "role", saved.getRole() == null ? "user" : saved.getRole().toAccountType()
-            ));
+            String role = saved.getRole() == null ? "user" : saved.getRole().toAccountType();
+            String token = jwtUtil.generateToken(saved.getEmail(), role, nextSessionVersion);
+            streamAuthCookieService.writeStreamToken(request, response, token);
+            return ResponseEntity.ok(authPayload(saved, role, token));
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.status(409).body("Email already exists");
         } catch (Exception e) {
@@ -95,7 +102,9 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody java.util.Map<String, String> body) {
+    public ResponseEntity<?> login(@RequestBody java.util.Map<String, String> body,
+                                   HttpServletRequest request,
+                                   HttpServletResponse response) {
         String email = normalizeEmail(body.get("email"));
         String password = body.get("password");
         if (email.isBlank() || password == null || password.isBlank()) {
@@ -119,15 +128,19 @@ public class AuthController {
         int nextSessionVersion = user.bumpSessionVersion();
         User savedUser = userRepo.save(user);
         String token = jwtUtil.generateToken(savedUser.getEmail(), role, nextSessionVersion);
+        streamAuthCookieService.writeStreamToken(request, response, token);
 
-        var resp = java.util.Map.of(
+        return ResponseEntity.ok(authPayload(savedUser, role, token));
+    }
+
+    private static java.util.Map<String, Object> authPayload(User user, String role, String token) {
+        return java.util.Map.of(
                 "token", token,
-                "id", savedUser.getUserId(),
-                "fullName", savedUser.getUsername(),
-                "email", savedUser.getEmail(),
+                "id", user.getUserId(),
+                "fullName", user.getUsername(),
+                "email", user.getEmail(),
                 "role", role
         );
-        return ResponseEntity.ok(resp);
     }
 
     private User findMatchingUser(List<User> candidates, String rawPassword) {

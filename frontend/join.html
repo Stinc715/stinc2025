@@ -1,18 +1,793 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Redirecting...</title>
-    <meta http-equiv="refresh" content="0; url=/club.html" />
-  </head>
-  <body>
-    <p>Redirecting to the booking page...</p>
-    <script>
-      (function () {
-        var target = '/club.html' + (window.location.search || '') + (window.location.hash || '');
-        window.location.replace(target);
-      })();
-    </script>
-  </body>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Club Booking Options</title>
+  <link rel="stylesheet" href="theme.css?v=20260324a">
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --ink: #122033;
+      --muted: #667085;
+      --line: #d9e2f0;
+      --accent: #1d4ed8;
+      --accent-soft: #e8f0ff;
+      --danger: #b42318;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top right, rgba(29, 78, 216, 0.10), transparent 26%),
+        linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
+      color: var(--ink);
+      font: 14px/1.55 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    }
+    a { color: inherit; }
+    .wrap {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .brand {
+      display: grid;
+      gap: 4px;
+    }
+    .brand a {
+      text-decoration: none;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .brand p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #111827;
+      color: #fff;
+      text-decoration: none;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn.ghost {
+      background: #fff;
+      color: #111827;
+    }
+    .btn.soft {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: #c8d8ff;
+    }
+    .hero {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: 0 18px 42px rgba(15, 23, 42, 0.06);
+    }
+    .hero-copy {
+      padding: 26px;
+      display: grid;
+      gap: 14px;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      min-height: 30px;
+      padding: 0 11px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      border: 1px solid #c8d8ff;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(30px, 5vw, 46px);
+      line-height: 1.02;
+      letter-spacing: -0.04em;
+    }
+    .hero-copy p,
+    .panel p,
+    .meta-list li {
+      margin: 0;
+      color: var(--muted);
+    }
+    .hero-links {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .meta-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 8px;
+    }
+    .meta-list strong {
+      color: var(--ink);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .stats {
+      padding: 24px;
+      display: grid;
+      gap: 12px;
+    }
+    .stats h2,
+    .section-head h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .stat-card {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fbfcff;
+      display: grid;
+      gap: 4px;
+    }
+    .stat-card strong {
+      font-size: 24px;
+      letter-spacing: -0.03em;
+    }
+    .stat-card span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .banner {
+      margin-top: 16px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: #fff;
+      display: none;
+      gap: 8px;
+    }
+    .banner.show {
+      display: grid;
+    }
+    .banner.ok {
+      background: #eefbf3;
+      border-color: #ccefd8;
+    }
+    .banner.warn {
+      background: #fff8eb;
+      border-color: #f3dcad;
+    }
+    .banner strong {
+      font-size: 14px;
+    }
+    .content {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .section {
+      padding: 22px;
+      display: grid;
+      gap: 16px;
+    }
+    .section-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .subtle {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .list {
+      display: grid;
+      gap: 12px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      background: #fff;
+      display: grid;
+      gap: 10px;
+    }
+    .card-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .card h3 {
+      margin: 0;
+      font-size: 19px;
+      letter-spacing: -0.02em;
+    }
+    .pill-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      color: #475467;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .pill.highlight {
+      background: var(--accent-soft);
+      border-color: #c8d8ff;
+      color: var(--accent);
+    }
+    .price {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+    .slot-grid {
+      display: grid;
+      gap: 10px;
+    }
+    .slot-row {
+      display: grid;
+      gap: 8px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fbfcff;
+    }
+    .slot-row-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: start;
+      flex-wrap: wrap;
+    }
+    .slot-row strong {
+      font-size: 15px;
+    }
+    .slot-row small {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .status-note {
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px dashed #c6d2e4;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.72);
+    }
+    .empty {
+      padding: 34px 22px;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed #c6d2e4;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.76);
+    }
+    .loading {
+      min-height: 220px;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+    }
+    .error {
+      color: var(--danger);
+    }
+    @media (max-width: 920px) {
+      .hero,
+      .content {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (max-width: 620px) {
+      .wrap {
+        padding: 16px;
+      }
+      .hero-copy,
+      .stats,
+      .section {
+        padding: 18px;
+      }
+      .stat-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap header-row">
+      <div class="brand">
+        <a href="home.html">Club Booking Portal</a>
+        <p>Independent booking page for upcoming slots and optional membership offers.</p>
+      </div>
+      <div class="actions">
+        <a class="btn ghost" href="clubs.html">Club Directory</a>
+        <a class="btn ghost" id="overviewLink" href="venue%20overview.html">Venue Overview</a>
+        <a class="btn ghost" id="accountLink" href="login.html#login">Login</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="loadingState" class="loading panel">Loading join options...</div>
+    <div id="emptyState" class="empty" style="display:none;">
+      Pick a club from <a href="clubs.html">the club directory</a> first, then come back to the join page.
+    </div>
+    <div id="errorState" class="empty error" style="display:none;"></div>
+
+    <div id="pageContent" style="display:none;">
+      <section class="hero">
+        <article class="panel hero-copy">
+          <span class="eyebrow" id="clubCategory">Club Booking</span>
+          <h1 id="clubName">Club</h1>
+          <p id="clubDescription">Review upcoming slots and any optional membership offers, then continue into the full booking flow.</p>
+          <div class="hero-links">
+            <a class="btn" id="openClubBtn" href="club.html">Open Full Club Page</a>
+            <a class="btn ghost" id="openOverviewBtn" href="venue%20overview.html">Open Venue Overview</a>
+          </div>
+          <ul class="meta-list">
+            <li>
+              <strong>Location</strong>
+              <span id="clubLocation">Not listed</span>
+            </li>
+            <li>
+              <strong>Hours</strong>
+              <span id="clubHours">Not listed</span>
+            </li>
+            <li>
+              <strong>Contact</strong>
+              <span id="clubContact">Not listed</span>
+            </li>
+          </ul>
+        </article>
+
+        <aside class="panel stats">
+          <h2>At A Glance</h2>
+          <div class="stat-grid">
+            <div id="planCountCard" class="stat-card">
+              <strong id="planCount">0</strong>
+              <span>membership plans</span>
+            </div>
+            <div class="stat-card">
+              <strong id="slotCount">0</strong>
+              <span>upcoming slots</span>
+            </div>
+            <div class="stat-card">
+              <strong id="bestPrice">GBP 0.00</strong>
+              <span>lowest visible slot price</span>
+            </div>
+            <div id="membershipStateCard" class="stat-card">
+              <strong id="membershipState">Guest</strong>
+              <span>membership status</span>
+            </div>
+          </div>
+          <div id="membershipBanner" class="banner">
+            <strong id="membershipBannerTitle"></strong>
+            <p id="membershipBannerBody"></p>
+          </div>
+        </aside>
+      </section>
+
+      <section class="content">
+        <article id="membershipSection" class="panel section">
+          <div class="section-head">
+            <div>
+              <h2>Membership Options</h2>
+              <p class="subtle">These plans come from the backend and reflect the club's configured discounts and durations.</p>
+            </div>
+          </div>
+          <div id="plansList" class="list"></div>
+          <div id="plansEmpty" class="status-note" style="display:none;">This club has no public membership plans yet.</div>
+        </article>
+
+        <article class="panel section">
+          <div class="section-head">
+            <div>
+              <h2>Upcoming Slots</h2>
+              <p class="subtle">Next seven days of visible bookable time slots for this club.</p>
+            </div>
+          </div>
+          <div id="slotList" class="slot-grid"></div>
+          <div id="slotEmpty" class="status-note" style="display:none;">No upcoming slots are published for the next seven days.</div>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const loadingStateEl = document.getElementById('loadingState');
+    const emptyStateEl = document.getElementById('emptyState');
+    const errorStateEl = document.getElementById('errorState');
+    const pageContentEl = document.getElementById('pageContent');
+    const accountLinkEl = document.getElementById('accountLink');
+    const overviewLinkEl = document.getElementById('overviewLink');
+    const openClubBtnEl = document.getElementById('openClubBtn');
+    const openOverviewBtnEl = document.getElementById('openOverviewBtn');
+    const clubCategoryEl = document.getElementById('clubCategory');
+    const clubNameEl = document.getElementById('clubName');
+    const clubDescriptionEl = document.getElementById('clubDescription');
+    const clubLocationEl = document.getElementById('clubLocation');
+    const clubHoursEl = document.getElementById('clubHours');
+    const clubContactEl = document.getElementById('clubContact');
+    const planCountEl = document.getElementById('planCount');
+    const slotCountEl = document.getElementById('slotCount');
+    const bestPriceEl = document.getElementById('bestPrice');
+    const membershipStateEl = document.getElementById('membershipState');
+    const membershipBannerEl = document.getElementById('membershipBanner');
+    const membershipBannerTitleEl = document.getElementById('membershipBannerTitle');
+    const membershipBannerBodyEl = document.getElementById('membershipBannerBody');
+    const planCountCardEl = document.getElementById('planCountCard');
+    const membershipStateCardEl = document.getElementById('membershipStateCard');
+    const membershipSectionEl = document.getElementById('membershipSection');
+    const plansListEl = document.getElementById('plansList');
+    const plansEmptyEl = document.getElementById('plansEmpty');
+    const slotListEl = document.getElementById('slotList');
+    const slotEmptyEl = document.getElementById('slotEmpty');
+
+    const safe = (value) => String(value ?? '').trim();
+    const safeParseJSON = (raw) => {
+      try { return JSON.parse(raw); } catch { return null; }
+    };
+    const escapeHtml = (value) => safe(value).replace(/[&<>\"']/g, (ch) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[ch]));
+    const authFetch = (url, options = {}) => {
+      const token = localStorage.getItem('token') || '';
+      const headers = { ...(options.headers || {}) };
+      if (token) headers.Authorization = `Bearer ${token}`;
+      return fetch(url, {
+        ...options,
+        credentials: options.credentials ?? 'include',
+        headers
+      });
+    };
+    const params = new URLSearchParams(window.location.search);
+    const currency = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
+    const dateLabel = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: '2-digit', month: 'short' });
+    const timeLabel = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+    const formatPrice = (value) => {
+      const amount = Number(value);
+      return Number.isFinite(amount) ? currency.format(amount) : 'GBP 0.00';
+    };
+
+    const formatDateTime = (value) => {
+      const date = value ? new Date(value) : null;
+      if (!date || Number.isNaN(date.getTime())) return 'Time not available';
+      return `${dateLabel.format(date)} ${timeLabel.format(date)}`;
+    };
+
+    const formatHours = (club) => {
+      const start = safe(club.openingStart);
+      const end = safe(club.openingEnd);
+      return start && end ? `${start} - ${end}` : 'Not listed';
+    };
+
+    const readLoggedUser = () => {
+      const user = safeParseJSON(localStorage.getItem('loggedUser') || 'null');
+      return user && typeof user === 'object' ? user : null;
+    };
+
+    const updateAccountLink = () => {
+      const loggedUser = readLoggedUser();
+      if (!loggedUser) {
+        accountLinkEl.href = 'login.html#login';
+        accountLinkEl.textContent = 'Login';
+        return;
+      }
+      accountLinkEl.href = loggedUser.type === 'club' ? 'club home.html' : 'user.html';
+      accountLinkEl.textContent = loggedUser.type === 'club' ? 'Club Home' : 'My Account';
+    };
+
+    const readClubId = () => {
+      const direct = safe(params.get('club'));
+      if (/^\d+$/.test(direct)) return direct;
+      const stored = safeParseJSON(localStorage.getItem('selectedClub') || 'null');
+      const storedId = safe(stored?.id ?? stored?.clubId);
+      return /^\d+$/.test(storedId) ? storedId : '';
+    };
+
+    const storeSelectedClub = (club) => {
+      try {
+        localStorage.setItem('selectedClub', JSON.stringify({
+          id: safe(club.clubId ?? club.id),
+          clubId: safe(club.clubId ?? club.id),
+          name: club.name,
+          category: club.category,
+          tags: Array.isArray(club.tags) ? club.tags : []
+        }));
+      } catch {}
+    };
+
+    const showState = (kind, message) => {
+      loadingStateEl.style.display = kind === 'loading' ? 'grid' : 'none';
+      emptyStateEl.style.display = kind === 'empty' ? 'block' : 'none';
+      errorStateEl.style.display = kind === 'error' ? 'block' : 'none';
+      pageContentEl.style.display = kind === 'ready' ? 'block' : 'none';
+      if (kind === 'loading') loadingStateEl.textContent = message || 'Loading join options...';
+      if (kind === 'error') errorStateEl.textContent = message || 'Failed to load this club.';
+      if (kind === 'empty') emptyStateEl.textContent = message || 'Pick a club first.';
+    };
+
+    const renderMembershipBanner = (membership, hasPublicPlans) => {
+      const loggedUser = readLoggedUser();
+      const hasActiveMembership = Boolean(membership && safe(membership.status).toUpperCase() === 'ACTIVE');
+      membershipBannerEl.className = 'banner';
+
+      if (!hasPublicPlans && !hasActiveMembership) {
+        membershipBannerTitleEl.textContent = '';
+        membershipBannerBodyEl.textContent = '';
+        membershipStateEl.textContent = 'Booking Only';
+        return;
+      }
+
+      if (hasActiveMembership) {
+        membershipBannerEl.classList.add('show', 'ok');
+        membershipBannerTitleEl.textContent = 'Active membership detected';
+        membershipBannerBodyEl.textContent = `${safe(membership.planName || 'Membership')} is active until ${safe(membership.endDate || 'the listed end date')}. Visible slot pricing already includes your discount where applicable.`;
+        membershipStateEl.textContent = safe(membership.planName || 'Active');
+        return;
+      }
+
+      if (!loggedUser) {
+        membershipBannerEl.classList.add('show', 'warn');
+        membershipBannerTitleEl.textContent = 'Log in to complete checkout';
+        membershipBannerBodyEl.textContent = 'This page shows the current join options, but payment and booking confirmation still require a logged-in user account.';
+        membershipStateEl.textContent = 'Guest';
+        return;
+      }
+
+      if (safe(loggedUser.type).toLowerCase() !== 'user') {
+        membershipBannerEl.classList.add('show', 'warn');
+        membershipBannerTitleEl.textContent = 'User account required';
+        membershipBannerBodyEl.textContent = 'Only user accounts can purchase memberships or complete bookings. Club accounts can still review the published options here.';
+        membershipStateEl.textContent = 'Club Account';
+        return;
+      }
+
+      membershipBannerEl.classList.add('show', 'warn');
+      membershipBannerTitleEl.textContent = 'No active membership';
+      membershipBannerBodyEl.textContent = 'You can still continue as a casual booking user, or pick a membership plan below for discounted pricing.';
+      membershipStateEl.textContent = 'No Membership';
+    };
+
+    const syncMembershipLayout = (plans, membership) => {
+      const hasPublicPlans = Array.isArray(plans) && plans.length > 0;
+      const hasActiveMembership = Boolean(membership && safe(membership.status).toUpperCase() === 'ACTIVE');
+
+      if (membershipSectionEl) {
+        membershipSectionEl.style.display = hasPublicPlans ? '' : 'none';
+      }
+      if (planCountCardEl) {
+        planCountCardEl.style.display = hasPublicPlans ? 'grid' : 'none';
+      }
+      if (membershipStateCardEl) {
+        membershipStateCardEl.style.display = hasPublicPlans || hasActiveMembership ? 'grid' : 'none';
+      }
+      if (!hasPublicPlans) {
+        plansListEl.innerHTML = '';
+        plansEmptyEl.style.display = 'none';
+      }
+
+      return { hasPublicPlans, hasActiveMembership };
+    };
+
+    const renderPlans = (clubId, plans) => {
+      planCountEl.textContent = String(plans.length);
+      plansEmptyEl.style.display = plans.length ? 'none' : 'block';
+      plansListEl.innerHTML = plans.map((plan) => {
+        const durationDays = Number(plan.durationDays);
+        const discount = Number(plan.discountPercent);
+        const ctaLabel = safe(readLoggedUser()?.type).toLowerCase() === 'user'
+          ? 'Continue To Checkout'
+          : 'Open Club Page';
+        return `
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <h3>${escapeHtml(plan.planName || 'Membership Plan')}</h3>
+                <div class="pill-row">
+                  <span class="pill highlight">${escapeHtml(plan.planCode || 'PLAN')}</span>
+                  <span class="pill">${Number.isFinite(durationDays) ? `${durationDays} days` : 'Flexible duration'}</span>
+                  <span class="pill">${Number.isFinite(discount) ? `${discount}% discount` : 'Discount available'}</span>
+                </div>
+              </div>
+              <div class="price">${escapeHtml(formatPrice(plan.price))}</div>
+            </div>
+            <p>${escapeHtml(plan.description || 'Membership pricing and benefits are configured by the club.')}</p>
+            <div class="hero-links">
+              <a class="btn" href="club.html?club=${encodeURIComponent(clubId)}#membership">${escapeHtml(ctaLabel)}</a>
+              <a class="btn ghost" href="club.html?club=${encodeURIComponent(clubId)}">View Full Club Details</a>
+            </div>
+          </article>
+        `;
+      }).join('');
+    };
+
+    const renderSlots = (clubId, slots) => {
+      const ordered = slots
+        .slice()
+        .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+        .slice(0, 10);
+
+      slotCountEl.textContent = String(slots.length);
+      slotEmptyEl.style.display = ordered.length ? 'none' : 'block';
+      slotListEl.innerHTML = ordered.map((slot) => {
+        const remaining = Number(slot.remaining);
+        const bookedCount = Number(slot.bookedCount);
+        const membershipApplied = Boolean(slot.membershipApplied);
+        const endText = formatDateTime(slot.endTime).split(' ').slice(-1)[0] || '';
+        return `
+          <article class="slot-row">
+            <div class="slot-row-top">
+              <div>
+                <strong>${escapeHtml(slot.venueName || 'Venue')}</strong>
+                <div><small>${escapeHtml(formatDateTime(slot.startTime))} to ${escapeHtml(endText)}</small></div>
+              </div>
+              <div class="pill-row">
+                <span class="pill">${escapeHtml(formatPrice(slot.price))}</span>
+                <span class="pill ${membershipApplied ? 'highlight' : ''}">${membershipApplied ? 'Membership price' : 'Standard price'}</span>
+              </div>
+            </div>
+            <div class="pill-row">
+              <span class="pill">${Number.isFinite(remaining) ? `${remaining} spots left` : 'Capacity pending'}</span>
+              <span class="pill">${Number.isFinite(bookedCount) ? `${bookedCount} booked` : 'Bookings pending'}</span>
+            </div>
+            <div class="hero-links">
+              <a class="btn soft" href="club.html?club=${encodeURIComponent(clubId)}#schedule">Continue To Booking</a>
+              <a class="btn ghost" href="venue%20overview.html?club=${encodeURIComponent(clubId)}">View Venue Overview</a>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      const prices = slots.map((slot) => Number(slot.price)).filter((value) => Number.isFinite(value));
+      bestPriceEl.textContent = prices.length ? formatPrice(Math.min(...prices)) : 'GBP 0.00';
+    };
+
+    const loadMembershipStatus = async (clubId) => {
+      const loggedUser = readLoggedUser();
+      const token = localStorage.getItem('token') || '';
+      if (!loggedUser || safe(loggedUser.type).toLowerCase() !== 'user' || !token) return null;
+      try {
+        const res = await authFetch(`/api/my/clubs/${encodeURIComponent(clubId)}/membership`);
+        if (!res.ok) return null;
+        return await res.json();
+      } catch {
+        return null;
+      }
+    };
+
+    const toIsoDay = (date) => {
+      const copy = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+      return copy.toISOString().slice(0, 10);
+    };
+
+    const loadPage = async () => {
+      updateAccountLink();
+      const clubId = readClubId();
+      if (!clubId) {
+        showState('empty', 'Pick a club from the club directory first, then return here to review join and booking options.');
+        return;
+      }
+
+      const today = new Date();
+      const from = toIsoDay(today);
+      const horizon = new Date(today);
+      horizon.setDate(horizon.getDate() + 6);
+      const to = toIsoDay(horizon);
+
+      try {
+        const clubRes = await authFetch(`/api/clubs/${encodeURIComponent(clubId)}`);
+        if (!clubRes.ok) throw new Error(`Failed to load club (${clubRes.status})`);
+        const club = await clubRes.json();
+        storeSelectedClub(club);
+
+        const [plansRes, slotsRes, membership] = await Promise.all([
+          authFetch(`/api/clubs/${encodeURIComponent(clubId)}/membership-plans`),
+          authFetch(`/api/clubs/${encodeURIComponent(clubId)}/timeslots?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`),
+          loadMembershipStatus(clubId)
+        ]);
+
+        const plans = plansRes.ok ? await plansRes.json() : [];
+        const slots = slotsRes.ok ? await slotsRes.json() : [];
+        const membershipLayout = syncMembershipLayout(Array.isArray(plans) ? plans : [], membership);
+
+        clubCategoryEl.textContent = safe(club.category || 'Club');
+        clubNameEl.textContent = safe(club.name || `Club ${clubId}`);
+        clubDescriptionEl.textContent = safe(
+          club.description || (
+            membershipLayout.hasPublicPlans
+              ? 'Review the current membership offers and open slots before continuing to the full club page.'
+              : 'Review the next available slots before continuing to the full club page.'
+          )
+        );
+        clubLocationEl.textContent = safe(club.location || 'Not listed');
+        clubHoursEl.textContent = formatHours(club);
+        clubContactEl.textContent = [safe(club.phone), safe(club.email)].filter(Boolean).join(' | ') || 'Not listed';
+        openClubBtnEl.href = `club.html?club=${encodeURIComponent(clubId)}`;
+        openOverviewBtnEl.href = `venue%20overview.html?club=${encodeURIComponent(clubId)}`;
+        overviewLinkEl.href = `venue%20overview.html?club=${encodeURIComponent(clubId)}`;
+        document.title = `${safe(club.name || 'Club')} - ${membershipLayout.hasPublicPlans ? 'Join' : 'Booking'}`;
+
+        renderMembershipBanner(membership, membershipLayout.hasPublicPlans);
+        renderPlans(clubId, Array.isArray(plans) ? plans : []);
+        renderSlots(clubId, Array.isArray(slots) ? slots : []);
+        showState('ready');
+      } catch (err) {
+        console.error(err);
+        showState('error', 'Failed to load this club. Try opening it again from the directory.');
+      }
+    };
+
+    showState('loading', 'Loading join options...');
+    loadPage();
+  </script>
+</body>
 </html>

@@ -43,10 +43,27 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      color: #2563eb;
+      color: #64748b;
       text-decoration: none;
       font-size: 14px;
       justify-self: start;
+      font-weight: 600;
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 999px;
+      padding: 8px 12px;
+      box-shadow: 0 8px 18px rgba(29, 29, 31, 0.08);
+      transition: color .2s ease, border-color .2s ease, background .2s ease, transform .2s ease, box-shadow .2s ease;
+    }
+    .back-link::before {
+      content: '<';
+    }
+    .back-link:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.96);
+      border-color: rgba(100, 116, 139, 0.28);
+      box-shadow: 0 12px 22px rgba(29, 29, 31, 0.12);
+      transform: translateY(-1px);
     }
     .page-title {
       margin: 0;
@@ -73,21 +90,6 @@
       margin: 0;
       color: var(--muted);
       font-size: 14px;
-    }
-    .kv {
-      margin-top: 14px;
-      display: grid;
-      gap: 10px;
-    }
-    .kv-row {
-      display: grid;
-      grid-template-columns: 130px 1fr;
-      gap: 10px;
-      align-items: center;
-      font-size: 14px;
-    }
-    .kv-row .k {
-      color: var(--muted);
     }
     .divider {
       margin: 18px 0;
@@ -289,7 +291,7 @@
     .map-toolbar {
       display: grid;
       gap: 8px;
-      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-columns: minmax(0, 1fr);
       align-items: center;
     }
     @media (max-width: 759px) {
@@ -310,7 +312,7 @@
 <body>
   <header>
     <div class="wrap header-wrap">
-      <a class="back-link" href="club home.html">&larr; Back</a>
+      <a class="back-link" href="club home.html">Back</a>
       <h1 class="page-title">Club Account Information</h1>
       <span></span>
     </div>
@@ -343,7 +345,6 @@
           <div class="map-panel" style="grid-column:1/-1">
             <div class="map-toolbar">
               <input id="clubMapSearchInput" type="text" placeholder="Search address on Google Maps" />
-              <button id="clubMapSetKeyBtn" class="btn ghost" type="button">Set Maps API key</button>
             </div>
             <div id="clubMapCanvas" class="map-canvas" aria-label="Club address map"></div>
             <p id="clubMapStatus" class="status"></p>
@@ -386,21 +387,13 @@
     </section>
   </main>
 
-  <script src="ui-prompt.js?v=20260309b"></script>
+  <script type="module" src="ui-prompt.js?v=20260309b"></script>
   <script>
     const LOCKED_LOGIN_TARGET = Object.freeze({
       user: 'home.html',
       club: 'club home.html'
     });
 
-    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const accountNameEl = document.getElementById('accountName');
-    const currentEmailEl = document.getElementById('currentEmail');
-    const accountRoleEl = document.getElementById('accountRole');
-    const newEmailInput = document.getElementById('newEmailInput');
-    const saveEmailBtn = document.getElementById('saveEmailBtn');
-    const statusEl = document.getElementById('status');
-    const clubTargetLabelEl = document.getElementById('clubTargetLabel');
     const clubProfileForm = document.getElementById('clubProfileForm');
     const clubNameInput = document.getElementById('clubNameInput');
     const clubNameEditBtn = document.getElementById('clubNameEditBtn');
@@ -410,7 +403,6 @@
     const clubMapSearchInput = document.getElementById('clubMapSearchInput');
     const clubMapCanvasEl = document.getElementById('clubMapCanvas');
     const clubMapStatusEl = document.getElementById('clubMapStatus');
-    const clubMapSetKeyBtn = document.getElementById('clubMapSetKeyBtn');
     const clubOpeningStartInput = document.getElementById('clubOpeningStartInput');
     const clubOpeningEndInput = document.getElementById('clubOpeningEndInput');
     const clubEmailInput = document.getElementById('clubEmailInput');
@@ -450,12 +442,6 @@
       }
     };
 
-    const setStatus = (text, kind = '') => {
-      if (!statusEl) return;
-      statusEl.textContent = text || '';
-      statusEl.className = `status ${kind}`.trim();
-    };
-
     const setClubStatus = (text, kind = '') => {
       if (!clubStatusEl) return;
       clubStatusEl.textContent = text || '';
@@ -491,13 +477,6 @@
     const normalizeCoordinate = (value) => {
       const num = Number(value);
       return Number.isFinite(num) ? num : null;
-    };
-
-    const updateClubMapUi = () => {
-      const hasServerKey = !!String(serverGoogleMapsApiKey || '').trim();
-      if (clubMapSetKeyBtn) {
-        clubMapSetKeyBtn.textContent = hasServerKey ? 'Override Maps API key' : 'Set Maps API key';
-      }
     };
 
     const setClubMapSelection = ({ address = '', placeId = '', lat = null, lng = null } = {}) => {
@@ -538,7 +517,6 @@
       try {
         const res = await authFetch('/api/public/config');
         if (!res.ok) {
-          updateClubMapUi();
           return '';
         }
         const data = await res.json();
@@ -549,46 +527,11 @@
             localStorage.setItem(GOOGLE_MAPS_API_KEY_STORAGE_KEY, key);
           } catch {}
         }
-        updateClubMapUi();
         return key;
       } catch (err) {
         console.warn('[club-info] public config load failed', err);
-        updateClubMapUi();
         return '';
       }
-    };
-
-    const promptGoogleMapsApiKey = async () => {
-      const current = getStoredGoogleMapsApiKey();
-      let next = null;
-      if (window.AppPrompt && typeof window.AppPrompt.prompt === 'function') {
-        next = await window.AppPrompt.prompt({
-          title: 'Set Maps API key',
-          message: 'Enter Google Maps JavaScript API key.',
-          label: 'API key',
-          defaultValue: current,
-          okText: 'Save',
-          cancelText: 'Cancel'
-        });
-      } else {
-        next = window.prompt('Enter Google Maps JavaScript API key', current);
-      }
-      const key = String(next || '').trim();
-      if (!key) {
-        setClubMapStatus('Google Maps API key was not updated.', 'err');
-        return false;
-      }
-      try {
-        localStorage.setItem(GOOGLE_MAPS_API_KEY_STORAGE_KEY, key);
-      } catch {}
-      mapApiLoadPromise = null;
-      mapInstance = null;
-      mapMarker = null;
-      mapGeocoder = null;
-      mapAutocomplete = null;
-      setClubMapStatus('Google Maps API key saved. Reloading map...', '');
-      updateClubMapUi();
-      return true;
     };
 
     const loadGoogleMapsApi = async () => {
@@ -745,7 +688,7 @@
       await loadServerGoogleMapsApiKey();
       const apiKey = getStoredGoogleMapsApiKey();
       if (!apiKey) {
-        setClubMapStatus('Set Google Maps API key to enable map picker.', 'err');
+        setClubMapStatus('Google Maps is temporarily unavailable. Please enter the address manually.', 'err');
         return;
       }
 
@@ -1038,12 +981,6 @@
       if (!profile) return;
       const name = (profile.displayName || profile.name || profile.fullName || '').trim();
       const email = (profile.email || '').trim();
-      const role = (profile.role || 'club').trim();
-
-      if (accountNameEl) accountNameEl.textContent = name || '-';
-      if (currentEmailEl) currentEmailEl.textContent = email || '-';
-      if (accountRoleEl) accountRoleEl.textContent = role || 'club';
-      if (newEmailInput && !newEmailInput.value) newEmailInput.value = email || '';
 
       const logged = safeParse('loggedUser') || {};
       const user = safeParse('user') || {};
@@ -1102,9 +1039,6 @@
       const name = (club?.name || club?.clubName || '').trim();
       selectedClubId = id ? String(id) : null;
 
-      if (clubTargetLabelEl) {
-        clubTargetLabelEl.textContent = selectedClubId ? `${name || 'Club'} (#${selectedClubId})` : 'new club';
-      }
       if (saveClubBtn) {
         saveClubBtn.textContent = selectedClubId ? 'Save' : 'Create';
       }
@@ -1248,76 +1182,25 @@
     };
 
     const loadProfile = async () => {
-      setStatus('Loading account...', '');
       const res = await authFetch('/api/profile');
       if (res.status === 401) {
         window.location.href = 'login.html#login';
         return;
       }
       if (!res.ok) {
-        const text = await res.text();
-        setStatus(text || 'Failed to load account.', 'err');
         return;
       }
       const profile = await res.json();
       applyProfile(profile);
-      setStatus('', '');
-    };
-
-    const saveEmail = async () => {
-      const nextEmail = (newEmailInput?.value || '').trim();
-      if (!emailRe.test(nextEmail)) {
-        setStatus('Please enter a valid email address.', 'err');
-        return;
-      }
-
-      if (saveEmailBtn) saveEmailBtn.disabled = true;
-      setStatus('Updating email...', '');
-
-      try {
-        const res = await authFetch('/api/profile/email', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: nextEmail })
-        });
-
-        if (!res.ok) {
-          const text = await res.text();
-          setStatus(text || 'Failed to update email.', 'err');
-          return;
-        }
-
-        const payload = await res.json();
-        if (payload?.token) {
-          localStorage.setItem('token', payload.token);
-        }
-        applyProfile(payload);
-        setStatus('Email updated successfully.', 'ok');
-      } catch (err) {
-        console.error(err);
-        setStatus('Failed to update email.', 'err');
-      } finally {
-        if (saveEmailBtn) saveEmailBtn.disabled = false;
-      }
     };
 
     if (ensureClubLogin()) {
-      updateClubMapUi();
       (async () => {
         await loadServerGoogleMapsApiKey();
         await loadProfile();
         await loadClubProfile();
         updateClubImageSelectionLabel();
       })();
-      clubMapSetKeyBtn?.addEventListener('click', async () => {
-        const updated = await promptGoogleMapsApiKey();
-        if (!updated) return;
-        await initClubMapPicker();
-        const address = String(clubLocationInput?.value || '').trim();
-        if (address) {
-          await geocodeAddressToMap(address, { updateInput: false, showStatus: false });
-        }
-      });
       clubMapSearchInput?.addEventListener('keydown', async (event) => {
         if (event.key !== 'Enter') return;
         event.preventDefault();
@@ -1354,13 +1237,6 @@
       clubCategoryEditBtn?.addEventListener('click', openCategoryEditor);
       uploadClubImagesBtn?.addEventListener('click', () => {
         clubImageInput?.click();
-      });
-      saveEmailBtn?.addEventListener('click', saveEmail);
-      newEmailInput?.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') {
-          event.preventDefault();
-          saveEmail();
-        }
       });
       clubProfileForm?.addEventListener('submit', async (event) => {
         event.preventDefault();

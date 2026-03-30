@@ -21,3 +21,15 @@ backend/.github/
 demo-core-loop.ps1
 
 .DS_Store
+
+# Local training / experiment artifacts
+__pycache__/
+data/
+outputs/
+compare_qwen_versions.py
+convert_seed_to_jsonl.py
+split_train_val.py
+train_qwen_lora.py
+test_qwen_3b_base_eval.py
+test_qwen_lora_eval.py
+test_qwen_lora_infer.py

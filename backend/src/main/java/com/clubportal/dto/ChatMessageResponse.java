@@ -9,9 +9,11 @@ public record ChatMessageResponse(
         String sender,
         String text,
         String authorName,
+        String answerSource,
+        Integer matchedFaqId,
+        boolean handoffSuggested,
         boolean readByClub,
         boolean readByUser,
         LocalDateTime createdAt
 ) {
 }
-

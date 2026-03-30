@@ -89,7 +89,7 @@
   const addCustomBtn = document.getElementById('addCustomType');
   const btnSave = document.getElementById('btnSave');
   const statusEl = document.getElementById('status');
-  const backBtn = document.querySelector('.back-link');
+  const headerSideEl = document.querySelector('.header-side');
   const stickyTitleEl = document.querySelector('header h2');
   const heroTitleEl = document.querySelector('.hero h1');
   const heroLeadEl = document.querySelector('.hero .lead');
@@ -107,10 +107,34 @@
   const isNameEditMode = editMode === 'name-edit';
   const isProfileEditMode = isCategoryEditMode || isNameEditMode;
   const returnTarget = sanitizeReturnTarget(query.get('return'));
+  const ONBOARDING_DRAFT_STORAGE_KEY = 'clubPortal.onboardingDraft';
+  let backBtn = headerSideEl?.querySelector('.back-link') || null;
+  let onboardingBackGuardInstalled = false;
 
   if (!grid || !displayNameEl) {
     return;
   }
+
+  const readOnboardingDraft = () => {
+    try {
+      return JSON.parse(sessionStorage.getItem(ONBOARDING_DRAFT_STORAGE_KEY) || 'null') || {};
+    } catch {
+      return {};
+    }
+  };
+
+  const writeOnboardingDraft = (draft) => {
+    try {
+      sessionStorage.setItem(ONBOARDING_DRAFT_STORAGE_KEY, JSON.stringify(draft || {}));
+    } catch {
+      // Ignore sessionStorage errors.
+    }
+    try {
+      localStorage.removeItem('clubProfile');
+    } catch {
+      // Ignore localStorage errors.
+    }
+  };
 
   const requireClubLogin = () => {
     const token = localStorage.getItem('token');
@@ -130,11 +154,88 @@
     return allowed.has(raw) ? raw : 'club-info.html';
   }
 
+  function canUseHistoryBack() {
+    if (window.history.length <= 1) return false;
+    const ref = String(document.referrer || '').trim();
+    if (!ref) return false;
+    try {
+      return new URL(ref, window.location.href).origin === window.location.origin;
+    } catch {
+      return false;
+    }
+  }
+
+  function navigateBackOrFallback(target) {
+    if (canUseHistoryBack()) {
+      window.history.back();
+      return;
+    }
+    window.location.href = target;
+  }
+
+  function clearBackButton() {
+    if (backBtn) {
+      backBtn.remove();
+      backBtn = null;
+    }
+    if (headerSideEl) {
+      headerSideEl.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  function ensureBackButton() {
+    if (!headerSideEl) return null;
+    headerSideEl.removeAttribute('aria-hidden');
+    if (backBtn) return backBtn;
+
+    backBtn = document.createElement('button');
+    backBtn.type = 'button';
+    backBtn.className = 'back-link';
+    backBtn.setAttribute('aria-label', 'Back');
+    backBtn.textContent = '\u2190 Back';
+    headerSideEl.appendChild(backBtn);
+    return backBtn;
+  }
+
   function setBackTarget(target) {
-    if (!backBtn) return;
-    backBtn.onclick = () => {
-      window.location.href = target;
+    const button = ensureBackButton();
+    if (!button) return;
+    button.onclick = (event) => {
+      if (event) event.preventDefault();
+      navigateBackOrFallback(target);
     };
+  }
+
+  function pushOnboardingLockState() {
+    const currentState = (window.history.state && typeof window.history.state === 'object')
+      ? window.history.state
+      : {};
+    window.history.pushState({ ...currentState, onboardingLock: true }, '', window.location.href);
+  }
+
+  function installOnboardingBackGuard() {
+    if (isProfileEditMode || onboardingBackGuardInstalled) return;
+    onboardingBackGuardInstalled = true;
+    if (window.__clubOnboardingBackGuardInstalled) return;
+    window.__clubOnboardingBackGuardInstalled = true;
+
+    const currentState = (window.history.state && typeof window.history.state === 'object')
+      ? window.history.state
+      : {};
+    window.history.replaceState({ ...currentState, onboardingEntry: true }, '', window.location.href);
+    pushOnboardingLockState();
+    window.addEventListener('popstate', () => {
+      pushOnboardingLockState();
+    });
+    window.addEventListener('pageshow', (event) => {
+      if (!event.persisted) return;
+      const state = (window.history.state && typeof window.history.state === 'object')
+        ? window.history.state
+        : {};
+      if (!state.onboardingLock) {
+        pushOnboardingLockState();
+      }
+    });
   }
 
   function configurePageMode() {
@@ -169,7 +270,8 @@
       return;
     }
     if (stickyTitleEl) stickyTitleEl.textContent = 'Club profile';
-    setBackTarget('club home.html');
+    clearBackButton();
+    installOnboardingBackGuard();
   }
 
   const authFetch = (url, options = {}) => {
@@ -294,7 +396,7 @@
 
   const hydrateFromBackend = async () => {
     if (!requireClubLogin()) {
-      if (!isProfileEditMode) setBackTarget('home.html');
+      if (isProfileEditMode) setBackTarget('home.html');
       return;
     }
 
@@ -305,14 +407,13 @@
       const clubs = await res.json();
       const pick = pickClubFromMyClubs(clubs);
       if (!pick) {
-        if (!isCategoryEditMode) setBackTarget('home.html');
+        if (isNameEditMode) setBackTarget('home.html');
         return;
       }
 
       const clubId = pick.id ?? pick.clubId ?? null;
       const clubName = pick.name || pick.clubName || `Club #${clubId}`;
       saveSelectedClub({ id: clubId, name: clubName });
-      if (!isProfileEditMode) setBackTarget('club home.html');
       if (!clubId) return;
 
       const detailRes = await authFetch(`/api/clubs/${encodeURIComponent(clubId)}`);
@@ -544,7 +645,7 @@
     const selected = selectedSports();
     const hasSport = selected.length > 0;
     if (btnSave) {
-      btnSave.disabled = isCategoryEditMode ? !hasSport : isNameEditMode ? !nameOk : (!nameOk && !hasSport);
+      btnSave.disabled = isCategoryEditMode ? !hasSport : isNameEditMode ? !nameOk : !(nameOk && hasSport);
     }
 
     const parts = [];
@@ -566,8 +667,10 @@
       if (statusEl) statusEl.textContent = 'Please enter a club name.';
       return;
     }
-    if (isCategoryEditMode && !profile.sports.length) {
-      if (statusEl) statusEl.textContent = 'Please choose at least one category.';
+    if (!profile.sports.length) {
+      if (statusEl) statusEl.textContent = isCategoryEditMode
+        ? 'Please choose at least one category.'
+        : 'Please choose at least one club type.';
       return;
     }
 
@@ -600,29 +703,21 @@
     }
   }
 
-  function skipAndContinue(){
-    try {
-      localStorage.setItem('profile', JSON.stringify({displayName:'',sports:[]}));
-    } catch (e) { /* ignore */ }
-    window.location.href = 'home.html';
-  }
-
   function loadProfile(){
     try {
-      const saved = JSON.parse(localStorage.getItem('clubProfile') || 'null');
+      const saved = readOnboardingDraft();
       if (saved && saved.profile) return saved.profile;
-      return JSON.parse(localStorage.getItem('profile') || 'null');
+      return null;
     } catch (e){
       return null;
     }
   }
 
   function saveProfileToStorage(profile){
-    localStorage.setItem('profile', JSON.stringify(profile));
     try {
-      const saved = JSON.parse(localStorage.getItem('clubProfile') || 'null') || {};
+      const saved = readOnboardingDraft();
       saved.profile = profile;
-      localStorage.setItem('clubProfile', JSON.stringify(saved));
+      writeOnboardingDraft(saved);
     } catch (e) { /* ignore */ }
     try{
       const loggedUser = JSON.parse(localStorage.getItem('loggedUser') || 'null') || {};

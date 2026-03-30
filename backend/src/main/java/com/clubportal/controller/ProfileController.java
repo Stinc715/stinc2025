@@ -2,12 +2,15 @@ package com.clubportal.controller;
 
 import com.clubportal.model.User;
 import com.clubportal.repository.UserRepository;
+import com.clubportal.security.StreamAuthCookieService;
 import com.clubportal.security.JwtUtil;
 import com.clubportal.service.CurrentUserService;
 import com.clubportal.service.ProfileEmailVerificationService;
 import com.clubportal.service.UserAvatarService;
 import com.clubportal.service.VerificationEmailSenderService;
 import com.clubportal.util.PasswordEncryptionUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -39,6 +42,7 @@ public class ProfileController {
     private final ProfileEmailVerificationService profileEmailVerificationService;
     private final VerificationEmailSenderService emailSenderService;
     private final UserAvatarService userAvatarService;
+    private final StreamAuthCookieService streamAuthCookieService;
 
     public ProfileController(CurrentUserService currentUserService,
                              UserRepository userRepo,
@@ -46,7 +50,8 @@ public class ProfileController {
                              PasswordEncryptionUtil passwordUtil,
                              ProfileEmailVerificationService profileEmailVerificationService,
                              VerificationEmailSenderService emailSenderService,
-                             UserAvatarService userAvatarService) {
+                             UserAvatarService userAvatarService,
+                             StreamAuthCookieService streamAuthCookieService) {
         this.currentUserService = currentUserService;
         this.userRepo = userRepo;
         this.jwtUtil = jwtUtil;
@@ -54,16 +59,22 @@ public class ProfileController {
         this.profileEmailVerificationService = profileEmailVerificationService;
         this.emailSenderService = emailSenderService;
         this.userAvatarService = userAvatarService;
+        this.streamAuthCookieService = streamAuthCookieService;
     }
 
     @GetMapping
-    public ResponseEntity<?> getProfile() {
+    public ResponseEntity<?> getProfile(HttpServletRequest request,
+                                        HttpServletResponse response) {
         User me = currentUserService.requireUser();
+        String token = jwtUtil.generateToken(me.getEmail(), roleValue(me), me.getSessionVersionOrDefault());
+        streamAuthCookieService.writeStreamToken(request, response, token);
         return ResponseEntity.ok(toProfilePayload(me, null));
     }
 
     @PatchMapping
-    public ResponseEntity<?> updateProfile(@RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> updateProfile(@RequestBody Map<String, Object> body,
+                                           HttpServletRequest request,
+                                           HttpServletResponse response) {
         User me = currentUserService.requireUser();
 
         String nextName = safe(body.get("displayName"));
@@ -78,6 +89,8 @@ public class ProfileController {
 
         me.setUsername(nextName);
         User saved = userRepo.save(me);
+        String token = jwtUtil.generateToken(saved.getEmail(), roleValue(saved), saved.getSessionVersionOrDefault());
+        streamAuthCookieService.writeStreamToken(request, response, token);
         return ResponseEntity.ok(toProfilePayload(saved, null));
     }
 
@@ -134,7 +147,9 @@ public class ProfileController {
     }
 
     @PostMapping("/email")
-    public ResponseEntity<?> verifyAndUpdateEmail(@RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> verifyAndUpdateEmail(@RequestBody Map<String, Object> body,
+                                                  HttpServletRequest request,
+                                                  HttpServletResponse response) {
         User me = currentUserService.requireUser();
 
         String nextEmail = normalizeEmail(body.get("email"));
@@ -163,11 +178,14 @@ public class ProfileController {
         int nextSessionVersion = me.bumpSessionVersion();
         User saved = userRepo.save(me);
         String token = jwtUtil.generateToken(saved.getEmail(), roleValue(saved), nextSessionVersion);
+        streamAuthCookieService.writeStreamToken(request, response, token);
         return ResponseEntity.ok(toProfilePayload(saved, token));
     }
 
     @PatchMapping("/email")
-    public ResponseEntity<?> updateEmail(@RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> updateEmail(@RequestBody Map<String, Object> body,
+                                         HttpServletRequest request,
+                                         HttpServletResponse response) {
         User me = currentUserService.requireUser();
         if (me.getRole() == null || me.getRole() == User.Role.USER) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -184,6 +202,7 @@ public class ProfileController {
 
         if (nextEmail.equalsIgnoreCase(safe(me.getEmail()))) {
             String token = jwtUtil.generateToken(me.getEmail(), roleValue(me), me.getSessionVersionOrDefault());
+            streamAuthCookieService.writeStreamToken(request, response, token);
             return ResponseEntity.ok(toProfilePayload(me, token));
         }
 
@@ -198,11 +217,14 @@ public class ProfileController {
         User saved = userRepo.save(me);
         String token = jwtUtil.generateToken(saved.getEmail(), roleValue(saved), nextSessionVersion);
         profileEmailVerificationService.clearForUser(me.getUserId());
+        streamAuthCookieService.writeStreamToken(request, response, token);
         return ResponseEntity.ok(toProfilePayload(saved, token));
     }
 
     @PatchMapping("/password")
-    public ResponseEntity<?> updatePassword(@RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> updatePassword(@RequestBody Map<String, Object> body,
+                                            HttpServletRequest request,
+                                            HttpServletResponse response) {
         User me = currentUserService.requireUser();
 
         String currentPassword = safe(body.get("currentPassword"));
@@ -225,6 +247,7 @@ public class ProfileController {
         int nextSessionVersion = me.bumpSessionVersion();
         User saved = userRepo.save(me);
         String token = jwtUtil.generateToken(saved.getEmail(), roleValue(saved), nextSessionVersion);
+        streamAuthCookieService.writeStreamToken(request, response, token);
         return ResponseEntity.ok(Map.of(
                 "updated", true,
                 "token", token

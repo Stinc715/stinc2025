@@ -351,8 +351,10 @@ CREATE TABLE IF NOT EXISTS `booking_record` (
   `status` VARCHAR(20) NOT NULL DEFAULT 'PENDING',
   `price_paid` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   `user_membership_id` INT NULL,
+  `booking_verification_code` VARCHAR(6) DEFAULT NULL,
   PRIMARY KEY (`booking_id`),
   UNIQUE KEY `uk_booking_user_timeslot` (`user_id`, `timeslot_id`),
+  UNIQUE KEY `uk_booking_verification_code` (`booking_verification_code`),
   KEY `idx_booking_record_timeslot_id` (`timeslot_id`),
   FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE,
   FOREIGN KEY (`timeslot_id`) REFERENCES `timeslot` (`timeslot_id`) ON DELETE CASCADE
@@ -390,6 +392,38 @@ PREPARE booking_user_membership_stmt FROM @booking_user_membership_sql;
 EXECUTE booking_user_membership_stmt;
 DEALLOCATE PREPARE booking_user_membership_stmt;
 
+SET @booking_verification_code_col_exists := (
+  SELECT COUNT(*)
+  FROM information_schema.columns
+  WHERE table_schema = DATABASE()
+    AND table_name = 'booking_record'
+    AND column_name = 'booking_verification_code'
+);
+SET @booking_verification_code_sql := IF(
+  @booking_verification_code_col_exists = 0,
+  'ALTER TABLE `booking_record` ADD COLUMN `booking_verification_code` VARCHAR(6) DEFAULT NULL AFTER `user_membership_id`',
+  'SELECT 1'
+);
+PREPARE booking_verification_code_stmt FROM @booking_verification_code_sql;
+EXECUTE booking_verification_code_stmt;
+DEALLOCATE PREPARE booking_verification_code_stmt;
+
+SET @booking_verification_code_idx_exists := (
+  SELECT COUNT(*)
+  FROM information_schema.statistics
+  WHERE table_schema = DATABASE()
+    AND table_name = 'booking_record'
+    AND index_name = 'uk_booking_verification_code'
+);
+SET @booking_verification_code_idx_sql := IF(
+  @booking_verification_code_idx_exists = 0,
+  'ALTER TABLE `booking_record` ADD UNIQUE KEY `uk_booking_verification_code` (`booking_verification_code`)',
+  'SELECT 1'
+);
+PREPARE booking_verification_code_idx_stmt FROM @booking_verification_code_idx_sql;
+EXECUTE booking_verification_code_idx_stmt;
+DEALLOCATE PREPARE booking_verification_code_idx_stmt;
+
 -- 8) ClubAdmin
 CREATE TABLE IF NOT EXISTS `club_admin` (
   `club_admin_id` INT NOT NULL AUTO_INCREMENT,
@@ -419,12 +453,91 @@ CREATE TABLE IF NOT EXISTS `transaction` (
   FOREIGN KEY (`user_membership_id`) REFERENCES `user_membership` (`user_membership_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS `checkout_session` (
+  `checkout_session_pk` INT NOT NULL AUTO_INCREMENT,
+  `session_id` VARCHAR(64) NOT NULL,
+  `user_id` INT NOT NULL,
+  `club_id` INT NOT NULL,
+  `type` VARCHAR(20) NOT NULL,
+  `timeslot_id` INT DEFAULT NULL,
+  `membership_plan_id` INT DEFAULT NULL,
+  `booking_id` INT DEFAULT NULL,
+  `user_membership_id` INT DEFAULT NULL,
+  `transaction_id` INT DEFAULT NULL,
+  `amount` DECIMAL(10,2) NOT NULL,
+  `currency` VARCHAR(10) NOT NULL,
+  `status` VARCHAR(20) NOT NULL,
+  `provider` VARCHAR(40) NOT NULL,
+  `provider_session_id` VARCHAR(255) DEFAULT NULL,
+  `checkout_url` VARCHAR(2048) DEFAULT NULL,
+  `failure_reason` VARCHAR(255) DEFAULT NULL,
+  `expires_at` DATETIME NOT NULL,
+  `completed_at` DATETIME DEFAULT NULL,
+  `cancelled_at` DATETIME DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`checkout_session_pk`),
+  UNIQUE KEY `uk_checkout_session_session_id` (`session_id`),
+  UNIQUE KEY `uk_checkout_session_provider_session_id` (`provider_session_id`),
+  KEY `idx_checkout_session_user_status` (`user_id`, `status`, `expires_at`),
+  KEY `idx_checkout_session_type_club` (`type`, `club_id`, `status`, `expires_at`),
+  KEY `idx_checkout_session_timeslot` (`timeslot_id`, `status`, `expires_at`),
+  CONSTRAINT `fk_checkout_session_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_checkout_session_club` FOREIGN KEY (`club_id`) REFERENCES `club` (`club_id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_checkout_session_timeslot` FOREIGN KEY (`timeslot_id`) REFERENCES `timeslot` (`timeslot_id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_checkout_session_membership_plan` FOREIGN KEY (`membership_plan_id`) REFERENCES `membership_plan` (`plan_id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_checkout_session_booking` FOREIGN KEY (`booking_id`) REFERENCES `booking_record` (`booking_id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_checkout_session_user_membership` FOREIGN KEY (`user_membership_id`) REFERENCES `user_membership` (`user_membership_id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_checkout_session_transaction` FOREIGN KEY (`transaction_id`) REFERENCES `transaction` (`transaction_id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `booking_hold` (
+  `booking_hold_id` INT NOT NULL AUTO_INCREMENT,
+  `checkout_session_id` VARCHAR(64) NOT NULL,
+  `user_id` INT NOT NULL,
+  `club_id` INT NOT NULL,
+  `timeslot_id` INT NOT NULL,
+  `status` VARCHAR(20) NOT NULL,
+  `expires_at` DATETIME NOT NULL,
+  `released_at` DATETIME DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`booking_hold_id`),
+  UNIQUE KEY `uk_booking_hold_checkout_session_id` (`checkout_session_id`),
+  KEY `idx_booking_hold_timeslot_status` (`timeslot_id`, `status`, `expires_at`),
+  CONSTRAINT `fk_booking_hold_checkout_session` FOREIGN KEY (`checkout_session_id`) REFERENCES `checkout_session` (`session_id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_booking_hold_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_booking_hold_club` FOREIGN KEY (`club_id`) REFERENCES `club` (`club_id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_booking_hold_timeslot` FOREIGN KEY (`timeslot_id`) REFERENCES `timeslot` (`timeslot_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `chat_session` (
+  `session_id` INT NOT NULL AUTO_INCREMENT,
+  `club_id` INT NOT NULL,
+  `user_id` INT NOT NULL,
+  `chat_mode` VARCHAR(30) NOT NULL DEFAULT 'AI',
+  `handoff_requested_at` DATETIME DEFAULT NULL,
+  `handoff_reason` VARCHAR(50) DEFAULT NULL,
+  `club_unread_count` INT NOT NULL DEFAULT 0,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`session_id`),
+  UNIQUE KEY `uk_chat_session_club_user` (`club_id`, `user_id`),
+  KEY `idx_chat_session_club_mode_updated` (`club_id`, `chat_mode`, `updated_at`),
+  KEY `idx_chat_session_user_mode_updated` (`user_id`, `chat_mode`, `updated_at`),
+  CONSTRAINT `fk_chat_session_club` FOREIGN KEY (`club_id`) REFERENCES `club` (`club_id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_chat_session_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `chat_message` (
   `message_id` INT NOT NULL AUTO_INCREMENT,
   `club_id` INT NOT NULL,
   `user_id` INT NOT NULL,
   `sender` VARCHAR(10) NOT NULL,
   `message_text` VARCHAR(1000) NOT NULL,
+  `answer_source` VARCHAR(40) DEFAULT NULL,
+  `matched_faq_id` INT DEFAULT NULL,
+  `handoff_suggested` TINYINT(1) NOT NULL DEFAULT 0,
   `read_by_club` TINYINT(1) NOT NULL DEFAULT 0,
   `read_by_user` TINYINT(1) NOT NULL DEFAULT 0,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -434,6 +547,27 @@ CREATE TABLE IF NOT EXISTS `chat_message` (
   KEY `idx_chat_message_user_unread` (`user_id`, `sender`, `read_by_user`, `created_at`),
   CONSTRAINT `fk_chat_message_club` FOREIGN KEY (`club_id`) REFERENCES `club` (`club_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_chat_message_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `club_chat_kb_entry` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `club_id` INT NOT NULL,
+  `question_title` VARCHAR(255) NOT NULL,
+  `answer_text` TEXT NOT NULL,
+  `question_embedding` LONGTEXT DEFAULT NULL,
+  `embedding_model` VARCHAR(120) DEFAULT NULL,
+  `embedding_dim` INT DEFAULT NULL,
+  `trigger_keywords` TEXT DEFAULT NULL,
+  `example_questions` TEXT DEFAULT NULL,
+  `language` VARCHAR(10) NOT NULL DEFAULT 'ANY',
+  `priority` INT NOT NULL DEFAULT 0,
+  `enabled` TINYINT(1) NOT NULL DEFAULT 1,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_club_chat_kb_entry_club_priority` (`club_id`, `enabled`, `priority`),
+  KEY `idx_club_chat_kb_entry_language` (`club_id`, `language`, `enabled`),
+  CONSTRAINT `fk_club_chat_kb_entry_club` FOREIGN KEY (`club_id`) REFERENCES `club` (`club_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `registration_email_verification` (

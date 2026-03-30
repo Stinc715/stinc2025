@@ -66,14 +66,29 @@
     }
   };
 
-  const openAuthModal = (mode = 'login') => {
-    const frame = overlay.querySelector('.auth-frame');
+  const normalizeReturnTo = (value) => {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    if (/^[a-z][a-z0-9+.-]*:/i.test(raw)) return '';
+    const normalized = raw.replace(/^\.\/+/, '').replace(/^\/+/, '');
+    if (!normalized || normalized.includes('..') || /[\r\n]/.test(normalized)) return '';
+    return normalized;
+  };
+
+  const buildAuthFrameSrc = (mode = 'login', returnTo = '') => {
     const hash = mode === 'register' ? '#register' : '#login';
+    const normalizedReturnTo = normalizeReturnTo(returnTo);
+    const query = normalizedReturnTo ? `&returnTo=${encodeURIComponent(normalizedReturnTo)}` : '';
+    return `login.html?v=${AUTH_PAGE_VERSION}${query}${hash}`;
+  };
+
+  const openAuthModal = (mode = 'login', returnTo = '') => {
+    const frame = overlay.querySelector('.auth-frame');
     const layout = MODE_LAYOUT[mode] || MODE_LAYOUT.login;
     requestedDialogWidth = layout.width;
     requestedContentHeight = layout.height;
     overlay.dataset.mode = mode;
-    if (frame) frame.src = `login.html?v=${AUTH_PAGE_VERSION}${hash}`;
+    if (frame) frame.src = buildAuthFrameSrc(mode, returnTo);
     overlay.classList.add('open');
     document.body.classList.add('no-scroll');
     resizeDialog();
@@ -129,9 +144,9 @@
     });
   };
 
-  window.openAuthModal = (mode) => {
+  window.openAuthModal = (mode, returnTo) => {
     ensureMounted();
-    openAuthModal(mode);
+    openAuthModal(mode, returnTo);
   };
   window.closeAuthModal = closeAuthModal;
   window.addEventListener('message', handleMessage);

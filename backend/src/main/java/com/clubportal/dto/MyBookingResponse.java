@@ -19,6 +19,7 @@ public record MyBookingResponse(
         BigDecimal basePrice,
         String membershipPlanName,
         BigDecimal membershipDiscountPercent,
-        boolean membershipApplied
+        boolean membershipApplied,
+        String bookingVerificationCode
 ) {
 }

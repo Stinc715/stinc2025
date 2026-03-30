@@ -233,6 +233,9 @@ Response (200):
 }
 ```
 
+Notes:
+- `sender` may be `user`, `club`, `assistant`, or `system`.
+
 #### POST `/api/clubs/{clubId}/chat/messages`
 
 Requires: logged-in `role=user`.
@@ -244,6 +247,11 @@ Request body:
 ```
 
 Response (200): one `ChatMessageResponse` item.
+
+Behavior by `chatMode`:
+- `AI`: saves the user message, saves a generated assistant reply, does not notify club conversations, does not increment `clubUnreadCount`.
+- `HANDOFF_REQUESTED` or `HUMAN`: follows the normal human chat flow.
+- `CLOSED`: rejects the send request.
 
 #### POST `/api/clubs/{clubId}/chat/read`
 
@@ -306,4 +314,40 @@ Response (200):
 
 ```json
 { "updated": 1 }
+```
+
+#### Chat session mode metadata
+
+Thread and conversation responses may also include:
+
+```json
+{
+  "sessionId": 15,
+  "chatMode": "AI|HANDOFF_REQUESTED|HUMAN|CLOSED",
+  "handoffRequestedAt": "2026-03-23T18:10:00",
+  "handoffReason": "USER_REQUEST|REFUND|PAYMENT_ISSUE|HARASSMENT|POLICY_EXCEPTION|OTHER",
+  "clubUnreadCount": 1
+}
+```
+
+#### POST `/api/chat-sessions/{sessionId}/handoff`
+
+Requires: logged-in `role=user` and current user must own the session.
+
+Request body:
+
+```json
+{ "reason": "USER_REQUEST" }
+```
+
+Response (200):
+
+```json
+{
+  "sessionId": 15,
+  "chatMode": "HANDOFF_REQUESTED",
+  "handoffRequestedAt": "2026-03-23T18:10:00",
+  "handoffReason": "USER_REQUEST",
+  "clubUnreadCount": 1
+}
 ```

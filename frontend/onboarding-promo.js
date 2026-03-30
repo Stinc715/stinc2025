@@ -1,11 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
   const btnBack = document.getElementById('btnBack');
   const btnFinish = document.getElementById('btnFinish');
-  const imageUrlInput = document.getElementById('promoImageUrl');
   const imageFileInput = document.getElementById('promoImageFile');
   const promoText = document.getElementById('promoText');
   const gallery = document.getElementById('promoGallery');
   const actionsEl = document.querySelector('.actions');
+  const ONBOARDING_DRAFT_STORAGE_KEY = 'clubPortal.onboardingDraft';
 
   const requireClubLogin = () => {
     const token = localStorage.getItem('token');
@@ -43,9 +43,43 @@ document.addEventListener('DOMContentLoaded', () => {
     images: []
   };
 
+  const readOnboardingDraft = () => {
+    try {
+      return JSON.parse(sessionStorage.getItem(ONBOARDING_DRAFT_STORAGE_KEY) || 'null') || {};
+    } catch {
+      return {};
+    }
+  };
+
+  const writeOnboardingDraft = (draft) => {
+    try {
+      sessionStorage.setItem(ONBOARDING_DRAFT_STORAGE_KEY, JSON.stringify(draft || {}));
+    } catch {
+      // Ignore sessionStorage errors.
+    }
+    try {
+      localStorage.removeItem('clubProfile');
+    } catch {
+      // Ignore localStorage errors.
+    }
+  };
+
+  const clearOnboardingDraft = () => {
+    try {
+      sessionStorage.removeItem(ONBOARDING_DRAFT_STORAGE_KEY);
+    } catch {
+      // Ignore sessionStorage errors.
+    }
+    try {
+      localStorage.removeItem('clubProfile');
+    } catch {
+      // Ignore localStorage errors.
+    }
+  };
+
   const loadClubProfile = () => {
     try {
-      return JSON.parse(localStorage.getItem('clubProfile') || 'null') || {};
+      return readOnboardingDraft();
     } catch (e) {
       return {};
     }
@@ -53,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const saveClubProfile = (profile) => {
     try {
-      localStorage.setItem('clubProfile', JSON.stringify(profile));
+      writeOnboardingDraft(profile);
     } catch (e) { /* ignore */ }
   };
 
@@ -84,6 +118,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const clearInlineError = () => {
     const box = document.getElementById('promo-inline-status');
     if (box) box.remove();
+  };
+
+  const updateFinishState = () => {
+    const hasImages = state.images.length > 0;
+    const hasPromoText = String(promoText?.value || '').trim().length > 0;
+    if (btnFinish) btnFinish.disabled = !(hasImages && hasPromoText);
   };
 
   const apiJson = async (res) => {
@@ -243,13 +283,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  const parseUrlList = (value) => {
-    return (value || '')
-      .split(',')
-      .map((item) => item.trim())
-      .filter(Boolean);
-  };
-
   const dedupeImages = (list) => {
     const seen = new Set();
     return list.filter((item) => {
@@ -258,12 +291,6 @@ document.addEventListener('DOMContentLoaded', () => {
       seen.add(item.src);
       return true;
     });
-  };
-
-  const syncUrlInput = () => {
-    if (!imageUrlInput) return;
-    const urls = state.images.filter((item) => item.origin === 'url').map((item) => item.src);
-    imageUrlInput.value = urls.join(', ');
   };
 
   const moveImage = (from, to) => {
@@ -326,8 +353,9 @@ document.addEventListener('DOMContentLoaded', () => {
     state.images = updated.images;
     profile.promo = updated;
     saveClubProfile(profile);
+    clearInlineError();
     updateGallery(state.images);
-    syncUrlInput();
+    updateFinishState();
   };
 
   const hydrate = () => {
@@ -336,22 +364,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (promoText) promoText.value = promo.text || '';
     state.images = Array.isArray(promo.images) ? promo.images : [];
     updateGallery(state.images);
-    syncUrlInput();
+    updateFinishState();
   };
-
-  imageUrlInput?.addEventListener('input', () => {
-    const urlItems = parseUrlList(imageUrlInput.value).map((src) => ({ src, origin: 'url' }));
-    const dataItems = state.images.filter((item) => item.origin === 'data');
-    state.images = dedupeImages(urlItems.concat(dataItems));
-    savePromo({ images: state.images });
-  });
 
   imageFileInput?.addEventListener('change', (event) => {
     const files = Array.from(event.target.files || []);
     if (!files.length) {
-      const remaining = state.images.filter((item) => item.origin !== 'data');
-      state.images = remaining;
-      savePromo({ images: state.images });
       return;
     }
     const readers = files.map((file) => new Promise((resolve) => {
@@ -360,14 +378,15 @@ document.addEventListener('DOMContentLoaded', () => {
       reader.readAsDataURL(file);
     }));
     Promise.all(readers).then((results) => {
-      const urlItems = state.images.filter((item) => item.origin === 'url');
+      const existingItems = state.images.slice();
       const dataItems = results.map((src) => ({ src, origin: 'data' }));
-      state.images = dedupeImages(urlItems.concat(dataItems));
+      state.images = dedupeImages(existingItems.concat(dataItems));
       savePromo({ images: state.images });
     });
   });
 
   promoText?.addEventListener('input', () => {
+    clearInlineError();
     savePromo();
   });
 
@@ -379,10 +398,20 @@ document.addEventListener('DOMContentLoaded', () => {
   btnFinish?.addEventListener('click', async () => {
     savePromo();
     clearInlineError();
+    const hasImages = state.images.length > 0;
+    const hasPromoText = String(promoText?.value || '').trim().length > 0;
+    if (!hasImages || !hasPromoText) {
+      showInlineError(!hasImages
+        ? 'Please upload at least one club photo before finishing setup.'
+        : 'Please enter promo text before finishing setup.');
+      updateFinishState();
+      return;
+    }
     try {
       if (btnFinish) btnFinish.disabled = true;
       await upsertClubFromDraft();
-      window.location.href = 'club home.html';
+      clearOnboardingDraft();
+      window.location.replace('onboarding-complete.html');
     } catch (e) {
       console.warn('Failed to finalize club setup', e);
       if (window.AppPrompt && typeof window.AppPrompt.toast === 'function') {

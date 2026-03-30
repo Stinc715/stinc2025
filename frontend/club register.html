@@ -1,10 +1,10 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Club Registration</title>
-  <link rel="stylesheet" href="theme.css?v=20260220b">
+  <link rel="stylesheet" href="theme.css?v=20260324a">
   <style>
     body { margin: 0; }
     .club-register-page {
@@ -106,11 +106,6 @@
     .form-shell {
       width: min(420px, 100%);
       padding: 0;
-    }
-    .top-link {
-      display: flex;
-      justify-content: flex-end;
-      margin-bottom: 14px;
     }
     .form-title {
       margin: 0 0 4px;
@@ -234,6 +229,28 @@
     }
     .verify-row input {
       flex: 1;
+    }
+    .verify-row-code {
+      display: block;
+    }
+    .code-slot-row {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 8px;
+      width: 100%;
+    }
+    .code-slot {
+      width: 100%;
+      height: 46px;
+      padding: 0 !important;
+      border-radius: 12px !important;
+      text-align: center;
+      font-size: 20px !important;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .code-slot::placeholder {
+      color: rgba(148, 163, 184, 0.7);
     }
     .verify-btn {
       border: 1px solid rgba(15, 23, 42, 0.16);
@@ -375,8 +392,6 @@
           <h2 class="form-title">Club registration</h2>
           <p class="form-lead">Fill in the details below to create your club account.</p>
 
-          <div id="statusMsg" class="status" role="status" aria-live="polite"></div>
-
           <div class="mb-3">
             <label for="clubEmail">Email</label>
             <input id="clubEmail" type="email" placeholder="Enter your email" autocomplete="email" />
@@ -384,20 +399,27 @@
           </div>
 
           <div class="verify-box">
-            <p class="verify-hint">Verify your email first. Password setup unlocks after verification.</p>
+            <p class="verify-hint">Verify your email before completing registration. Enter all 6 digits and verification will start automatically.</p>
             <div class="verify-row">
               <button id="clubSendCodeBtn" class="verify-btn" type="button">Send code</button>
             </div>
-            <div class="verify-row">
-              <input id="clubEmailCodeInput" type="text" placeholder="6-digit code" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" />
-              <button id="clubVerifyCodeBtn" class="verify-btn" type="button">Verify</button>
+            <div class="verify-row verify-row-code">
+              <div class="code-slot-row" role="group" aria-label="6-digit verification code">
+                <input class="code-slot" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="one-time-code" aria-label="Verification digit 1" />
+                <input class="code-slot" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Verification digit 2" />
+                <input class="code-slot" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Verification digit 3" />
+                <input class="code-slot" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Verification digit 4" />
+                <input class="code-slot" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Verification digit 5" />
+                <input class="code-slot" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Verification digit 6" />
+              </div>
+              <input id="clubEmailCodeInput" type="hidden" value="" />
             </div>
             <div id="clubVerifyMsg" class="verify-msg" role="status" aria-live="polite"></div>
           </div>
 
           <div class="mb-3">
             <label for="clubPass">Password</label>
-            <input id="clubPass" type="password" placeholder="Enter your password" autocomplete="new-password" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+" title="Must include uppercase, lowercase, and a number." disabled />
+            <input id="clubPass" type="password" placeholder="Enter your password" autocomplete="new-password" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+" title="Must include uppercase, lowercase, and a number." />
             <div id="strengthWrap" class="strength-wrap" aria-live="polite">
               <span class="strength-label">Strength:</span>
               <span id="passStrength" class="strength-pill">Low</span>
@@ -407,12 +429,14 @@
 
           <div class="mb-3">
             <label for="clubPass2">Confirm password</label>
-            <input id="clubPass2" type="password" placeholder="Re-enter your password" autocomplete="new-password" disabled />
+            <input id="clubPass2" type="password" placeholder="Re-enter your password" autocomplete="new-password" />
             <div id="clubPass2Err" class="error">Passwords do not match.</div>
           </div>
 
+          <div id="statusMsg" class="status" role="status" aria-live="polite"></div>
+
           <div class="btn-row">
-            <button id="clubRegisterBtn" class="btn form-btn" type="button" disabled>Next</button>
+            <button id="clubRegisterBtn" class="btn form-btn" type="button">Next</button>
           </div>
         </div>
       </section>
@@ -460,6 +484,7 @@
     const clubSendCodeBtn = document.getElementById('clubSendCodeBtn');
     const clubVerifyCodeBtn = document.getElementById('clubVerifyCodeBtn');
     const clubEmailCodeInput = document.getElementById('clubEmailCodeInput');
+    const clubCodeSlots = Array.from(document.querySelectorAll('.code-slot'));
     const clubVerifyMsg = document.getElementById('clubVerifyMsg');
     const strengthWrap = document.getElementById('strengthWrap');
     const passStrength = document.getElementById('passStrength');
@@ -469,6 +494,7 @@
     const clubPass2Err = document.getElementById('clubPass2Err');
     let verifiedClubEmail = '';
     let clubCodeTimer = null;
+    let clubVerifyInFlight = false;
 
     const showStatus = (text, isError) => {
       if (!statusMsg) return;
@@ -490,6 +516,47 @@
     };
 
     const normalizeEmail = (value) => String(value || '').trim().toLowerCase();
+    const syncCodeSlots = (value) => {
+      const digits = String(value || '').replace(/\D/g, '').slice(0, 6);
+      if (clubEmailCodeInput) clubEmailCodeInput.value = digits;
+      clubCodeSlots.forEach((slot, index) => {
+        const next = digits[index] || '';
+        if (slot.value !== next) slot.value = next;
+      });
+      return digits;
+    };
+    const readCurrentCode = () => String(clubEmailCodeInput?.value || '').trim();
+    const focusCodeSlot = (index) => {
+      const next = clubCodeSlots[index];
+      if (!next) return;
+      next.focus();
+      next.select?.();
+    };
+    const clearCodeEntry = (focusFirst = false) => {
+      syncCodeSlots('');
+      if (focusFirst) focusCodeSlot(0);
+    };
+    const updateCodeFromSlots = () => syncCodeSlots(
+      clubCodeSlots.map((slot) => String(slot.value || '').replace(/\D/g, '').slice(-1)).join('')
+    );
+    const applyCodeFromIndex = (rawValue, startIndex = 0) => {
+      const digits = String(rawValue || '').replace(/\D/g, '');
+      if (!clubCodeSlots.length) return syncCodeSlots(digits);
+      const nextValues = clubCodeSlots.map((slot) => String(slot.value || '').replace(/\D/g, '').slice(-1));
+      let writeIndex = Math.max(0, Math.min(startIndex, clubCodeSlots.length - 1));
+      for (const digit of digits) {
+        if (writeIndex >= clubCodeSlots.length) break;
+        nextValues[writeIndex] = digit;
+        writeIndex += 1;
+      }
+      const combined = syncCodeSlots(nextValues.join(''));
+      if (combined.length === 6 && !clubVerifyInFlight) {
+        handleVerifyCode({ auto: true });
+      } else if (writeIndex < clubCodeSlots.length) {
+        focusCodeSlot(writeIndex);
+      }
+      return combined;
+    };
 
     const setVerifyMessage = (text, type) => {
       if (!clubVerifyMsg) return;
@@ -532,18 +599,7 @@
 
     const setVerificationState = (email, verified) => {
       verifiedClubEmail = verified ? normalizeEmail(email) : '';
-      const unlock = !!verifiedClubEmail;
-      if (clubPass) {
-        clubPass.disabled = !unlock;
-        if (!unlock) clubPass.value = '';
-      }
-      if (clubPass2) {
-        clubPass2.disabled = !unlock;
-        if (!unlock) clubPass2.value = '';
-      }
-      if (clubRegisterBtn) clubRegisterBtn.disabled = !unlock;
-      if (!unlock) {
-        if (strengthWrap) strengthWrap.classList.remove('is-visible');
+      if (!verifiedClubEmail) {
         setErr(clubPassErr, false);
         setErr(clubPass2Err, false);
       }
@@ -551,7 +607,8 @@
 
     const resetVerification = (message) => {
       setVerificationState('', false);
-      if (clubEmailCodeInput) clubEmailCodeInput.value = '';
+      clearCodeEntry(false);
+      clubVerifyInFlight = false;
       if (message) setVerifyMessage(message, 'error');
       else setVerifyMessage('', '');
     };
@@ -584,6 +641,7 @@
     updateStrength();
 
     clubEmail?.addEventListener('input', () => {
+      clearStatus();
       const current = normalizeEmail(clubEmail.value);
       if (verifiedClubEmail && verifiedClubEmail !== current) {
         resetVerification('Email changed. Please verify the new email again.');
@@ -592,10 +650,58 @@
         if (!verifiedClubEmail) setVerifyMessage('', '');
       }
     });
-    clubEmailCodeInput?.addEventListener('input', () => {
-      const cleaned = String(clubEmailCodeInput.value || '').replace(/\D/g, '').slice(0, 6);
-      if (clubEmailCodeInput.value !== cleaned) clubEmailCodeInput.value = cleaned;
+    clubCodeSlots.forEach((slot, index) => {
+      slot.addEventListener('focus', () => {
+        slot.select?.();
+      });
+      slot.addEventListener('input', () => {
+        clearStatus();
+        const cleaned = String(slot.value || '').replace(/\D/g, '');
+        if (!cleaned) {
+          slot.value = '';
+          updateCodeFromSlots();
+          return;
+        }
+        if (cleaned.length > 1) {
+          applyCodeFromIndex(cleaned, index);
+          return;
+        }
+        slot.value = cleaned;
+        const combined = updateCodeFromSlots();
+        if (combined.length === 6 && !clubVerifyInFlight) {
+          handleVerifyCode({ auto: true });
+        } else if (index < clubCodeSlots.length - 1) {
+          focusCodeSlot(index + 1);
+        }
+      });
+      slot.addEventListener('keydown', (event) => {
+        if (event.key === 'Backspace' && !slot.value && index > 0) {
+          clubCodeSlots[index - 1].value = '';
+          updateCodeFromSlots();
+          focusCodeSlot(index - 1);
+          event.preventDefault();
+          return;
+        }
+        if (event.key === 'ArrowLeft' && index > 0) {
+          focusCodeSlot(index - 1);
+          event.preventDefault();
+          return;
+        }
+        if (event.key === 'ArrowRight' && index < clubCodeSlots.length - 1) {
+          focusCodeSlot(index + 1);
+          event.preventDefault();
+        }
+      });
+      slot.addEventListener('paste', (event) => {
+        const pasted = event.clipboardData?.getData('text') || '';
+        if (!pasted) return;
+        event.preventDefault();
+        clearStatus();
+        applyCodeFromIndex(pasted, index);
+      });
     });
+    clubPass?.addEventListener('input', clearStatus);
+    clubPass2?.addEventListener('input', clearStatus);
 
     const handleSendCode = async () => {
       const email = normalizeEmail(clubEmail?.value);
@@ -616,6 +722,7 @@
 
         if (res.ok) {
           setVerificationState('', false);
+          clearCodeEntry(true);
           setVerifyMessage(`Verification code sent to ${email}.`, '');
           startClubCooldown(60);
           return;
@@ -646,19 +753,21 @@
       }
     };
 
-    const handleVerifyCode = async () => {
+    const handleVerifyCode = async ({ auto = false } = {}) => {
       const email = normalizeEmail(clubEmail?.value);
-      const code = String(clubEmailCodeInput?.value || '').trim();
+      const code = readCurrentCode();
+      if (clubVerifyInFlight) return;
       if (!emailRe.test(email)) {
         setErr(clubEmailErr, true);
-        setVerifyMessage('Please enter a valid email first.', 'error');
+        setVerifyMessage(auto ? 'Enter a valid email so the code can be verified automatically.' : 'Please enter a valid email first.', 'error');
         return;
       }
       if (!/^\d{6}$/.test(code)) {
         setVerifyMessage('Verification code must be 6 digits.', 'error');
         return;
       }
-      clubVerifyCodeBtn.disabled = true;
+      clubVerifyInFlight = true;
+      if (clubVerifyCodeBtn) clubVerifyCodeBtn.disabled = true;
       setVerifyMessage('Verifying code...', '');
       try {
         const res = await fetch(REGISTER_CODE_VERIFY_ENDPOINT, {
@@ -666,10 +775,17 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, code })
         });
+        const currentEmail = normalizeEmail(clubEmail?.value);
+        const currentCode = readCurrentCode();
+        const inputChangedSinceRequest = currentEmail !== email || currentCode !== code;
+        if (inputChangedSinceRequest) {
+          return;
+        }
         if (!res.ok) {
           const t = await res.text().catch(() => '');
           setVerifyMessage(t || 'Verification failed. Please try again.', 'error');
           setVerificationState('', false);
+          clearCodeEntry(true);
           return;
         }
 
@@ -678,7 +794,16 @@
       } catch (err) {
         setVerifyMessage('Network error. Please try again.', 'error');
       } finally {
-        clubVerifyCodeBtn.disabled = false;
+        clubVerifyInFlight = false;
+        if (clubVerifyCodeBtn) clubVerifyCodeBtn.disabled = false;
+        const latestEmail = normalizeEmail(clubEmail?.value);
+        const latestCode = readCurrentCode();
+        const shouldRetryLatestCode = (latestEmail !== email || latestCode !== code)
+          && emailRe.test(latestEmail)
+          && /^\d{6}$/.test(latestCode);
+        if (shouldRetryLatestCode) {
+          handleVerifyCode({ auto: true });
+        }
       }
     };
 
@@ -709,23 +834,37 @@
     document.getElementById('clubRegisterBtn')?.addEventListener('click', async () => {
       clearStatus();
       let ok = true;
+      let statusError = '';
       const email = normalizeEmail(clubEmail.value);
       const pass = clubPass.value;
       const pass2 = clubPass2.value;
 
       setErr(clubEmailErr, !emailRe.test(email));
-      if (!emailRe.test(email)) ok = false;
+      if (!emailRe.test(email)) {
+        ok = false;
+        statusError = 'Please enter a valid email address.';
+      }
       if (normalizeEmail(verifiedClubEmail) !== email) {
         setVerifyMessage('Please verify this email before registering.', 'error');
         ok = false;
+        if (!statusError) statusError = 'Please verify your email code before continuing.';
       }
       const passStrong = passRe.test(pass);
       setErr(clubPassErr, !passStrong);
-      if (!passStrong) ok = false;
+      if (!passStrong) {
+        ok = false;
+        if (!statusError) statusError = 'Password must include uppercase, lowercase, and a number.';
+      }
       setErr(clubPass2Err, pass !== pass2);
-      if (pass !== pass2) ok = false;
+      if (pass !== pass2) {
+        ok = false;
+        if (!statusError) statusError = 'Passwords do not match.';
+      }
 
-      if (!ok) return;
+      if (!ok) {
+        showStatus(statusError || 'Please fix the highlighted fields and try again.', true);
+        return;
+      }
 
       const btn = clubRegisterBtn || document.getElementById('clubRegisterBtn');
       btn.disabled = true;
@@ -778,7 +917,8 @@
           }
 
           showStatus('Registered successfully! Redirecting to club profile...', false);
-          setTimeout(() => { window.location.href = 'onboarding.html'; }, 900);
+          try { sessionStorage.removeItem('clubPortal.onboardingDraft'); } catch (e) {}
+          setTimeout(() => { window.location.replace('onboarding.html'); }, 900);
         } else if (res.status === 409) {
           showStatus('This email is already registered. Please use a different email for club registration.', true);
         } else {

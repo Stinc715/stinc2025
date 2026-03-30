@@ -56,8 +56,20 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  let filePath = req.url === '/' ? '/index.html' : req.url;
-  filePath = path.join(FRONTEND_DIR, filePath);
+  const parsedUrl = new URL(req.url || '/', 'http://localhost');
+  const decodedPathname = decodeURIComponent(parsedUrl.pathname || '/');
+  const relativePath = decodedPathname === '/'
+    ? 'index.html'
+    : decodedPathname.replace(/^\/+/, '');
+  const normalizedRelativePath = path.normalize(relativePath);
+
+  if (normalizedRelativePath.startsWith('..')) {
+    res.writeHead(403, { 'Content-Type': 'text/plain' });
+    res.end('Forbidden');
+    return;
+  }
+
+  const filePath = path.join(FRONTEND_DIR, normalizedRelativePath);
 
   const extname = String(path.extname(filePath)).toLowerCase();
   const contentType = MIME_TYPES[extname] || 'application/octet-stream';

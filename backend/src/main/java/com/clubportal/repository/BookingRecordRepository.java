@@ -2,8 +2,11 @@ package com.clubportal.repository;
 
 import com.clubportal.model.BookingRecord;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import jakarta.persistence.LockModeType;
 
 import java.util.Collection;
 import java.util.List;
@@ -12,6 +15,7 @@ import java.util.Optional;
 public interface BookingRecordRepository extends JpaRepository<BookingRecord, Integer> {
     List<BookingRecord> findByUserId(Integer userId);
     List<BookingRecord> findByUserIdOrderByBookingTimeDesc(Integer userId);
+    Optional<BookingRecord> findFirstByUserIdAndTimeslotIdOrderByBookingTimeDesc(Integer userId, Integer timeslotId);
     Optional<BookingRecord> findFirstByUserIdAndTimeslotIdAndStatusInOrderByBookingTimeDesc(
             Integer userId,
             Integer timeslotId,
@@ -20,6 +24,7 @@ public interface BookingRecordRepository extends JpaRepository<BookingRecord, In
 
     long countByTimeslotIdAndStatusIn(Integer timeslotId, Collection<String> statuses);
     boolean existsByUserIdAndTimeslotIdAndStatusIn(Integer userId, Integer timeslotId, Collection<String> statuses);
+    boolean existsByBookingVerificationCode(String bookingVerificationCode);
     List<BookingRecord> findByTimeslotIdInAndStatusInOrderByBookingTimeAsc(Collection<Integer> timeslotIds, Collection<String> statuses);
     List<BookingRecord> findByTimeslotIdInOrderByBookingTimeAsc(Collection<Integer> timeslotIds);
 
@@ -36,4 +41,8 @@ public interface BookingRecordRepository extends JpaRepository<BookingRecord, In
             """)
     List<TimeslotCount> countByTimeslotIdsAndStatuses(@Param("timeslotIds") List<Integer> timeslotIds,
                                                       @Param("statuses") Collection<String> statuses);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select b from BookingRecord b where b.bookingId = :id")
+    Optional<BookingRecord> findByIdForUpdate(@Param("id") Integer id);
 }

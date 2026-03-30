@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Club onboarding - Registration complete</title>
+  <link rel="stylesheet" href="theme.css?v=20260324a">
+  <link rel="stylesheet" href="onboarding.css?v=20260327f">
+  <style>
+    html,
+    body,
+    body.page-with-footer {
+      background: #ffffff !important;
+    }
+
+    .success-main {
+      width: min(980px, calc(100vw - 28px));
+      min-height: calc(100vh - 190px);
+      display: grid;
+      place-items: center;
+      margin-top: 24px;
+      margin-bottom: 32px;
+      padding: 0;
+      position: relative;
+    }
+
+    .success-main::before {
+      content: none;
+    }
+
+    .success-card {
+      width: min(760px, 100%);
+      display: grid;
+      gap: 22px;
+      justify-items: center;
+      text-align: center;
+      padding: 48px 42px;
+      border-radius: 30px;
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.76);
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.1);
+      backdrop-filter: blur(12px);
+    }
+
+    .success-mark {
+      width: 88px;
+      height: 88px;
+      border-radius: 28px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      box-shadow: 0 22px 48px rgba(37, 99, 235, 0.26);
+      position: relative;
+    }
+
+    .success-mark::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 16px;
+      height: 34px;
+      border-right: 4px solid #ffffff;
+      border-bottom: 4px solid #ffffff;
+      transform: translate(-50%, -62%) rotate(45deg);
+    }
+
+    .success-kicker {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 14px;
+      border-radius: 999px;
+      background: rgba(37, 99, 235, 0.1);
+      color: #1d4ed8;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .success-card h1 {
+      margin: 0;
+      font-family: 'Fraunces', 'Times New Roman', serif;
+      font-size: clamp(38px, 4vw, 58px);
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+      color: #0f172a;
+      white-space: nowrap;
+    }
+
+    .success-card p {
+      margin: 0;
+      max-width: 560px;
+      color: #475569;
+      font-size: 18px;
+      line-height: 1.7;
+    }
+
+    .success-card strong {
+      color: #0f172a;
+    }
+
+    .success-club {
+      margin: -8px 0 0;
+      padding: 9px 14px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.06);
+      color: #1e293b;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .success-cta {
+      min-width: 260px;
+      justify-content: center;
+      padding-inline: 24px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+      box-shadow: 0 20px 42px rgba(37, 99, 235, 0.24) !important;
+      font-size: 16px;
+      text-decoration: none;
+    }
+
+    .success-footnote {
+      font-size: 14px;
+      color: #64748b;
+    }
+
+    @media (max-width: 700px) {
+      .success-main {
+        width: calc(100vw - 18px);
+        min-height: calc(100vh - 168px);
+      }
+
+      .success-main::before {
+        content: none;
+      }
+
+      .success-card {
+        padding: 34px 22px;
+        gap: 18px;
+        border-radius: 24px;
+      }
+
+      .success-mark {
+        width: 76px;
+        height: 76px;
+        border-radius: 24px;
+      }
+
+      .success-card p {
+        font-size: 16px;
+      }
+
+      .success-card h1 {
+        white-space: normal;
+      }
+
+      .success-cta {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body class="page-with-footer">
+  <main class="wrap success-main">
+    <section class="success-card">
+      <div class="success-mark" aria-hidden="true"></div>
+      <span class="success-kicker">Registration successful</span>
+      <h1>Your club account is ready.</h1>
+      <p id="completeClubName" class="success-club" hidden></p>
+      <p>You are now entering the <strong>club management page</strong>.</p>
+      <p>Next time, just log in from the homepage and you will be taken back to this club management page.</p>
+      <a id="completeGoBtn" class="btn primary success-cta" href="club home.html">Enter club management page</a>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__wrap">
+      <span class="site-footer__text">&copy; 2026 Club Booking Portal</span>
+      <div class="site-footer__actions">
+        <button class="site-footer__btn info-trigger" type="button" data-info="privacy">Privacy</button>
+        <button class="site-footer__btn info-trigger" type="button" data-info="terms">Terms</button>
+        <button class="site-footer__btn info-trigger" type="button" data-info="help">Help</button>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="onboarding-complete.js?v=20260328a"></script>
+  <script type="module" src="auth-modal.js?v=20260324a"></script>
+</body>
+</html>

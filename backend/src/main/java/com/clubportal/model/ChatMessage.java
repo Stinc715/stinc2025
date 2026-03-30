@@ -32,12 +32,21 @@ public class ChatMessage {
     @Column(name = "user_id", nullable = false)
     private Integer userId;
 
-    // Allowed values: USER, CLUB
+    // Allowed values: USER, CLUB, ASSISTANT, SYSTEM
     @Column(name = "sender", nullable = false, length = 10)
     private String sender;
 
     @Column(name = "message_text", nullable = false, length = 1000)
     private String messageText;
+
+    @Column(name = "answer_source", length = 40)
+    private String answerSource;
+
+    @Column(name = "matched_faq_id")
+    private Integer matchedFaqId;
+
+    @Column(name = "handoff_suggested", nullable = false)
+    private boolean handoffSuggested;
 
     @Column(name = "read_by_club", nullable = false)
     private boolean readByClub;
@@ -58,6 +67,12 @@ public class ChatMessage {
     public void setSender(String sender) { this.sender = sender; }
     public String getMessageText() { return messageText; }
     public void setMessageText(String messageText) { this.messageText = messageText; }
+    public String getAnswerSource() { return answerSource; }
+    public void setAnswerSource(String answerSource) { this.answerSource = answerSource; }
+    public Integer getMatchedFaqId() { return matchedFaqId; }
+    public void setMatchedFaqId(Integer matchedFaqId) { this.matchedFaqId = matchedFaqId; }
+    public boolean isHandoffSuggested() { return handoffSuggested; }
+    public void setHandoffSuggested(boolean handoffSuggested) { this.handoffSuggested = handoffSuggested; }
     public boolean isReadByClub() { return readByClub; }
     public void setReadByClub(boolean readByClub) { this.readByClub = readByClub; }
     public boolean isReadByUser() { return readByUser; }
@@ -65,4 +80,3 @@ public class ChatMessage {
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }
-

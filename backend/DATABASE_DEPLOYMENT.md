@@ -1,27 +1,38 @@
 ## Backend Database Setup
 
-The deployment target for this backend is MySQL.
+The default runtime profile for this backend is now `prod`, and that profile targets MySQL.
 
 Important detail:
 
-- local `dev` profile currently defaults to H2 unless datasource env vars are overridden
-- deployment scripts and schema files target MySQL
+- `prod` uses MySQL and `ddl-auto: validate`
+- local H2 is still available, but only when you explicitly set `SPRING_PROFILES_ACTIVE=dev`
+- deployment scripts and schema files target MySQL and now write `SPRING_PROFILES_ACTIVE=prod`
 
-### Required Environment Variables (Profile: `dev`)
+### Required Environment Variables (Profile: `prod`)
 
 - `DB_URL`
 - `DB_USERNAME`
 - `DB_PASSWORD`
 - `JWT_SECRET` (recommended)
-- `GOOGLE_OAUTH_CLIENT_ID` (optional; defaults to the value in `application-dev.yml`)
+- `GOOGLE_OAUTH_CLIENT_ID` (optional; defaults to the value in `application.yml`)
+- `APP_SECURITY_CORS_ALLOWED_ORIGIN_PATTERNS` (optional; defaults to the production domains)
 
 Example (PowerShell):
 
 ```powershell
+$env:SPRING_PROFILES_ACTIVE="prod"
 $env:DB_URL="jdbc:mysql://HOST:3306/DB?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC"
 $env:DB_USERNAME="YOUR_USER"
 $env:DB_PASSWORD="YOUR_PASSWORD"
 $env:JWT_SECRET="a-very-long-secret-key-..."
+```
+
+### Local H2 Development
+
+Use H2 only when you intentionally opt into the dev profile:
+
+```powershell
+$env:SPRING_PROFILES_ACTIVE="dev"
 ```
 
 ### Database Schema (9 Core Tables)

@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Club Booking Portal - Club Page</title>
-  <link rel="stylesheet" href="theme.css?v=20260220b">
+  <link rel="stylesheet" href="theme.css?v=20260324a">
 <style>
   :root {
     --bg: #f7f7f8;
@@ -25,17 +25,6 @@
     background: var(--bg);
     color: var(--ink);
     font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-  }
-
-  .preview-banner {
-    background: #fef08a;
-    border-bottom: 2px solid #eab308;
-    display: none;
-    padding: 12px 16px;
-    text-align: center;
-    font-weight: 600;
-    color: #854d0e;
-    font-size: 14px;
   }
 
   header {
@@ -93,44 +82,6 @@
     border-color: #2563eb;
   }
 
-  .user-menu {
-    position: relative;
-    display: inline-block;
-  }
-
-  .user-menu .menu {
-    position: absolute;
-    top: calc(100% + 4px);
-    right: 0;
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    box-shadow: 0 12px 28px rgba(15, 23, 42, .12);
-    padding: 6px 0;
-    display: none;
-    min-width: 140px;
-    z-index: 20;
-  }
-
-  .user-menu .menu.open {
-    display: block;
-  }
-
-  .user-menu .menu button {
-    width: 100%;
-    background: none;
-    border: none;
-    padding: 8px 14px;
-    text-align: left;
-    font-size: 13px;
-    color: var(--ink);
-    cursor: pointer;
-  }
-
-  .user-menu .menu button:hover {
-    background: #f3f4f6;
-  }
-
   .btn.red {
     background: #b91c1c;
     border-color: #b91c1c;
@@ -155,7 +106,7 @@
   }
 
   .wrap > .card + .card {
-    margin-top: 18px;
+    margin-top: 72px;
   }
 
   .card .pad {
@@ -351,6 +302,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    position: relative;
     transition: background .18s ease, border-color .18s ease, transform .18s ease;
   }
 
@@ -371,18 +323,7 @@
   }
 
   .club-chat-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.36);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity .2s ease;
-    z-index: 2500;
-  }
-
-  .club-chat-backdrop.open {
-    opacity: 1;
-    pointer-events: auto;
+    display: none;
   }
 
   .club-chat-panel {
@@ -417,8 +358,14 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
-    background: linear-gradient(135deg, #f8fbff, #eff6ff);
+    gap: 12px;
+    background: #fff;
+  }
+
+  .club-chat-head-copy {
+    min-width: 0;
+    display: grid;
+    gap: 3px;
   }
 
   .club-chat-head h3 {
@@ -451,6 +398,16 @@
     line-height: 1;
   }
 
+  .header-chat-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    font-size: 10px;
+  }
+
   .club-chat-close {
     width: 30px;
     height: 30px;
@@ -480,6 +437,205 @@
     padding: 10px 12px;
   }
 
+  .club-chat-handoff-card {
+    border: 1px solid #bfdbfe;
+    background: linear-gradient(180deg, #eff6ff 0%, #ffffff 100%);
+    border-radius: 14px;
+    padding: 12px;
+    display: grid;
+    gap: 10px;
+    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.08);
+  }
+
+  .club-chat-handoff-card h4 {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.25;
+    color: #1e3a8a;
+  }
+
+  .club-chat-handoff-card p {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.45;
+    color: #334155;
+  }
+
+  .club-chat-handoff-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .club-chat-handoff-btn {
+    border: 1px solid #2563eb;
+    background: #2563eb;
+    color: #fff;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .club-chat-head-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+  }
+
+  .club-chat-launcher {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    padding: 12px 14px;
+    border-radius: 18px;
+    border: 1px solid #bfdbfe;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 18px 34px rgba(15, 23, 42, 0.16);
+    color: #0f172a;
+    cursor: pointer;
+    transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+  }
+
+  .club-chat-launcher:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 22px 40px rgba(15, 23, 42, 0.18);
+  }
+
+  .club-chat-launcher.hidden {
+    display: none;
+  }
+
+  .club-chat-launcher-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    font-size: 18px;
+  }
+
+  .club-chat-launcher-copy {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+    text-align: left;
+    flex: 1 1 auto;
+  }
+
+  .club-chat-launcher-title {
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  .club-chat-launcher-subtitle {
+    font-size: 11px;
+    line-height: 1.3;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .club-chat-toast {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    border: 1px solid #bfdbfe;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 22px 44px rgba(15, 23, 42, 0.18);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(10px);
+    transition: opacity .18s ease, transform .18s ease;
+    overflow: hidden;
+  }
+
+  .club-chat-toast.open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .club-chat-toast-body {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    padding: 14px 16px 12px;
+    display: grid;
+    gap: 4px;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .club-chat-toast-eyebrow {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #1d4ed8;
+  }
+
+  .club-chat-toast-title {
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.25;
+    color: #0f172a;
+  }
+
+  .club-chat-toast-text {
+    font-size: 12px;
+    line-height: 1.45;
+    color: #475569;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .club-chat-toast-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: #64748b;
+    cursor: pointer;
+  }
+
+  .club-chat-handoff-btn:hover {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+  }
+
+  .club-chat-handoff-btn:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+
+  .club-chat-handoff-note {
+    font-size: 11px;
+    color: #64748b;
+  }
+
   .club-chat-msg {
     display: grid;
     gap: 4px;
@@ -488,6 +644,11 @@
 
   .club-chat-msg.user {
     justify-items: end;
+  }
+
+  .club-chat-msg.assistant,
+  .club-chat-msg.system {
+    justify-items: start;
   }
 
   .club-chat-row {
@@ -548,10 +709,58 @@
     color: #1e3a8a;
   }
 
+  .club-chat-msg.assistant .club-chat-bubble,
+  .club-chat-msg.system .club-chat-bubble {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+    color: #166534;
+  }
+
   .club-chat-meta {
     font-size: 11px;
     color: #64748b;
     line-height: 1.2;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .club-chat-tag {
+    display: inline-flex;
+    align-items: center;
+    min-height: 20px;
+    padding: 0 8px;
+    border-radius: 999px;
+    border: 1px solid #dbe2ea;
+    background: #fff;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+
+  .club-chat-tag.verified {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+    color: #1d4ed8;
+  }
+
+  .club-chat-tag.robot {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+    color: #15803d;
+  }
+
+  .club-chat-tag.handoff {
+    border-color: #fde68a;
+    background: #fffbeb;
+    color: #b45309;
+  }
+
+  .club-chat-tag.pending {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+    color: #475569;
   }
 
   .club-chat-form {
@@ -592,8 +801,11 @@
     border-color: #1e40af;
   }
 
-  body.club-chat-open {
-    overflow: hidden;
+  .club-chat-send:disabled {
+    opacity: 0.72;
+    cursor: wait;
+    background: #93c5fd;
+    border-color: #93c5fd;
   }
 
   @media (max-width: 760px) {
@@ -608,50 +820,13 @@
       width: auto;
       max-height: 80vh;
     }
-  }
-.kpi {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-  }
 
-  .k {
-    background: #f3f4f6;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 8px;
+    .club-chat-launcher,
+    .club-chat-toast {
+      width: 100%;
+      max-width: none;
+    }
   }
-
-  .k .num {
-    font-size: 18px;
-    font-weight: 700;
-  }
-
-  .table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-
-  .table th,
-  .table td {
-    padding: 10px;
-    border-top: 1px solid var(--line);
-    text-align: left;
-  }
-
-  .crumbs {
-    font-size: 12px;
-    color: var(--muted);
-    display: flex;
-    gap: 6px;
-    align-items: center;
-  }
-
-  .crumbs a {
-    color: #2563eb;
-  }
-
   select {
     height: 36px;
     border: 1px solid var(--line);
@@ -669,6 +844,40 @@
 
   #schedule {
     overflow-x: auto;
+  }
+
+  .club-booking-layout {
+    display: block;
+    position: relative;
+  }
+
+  .booking-stage-card .pad {
+    padding-bottom: 24px;
+  }
+
+  .booking-detail-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+    gap: 22px;
+    align-items: start;
+    margin-top: 14px;
+  }
+
+  .booking-side-rail {
+    position: sticky;
+    top: 80px;
+    align-self: start;
+    display: grid;
+    gap: 18px;
+  }
+
+  .booking-chat-rail {
+    display: grid;
+    gap: 12px;
+  }
+
+  .membership-rail {
+    position: static;
   }
 
   .schedule-grid {
@@ -902,12 +1111,26 @@
     align-items: center;
     gap: 6px;
     font-size: 14px;
-    color: #0066cc;
+    font-weight: 600;
+    color: #64748b;
     text-decoration: none;
-    border: none;
-    background: none;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    background: rgba(255, 255, 255, 0.9);
     cursor: pointer;
-    padding: 8px 0;
+    padding: 8px 12px;
+    border-radius: 999px;
+    box-shadow: 0 8px 18px rgba(29, 29, 31, 0.08);
+    transition: color .2s ease, border-color .2s ease, background .2s ease, transform .2s ease, box-shadow .2s ease;
+  }
+  .back-link::before {
+    content: '<';
+  }
+  .back-link:hover {
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.96);
+    border-color: rgba(100, 116, 139, 0.28);
+    box-shadow: 0 12px 22px rgba(29, 29, 31, 0.12);
+    transform: translateY(-1px);
   }
   .club-title-trigger {
     display: inline-flex;
@@ -930,6 +1153,14 @@
   .membership-section {
     display: grid;
     gap: 12px;
+    padding: 18px 18px 16px;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 22px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.8),
+      0 12px 28px rgba(15, 23, 42, 0.05);
   }
 
   .membership-head {
@@ -943,6 +1174,22 @@
   .membership-copy {
     display: grid;
     gap: 4px;
+  }
+
+  .membership-copy-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    min-height: 24px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
   }
 
   .membership-head h3 {
@@ -1093,24 +1340,52 @@
     font-weight: 700;
     line-height: 1.2;
   }
+
+  @media (max-width: 980px) {
+    .booking-detail-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .booking-side-rail {
+      position: static;
+    }
+  }
+
+  @media (min-width: 1500px) {
+    .club-booking-layout {
+      overflow: visible;
+    }
+
+    .booking-detail-layout {
+      display: block;
+      margin-top: 14px;
+    }
+
+    .booking-side-rail {
+      position: absolute;
+      top: -14px;
+      left: calc(100% + 56px);
+      width: 320px;
+      max-width: 320px;
+      z-index: 1;
+    }
+  }
 </style>
 </head>
 <body class="page-with-footer">
   <!-- 棰勮鐘舵€佹彁绀猴細鏄剧ず杩欐槸涓婃灦鍓嶇殑棰勮鐗堟湰 -->
-  <div class="preview-banner">
-    鈿狅笍 Preview: This is a preview before changes go live
-  </div>
 
   <!-- 椤堕儴瀵艰埅鏍忥細鍖呭惈缃戠珯鏍囬銆佽繑鍥為椤甸摼鎺ュ拰鐢ㄦ埛鐧诲綍/娉ㄥ唽鍏ュ彛 -->
   <header>
     <div class="wrap preview-topbar">
       <div class="top-back-wrap">
-        <button class="back-link" id="btnBack" type="button" aria-label="Back">&larr; Back</button>
+        <button class="back-link" id="btnBack" type="button" aria-label="Back">Back</button>
       </div>
       <h2 id="pageTitle" class="preview-title">Club</h2>
       <div class="top-right-wrap">
         <button id="openClubChatBtn" class="header-chat-btn" type="button" aria-label="Talk with club" aria-haspopup="dialog" aria-controls="clubChatPanel">
           <span class="header-chat-icon" aria-hidden="true">&#x1F4AC;</span>
+          <span id="clubChatBadge" class="club-chat-badge header-chat-badge" hidden>0</span>
         </button>
       </div>
     </div>
@@ -1130,7 +1405,7 @@
       <p class="muted" id="clubDesc">Suitable for all levels, regular evening training and friendlies.</p>
       <div class="chips">
         <div id="clubCategoryChips" class="category-chip-list">
-          <span class="chip"><span id="clubCategoryIcon" aria-hidden="true">&#x1F3DF;</span> <span id="clubCategory">Badminton</span></span>
+          <span class="chip"><span aria-hidden="true">&#x1F3DF;</span> <span>Badminton</span></span>
         </div>
         <span class="chip">
           <span aria-hidden="true">&#x1F4CD;</span>
@@ -1149,27 +1424,51 @@
     
 
     <!-- 鎺掔▼绠＄悊鍗＄墖锛氬寘鍚惀涓氭椂闂磋缃€佸満鍦扮鐞嗗拰鎺掔▼缃戞牸 -->
-    <div id="clubMembershipSection" class="card"><div class="pad membership-section">
-      <div class="membership-head">
-        <div class="membership-copy">
-          <h3>Member pricing</h3>
-          <p id="clubMembershipIntro">Optional passes can reduce booking prices at this club.</p>
+    <section class="club-booking-layout" aria-label="Booking and membership">
+      <div class="card booking-stage-card"><div class="pad">
+        <div id="weekTabs" class="week-tabs" aria-label="Next 7 days"></div>
+        <div class="booking-detail-layout">
+          <div id="schedule"></div>
+          <div class="booking-side-rail">
+            <aside id="clubMembershipSection" class="membership-rail"><div class="membership-section">
+              <div class="membership-head">
+                <div class="membership-copy">
+                  <span class="membership-copy-eyebrow">Booking extras</span>
+                  <h3>Member pricing</h3>
+                  <p id="clubMembershipIntro">Check member discounts while you review available slots.</p>
+                </div>
+                <button id="clubMembershipToggle" class="membership-toggle" type="button" aria-expanded="false" aria-controls="membershipPlansWrap">View plans</button>
+              </div>
+              <div id="clubMembershipSummary" class="membership-summary" style="display:none;"></div>
+              <div id="clubMembershipStatus" class="membership-status" style="display:none;"></div>
+              <div id="membershipPlansWrap" class="membership-plans-wrap" hidden>
+                <div id="membershipPlans" class="membership-grid">
+                  <div class="muted">Loading memberships...</div>
+                </div>
+              </div>
+            </div></aside>
+            <div class="booking-chat-rail">
+              <div id="clubChatToast" class="club-chat-toast" aria-live="polite" aria-hidden="true">
+                <button id="clubChatToastAction" class="club-chat-toast-body" type="button">
+                  <span class="club-chat-toast-eyebrow">New message</span>
+                  <span id="clubChatToastTitle" class="club-chat-toast-title">Club reply</span>
+                  <span id="clubChatToastText" class="club-chat-toast-text"></span>
+                </button>
+                <button id="dismissClubChatToastBtn" class="club-chat-toast-close" type="button" aria-label="Dismiss notification">&times;</button>
+              </div>
+              <button id="clubChatLauncher" class="club-chat-launcher" type="button" aria-label="Open club chat" aria-controls="clubChatPanel" aria-expanded="false">
+                <span class="club-chat-launcher-icon" aria-hidden="true">&#x1F4AC;</span>
+                <span class="club-chat-launcher-copy">
+                  <span class="club-chat-launcher-title">Chat with club</span>
+                  <span id="clubChatLauncherSubtitle" class="club-chat-launcher-subtitle">Ask while you browse</span>
+                </span>
+                <span id="clubChatLauncherBadge" class="club-chat-badge" hidden>0</span>
+              </button>
+            </div>
+          </div>
         </div>
-        <button id="clubMembershipToggle" class="membership-toggle" type="button" aria-expanded="false" aria-controls="membershipPlansWrap">View plans</button>
-      </div>
-      <div id="clubMembershipSummary" class="membership-summary" style="display:none;"></div>
-      <div id="clubMembershipStatus" class="membership-status" style="display:none;"></div>
-      <div id="membershipPlansWrap" class="membership-plans-wrap" hidden>
-        <div id="membershipPlans" class="membership-grid">
-          <div class="muted">Loading memberships...</div>
-        </div>
-      </div>
-    </div></div>
-
-        <div class="card"><div class="pad">
-      <div id="weekTabs" class="week-tabs" aria-label="Next 7 days"></div>
-      <div id="schedule" style="margin-top:12px"></div>
-    </div></div>
+      </div></div>
+    </section>
 
     <!-- 鎴愬憳鍒楄〃鍗＄墖锛氬睍绀轰勘涔愰儴鎴愬憳鍙婄鐞嗘搷浣?-->
 <!-- 椋庨櫓鎿嶄綔鍖猴細鍒犻櫎淇变箰閮ㄦ垨閲嶇疆鏁版嵁 -->
@@ -1199,13 +1498,12 @@
   <div id="clubChatBackdrop" class="club-chat-backdrop" aria-hidden="true"></div>
   <aside id="clubChatPanel" class="club-chat-panel" aria-hidden="true">
     <div class="club-chat-head">
-      <div>
+      <div class="club-chat-head-copy">
         <h3 id="clubChatTitle">Talk with club</h3>
-        <p>Quick questions about booking and venue details.</p>
+        <p id="clubChatSubtitle">Keep chatting while you browse this club.</p>
       </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <span id="clubChatBadge" class="club-chat-badge">0</span>
-        <button id="closeClubChatBtn" class="club-chat-close" type="button" aria-label="Close chat">&times;</button>
+      <div class="club-chat-head-actions">
+        <button id="closeClubChatBtn" class="club-chat-close" type="button" aria-label="Minimize chat">−</button>
       </div>
     </div>
     <div id="clubChatThread" class="club-chat-thread" aria-live="polite"></div>
@@ -1214,7 +1512,7 @@
       <button class="club-chat-send" type="submit">Send</button>
     </form>
   </aside>
-  <script src="ui-prompt.js?v=20260220b"></script>
+  <script type="module" src="ui-prompt.js?v=20260220b"></script>
   <script>
     // 1. 鐢ㄦ埛浼氳瘽绠＄悊
     // 璐熻矗妫€鏌ユ湰鍦板瓨鍌ㄤ腑鐨勭櫥褰曠姸鎬侊紝骞舵牴鎹敤鎴风被鍨嬶紙鏅€氱敤鎴锋垨淇变箰閮ㄧ鐞嗗憳锛夋覆鏌撻《閮ㄥ鑸爮鐨勭敤鎴峰尯鍩熴€?
@@ -1287,143 +1585,10 @@
         : [selected?.category].filter(Boolean);
 
       const clubTitleEl = document.getElementById('clubTitle');
-      const clubDescEl = document.getElementById('clubDesc');
       if (name && clubTitleEl) clubTitleEl.textContent = name;
       if (tags.length) applyCategoryChip(tags);
       setPageTitle(name || clubTitleEl?.textContent || '');
     })();
-
-    const userArea = document.getElementById('userArea');
-    if (userArea) {
-      let savedUser = null;
-      try {
-        savedUser = JSON.parse(localStorage.getItem('loggedUser') || 'null');
-      } catch (err) {
-        savedUser = null;
-        localStorage.removeItem('loggedUser');
-      }
-
-      if (savedUser) {
-        // 宸茬櫥褰曪細娓叉煋鐢ㄦ埛鑿滃崟锛圡y/Club 鎸夐挳鍙婁笅鎷夎彍鍗曪級
-        const isClub = (savedUser && savedUser.type) === 'club';
-        const targetHref = isClub ? 'club.html' : 'user.html';
-        const myLabel = isClub ? 'Club' : 'My';
-        userArea.innerHTML = `
-          <div class="user-menu">
-            <button id="btnMy" class="btn blue" type="button" aria-haspopup="true" aria-expanded="false">${myLabel}</button>
-            <div class="menu" id="myMenu" role="menu">
-              <button type="button" id="btnDetails" role="menuitem">Details</button>
-              <button type="button" id="btnLogout" role="menuitem">Logout</button>
-            </div>
-          </div>
-        `;
-
-        const myBtn = document.getElementById('btnMy');
-        const menuEl = document.getElementById('myMenu');
-        const detailsBtn = document.getElementById('btnDetails');
-        const logoutBtn = document.getElementById('btnLogout');
-
-        // 缁戝畾璇︽儏鎸夐挳浜嬩欢
-    if (detailsBtn) {
-          detailsBtn.addEventListener('click', () => {
-            window.location.href = targetHref;
-          });
-        }
-
-        // 缁戝畾鐧诲嚭閫昏緫
-        if (logoutBtn) {
-          logoutBtn.addEventListener('click', () => {
-            localStorage.removeItem('loggedUser');
-            location.reload();
-          });
-        }
-
-        // 涓嬫媺鑿滃崟浜や簰閫昏緫锛堢偣鍑汇€佹偓鍋溿€侀敭鐩樻敮鎸侊級
-        if (myBtn && menuEl) {
-          let closeTimer = null;
-          const wrapper = userArea ? userArea.querySelector('.user-menu') : null;
-          const CLOSE_DELAY = 400;
-
-          const clearCloseTimer = () => {
-            if (closeTimer) {
-              clearTimeout(closeTimer);
-              closeTimer = null;
-            }
-          };
-
-          const openMenu = () => {
-            clearCloseTimer();
-            menuEl.classList.add('open');
-            myBtn.setAttribute('aria-expanded', 'true');
-          };
-
-          const closeMenu = () => {
-            clearCloseTimer();
-            menuEl.classList.remove('open');
-            myBtn.setAttribute('aria-expanded', 'false');
-          };
-
-          const scheduleClose = (delay = CLOSE_DELAY) => {
-            clearCloseTimer();
-            closeTimer = window.setTimeout(() => {
-              menuEl.classList.remove('open');
-              myBtn.setAttribute('aria-expanded', 'false');
-              closeTimer = null;
-            }, delay);
-          };
-
-          myBtn.addEventListener('click', (evt) => {
-            evt.preventDefault();
-            if (menuEl.classList.contains('open')) {
-              closeMenu();
-            } else {
-              openMenu();
-            }
-          });
-
-          myBtn.addEventListener('focus', openMenu);
-          myBtn.addEventListener('mouseenter', openMenu);
-          myBtn.addEventListener('keydown', (evt) => {
-            if (evt.key === 'Escape') {
-              closeMenu();
-              myBtn.blur();
-            }
-          });
-
-          menuEl.addEventListener('focusin', openMenu);
-          menuEl.addEventListener('mouseenter', openMenu);
-          menuEl.addEventListener('mouseleave', () => scheduleClose());
-          menuEl.addEventListener('keydown', (evt) => {
-            if (evt.key === 'Escape') {
-              closeMenu();
-              myBtn.focus();
-            }
-          });
-
-          if (wrapper) {
-            wrapper.addEventListener('mouseenter', openMenu);
-            wrapper.addEventListener('mouseleave', () => scheduleClose());
-          }
-
-          document.addEventListener('click', (evt) => {
-            if (wrapper && wrapper.contains(evt.target)) {
-              return;
-            }
-            closeMenu();
-          });
-        }
-      } else {
-        // 鏈櫥褰曪細缁戝畾鐧诲綍/娉ㄥ唽鎸夐挳浜嬩欢
-        const loginBtn = document.getElementById('btnLogin');
-        const registerBtn = document.getElementById('btnRegister');
-        const openAuth = (mode) => {
-          if (window.openAuthModal) return window.openAuthModal(mode);
-          window.location.href = mode === 'register' ? 'login.html#register' : 'login.html#login';
-        };
-        if (loginBtn) loginBtn.addEventListener('click', () => openAuth('login'));
-        if (registerBtn) registerBtn.addEventListener('click', () => openAuth('register'));
-      }
-    }
 
     // 2. 婕旂ず鏁版嵁涓庣姸鎬佺鐞?
     // 棰勭暀鍚庣鎺ュ彛锛氬綋鎺ュ叆鐪熷疄鏁版嵁鏃讹紝灏?DB_API_BASE 鎸囧悜鍚庣鍦板潃銆?
@@ -1514,6 +1679,17 @@
         return null;
       }
     };
+    const buildClubPageHref = (hash = '') => {
+      const clubId = getClubId();
+      const base = clubId ? `club.html?club=${encodeURIComponent(String(clubId))}` : 'club.html';
+      const fragment = String(hash || '').trim();
+      if (!fragment) return base;
+      return `${base}${fragment.startsWith('#') ? fragment : `#${fragment}`}`;
+    };
+    const buildLoginHref = (returnTo = '') => {
+      const target = String(returnTo || buildClubPageHref()).trim() || 'club.html';
+      return `login.html?returnTo=${encodeURIComponent(target)}#login`;
+    };
 
     const scheduleEl = document.getElementById('schedule');
     const weekTabsEl = document.getElementById('weekTabs');
@@ -1529,20 +1705,29 @@
     const clubMembershipToggleEl = document.getElementById('clubMembershipToggle');
     const clubMembershipIntroEl = document.getElementById('clubMembershipIntro');
     const clubMembershipSectionEl = document.getElementById('clubMembershipSection');
-    const clubCategoryEl = document.getElementById('clubCategory');
     const clubHeroScrollEl = document.getElementById('clubHeroScroll');
     const clubHeroDotsEl = document.getElementById('clubHeroDots');
     const clubHeroPrevEl = document.getElementById('clubHeroPrev');
     const clubHeroNextEl = document.getElementById('clubHeroNext');
     const openClubChatBtnEl = document.getElementById('openClubChatBtn');
     const closeClubChatBtnEl = document.getElementById('closeClubChatBtn');
+    const clubChatLauncherEl = document.getElementById('clubChatLauncher');
+    const clubChatLauncherBadgeEl = document.getElementById('clubChatLauncherBadge');
+    const clubChatLauncherSubtitleEl = document.getElementById('clubChatLauncherSubtitle');
     const clubChatPanelEl = document.getElementById('clubChatPanel');
     const clubChatBackdropEl = document.getElementById('clubChatBackdrop');
+    const clubChatToastEl = document.getElementById('clubChatToast');
+    const clubChatToastActionEl = document.getElementById('clubChatToastAction');
+    const clubChatToastTitleEl = document.getElementById('clubChatToastTitle');
+    const clubChatToastTextEl = document.getElementById('clubChatToastText');
+    const dismissClubChatToastBtnEl = document.getElementById('dismissClubChatToastBtn');
     const clubChatThreadEl = document.getElementById('clubChatThread');
     const clubChatFormEl = document.getElementById('clubChatForm');
     const clubChatInputEl = document.getElementById('clubChatInput');
+    const clubChatSendBtnEl = clubChatFormEl?.querySelector('.club-chat-send');
     const clubChatBadgeEl = document.getElementById('clubChatBadge');
     const clubChatTitleEl = document.getElementById('clubChatTitle');
+    const clubChatSubtitleEl = document.getElementById('clubChatSubtitle');
 
     let heroImageUrls = [];
     let heroActiveIndex = 0;
@@ -1840,11 +2025,6 @@
       }
     };
 
-    const currentPageUrl = () => {
-      const file = window.location.pathname.split('/').pop() || 'club.html';
-      return `${file}${window.location.search || ''}`;
-    };
-
     const formatDateLabel = (raw) => {
       if (!raw) return '--';
       const text = String(raw).trim();
@@ -2004,68 +2184,71 @@
       renderMembershipSection();
     };
 
-    const consumePaymentFeedback = () => {
-      const data = safeParseJSON(localStorage.getItem('paymentFeedback') || 'null');
-      if (!data || typeof data !== 'object') return;
-      localStorage.removeItem('paymentFeedback');
-      if (data.message) showPageToast(String(data.message), 'info');
+    const startCheckoutSession = async (payload, failureMessage) => {
+      const token = localStorage.getItem('token') || '';
+      if (!token) {
+        showPageToast('Your session has expired. Please log in again.', 'error');
+        return;
+      }
+
+      try {
+        const res = await authFetch('/api/payments/checkout-sessions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload || {})
+        });
+
+        if (!res.ok) {
+          const text = await res.text().catch(() => '');
+          if (res.status === 401) {
+            showPageToast(text || 'Please log in again to continue.', 'error');
+            return;
+          }
+          showPageToast(text || failureMessage || 'Unable to start checkout right now.', 'error');
+          return;
+        }
+
+        const data = await res.json().catch(() => null);
+        const target = String(data?.checkoutUrl || data?.paymentPageUrl || '').trim();
+        if (!target) {
+          showPageToast('Checkout session was created, but no payment URL was returned.', 'error');
+          return;
+        }
+        window.location.href = target;
+      } catch (err) {
+        console.warn('[club] checkout error', err);
+        showPageToast(failureMessage || 'Unable to start checkout right now.', 'error');
+      }
     };
 
-    const goToMembershipPayment = (plan) => {
+    const goToMembershipPayment = async (plan) => {
       const loggedUser = getLoggedUser();
-      const token = localStorage.getItem('token') || '';
       if (!loggedUser) {
-        try {
-          localStorage.setItem('postLoginRedirect', JSON.stringify({ page: 'club', clubId: getClubId() }));
-        } catch {}
-        window.location.href = 'login.html#login';
+        window.location.href = buildLoginHref(buildClubPageHref('membershipPlansWrap'));
         return;
       }
       if (loggedUser.type === 'club') {
         showPageToast('Club accounts cannot purchase memberships. Please use a user account.', 'error');
         return;
       }
-      if (!token) {
-        showPageToast('Your session has expired. Please log in again.', 'error');
-        return;
-      }
 
-      const payload = {
-        paymentType: 'membership',
-        sourcePage: 'club',
-        clubId: String(getClubId() || ''),
-        clubName: String(clubContactMeta?.name || clubTitleEl?.textContent || 'Club'),
-        planId: Number(plan?.planId),
-        planName: String(plan?.planName || 'Membership'),
-        durationDays: Number(plan?.durationDays || 0),
-        discountPercent: Number(plan?.discountPercent || 0),
-        price: parsePrice(plan?.price),
-        returnUrl: currentPageUrl()
-      };
-      localStorage.setItem('pendingPayment', JSON.stringify(payload));
-      window.location.href = 'payment.html';
+      await startCheckoutSession(
+        {
+          type: 'MEMBERSHIP',
+          planId: Number(plan?.planId)
+        },
+        'Unable to start membership checkout right now.'
+      );
     };
 
-    const goToMockPayment = (slot) => {
-      const payload = {
-        paymentType: 'booking',
-        sourcePage: 'club',
-        clubId: String(getClubId() || ''),
-        clubName: String(clubContactMeta?.name || clubTitleEl?.textContent || 'Club'),
-        timeslotId: Number(slot?.timeslotId),
-        venueName: String(slot?.venueName || ''),
-        startTime: String(slot?.startTime || ''),
-        endTime: String(slot?.endTime || ''),
-        maxCapacity: Number(slot?.maxCapacity),
-        remaining: Number(slot?.remaining),
-        price: parsePrice(slot?.price),
-        basePrice: parsePrice(slot?.basePrice),
-        membershipApplied: Boolean(slot?.membershipApplied),
-        membershipPlanName: String(slot?.membershipPlanName || ''),
-        returnUrl: currentPageUrl()
-      };
-      localStorage.setItem('pendingPayment', JSON.stringify(payload));
-      window.location.href = 'payment.html';
+    const goToMockPayment = async (slot) => {
+      await startCheckoutSession(
+        {
+          type: 'BOOKING',
+          timeslotId: Number(slot?.timeslotId)
+        },
+        'Unable to start booking checkout right now.'
+      );
     };
 
     const initWeek = () => {
@@ -2350,10 +2533,7 @@
           }
 
           if (!loggedUser) {
-            try {
-              localStorage.setItem('postLoginRedirect', JSON.stringify({ page: 'club', clubId: getClubId() }));
-            } catch {}
-            window.location.href = 'login.html#login';
+            window.location.href = buildLoginHref(buildClubPageHref('schedule'));
             return;
           }
           if (loggedUser.type === 'club') {
@@ -2478,7 +2658,6 @@
       renderScheduleForSelectedDay();
     };
 
-    consumePaymentFeedback();
     initBoard();
 
     const CHAT_POLL_VISIBLE_MS = 2500;
@@ -2489,12 +2668,64 @@
     let chatLoadError = '';
     let chatPollTimer = null;
     let chatPollInFlight = false;
+    let chatStream = null;
+    let chatStreamConnected = false;
+    let chatSessionId = null;
+    let chatSessionMode = 'AI';
+    let chatLastPromptedMessageId = null;
+    let chatInlineHandoffPrompt = null;
+    let chatSendInFlight = false;
+    let pendingUserChatMessage = null;
+    let pendingUserChatMessageSeq = 0;
+    let chatWidgetOpen = false;
+    let chatBackgroundSyncStarted = false;
+    let chatHasHydrated = false;
+    let chatLatestIncomingMessageKey = '';
+    let chatToastTimer = null;
+
+    const HUMAN_HANDOFF_KEYWORDS = [
+      '人工',
+      '人工客服',
+      '人工处理',
+      '真人',
+      '转人工',
+      '人工帮助',
+      'human',
+      'human agent',
+      'human support',
+      'real person',
+      'staff'
+    ];
 
     const sanitizeChatText = (raw) => {
       return String(raw || '')
         .replace(/\r\n/g, '\n')
         .replace(/\u0000/g, '')
         .trim();
+    };
+
+    const createPendingUserChatMessage = (text) => ({
+      messageId: `pending-user-${++pendingUserChatMessageSeq}`,
+      sender: 'user',
+      text,
+      author: 'You',
+      createdAt: new Date().toISOString(),
+      answerSource: '',
+      matchedFaqId: null,
+      handoffSuggested: false,
+      pending: true
+    });
+
+    const setClubChatSendingState = (busy) => {
+      chatSendInFlight = Boolean(busy);
+      if (clubChatInputEl) {
+        clubChatInputEl.disabled = chatSendInFlight;
+        clubChatInputEl.placeholder = chatSendInFlight ? 'Sending message...' : 'Type your message...';
+      }
+      if (clubChatSendBtnEl) {
+        clubChatSendBtnEl.disabled = chatSendInFlight;
+        clubChatSendBtnEl.textContent = chatSendInFlight ? 'Sending...' : 'Send';
+      }
     };
 
     const resolveClubChatName = () => {
@@ -2536,10 +2767,7 @@
       if (!loggedUser) {
         if (notify) showPageToast('Please log in with a user account to chat with clubs.', 'warn');
         if (redirectOnMissing) {
-          try {
-            localStorage.setItem('postLoginRedirect', JSON.stringify({ page: 'club', clubId: getClubId() }));
-          } catch {}
-          window.location.href = 'login.html#login';
+          window.location.href = buildLoginHref();
         }
         return { ok: false, reason: 'not_logged_in' };
       }
@@ -2550,41 +2778,249 @@
       if (!token) {
         if (notify) showPageToast('Your session has expired. Please log in again.', 'error');
         if (redirectOnMissing) {
-          try {
-            localStorage.setItem('postLoginRedirect', JSON.stringify({ page: 'club', clubId: getClubId() }));
-          } catch {}
-          window.location.href = 'login.html#login';
+          window.location.href = buildLoginHref();
         }
         return { ok: false, reason: 'missing_token' };
       }
       return { ok: true, reason: '' };
     };
 
+    const buildUserChatStreamUrl = () => {
+      const clubId = getChatClubId();
+      if (!clubId) return '';
+      return `/api/clubs/${encodeURIComponent(clubId)}/chat/stream`;
+    };
+
+    const normalizeChatSender = (raw) => {
+      const sender = String(raw || '').toLowerCase();
+      if (sender === 'club') return 'club';
+      if (sender === 'assistant') return 'assistant';
+      if (sender === 'system') return 'system';
+      return 'user';
+    };
+
     const normalizeChatMessage = (raw) => {
       if (!raw || typeof raw !== 'object') return null;
-      const sender = String(raw.sender || '').toLowerCase() === 'club' ? 'club' : 'user';
+      const sender = normalizeChatSender(raw.sender || '');
       const text = sanitizeChatText(raw.text || '');
       if (!text) return null;
-      const author = String(raw.authorName || (sender === 'club' ? resolveClubChatName() : 'You')).trim();
+      const fallbackAuthor = sender === 'club'
+        ? resolveClubChatName()
+        : (sender === 'assistant' ? 'Assistant' : (sender === 'system' ? 'System' : 'You'));
+      const author = String(raw.authorName || fallbackAuthor).trim();
       return {
         messageId: raw.messageId ?? null,
         sender,
         text,
-        author: author || (sender === 'club' ? resolveClubChatName() : 'You'),
-        createdAt: String(raw.createdAt || '')
+        author: author || fallbackAuthor,
+        createdAt: String(raw.createdAt || ''),
+        answerSource: String(raw.answerSource || '').trim(),
+        matchedFaqId: raw.matchedFaqId ?? null,
+        handoffSuggested: Boolean(raw.handoffSuggested)
       };
     };
 
+    const chatMessageKey = (msg) => {
+      if (!msg || typeof msg !== 'object') return '';
+      return [
+        String(msg.messageId ?? ''),
+        String(msg.sender || ''),
+        String(msg.createdAt || ''),
+        String(msg.text || '')
+      ].join('|');
+    };
+
+    const getLatestIncomingChatMessage = (messages) => {
+      if (!Array.isArray(messages)) return null;
+      for (let index = messages.length - 1; index >= 0; index -= 1) {
+        const msg = messages[index];
+        if (!msg || msg.pending) continue;
+        if (normalizeChatSender(msg.sender) === 'user') continue;
+        return msg;
+      }
+      return null;
+    };
+
+    const hideChatToast = () => {
+      if (chatToastTimer) {
+        clearTimeout(chatToastTimer);
+        chatToastTimer = null;
+      }
+      clubChatToastEl?.classList.remove('open');
+      clubChatToastEl?.setAttribute('aria-hidden', 'true');
+    };
+
+    const showChatToast = (msg) => {
+      if (!clubChatToastEl || !clubChatToastTitleEl || !clubChatToastTextEl) return;
+      const senderLabel = normalizeChatSender(msg?.sender) === 'club' ? resolveClubChatName() : 'Club reply';
+      clubChatToastTitleEl.textContent = senderLabel;
+      clubChatToastTextEl.textContent = sanitizeChatText(msg?.text || '') || 'New message';
+      clubChatToastEl.classList.add('open');
+      clubChatToastEl.setAttribute('aria-hidden', 'false');
+      if (chatToastTimer) clearTimeout(chatToastTimer);
+      chatToastTimer = window.setTimeout(() => {
+        hideChatToast();
+      }, 5200);
+    };
+
+    const updateChatLauncher = () => {
+      const count = Math.max(0, Number(chatUnreadCount) || 0);
+      const subtitle = count > 0
+        ? `${count} unread ${count === 1 ? 'reply' : 'replies'}`
+        : 'Ask while you browse';
+      if (clubChatLauncherSubtitleEl) {
+        clubChatLauncherSubtitleEl.textContent = subtitle;
+      }
+      [clubChatBadgeEl, clubChatLauncherBadgeEl].forEach((badgeEl) => {
+        if (!badgeEl) return;
+        badgeEl.hidden = count <= 0;
+        badgeEl.textContent = String(count);
+      });
+      clubChatLauncherEl?.classList.toggle('hidden', chatWidgetOpen);
+      clubChatLauncherEl?.setAttribute('aria-expanded', chatWidgetOpen ? 'true' : 'false');
+      openClubChatBtnEl?.setAttribute('aria-expanded', chatWidgetOpen ? 'true' : 'false');
+    };
+
+    const noteChatBackgroundActivity = (messages) => {
+      const latestIncoming = getLatestIncomingChatMessage(messages);
+      const latestKey = chatMessageKey(latestIncoming);
+      if (!chatHasHydrated) {
+        chatLatestIncomingMessageKey = latestKey;
+        chatHasHydrated = true;
+        return;
+      }
+      if (!latestKey || latestKey === chatLatestIncomingMessageKey) return;
+      chatLatestIncomingMessageKey = latestKey;
+      if (chatWidgetOpen) return;
+      showChatToast(latestIncoming);
+    };
+
+    const shouldMaintainChatSync = () => {
+      const auth = ensureUserChatAuth();
+      return auth.ok && Boolean(getChatClubId());
+    };
+
+    const isHumanSessionMode = () => chatSessionMode === 'HANDOFF_REQUESTED' || chatSessionMode === 'HUMAN';
+
+    const clearInlineHumanPrompt = () => {
+      chatInlineHandoffPrompt = null;
+    };
+
+    const openInlineHumanPrompt = ({
+      reason = 'USER_REQUEST',
+      title = 'Need club staff?',
+      message = 'Switch this chat to a club staff member for a human reply.',
+      source = 'manual',
+      sourceMessageId = null
+    } = {}) => {
+      if (isHumanSessionMode()) {
+        clearInlineHumanPrompt();
+        return;
+      }
+      chatInlineHandoffPrompt = {
+        reason: String(reason || 'USER_REQUEST').trim() || 'USER_REQUEST',
+        title: String(title || 'Need club staff?').trim() || 'Need club staff?',
+        message: String(message || '').trim() || 'Switch this chat to a club staff member for a human reply.',
+        source: String(source || 'manual').trim() || 'manual',
+        sourceMessageId: Number.isFinite(Number(sourceMessageId)) ? Number(sourceMessageId) : null
+      };
+      renderClubChatThread(true);
+    };
+
+    const syncInlineHumanPrompt = () => {
+      if (isHumanSessionMode()) {
+        clearInlineHumanPrompt();
+        return;
+      }
+      if (!chatInlineHandoffPrompt || chatInlineHandoffPrompt.source !== 'assistant') return;
+      const sourceMessageId = Number(chatInlineHandoffPrompt.sourceMessageId);
+      const stillSuggested = chatMessages.some((msg) => Number(msg?.messageId) === sourceMessageId && msg?.handoffSuggested);
+      if (!stillSuggested) {
+        clearInlineHumanPrompt();
+      }
+    };
+
+    const needsHumanPromptFromInput = (text) => {
+      const normalized = sanitizeChatText(text).toLowerCase();
+      if (!normalized) return false;
+      return HUMAN_HANDOFF_KEYWORDS.some((keyword) => normalized.includes(String(keyword).toLowerCase()));
+    };
+
+    const chatSourceBadgeHtml = (msg) => {
+      if (!msg || typeof msg !== 'object') return '';
+      if (msg.pending) {
+        return '<span class="club-chat-tag pending">Sending…</span>';
+      }
+      if (msg.sender === 'assistant' && msg.answerSource === 'CLUB_FAQ') {
+        return '<span class="club-chat-tag verified">Verified club reply</span>';
+      }
+      if (msg.sender === 'assistant') {
+        return '<span class="club-chat-tag robot">Bot</span>';
+      }
+      if (msg.sender === 'system') {
+        return '<span class="club-chat-tag handoff">Human support</span>';
+      }
+      return '';
+    };
+
+    const requestHumanSupport = async (reason = 'USER_REQUEST') => {
+      if (!Number.isFinite(Number(chatSessionId))) {
+        showPageToast('This chat session is not ready for human support yet. Please try again.', 'warn');
+        return false;
+      }
+      try {
+        const res = await authFetch(`/api/chat-sessions/${encodeURIComponent(String(chatSessionId))}/handoff`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason })
+        });
+        if (!res.ok) {
+          const msg = await readErrorText(res);
+          showPageToast(msg, 'error');
+          return false;
+        }
+        const payload = await res.json().catch(() => null);
+        chatSessionMode = String(payload?.chatMode || 'HANDOFF_REQUESTED').trim() || 'HANDOFF_REQUESTED';
+        clearInlineHumanPrompt();
+        showPageToast('The club has been notified to continue this conversation with a human staff member.', 'ok');
+        return true;
+      } catch (err) {
+        console.warn('[club] handoff request error', err);
+        showPageToast('Failed to request human support. Please try again.', 'error');
+        return false;
+      }
+    };
+
+    const maybePromptHumanSupportFromReply = async () => {
+      if (isHumanSessionMode()) return;
+      const latestAssistant = [...chatMessages].reverse().find((msg) => msg?.sender === 'assistant');
+      if (!latestAssistant || !latestAssistant.handoffSuggested) return;
+      const latestMessageId = Number(latestAssistant.messageId);
+      if (Number.isFinite(latestMessageId) && latestMessageId === chatLastPromptedMessageId) return;
+      if (Number.isFinite(latestMessageId)) {
+        chatLastPromptedMessageId = latestMessageId;
+      }
+      openInlineHumanPrompt({
+        reason: 'OTHER',
+        title: 'Need a club staff member?',
+        message: 'This question may need a human reply from the club. Tap the button below to switch this conversation to club staff.',
+        source: 'assistant',
+        sourceMessageId: latestMessageId
+      });
+    };
+
     const chatAvatarInitialFor = (msg) => {
-      const sender = String(msg?.sender || '').toLowerCase() === 'club' ? 'club' : 'user';
+      const sender = normalizeChatSender(msg?.sender || '');
       const source = sender === 'club'
         ? resolveClubChatName()
-        : String(msg?.author || 'You');
+        : (sender === 'assistant'
+            ? 'AI'
+            : (sender === 'system' ? 'System' : String(msg?.author || 'You')));
       return String(source || '').trim().charAt(0).toUpperCase() || '?';
     };
 
     const chatAvatarHtmlFor = (msg) => {
-      const sender = String(msg?.sender || '').toLowerCase() === 'club' ? 'club' : 'user';
+      const sender = normalizeChatSender(msg?.sender || '');
       const avatarUrl = sender === 'user' ? readStoredAvatar() : '';
       if (avatarUrl) {
         return `<span class="club-chat-avatar ${sender}" aria-hidden="true"><img src="${escapeHtml(avatarUrl)}" alt=""></span>`;
@@ -2593,17 +3029,21 @@
     };
 
     const updateChatBadge = () => {
-      if (!clubChatBadgeEl) return;
-      const count = chatUnreadCount > 0 ? chatUnreadCount : chatMessages.length;
-      clubChatBadgeEl.textContent = String(count || 0);
+      updateChatLauncher();
     };
 
     const renderClubChatThread = (shouldScrollBottom = false) => {
       if (!clubChatThreadEl) return;
       if (clubChatTitleEl) clubChatTitleEl.textContent = `Talk with ${resolveClubChatName()}`;
+      if (clubChatSubtitleEl) {
+        clubChatSubtitleEl.textContent = isHumanSessionMode()
+          ? 'Replies now come from club staff.'
+          : 'Keep chatting while you browse this club.';
+      }
+      const renderedMessages = pendingUserChatMessage ? [...chatMessages, pendingUserChatMessage] : chatMessages;
       updateChatBadge();
 
-      if (chatLoading && !chatMessages.length) {
+      if (chatLoading && !renderedMessages.length) {
         clubChatThreadEl.innerHTML = `
           <div class="club-chat-empty">
             Loading messages...
@@ -2612,7 +3052,7 @@
         return;
       }
 
-      if (chatLoadError && !chatMessages.length) {
+      if (chatLoadError && !renderedMessages.length) {
         clubChatThreadEl.innerHTML = `
           <div class="club-chat-empty">
             ${escapeHtml(chatLoadError)}
@@ -2621,26 +3061,78 @@
         return;
       }
 
-      if (!chatMessages.length) {
+      if (!renderedMessages.length) {
+        const handoffCardHtml = chatInlineHandoffPrompt && !isHumanSessionMode()
+          ? `
+            <div class="club-chat-handoff-card" data-chat-handoff-card>
+              <h4>${escapeHtml(chatInlineHandoffPrompt.title)}</h4>
+              <p>${escapeHtml(chatInlineHandoffPrompt.message)}</p>
+              <div class="club-chat-handoff-actions">
+                <button type="button" class="club-chat-handoff-btn" data-chat-handoff-action>Contact club staff</button>
+              </div>
+            </div>
+          `
+          : '';
+
         clubChatThreadEl.innerHTML = `
           <div class="club-chat-empty">
             Start a conversation with the club. Your messages are stored in your account.
           </div>
+          ${handoffCardHtml}
         `;
+
+        const handoffActionBtn = clubChatThreadEl.querySelector('[data-chat-handoff-action]');
+        handoffActionBtn?.addEventListener('click', async () => {
+          handoffActionBtn.disabled = true;
+          const requested = await requestHumanSupport(chatInlineHandoffPrompt?.reason || 'USER_REQUEST');
+          if (!requested) {
+            handoffActionBtn.disabled = false;
+            return;
+          }
+          await fetchUserChatThread({ scrollBottom: true, markRead: false });
+          clubChatInputEl?.focus();
+        });
         return;
       }
 
-      clubChatThreadEl.innerHTML = chatMessages.map((msg) => {
+      const messagesHtml = renderedMessages.map((msg) => {
         const textHtml = escapeHtml(String(msg?.text || '')).replace(/\n/g, '<br>');
-        const timeLabel = formatChatTimestamp(msg?.createdAt);
+        const timeLabel = msg?.pending ? 'Sending...' : formatChatTimestamp(msg?.createdAt);
         const avatarHtml = chatAvatarHtmlFor(msg);
+        const sourceBadgeHtml = chatSourceBadgeHtml(msg);
         return `
           <div class="club-chat-msg ${msg.sender}">
             <div class="club-chat-row">${avatarHtml}<div class="club-chat-bubble">${textHtml}</div></div>
-            <div class="club-chat-meta">${escapeHtml(msg.author)} · ${escapeHtml(timeLabel)}</div>
+            <div class="club-chat-meta">${escapeHtml(msg.author)} · ${escapeHtml(timeLabel)} ${sourceBadgeHtml}</div>
           </div>
         `;
       }).join('');
+
+      const handoffCardHtml = chatInlineHandoffPrompt && !isHumanSessionMode()
+        ? `
+          <div class="club-chat-handoff-card" data-chat-handoff-card>
+            <h4>${escapeHtml(chatInlineHandoffPrompt.title)}</h4>
+            <p>${escapeHtml(chatInlineHandoffPrompt.message)}</p>
+            <div class="club-chat-handoff-actions">
+              <button type="button" class="club-chat-handoff-btn" data-chat-handoff-action>Contact club staff</button>
+            </div>
+          </div>
+        `
+        : '';
+
+      clubChatThreadEl.innerHTML = `${messagesHtml}${handoffCardHtml}`;
+
+      const handoffActionBtn = clubChatThreadEl.querySelector('[data-chat-handoff-action]');
+      handoffActionBtn?.addEventListener('click', async () => {
+        handoffActionBtn.disabled = true;
+        const requested = await requestHumanSupport(chatInlineHandoffPrompt?.reason || 'USER_REQUEST');
+        if (!requested) {
+          handoffActionBtn.disabled = false;
+          return;
+        }
+        await fetchUserChatThread({ scrollBottom: true, markRead: false });
+        clubChatInputEl?.focus();
+      });
 
       if (shouldScrollBottom) {
         clubChatThreadEl.scrollTop = clubChatThreadEl.scrollHeight;
@@ -2665,6 +3157,8 @@
       if (!auth.ok || !clubId) {
         chatMessages = [];
         chatUnreadCount = 0;
+        chatSessionId = null;
+        chatSessionMode = 'AI';
         chatLoadError = !clubId ? 'Select a valid club to chat.' : 'Please log in with a user account to chat.';
         chatLoading = false;
         renderClubChatThread();
@@ -2689,12 +3183,17 @@
         const list = Array.isArray(data?.messages) ? data.messages.map(normalizeChatMessage).filter(Boolean) : [];
         chatMessages = list;
         chatUnreadCount = Math.max(0, Number(data?.unreadCount) || 0);
+        chatSessionId = Number.isFinite(Number(data?.sessionId)) ? Number(data.sessionId) : null;
+        chatSessionMode = String(data?.chatMode || 'AI').trim() || 'AI';
         chatLoadError = '';
+        noteChatBackgroundActivity(list);
+        syncInlineHumanPrompt();
         renderClubChatThread(scrollBottom);
 
         if (markRead && chatUnreadCount > 0) {
           await markUserChatRead(clubId);
         }
+        await maybePromptHumanSupportFromReply();
       } catch (err) {
         console.warn('[club] chat load error', err);
         chatLoadError = 'Failed to load messages. Please try again.';
@@ -2711,43 +3210,86 @@
       }
     };
 
-    const runUserChatPoll = async () => {
+    const stopChatStream = () => {
+      chatStreamConnected = false;
+      if (chatStream) {
+        chatStream.close();
+        chatStream = null;
+      }
+    };
+
+    const runUserChatSync = async ({ scrollBottom = false, markRead = false } = {}) => {
       if (chatPollInFlight) return;
-      if (!clubChatPanelEl?.classList.contains('open')) return;
+      if (!shouldMaintainChatSync()) return;
       chatPollInFlight = true;
       try {
-        await fetchUserChatThread({ scrollBottom: false, markRead: true });
+        await fetchUserChatThread({ scrollBottom, markRead });
       } finally {
         chatPollInFlight = false;
       }
     };
 
+    const runUserChatPoll = async () => {
+      await runUserChatSync({ scrollBottom: false, markRead: true });
+    };
+
+    const startChatStream = () => {
+      stopChatStream();
+      if (typeof EventSource !== 'function') return;
+      if (!shouldMaintainChatSync()) return;
+
+      const url = buildUserChatStreamUrl();
+      if (!url) return;
+
+      const stream = new EventSource(url);
+      chatStream = stream;
+
+      const handleRealtimeRefresh = async () => {
+        chatStreamConnected = true;
+        stopChatPolling();
+        await runUserChatSync({ scrollBottom: chatWidgetOpen, markRead: chatWidgetOpen });
+      };
+
+      stream.addEventListener('open', () => {
+        chatStreamConnected = true;
+        stopChatPolling();
+      });
+      stream.addEventListener('connected', () => {
+        chatStreamConnected = true;
+        stopChatPolling();
+      });
+      stream.addEventListener('thread-updated', handleRealtimeRefresh);
+      stream.onerror = () => {
+        chatStreamConnected = false;
+        scheduleChatPolling();
+      };
+    };
+
     const scheduleChatPolling = () => {
       stopChatPolling();
-      if (!clubChatPanelEl?.classList.contains('open')) return;
+      if (!shouldMaintainChatSync()) return;
+      if (chatStreamConnected) return;
       const interval = document.hidden ? CHAT_POLL_HIDDEN_MS : CHAT_POLL_VISIBLE_MS;
       chatPollTimer = window.setInterval(runUserChatPoll, interval);
     };
 
     const startChatPolling = () => {
+      if (!shouldMaintainChatSync()) return;
+      startChatStream();
       scheduleChatPolling();
-      runUserChatPoll();
+      runUserChatSync({ scrollBottom: false, markRead: chatWidgetOpen });
     };
 
     const setClubChatOpen = (open) => {
-      const visible = Boolean(open);
-      clubChatPanelEl?.classList.toggle('open', visible);
-      clubChatBackdropEl?.classList.toggle('open', visible);
-      clubChatPanelEl?.setAttribute('aria-hidden', visible ? 'false' : 'true');
-      clubChatBackdropEl?.setAttribute('aria-hidden', visible ? 'false' : 'true');
-      document.body.classList.toggle('club-chat-open', visible);
-
-      if (visible) {
+      chatWidgetOpen = Boolean(open);
+      clubChatPanelEl?.classList.toggle('open', chatWidgetOpen);
+      clubChatPanelEl?.setAttribute('aria-hidden', chatWidgetOpen ? 'false' : 'true');
+      updateChatLauncher();
+      if (chatWidgetOpen) {
+        hideChatToast();
         fetchUserChatThread({ scrollBottom: true, markRead: true });
         startChatPolling();
         window.setTimeout(() => clubChatInputEl?.focus(), 60);
-      } else {
-        stopChatPolling();
       }
     };
 
@@ -2756,29 +3298,39 @@
       if (!auth.ok) return;
       setClubChatOpen(true);
     });
+    clubChatLauncherEl?.addEventListener('click', () => {
+      const auth = ensureUserChatAuth({ redirectOnMissing: true, notify: true });
+      if (!auth.ok) return;
+      setClubChatOpen(true);
+    });
     closeClubChatBtnEl?.addEventListener('click', () => setClubChatOpen(false));
-    clubChatBackdropEl?.addEventListener('click', () => setClubChatOpen(false));
+    clubChatToastActionEl?.addEventListener('click', () => {
+      hideChatToast();
+      setClubChatOpen(true);
+    });
+    dismissClubChatToastBtnEl?.addEventListener('click', () => hideChatToast());
 
     document.addEventListener('keydown', (evt) => {
-      if (evt.key === 'Escape' && clubChatPanelEl?.classList.contains('open')) {
+      if (evt.key === 'Escape' && chatWidgetOpen) {
         setClubChatOpen(false);
       }
     });
 
     document.addEventListener('visibilitychange', () => {
-      if (!clubChatPanelEl?.classList.contains('open')) return;
+      if (!shouldMaintainChatSync()) return;
       scheduleChatPolling();
-      if (!document.hidden) runUserChatPoll();
+      if (!document.hidden) runUserChatSync({ scrollBottom: chatWidgetOpen, markRead: chatWidgetOpen });
     });
 
     window.addEventListener('focus', () => {
-      if (!clubChatPanelEl?.classList.contains('open')) return;
+      if (!shouldMaintainChatSync()) return;
       scheduleChatPolling();
-      runUserChatPoll();
+      runUserChatSync({ scrollBottom: chatWidgetOpen, markRead: chatWidgetOpen });
     });
 
     clubChatFormEl?.addEventListener('submit', async (evt) => {
       evt.preventDefault();
+      if (chatSendInFlight) return;
       const auth = ensureUserChatAuth({ redirectOnMissing: true, notify: true });
       if (!auth.ok) return;
 
@@ -2790,6 +3342,25 @@
 
       const text = sanitizeChatText(clubChatInputEl?.value || '');
       if (!text) return;
+
+      if (needsHumanPromptFromInput(text) && !isHumanSessionMode()) {
+        openInlineHumanPrompt({
+          reason: 'USER_REQUEST',
+          title: 'Need club staff?',
+          message: 'Tap the button below to summon the club and continue with a human reply.',
+          source: 'input'
+        });
+        clubChatInputEl?.focus();
+        return;
+      }
+
+      const previousInput = text;
+      pendingUserChatMessage = createPendingUserChatMessage(previousInput);
+      if (clubChatInputEl) {
+        clubChatInputEl.value = '';
+      }
+      setClubChatSendingState(true);
+      renderClubChatThread(true);
 
       try {
         const res = await authFetch(`/api/clubs/${encodeURIComponent(clubId)}/chat/messages`, {
@@ -2803,30 +3374,64 @@
             chatLoadError = 'Your current session cannot send member messages. Please sign in with a user account.';
             renderClubChatThread(false);
           }
+          pendingUserChatMessage = null;
+          setClubChatSendingState(false);
+          if (clubChatInputEl) {
+            clubChatInputEl.value = previousInput;
+            clubChatInputEl.focus();
+          }
           showPageToast(msg, 'error');
           return;
         }
 
         const savedPayload = await res.json().catch(() => null);
-        const saved = normalizeChatMessage(savedPayload);
-        const messageId = Number(saved?.messageId);
-        if (!saved || !Number.isFinite(messageId)) {
-          chatLoadError = 'Message was not confirmed by the server. Please refresh and try again.';
-          renderClubChatThread(false);
-          showPageToast('Message was not saved by server.', 'error');
-          fetchUserChatThread({ scrollBottom: false, markRead: false });
-          return;
+        const returnedThreadMessages = Array.isArray(savedPayload?.messages)
+          ? savedPayload.messages.map(normalizeChatMessage).filter(Boolean)
+          : [];
+
+        if (returnedThreadMessages.length) {
+          chatMessages = returnedThreadMessages;
+          chatUnreadCount = Math.max(0, Number(savedPayload?.unreadCount) || 0);
+          chatSessionId = Number.isFinite(Number(savedPayload?.sessionId)) ? Number(savedPayload.sessionId) : chatSessionId;
+          chatSessionMode = String(savedPayload?.chatMode || chatSessionMode || 'AI').trim() || 'AI';
+        } else {
+          const saved = normalizeChatMessage(savedPayload);
+          const messageId = Number(saved?.messageId);
+          if (!saved || !Number.isFinite(messageId)) {
+            chatLoadError = 'Message was not confirmed by the server. Please refresh and try again.';
+            pendingUserChatMessage = null;
+            setClubChatSendingState(false);
+            renderClubChatThread(false);
+            showPageToast('Message was not saved by server.', 'error');
+            if (clubChatInputEl) {
+              clubChatInputEl.value = previousInput;
+              clubChatInputEl.focus();
+            }
+            fetchUserChatThread({ scrollBottom: false, markRead: false });
+            return;
+          }
+          chatMessages.push(saved);
+          chatUnreadCount = 0;
         }
 
-        chatMessages.push(saved);
         chatLoadError = '';
-        chatUnreadCount = 0;
-        if (clubChatInputEl) clubChatInputEl.value = '';
+        pendingUserChatMessage = null;
+        setClubChatSendingState(false);
         renderClubChatThread(true);
-
-        fetchUserChatThread({ scrollBottom: true, markRead: false });
+        window.setTimeout(() => {
+          fetchUserChatThread({ scrollBottom: true, markRead: false }).catch((err) => {
+            console.warn('[club] post-send refresh error', err);
+          });
+        }, 0);
       } catch (err) {
         console.warn('[club] chat send error', err);
+        pendingUserChatMessage = null;
+        setClubChatSendingState(false);
+        if (clubChatInputEl) {
+          clubChatInputEl.value = previousInput;
+          clubChatInputEl.focus();
+        }
+        renderClubChatThread(false);
         showPageToast('Failed to send message. Please try again.', 'error');
       }
     });
@@ -2836,21 +3441,24 @@
       || (typeof key === 'string' && key.startsWith(AVATAR_STORAGE_KEY_PREFIX));
     window.addEventListener('storage', (evt) => {
       if (isAvatarStorageKey(evt.key)) {
-        if (clubChatPanelEl?.classList.contains('open')) {
+        if (chatWidgetOpen) {
           renderClubChatThread(false);
         }
         return;
       }
       if (evt.key === 'token' || evt.key === 'loggedUser' || evt.key === 'selectedClub') {
-        if (clubChatPanelEl?.classList.contains('open')) {
-          fetchUserChatThread({ scrollBottom: false, markRead: true });
-        } else {
-          fetchUserChatThread({ scrollBottom: false, markRead: false });
+        stopChatStream();
+        stopChatPolling();
+        if (shouldMaintainChatSync()) {
+          startChatPolling();
         }
       }
     });
 
-    window.setTimeout(() => fetchUserChatThread({ scrollBottom: false, markRead: false }), 1200);
+    window.setTimeout(() => {
+      if (!shouldMaintainChatSync()) return;
+      startChatPolling();
+    }, 1200);
     renderClubChatThread();
 
     // 7. 淇℃伅寮圭獥閫昏緫 (Privacy, Terms, Help)
@@ -2934,7 +3542,7 @@
     document.getElementById('y').textContent=new Date().getFullYear();
   </script>
 
-  <script src="auth-modal.js?v=20260308g" defer></script>
+  <script type="module" src="auth-modal.js?v=20260324a"></script>
   
 
 

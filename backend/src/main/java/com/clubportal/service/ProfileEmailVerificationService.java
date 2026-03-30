@@ -2,19 +2,24 @@ package com.clubportal.service;
 
 import com.clubportal.model.ProfileEmailChangeVerification;
 import com.clubportal.repository.ProfileEmailChangeVerificationRepository;
+import com.clubportal.util.KeyedLockService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 @Service
 public class ProfileEmailVerificationService {
 
     private final SecureRandom random = new SecureRandom();
     private final ProfileEmailChangeVerificationRepository verificationRepo;
+    private final KeyedLockService keyedLockService;
+    private final TransactionTemplate transactionTemplate;
 
     @Value("${app.auth.register.code-ttl-seconds:600}")
     private long codeTtlSeconds;
@@ -22,8 +27,12 @@ public class ProfileEmailVerificationService {
     @Value("${app.auth.register.resend-cooldown-seconds:60}")
     private long resendCooldownSeconds;
 
-    public ProfileEmailVerificationService(ProfileEmailChangeVerificationRepository verificationRepo) {
+    public ProfileEmailVerificationService(ProfileEmailChangeVerificationRepository verificationRepo,
+                                          KeyedLockService keyedLockService,
+                                          TransactionTemplate transactionTemplate) {
         this.verificationRepo = verificationRepo;
+        this.keyedLockService = keyedLockService;
+        this.transactionTemplate = transactionTemplate;
     }
 
     public SendCodeResult issueCode(Integer userId, String normalizedEmail) {
@@ -35,7 +44,13 @@ public class ProfileEmailVerificationService {
         if (email.isBlank()) {
             return SendCodeResult.conflict("Missing email");
         }
+        return keyedLockService.withLocks(
+                List.of("profile-email-user:" + userId, "profile-email-address:" + email),
+                () -> inTransaction(() -> issueCodeLocked(userId, email))
+        );
+    }
 
+    private SendCodeResult issueCodeLocked(Integer userId, String email) {
         Instant now = Instant.now();
         cleanupExpired(now);
 
@@ -98,12 +113,17 @@ public class ProfileEmailVerificationService {
         verificationRepo.findByUserId(userId).ifPresent(verificationRepo::delete);
     }
 
+    private <T> T inTransaction(Supplier<T> action) {
+        return transactionTemplate.execute(status -> action.get());
+    }
+
     private void cleanupExpired(Instant now) {
         List<ProfileEmailChangeVerification> expired = new ArrayList<>(verificationRepo.findByExpiresAtBefore(now));
         if (!expired.isEmpty()) {
             verificationRepo.deleteAll(expired);
         }
     }
+
 
     private static String safe(String value) {
         return value == null ? "" : value.trim();

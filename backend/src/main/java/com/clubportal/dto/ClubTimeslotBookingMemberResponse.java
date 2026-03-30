@@ -12,6 +12,7 @@ public record ClubTimeslotBookingMemberResponse(
         LocalDateTime bookingTime,
         BigDecimal pricePaid,
         String membershipPlanName,
-        String membershipStatus
+        String membershipStatus,
+        String bookingVerificationCode
 ) {
 }

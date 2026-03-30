@@ -4,48 +4,110 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Club Booking Portal - User Profile</title>
-  <link rel="stylesheet" href="theme.css?v=20260220b">
+  <link rel="stylesheet" href="theme.css?v=20260324a">
   <style>
-    body { margin: 0; background: var(--bg); }
-    header { position: sticky; top: 0; z-index: 10; border-bottom: none; }
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; }
-    .header-wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, rgba(47, 93, 255, 0.08), transparent 28%),
+        linear-gradient(180deg, #f8fbff 0%, #f3f6fb 34%, #eef3f8 100%);
+      min-height: 100vh;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.04);
+    }
+    .wrap {
+      width: min(1600px, calc(100vw - 64px));
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 20px 24px;
+    }
+    .header-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      min-height: 92px;
+    }
+    .link-back {
+      position: absolute;
+      left: 24px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      background: rgba(255, 255, 255, 0.72);
+      color: #64748b;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      box-shadow: none;
+      transition: color .2s var(--anim-base), border-color .2s var(--anim-base), background .2s var(--anim-base), transform .2s var(--anim-base);
+    }
+    .link-back:hover {
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.92);
+      border-color: rgba(100, 116, 139, 0.28);
+      transform: translateY(calc(-50% - 1px));
+    }
     .site-title-link { color: inherit; text-decoration: none; }
+    .site-title {
+      margin: 0;
+      font-size: clamp(20px, 1.8vw, 30px);
+      line-height: 1;
+      letter-spacing: -0.04em;
+      text-align: center;
+    }
     .page-head { display: none; }
     .page-actions { display: none; }
 
     .profile-shell {
       display: grid;
-      grid-template-columns: 220px minmax(0, 1fr);
-      gap: 24px;
-      margin-top: 0;
-      padding: 8px 0 0;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 34px;
+      margin-top: 6px;
+      padding: 18px 0 10px;
       background: transparent;
       border-radius: 0;
+      align-items: start;
     }
 
     .profile-card {
-      padding: 0;
+      padding: 0 0 32px;
     }
 
     .side-nav {
       position: sticky;
-      top: 96px;
+      top: 112px;
       align-self: start;
       display: flex;
       flex-direction: column;
       gap: 8px;
-      padding: 0 18px 0 0;
-      border-right: none;
-      background: none;
-      box-shadow: none;
+      padding: 26px 22px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 30px;
+      background: rgba(255, 255, 255, 0.84);
+      box-shadow: 0 24px 56px rgba(15, 23, 42, 0.08);
+      backdrop-filter: blur(12px);
     }
 
     .side-title {
-      font-size: 18px;
-      font-weight: 700;
-      padding: 6px 10px 2px;
+      font-size: 24px;
+      font-weight: 800;
+      padding: 4px 12px 10px;
       color: var(--ink);
+      letter-spacing: -0.03em;
     }
 
     .side-link {
@@ -53,22 +115,23 @@
       border: none;
       background: none;
       text-align: left;
-      padding: 10px 12px;
-      border-radius: 12px;
+      padding: 14px 16px;
+      border-radius: 16px;
       font-weight: 600;
       cursor: pointer;
       color: var(--muted);
       transition: color .2s var(--anim-base), background .2s var(--anim-base), border-color .2s var(--anim-base), box-shadow .2s var(--anim-base);
+      font-size: 15px;
     }
 
     .side-link:hover {
-      background: rgba(21, 23, 26, 0.04);
+      background: rgba(15, 23, 42, 0.05);
       color: var(--ink);
     }
 
     .side-link.active {
       color: var(--accent-strong);
-      background: rgba(47, 93, 255, 0.1);
+      background: linear-gradient(135deg, rgba(47, 93, 255, 0.16), rgba(47, 93, 255, 0.08));
       border-color: transparent;
       box-shadow: none;
     }
@@ -111,16 +174,23 @@
       display: block;
     }
 
-    .profile-shell .pad { padding: 6px 6px 12px; }
+    .profile-shell .panel > .pad {
+      padding: 28px 30px 32px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 34px;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 28px 64px rgba(15, 23, 42, 0.08);
+      min-height: 600px;
+    }
     .card .pad { padding: 16px; }
-    .booking-shell { display: grid; gap: 12px; }
+    .booking-shell { display: grid; gap: 18px; }
     .booking-segment {
       display: inline-flex;
       gap: 8px;
-      padding: 4px;
-      border: 1px solid var(--line);
+      padding: 6px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
       border-radius: 999px;
-      background: #f8fafc;
+      background: rgba(248, 250, 252, 0.92);
       width: fit-content;
       max-width: 100%;
       flex-wrap: wrap;
@@ -162,11 +232,11 @@
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      padding: 12px 14px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
+      padding: 16px 18px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 20px;
       background: #fff;
-      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
       transition: transform .25s var(--anim-base), box-shadow .25s var(--anim-base);
     }
     .booking-card:hover {
@@ -221,13 +291,43 @@
       background: #fffbeb;
       color: #92400e;
     }
+    .booking-code-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+    .booking-code-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .booking-code-value {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 98px;
+      padding: 8px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(99, 102, 241, 0.24);
+      background: linear-gradient(180deg, rgba(238, 242, 255, 0.96) 0%, rgba(224, 231, 255, 0.96) 100%);
+      color: #3730a3;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.22em;
+      font-family: ui-monospace, SFMono-Regular, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+    }
     .booking-empty {
       border: 1px dashed #cbd5e1;
-      border-radius: 12px;
-      padding: 14px;
+      border-radius: 18px;
+      padding: 18px 20px;
       color: #64748b;
-      font-size: 13px;
-      background: #f8fafc;
+      font-size: 15px;
+      background: rgba(248, 250, 252, 0.84);
     }
     .booking-pill.membership-active {
       border-color: #bbf7d0;
@@ -350,16 +450,63 @@
       padding: 0 12px;
       font-size: 14px;
     }
+    .profile-shell-card {
+      display: grid;
+      gap: 22px;
+      max-width: 920px;
+    }
+    .profile-intro {
+      display: grid;
+      gap: 8px;
+      padding: 18px 20px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, rgba(47, 93, 255, 0.08), rgba(15, 23, 42, 0.03));
+      border: 1px solid rgba(148, 163, 184, 0.14);
+    }
+    .profile-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      min-height: 26px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.7);
+      color: #3153d5;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .profile-title {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+    }
+    .profile-form {
+      display: grid;
+      gap: 18px;
+      padding: 24px;
+      border-radius: 26px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(248, 250, 252, 0.82);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
     .row-field {
       display: flex;
       align-items: center;
       justify-content: flex-start;
-      gap: 12px;
-      padding: 8px 0;
+      gap: 14px;
+      padding: 0;
       flex-wrap: wrap;
     }
     .row-field label {
-      min-width: 60px;
+      min-width: 72px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      color: #475569;
+      text-transform: uppercase;
     }
     .input-wrap {
       position: relative;
@@ -370,14 +517,25 @@
     }
     .row-field input {
       width: 100%;
+      height: 48px;
       text-align: left;
-      padding-right: 40px;
+      padding: 0 52px 0 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.26);
+      background: rgba(255, 255, 255, 0.96);
       overflow: hidden;
       text-overflow: ellipsis;
+      transition: border-color .2s var(--anim-base), box-shadow .2s var(--anim-base), background .2s var(--anim-base);
     }
     .row-field input[readonly] {
-      background: #f5f6fb;
+      background: rgba(255, 255, 255, 0.96);
       color: var(--ink);
+    }
+    .row-field input:focus {
+      outline: none;
+      border-color: rgba(47, 93, 255, 0.5);
+      box-shadow: 0 0 0 4px rgba(47, 93, 255, 0.12);
+      background: #fff;
     }
     .row-actions {
       display: inline-flex;
@@ -386,11 +544,11 @@
     }
     .edit-icon {
       position: absolute;
-      right: 6px;
+      right: 8px;
       top: 50%;
       transform: translateY(-50%);
-      width: 28px;
-      height: 28px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       border: none;
       background: #111;
@@ -418,6 +576,139 @@
     }
     .form-actions { display: flex; gap: 8px; margin-top: 18px; }
     .error-text { color: var(--danger); font-size: 12px; margin-top: 4px; display: none; }
+
+    .security-shell {
+      display: grid;
+      gap: 22px;
+      max-width: 880px;
+    }
+
+    .security-intro {
+      display: grid;
+      gap: 8px;
+      padding: 18px 20px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, rgba(47, 93, 255, 0.08), rgba(15, 23, 42, 0.03));
+      border: 1px solid rgba(148, 163, 184, 0.14);
+    }
+
+    .security-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      min-height: 26px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.7);
+      color: #3153d5;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .security-title {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+    }
+
+    .security-copy {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+      max-width: 56ch;
+    }
+
+    .security-form {
+      display: grid;
+      gap: 18px;
+      padding: 24px;
+      border-radius: 26px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(248, 250, 252, 0.82);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+
+    .security-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px 18px;
+    }
+
+    .security-field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .security-field.current {
+      grid-column: 1 / -1;
+    }
+
+    .security-field.confirm {
+      grid-column: auto;
+    }
+
+    .security-field label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      color: #475569;
+      text-transform: uppercase;
+    }
+
+    .security-field input {
+      width: 100%;
+      height: 48px;
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.26);
+      background: rgba(255, 255, 255, 0.96);
+      padding: 0 16px;
+      font-size: 15px;
+      color: var(--ink);
+      transition: border-color .2s var(--anim-base), box-shadow .2s var(--anim-base), background .2s var(--anim-base);
+    }
+
+    .security-field input:focus {
+      outline: none;
+      border-color: rgba(47, 93, 255, 0.5);
+      box-shadow: 0 0 0 4px rgba(47, 93, 255, 0.12);
+      background: #fff;
+    }
+
+    .security-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding-top: 2px;
+    }
+
+    .security-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+      max-width: 48ch;
+    }
+
+    .security-actions {
+      display: flex;
+      width: calc((100% - 18px) / 2);
+      margin-left: auto;
+      justify-content: flex-end;
+    }
+
+    .security-actions .btn {
+      width: 100%;
+      min-width: 0;
+      min-height: 48px;
+      border-radius: 16px;
+      justify-content: center;
+    }
 
     .modal-overlay {
       position: fixed;
@@ -471,6 +762,56 @@
       gap: 8px;
       align-items: center;
     }
+    .verify-hint {
+      margin: 0 0 8px;
+      font-size: 12px;
+      color: #64748b;
+    }
+    .verify-row-code {
+      display: block;
+    }
+    .code-slot-row {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 8px;
+      width: 100%;
+    }
+    .code-slot {
+      width: 100%;
+      height: 46px;
+      padding: 0 !important;
+      border-radius: 12px !important;
+      text-align: center;
+      font-size: 20px !important;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .code-slot::placeholder {
+      color: rgba(148, 163, 184, 0.7);
+    }
+    .verify-msg {
+      display: none;
+      margin-top: 8px;
+      font-size: 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      background: rgba(59, 130, 246, 0.08);
+      color: #1f3bb3;
+      padding: 7px 9px;
+    }
+    .verify-msg.show {
+      display: block;
+    }
+    .verify-msg.is-error {
+      border-color: rgba(239, 68, 68, 0.35);
+      background: rgba(239, 68, 68, 0.08);
+      color: #b91c1c;
+    }
+    .verify-msg.is-success {
+      border-color: rgba(34, 197, 94, 0.35);
+      background: rgba(34, 197, 94, 0.1);
+      color: #166534;
+    }
     .modal-actions {
       display: flex;
       gap: 8px;
@@ -513,13 +854,20 @@
     }
 
     @media (max-width: 960px) {
-      .profile-shell { grid-template-columns: 1fr; }
+      .wrap {
+        width: min(100vw - 36px, 1280px);
+        padding: 18px;
+      }
+      .profile-shell {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
       .side-nav {
         position: static;
         flex-direction: column;
         border-right: none;
         border-bottom: none;
-        padding: 0 0 12px;
+        padding: 22px 20px;
       }
       .side-link { text-align: left; }
       .side-subnav {
@@ -527,6 +875,18 @@
         width: auto;
         justify-content: flex-start;
         margin-top: 6px;
+      }
+      .profile-form {
+        padding: 20px;
+      }
+      .security-grid {
+        grid-template-columns: 1fr;
+      }
+      .security-field.confirm {
+        grid-column: auto;
+      }
+      .security-form {
+        padding: 20px;
       }
     }
 
@@ -536,17 +896,27 @@
       .booking-actions .btn { width: 100%; }
       .booking-segment { width: 100%; }
       .booking-segment-btn { flex: 1 1 auto; justify-content: center; }
-      .header-wrap { flex-wrap: wrap; }
+      .header-wrap { flex-wrap: wrap; min-height: auto; justify-content: flex-start; }
+      .wrap { width: calc(100vw - 24px); padding: 14px 12px; }
+      .profile-shell .panel > .pad { padding: 22px 20px 24px; min-height: auto; }
+      .profile-title { font-size: 24px; }
+      .site-title { font-size: clamp(22px, 6vw, 28px); text-align: left; }
+      .link-back { position: static; transform: none; padding: 7px 10px; font-size: 12px; }
+      .link-back:hover { transform: translateY(-1px); }
+      .profile-form { padding: 18px; border-radius: 22px; }
+      .security-title { font-size: 24px; }
+      .security-form { padding: 18px; border-radius: 22px; }
+      .security-foot { align-items: stretch; }
+      .security-actions,
+      .security-actions .btn { width: 100%; }
     }
   </style>
 </head>
 <body class="page-with-footer">
   <header>
     <div class="wrap header-wrap">
-      <div style="display:flex;align-items:center;gap:12px;">
-        <a class="link-back" href="home.html">Back to Home</a>
-        <h1 class="site-title"><a class="site-title-link" href="home.html">Club Booking Portal</a></h1>
-      </div>
+      <a class="link-back" href="home.html">Back</a>
+      <h1 class="site-title"><a class="site-title-link" href="home.html">Club Booking Portal</a></h1>
     </div>
   </header>
 
@@ -588,80 +958,97 @@
         <section class="panel" id="panelInfo" data-panel="info">
           <div class="pad">
             <div id="profileTab" class="info-section active">
-              <h4 style="margin:0 0 12px;font-size:16px">Personal Information</h4>
-              <div class="profile-hero">
-                <label class="avatar-uploader" aria-label="Upload avatar">
-                  <span class="avatar-placeholder" id="avatarPlaceholder">+</span>
-                  <img id="avatarImg" class="avatar-img" alt="Avatar" style="display:none" />
-                  <span class="avatar-badge" aria-hidden="true">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                      <path d="M4 8.5C4 7.12 5.12 6 6.5 6H8.7L9.7 4.5C10.05 3.97 10.64 3.65 11.27 3.65H12.73C13.36 3.65 13.95 3.97 14.3 4.5L15.3 6H17.5C18.88 6 20 7.12 20 8.5V17.5C20 18.88 18.88 20 17.5 20H6.5C5.12 20 4 18.88 4 17.5V8.5Z" stroke="#fff" stroke-width="1.6"/>
-                      <circle cx="12" cy="13" r="3.3" stroke="#fff" stroke-width="1.6"/>
-                    </svg>
-                  </span>
-                  <input id="avatarInput" type="file" accept="image/*" />
-                </label>
-              </div>
+              <div class="profile-shell-card">
+                <div class="profile-intro">
+                  <span class="profile-eyebrow">Profile</span>
+                  <h4 class="profile-title">Personal information</h4>
+                </div>
 
-              <div class="form-field row-field name-row" id="nameRow">
-                <label for="modalNameInput">Name</label>
-                <div class="input-wrap">
-                  <input id="modalNameInput" type="text" readonly />
-                  <button id="editNameBtn" class="edit-icon" type="button" aria-label="Edit name">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                      <path d="M4 20h4l10-10a2 2 0 0 0-4-4L4 16v4Z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/>
-                    </svg>
-                  </button>
-                </div>
-                <div class="row-actions">
-                  <button id="saveNameBtn" class="btn small" type="button" style="display:none">Save</button>
-                  <button id="cancelNameBtn" class="btn ghost small" type="button" style="display:none">Cancel</button>
-                  <div id="nameConfirm" class="confirm-inline" role="status" aria-live="polite">
-                    Confirm save?
-                    <button id="confirmNameBtn" class="btn small" type="button">Confirm</button>
-                    <button id="dismissNameBtn" class="btn ghost small" type="button">Cancel</button>
+                <div class="profile-form">
+                  <div class="profile-hero">
+                    <label class="avatar-uploader" aria-label="Upload avatar">
+                      <span class="avatar-placeholder" id="avatarPlaceholder">+</span>
+                      <img id="avatarImg" class="avatar-img" alt="Avatar" style="display:none" />
+                      <span class="avatar-badge" aria-hidden="true">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <path d="M4 8.5C4 7.12 5.12 6 6.5 6H8.7L9.7 4.5C10.05 3.97 10.64 3.65 11.27 3.65H12.73C13.36 3.65 13.95 3.97 14.3 4.5L15.3 6H17.5C18.88 6 20 7.12 20 8.5V17.5C20 18.88 18.88 20 17.5 20H6.5C5.12 20 4 18.88 4 17.5V8.5Z" stroke="#fff" stroke-width="1.6"/>
+                          <circle cx="12" cy="13" r="3.3" stroke="#fff" stroke-width="1.6"/>
+                        </svg>
+                      </span>
+                      <input id="avatarInput" type="file" accept="image/*" />
+                    </label>
                   </div>
-                </div>
-              </div>
-              <div class="form-field row-field">
-                <label for="modalEmailInput">Email</label>
-                <div class="input-wrap">
-                  <input id="modalEmailInput" type="text" readonly />
-                  <button id="editEmailBtn" class="edit-icon" type="button" aria-label="Edit email">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                      <path d="M4 20h4l10-10a2 2 0 0 0-4-4L4 16v4Z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/>
-                    </svg>
-                  </button>
+
+                  <div class="form-field row-field name-row" id="nameRow">
+                    <label for="modalNameInput">Name</label>
+                    <div class="input-wrap">
+                      <input id="modalNameInput" type="text" readonly />
+                      <button id="editNameBtn" class="edit-icon" type="button" aria-label="Edit name">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                          <path d="M4 20h4l10-10a2 2 0 0 0-4-4L4 16v4Z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/>
+                        </svg>
+                      </button>
+                    </div>
+                    <div class="row-actions">
+                      <button id="saveNameBtn" class="btn small" type="button" style="display:none">Save</button>
+                      <button id="cancelNameBtn" class="btn ghost small" type="button" style="display:none">Cancel</button>
+                      <div id="nameConfirm" class="confirm-inline" role="status" aria-live="polite">
+                        Confirm save?
+                        <button id="confirmNameBtn" class="btn small" type="button">Confirm</button>
+                        <button id="dismissNameBtn" class="btn ghost small" type="button">Cancel</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="form-field row-field">
+                    <label for="modalEmailInput">Email</label>
+                    <div class="input-wrap">
+                      <input id="modalEmailInput" type="text" readonly />
+                      <button id="editEmailBtn" class="edit-icon" type="button" aria-label="Edit email">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                          <path d="M4 20h4l10-10a2 2 0 0 0-4-4L4 16v4Z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
             </div>
 
             <div id="securityTab" class="info-section">
-              <h4 style="margin:0 0 12px;font-size:16px">Change Password</h4>
+              <div class="security-shell">
+                <div class="security-intro">
+                  <span class="security-eyebrow">Security</span>
+                  <h4 class="security-title">Change your password</h4>
+                </div>
 
-              <div class="form-field">
-                <label for="currentPassInput">Current Password</label>
-                <input id="currentPassInput" type="password" />
-                <div id="currentPassErr" class="error-text"></div>
-              </div>
+                <div class="security-form">
+                  <div class="security-grid">
+                    <div class="security-field current">
+                      <label for="currentPassInput">Current password</label>
+                      <input id="currentPassInput" type="password" />
+                      <div id="currentPassErr" class="error-text"></div>
+                    </div>
 
-              <div class="form-field">
-                <label for="newPassInput">New Password</label>
-                <input id="newPassInput" type="password" />
-                <div id="newPassErr" class="error-text"></div>
-              </div>
+                    <div class="security-field">
+                      <label for="newPassInput">New password</label>
+                      <input id="newPassInput" type="password" />
+                      <div id="newPassErr" class="error-text"></div>
+                    </div>
 
-              <div class="form-field">
-                <label for="confirmPassInput">Confirm New Password</label>
-                <input id="confirmPassInput" type="password" />
-                <div id="confirmPassErr" class="error-text"></div>
-              </div>
+                    <div class="security-field confirm">
+                      <label for="confirmPassInput">Confirm new password</label>
+                      <input id="confirmPassInput" type="password" />
+                      <div id="confirmPassErr" class="error-text"></div>
+                    </div>
+                  </div>
 
-              <p style="color:var(--muted);font-size:13px;margin:12px 0 0">Passwords are stored using bcrypt hashing.</p>
-
-              <div class="form-actions">
-                <button id="updatePassBtn" class="btn blue" type="button" style="flex:1">Update Password</button>
+                  <div class="security-foot">
+                    <div class="security-actions">
+                      <button id="updatePassBtn" class="btn blue" type="button">Update Password</button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -707,1024 +1094,33 @@
       <p>Enter your new email and verification code to confirm.</p>
       <div class="modal-field">
         <label for="newEmailInput">New email</label>
-        <input id="newEmailInput" type="email" placeholder="name@example.com" />
+        <input id="newEmailInput" type="email" />
       </div>
       <div class="modal-field">
         <label for="emailCodeInput">Verification code</label>
+        <p class="verify-hint">Enter all 6 digits. Verification will start automatically.</p>
         <div class="code-row">
-          <input id="emailCodeInput" type="text" placeholder="Verification code" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" />
+          <input id="emailCodeInput" type="hidden" value="" autocomplete="one-time-code" />
+          <div class="code-slot-row" role="group" aria-label="6-digit verification code">
+            <input class="code-slot" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="one-time-code" aria-label="Verification digit 1" />
+            <input class="code-slot" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Verification digit 2" />
+            <input class="code-slot" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Verification digit 3" />
+            <input class="code-slot" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Verification digit 4" />
+            <input class="code-slot" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Verification digit 5" />
+            <input class="code-slot" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Verification digit 6" />
+          </div>
           <button id="sendEmailCodeBtn" class="btn ghost small" type="button">Send code</button>
         </div>
-        <div id="emailUpdateErr" class="error-text" style="display:none"></div>
+        <div id="emailUpdateErr" class="verify-msg" role="status" aria-live="polite"></div>
       </div>
       <div class="modal-actions">
-        <button id="confirmEmailBtn" class="btn small" type="button">Confirm</button>
         <button id="cancelEmailBtn" class="btn ghost small" type="button">Cancel</button>
       </div>
     </div>
   </div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const infoOverlay = document.getElementById('infoOverlay');
-      const infoTitle = document.getElementById('infoTitle');
-      const infoBody = document.getElementById('infoBody');
-      const infoMap = {
-        privacy: {
-          title: 'Privacy',
-          body: `
-            <p>We only store the information needed to manage bookings and memberships.</p>
-            <p>Your account data is kept locally in this demo and is not shared with third parties.</p>
-            <p>You can request deletion at any time by contacting the admin.</p>
-          `
-        },
-        terms: {
-          title: 'Terms',
-          body: `
-            <p>Bookings are first-come, first-served and subject to club capacity.</p>
-            <p>Members must follow club rules and respect facility policies.</p>
-            <p>Repeated no-shows may result in booking restrictions.</p>
-          `
-        },
-        help: {
-          title: 'Help',
-          body: `
-            <p>Need assistance? Start by searching for a club and selecting a time slot.</p>
-            <p>If you cannot log in, double-check your email and password.</p>
-            <p>Contact support at support@example.com for further help.</p>
-          `
-        }
-      };
-
-      const openInfo = (key) => {
-        const data = infoMap[key];
-        if (!data || !infoOverlay) return;
-        if (infoTitle) infoTitle.textContent = data.title;
-        if (infoBody) infoBody.innerHTML = data.body;
-        infoOverlay.classList.add('open');
-        document.body.classList.add('no-scroll');
-      };
-
-      const closeInfo = () => {
-        if (!infoOverlay) return;
-        infoOverlay.classList.remove('open');
-        document.body.classList.remove('no-scroll');
-      };
-
-      document.querySelectorAll('.info-trigger').forEach((btn) => {
-        btn.addEventListener('click', () => openInfo(btn.dataset.info));
-      });
-      infoOverlay?.addEventListener('click', (evt) => { if (evt.target === infoOverlay) closeInfo(); });
-      infoOverlay?.querySelector('.info-close')?.addEventListener('click', closeInfo);
-
-      const panelButtons = Array.from(document.querySelectorAll('.side-link'));
-      const panels = Array.from(document.querySelectorAll('.panel'));
-      const sideNav = document.querySelector('.side-nav');
-      const bookingListEl = document.getElementById('bookingList');
-      const bookingErrorEl = document.getElementById('bookingError');
-      const bookingModeUpcomingBtn = document.getElementById('bookingModeUpcoming');
-      const bookingModeExpiredBtn = document.getElementById('bookingModeExpired');
-      const bookingUpcomingCountEl = document.getElementById('bookingUpcomingCount');
-      const bookingExpiredCountEl = document.getElementById('bookingExpiredCount');
-      const membershipListEl = document.getElementById('membershipList');
-      const membershipErrorEl = document.getElementById('membershipError');
-      let bookingViewMode = 'upcoming';
-      let bookingItemsCache = [];
-
-      const switchPanel = (panelKey) => {
-        panelButtons.forEach((btn) => btn.classList.toggle('active', btn.dataset.panel === panelKey));
-        panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.panel === panelKey));
-        sideNav?.classList.toggle('info-active', panelKey === 'info');
-      };
-
-      panelButtons.forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const panelKey = btn.dataset.panel;
-          switchPanel(panelKey);
-          if (panelKey === 'bookings') {
-            loadBookings();
-          } else if (panelKey === 'memberships') {
-            loadMemberships();
-          }
-        });
-      });
-
-
-      const safeParse = (key) => {
-        try {
-          return JSON.parse(localStorage.getItem(key) || 'null');
-        } catch (err) {
-          return null;
-        }
-      };
-
-      const AVATAR_STORAGE_KEY_LEGACY = 'profileAvatar';
-      const AVATAR_STORAGE_KEY_PREFIX = 'profileAvatar:';
-
-      const getAvatarStorageKey = () => {
-        const loggedUser = safeParse('loggedUser') || {};
-        const type = String(loggedUser.type || loggedUser.role || 'user').trim().toLowerCase() || 'user';
-        const email = String(loggedUser.email || '').trim().toLowerCase();
-        if (email) return `${AVATAR_STORAGE_KEY_PREFIX}${type}:${email}`;
-        const name = String(loggedUser.name || '').trim().toLowerCase();
-        if (name) return `${AVATAR_STORAGE_KEY_PREFIX}${type}:${name}`;
-        return `${AVATAR_STORAGE_KEY_PREFIX}${type}:anonymous`;
-      };
-
-      const parseAvatarStorageValue = (raw) => {
-        const text = String(raw || '').trim();
-        if (!text) return '';
-        try {
-          const parsed = JSON.parse(text);
-          return typeof parsed === 'string' ? parsed.trim() : '';
-        } catch {
-          // Backward compatibility: older builds stored plain string instead of JSON string.
-          return text;
-        }
-      };
-
-      const readStoredAvatar = () => {
-        const scopedKey = getAvatarStorageKey();
-        const scoped = parseAvatarStorageValue(localStorage.getItem(scopedKey));
-        return scoped || '';
-      };
-
-      const persistAvatar = (avatarUrl, { emit = true } = {}) => {
-        const normalized = String(avatarUrl || '').trim();
-        if (!normalized) return;
-        try {
-          localStorage.setItem(getAvatarStorageKey(), JSON.stringify(normalized));
-          localStorage.removeItem(AVATAR_STORAGE_KEY_LEGACY);
-        } catch (err) {
-          console.error(err);
-        }
-        try {
-          const profile = safeParse('profile') || {};
-          profile.avatarUrl = normalized;
-          profile.avatar = normalized;
-          localStorage.setItem('profile', JSON.stringify(profile));
-        } catch (err) {
-          console.error(err);
-        }
-        if (emit) {
-          window.dispatchEvent(new CustomEvent('profile-avatar-updated', { detail: { avatarUrl: normalized } }));
-        }
-      };
-
-      const applyAvatarPreview = (avatarUrl) => {
-        const normalized = String(avatarUrl || '').trim();
-        if (!avatarImg || !avatarPlaceholder) return;
-        if (normalized) {
-          avatarImg.src = normalized;
-          avatarImg.style.display = 'block';
-          avatarPlaceholder.style.display = 'none';
-          return;
-        }
-        avatarImg.removeAttribute('src');
-        avatarImg.style.display = 'none';
-        avatarPlaceholder.style.display = 'block';
-      };
-
-      const fileToAvatarDataUrl = async (file) => {
-        if (!file) return '';
-        const rawDataUrl = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
-          reader.onerror = () => resolve('');
-          reader.readAsDataURL(file);
-        });
-        if (!rawDataUrl) return '';
-
-        try {
-          const image = await new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload = () => resolve(img);
-            img.onerror = () => reject(new Error('Failed to decode image'));
-            img.src = rawDataUrl;
-          });
-          const maxSide = 256;
-          const ratio = Math.min(1, maxSide / Math.max(image.width || 1, image.height || 1));
-          const width = Math.max(1, Math.round((image.width || 1) * ratio));
-          const height = Math.max(1, Math.round((image.height || 1) * ratio));
-          const canvas = document.createElement('canvas');
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          if (!ctx) return rawDataUrl;
-          ctx.drawImage(image, 0, 0, width, height);
-          return canvas.toDataURL('image/jpeg', 0.84);
-        } catch {
-          return rawDataUrl;
-        }
-      };
-
-      const authFetch = (url, options = {}) => {
-        const token = localStorage.getItem('token');
-        const headers = { ...(options.headers || {}) };
-        if (token) headers.Authorization = `Bearer ${token}`;
-        return fetch(url, {
-          ...options,
-          credentials: options.credentials ?? 'include',
-          headers
-        });
-      };
-
-      const readTextSafe = async (res) => {
-        try {
-          const contentType = String(res.headers.get('content-type') || '').toLowerCase();
-          if (contentType.includes('application/json')) {
-            const data = await res.json();
-            if (data && typeof data.message === 'string' && data.message.trim()) {
-              return data.message.trim();
-            }
-            return JSON.stringify(data || {});
-          }
-          return await res.text();
-        } catch {
-          return '';
-        }
-      };
-
-      const persistSessionToken = (token) => {
-        const normalized = String(token || '').trim();
-        if (!normalized) return;
-        try {
-          localStorage.setItem('token', normalized);
-        } catch (err) {
-          console.error(err);
-        }
-      };
-
-      const syncLocalProfileState = (payload) => {
-        const profilePayload = payload && typeof payload === 'object' ? payload : {};
-        const displayName = String(profilePayload.displayName || profilePayload.fullName || profilePayload.name || '').trim();
-        const email = String(profilePayload.email || '').trim();
-        const avatarUrl = String(profilePayload.avatarUrl || profilePayload.avatar || '').trim();
-        const role = String(profilePayload.role || '').trim().toLowerCase() || 'user';
-
-        const profile = safeParse('profile') || {};
-        const loggedUser = safeParse('loggedUser') || {};
-        const userObj = safeParse('user') || {};
-
-        if (displayName) {
-          profile.displayName = displayName;
-          profile.fullName = displayName;
-          profile.name = displayName;
-          loggedUser.name = displayName;
-          userObj.fullName = displayName;
-          userObj.name = displayName;
-        }
-        if (email) {
-          profile.email = email;
-          loggedUser.email = email;
-          userObj.email = email;
-        }
-        if (avatarUrl) {
-          profile.avatarUrl = avatarUrl;
-          profile.avatar = avatarUrl;
-        }
-        if (role) {
-          profile.role = role;
-          loggedUser.type = role;
-          userObj.role = role;
-        }
-
-        try {
-          localStorage.setItem('profile', JSON.stringify(profile));
-          localStorage.setItem('loggedUser', JSON.stringify(loggedUser));
-          localStorage.setItem('user', JSON.stringify(userObj));
-        } catch (err) {
-          console.error(err);
-        }
-
-        if (avatarUrl) {
-          persistAvatar(avatarUrl, { emit: false });
-        }
-      };
-
-      const escapeHtml = (value) => String(value ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-
-      const formatDateTime = (iso) => {
-        if (!iso || typeof iso !== 'string') return '--';
-        const dt = new Date(iso);
-        if (Number.isNaN(dt.getTime())) return iso;
-        const y = dt.getFullYear();
-        const m = String(dt.getMonth() + 1).padStart(2, '0');
-        const d = String(dt.getDate()).padStart(2, '0');
-        const hh = String(dt.getHours()).padStart(2, '0');
-        const mm = String(dt.getMinutes()).padStart(2, '0');
-        return `${y}-${m}-${d} ${hh}:${mm}`;
-      };
-
-      const formatPrice = (price) => {
-        const n = Number(price);
-        if (!Number.isFinite(n)) return 'GBP 0.00';
-        return `GBP ${n.toFixed(2)}`;
-      };
-
-      const profileApi = {
-        async getMyBookings() {
-          const res = await authFetch('/api/my/bookings');
-          if (!res.ok) {
-            const text = await res.text();
-            throw new Error(text || 'Failed to load bookings.');
-          }
-          return await res.json();
-        },
-        async getMyMemberships() {
-          const res = await authFetch('/api/my/memberships');
-          if (!res.ok) {
-            const text = await res.text();
-            throw new Error(text || 'Failed to load memberships.');
-          }
-          return await res.json();
-        },
-        async getProfile() {
-          const res = await authFetch('/api/profile');
-          if (!res.ok) {
-            throw new Error((await readTextSafe(res)) || 'Failed to load profile.');
-          }
-          return await res.json();
-        },
-        async updateName(displayName) {
-          const res = await authFetch('/api/profile', {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ displayName })
-          });
-          if (!res.ok) {
-            throw new Error((await readTextSafe(res)) || 'Failed to update name.');
-          }
-          return await res.json();
-        },
-        async sendEmailCode(email) {
-          const res = await authFetch('/api/profile/email/code', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email })
-          });
-          if (!res.ok) {
-            throw new Error((await readTextSafe(res)) || 'Failed to send verification code.');
-          }
-          return await res.json();
-        },
-        async updateEmail(email, code) {
-          const res = await authFetch('/api/profile/email', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, code })
-          });
-          if (!res.ok) {
-            throw new Error((await readTextSafe(res)) || 'Failed to update email.');
-          }
-          return await res.json();
-        },
-        async uploadAvatar(file) {
-          const formData = new FormData();
-          formData.append('avatar', file);
-          const res = await authFetch('/api/profile/avatar', {
-            method: 'POST',
-            body: formData
-          });
-          if (!res.ok) {
-            throw new Error((await readTextSafe(res)) || 'Failed to upload avatar.');
-          }
-          return await res.json();
-        },
-        async updatePassword(currentPassword, newPassword) {
-          const res = await authFetch('/api/profile/password', {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ currentPassword, newPassword })
-          });
-          if (!res.ok) {
-            throw new Error((await readTextSafe(res)) || 'Failed to update password.');
-          }
-          return await res.json();
-        }
-      };
-
-      const bookingStatusClass = (statusRaw) => {
-        const normalized = String(statusRaw || '').trim().toLowerCase();
-        if (!normalized) return '';
-        return `status-${normalized.replace(/[^a-z0-9]+/g, '-')}`;
-      };
-
-      const bookingTimeMs = (raw) => {
-        const value = Date.parse(String(raw || ''));
-        return Number.isFinite(value) ? value : null;
-      };
-
-      const splitBookings = (items) => {
-        const source = Array.isArray(items) ? items : [];
-        const now = Date.now();
-        const upcoming = [];
-        const expired = [];
-
-        source.forEach((item) => {
-          const endMs = bookingTimeMs(item?.endTime);
-          const startMs = bookingTimeMs(item?.startTime);
-          const isExpired = endMs !== null ? endMs < now : (startMs !== null ? startMs < now : false);
-          if (isExpired) expired.push(item);
-          else upcoming.push(item);
-        });
-
-        upcoming.sort((a, b) => (bookingTimeMs(a?.startTime) ?? Number.MAX_SAFE_INTEGER) - (bookingTimeMs(b?.startTime) ?? Number.MAX_SAFE_INTEGER));
-        expired.sort((a, b) => (bookingTimeMs(b?.startTime) ?? 0) - (bookingTimeMs(a?.startTime) ?? 0));
-        return { upcoming, expired };
-      };
-
-      const renderBookingModeUi = (counts) => {
-        const upcomingCount = Number(counts?.upcoming || 0);
-        const expiredCount = Number(counts?.expired || 0);
-        if (bookingUpcomingCountEl) bookingUpcomingCountEl.textContent = String(upcomingCount);
-        if (bookingExpiredCountEl) bookingExpiredCountEl.textContent = String(expiredCount);
-
-        const upcomingActive = bookingViewMode === 'upcoming';
-        bookingModeUpcomingBtn?.classList.toggle('active', upcomingActive);
-        bookingModeExpiredBtn?.classList.toggle('active', !upcomingActive);
-        bookingModeUpcomingBtn?.setAttribute('aria-selected', upcomingActive ? 'true' : 'false');
-        bookingModeExpiredBtn?.setAttribute('aria-selected', upcomingActive ? 'false' : 'true');
-      };
-
-      const renderBookings = (items) => {
-        if (!bookingListEl) return;
-
-        bookingItemsCache = Array.isArray(items) ? items : [];
-        const { upcoming, expired } = splitBookings(bookingItemsCache);
-        renderBookingModeUi({ upcoming: upcoming.length, expired: expired.length });
-
-        const activeList = bookingViewMode === 'expired' ? expired : upcoming;
-        if (!activeList.length) {
-          bookingListEl.innerHTML = bookingViewMode === 'expired'
-            ? '<div class="booking-empty">No expired bookings yet.</div>'
-            : '<div class="booking-empty">No upcoming bookings yet. Go to Home and pick a club slot.</div>';
-          return;
-        }
-
-        const rows = activeList.map((item) => {
-          const clubName = escapeHtml(item?.clubName || 'Club');
-          const venueName = escapeHtml(item?.venueName || 'Venue');
-          const startLabel = formatDateTime(item?.startTime);
-          const endLabel = formatDateTime(item?.endTime);
-          const statusRaw = String(item?.status || 'PENDING').trim();
-          const statusLabel = escapeHtml(statusRaw || 'PENDING');
-          const statusClass = bookingStatusClass(statusRaw);
-          const priceLabel = escapeHtml(formatPrice(item?.price));
-          const clubId = Number(item?.clubId);
-          const detailBtn = Number.isFinite(clubId)
-            ? `<button class="btn ghost small" type="button" data-action="details" data-club-id="${clubId}">Details</button>`
-            : '';
-          const timeClass = bookingViewMode === 'expired' ? 'expired' : 'upcoming';
-          const timeLabel = bookingViewMode === 'expired' ? 'Expired' : 'Upcoming';
-
-          return `
-            <div class="booking-card">
-              <div class="booking-meta">
-                <div class="booking-title">${clubName}</div>
-                <div class="booking-sub">${venueName}</div>
-                <div class="booking-meta-row">
-                  <span class="booking-pill ${timeClass}">${timeLabel}</span>
-                  <span class="booking-pill ${escapeHtml(statusClass)}">${statusLabel}</span>
-                </div>
-                <div class="booking-sub">${escapeHtml(startLabel)} - ${escapeHtml(endLabel)}</div>
-                <div class="booking-sub">Price: ${priceLabel}</div>
-              </div>
-              <div class="booking-actions">${detailBtn}</div>
-            </div>
-          `;
-        }).join('');
-
-        bookingListEl.innerHTML = rows;
-        bookingListEl.querySelectorAll('button[data-action="details"]').forEach((btn) => {
-          btn.addEventListener('click', () => {
-            const clubId = btn.getAttribute('data-club-id');
-            if (!clubId) return;
-            window.location.href = `club.html?club=${encodeURIComponent(clubId)}`;
-          });
-        });
-      };
-
-      const loadBookings = async () => {
-        if (!bookingListEl) return;
-
-        if (bookingErrorEl) {
-          bookingErrorEl.style.display = 'none';
-          bookingErrorEl.textContent = '';
-        }
-
-        bookingListEl.innerHTML = '<div class="muted">Loading bookings...</div>';
-        const token = localStorage.getItem('token');
-        if (!token) {
-          bookingListEl.innerHTML = '<div class="muted">Please log in to view your bookings.</div>';
-          return;
-        }
-
-        try {
-          const items = await profileApi.getMyBookings();
-          renderBookings(items);
-        } catch (err) {
-          console.error(err);
-          bookingListEl.innerHTML = '<div class="muted">Unable to load bookings right now.</div>';
-          if (bookingErrorEl) {
-            bookingErrorEl.textContent = (err && err.message) ? err.message : 'Failed to load bookings.';
-            bookingErrorEl.style.display = 'block';
-          }
-        }
-      };
-
-      const membershipStatusClass = (statusRaw) => {
-        const normalized = String(statusRaw || '').trim().toLowerCase();
-        if (normalized === 'active') return 'membership-active';
-        if (normalized === 'scheduled') return 'membership-scheduled';
-        return 'membership-expired';
-      };
-
-      const renderMemberships = (items) => {
-        if (!membershipListEl) return;
-
-        const rows = Array.isArray(items) ? items.slice() : [];
-        rows.sort((a, b) => {
-          const order = (value) => {
-            const key = String(value || '').trim().toUpperCase();
-            if (key === 'ACTIVE') return 0;
-            if (key === 'SCHEDULED') return 1;
-            return 2;
-          };
-          const first = order(a?.status) - order(b?.status);
-          if (first !== 0) return first;
-          return String(b?.endDate || '').localeCompare(String(a?.endDate || ''));
-        });
-
-        if (!rows.length) {
-          membershipListEl.innerHTML = '<div class="booking-empty">You have not purchased any club memberships yet.</div>';
-          return;
-        }
-
-        membershipListEl.innerHTML = rows.map((item) => {
-          const clubName = escapeHtml(item?.clubName || 'Club');
-          const planName = escapeHtml(item?.planName || 'Membership');
-          const statusLabel = escapeHtml(String(item?.status || 'ACTIVE'));
-          const statusClass = membershipStatusClass(item?.status);
-          const priceLabel = escapeHtml(formatPrice(item?.planPrice));
-          const discountLabel = `${escapeHtml(String(item?.discountPercent ?? 0))}% off`;
-          const startLabel = escapeHtml(String(item?.startDate || '--'));
-          const endLabel = escapeHtml(String(item?.endDate || '--'));
-          const clubId = Number(item?.clubId);
-          const detailBtn = Number.isFinite(clubId)
-            ? `<button class="btn ghost small" type="button" data-action="membership-details" data-club-id="${clubId}">Open club</button>`
-            : '';
-
-          return `
-            <div class="booking-card">
-              <div class="booking-meta">
-                <div class="booking-title">${clubName}</div>
-                <div class="booking-sub">${planName}</div>
-                <div class="booking-meta-row">
-                  <span class="booking-pill ${statusClass}">${statusLabel}</span>
-                  <span class="booking-pill">${discountLabel}</span>
-                </div>
-                <div class="booking-sub">${startLabel} - ${endLabel}</div>
-                <div class="booking-sub">Membership price: ${priceLabel}</div>
-              </div>
-              <div class="booking-actions">${detailBtn}</div>
-            </div>
-          `;
-        }).join('');
-
-        membershipListEl.querySelectorAll('button[data-action="membership-details"]').forEach((btn) => {
-          btn.addEventListener('click', () => {
-            const clubId = btn.getAttribute('data-club-id');
-            if (!clubId) return;
-            window.location.href = `club.html?club=${encodeURIComponent(clubId)}`;
-          });
-        });
-      };
-
-      const loadMemberships = async () => {
-        if (!membershipListEl) return;
-
-        if (membershipErrorEl) {
-          membershipErrorEl.style.display = 'none';
-          membershipErrorEl.textContent = '';
-        }
-
-        membershipListEl.innerHTML = '<div class="muted">Loading memberships...</div>';
-        const token = localStorage.getItem('token');
-        if (!token) {
-          membershipListEl.innerHTML = '<div class="booking-empty">Please log in to view your memberships.</div>';
-          return;
-        }
-
-        try {
-          const items = await profileApi.getMyMemberships();
-          renderMemberships(items);
-        } catch (err) {
-          console.error(err);
-          membershipListEl.innerHTML = '<div class="booking-empty">Unable to load memberships right now.</div>';
-          if (membershipErrorEl) {
-            membershipErrorEl.textContent = (err && err.message) ? err.message : 'Failed to load memberships.';
-            membershipErrorEl.style.display = 'block';
-          }
-        }
-      };
-
-      const setBookingMode = (mode) => {
-        const next = mode === 'expired' ? 'expired' : 'upcoming';
-        if (bookingViewMode === next) return;
-        bookingViewMode = next;
-        renderBookings(bookingItemsCache);
-      };
-
-      bookingModeUpcomingBtn?.addEventListener('click', () => setBookingMode('upcoming'));
-      bookingModeExpiredBtn?.addEventListener('click', () => setBookingMode('expired'));
-
-      const tabProfile = document.getElementById('tabProfile');
-      const tabSecurity = document.getElementById('tabSecurity');
-      const profileTab = document.getElementById('profileTab');
-      const securityTab = document.getElementById('securityTab');
-
-      const modalNameInput = document.getElementById('modalNameInput');
-      const nameRow = document.getElementById('nameRow');
-      const modalEmailInput = document.getElementById('modalEmailInput');
-      const editNameBtn = document.getElementById('editNameBtn');
-      const saveNameBtn = document.getElementById('saveNameBtn');
-      const cancelNameBtn = document.getElementById('cancelNameBtn');
-      const editEmailBtn = document.getElementById('editEmailBtn');
-      const emailOverlay = document.getElementById('emailOverlay');
-      const closeEmailModal = document.getElementById('closeEmailModal');
-      const cancelEmailBtn = document.getElementById('cancelEmailBtn');
-      const confirmEmailBtn = document.getElementById('confirmEmailBtn');
-      const sendEmailCodeBtn = document.getElementById('sendEmailCodeBtn');
-      const newEmailInput = document.getElementById('newEmailInput');
-      const emailCodeInput = document.getElementById('emailCodeInput');
-      const emailUpdateErr = document.getElementById('emailUpdateErr');
-      const nameConfirm = document.getElementById('nameConfirm');
-      const confirmNameBtn = document.getElementById('confirmNameBtn');
-      const dismissNameBtn = document.getElementById('dismissNameBtn');
-      const avatarInput = document.getElementById('avatarInput');
-      const avatarImg = document.getElementById('avatarImg');
-      const avatarPlaceholder = document.getElementById('avatarPlaceholder');
-
-      const currentPassInput = document.getElementById('currentPassInput');
-      const newPassInput = document.getElementById('newPassInput');
-      const confirmPassInput = document.getElementById('confirmPassInput');
-      const currentPassErr = document.getElementById('currentPassErr');
-      const newPassErr = document.getElementById('newPassErr');
-      const confirmPassErr = document.getElementById('confirmPassErr');
-
-      let currentName = '';
-      let currentEmail = '';
-      let codeTimer = null;
-      let codeRemaining = 0;
-
-      const toggleConfirm = (show) => {
-        if (!nameConfirm) return;
-        nameConfirm.classList.toggle('open', show);
-        if (show) confirmNameBtn?.focus();
-        if (saveNameBtn) saveNameBtn.style.display = show ? 'none' : 'inline-flex';
-        if (cancelNameBtn) cancelNameBtn.style.display = show ? 'none' : 'inline-flex';
-      };
-
-      const setEditing = (editing) => {
-        if (!modalNameInput) return;
-        modalNameInput.readOnly = !editing;
-        if (editNameBtn) editNameBtn.style.display = editing ? 'none' : 'inline-flex';
-        if (saveNameBtn) saveNameBtn.style.display = editing ? 'inline-flex' : 'none';
-        if (cancelNameBtn) cancelNameBtn.style.display = editing ? 'inline-flex' : 'none';
-        nameRow?.classList.toggle('editing', editing);
-        toggleConfirm(false);
-        if (editing) modalNameInput.focus();
-      };
-
-      const loadAndDisplay = async () => {
-        let profile = null;
-        try {
-          profile = await profileApi.getProfile();
-          if (profile) syncLocalProfileState(profile);
-        } catch (err) {
-          console.error(err);
-        }
-        const localProfile = safeParse('profile');
-        const loggedUser = safeParse('loggedUser');
-        const userObj = safeParse('user');
-        const avatarData = readStoredAvatar();
-
-        const displayName = (profile && profile.displayName)
-          || (localProfile && localProfile.displayName)
-          || (loggedUser && loggedUser.name)
-          || (userObj && (userObj.fullName || userObj.name))
-          || '';
-        const email = (profile && profile.email)
-          || (loggedUser && loggedUser.email)
-          || (userObj && userObj.email)
-          || '';
-        const serverAvatar = String((profile && (profile.avatarUrl || profile.avatar)) || '').trim();
-        if (serverAvatar) {
-          persistAvatar(serverAvatar, { emit: false });
-        }
-        const avatarUrl = serverAvatar || avatarData || '';
-
-        if (modalNameInput) modalNameInput.value = displayName || '';
-        if (modalEmailInput) modalEmailInput.value = email || '';
-        currentName = displayName || '';
-        currentEmail = email || '';
-        setEditing(false);
-        applyAvatarPreview(avatarUrl);
-      };
-
-      const switchInfoTab = (tab) => {
-        const showProfile = tab === 'profile';
-        profileTab.classList.toggle('active', showProfile);
-        securityTab.classList.toggle('active', !showProfile);
-        tabProfile.classList.toggle('active', showProfile);
-        tabSecurity.classList.toggle('active', !showProfile);
-      };
-
-      const resetSecurity = () => {
-        currentPassInput.value = '';
-        newPassInput.value = '';
-        confirmPassInput.value = '';
-        currentPassErr.style.display = 'none';
-        newPassErr.style.display = 'none';
-        confirmPassErr.style.display = 'none';
-      };
-
-      tabProfile?.addEventListener('click', () => {
-        switchPanel('info');
-        switchInfoTab('profile');
-      });
-      tabSecurity?.addEventListener('click', () => {
-        switchPanel('info');
-        switchInfoTab('security');
-      });
-
-      const persistDisplayName = async () => {
-        const newName = (modalNameInput.value || '').trim();
-        if (newName === currentName) {
-          setEditing(false);
-          return;
-        }
-        try {
-          const updated = await profileApi.updateName(newName);
-          syncLocalProfileState(updated);
-        } catch (err) {
-          console.error(err);
-          window.alert((err && err.message) ? err.message : 'Failed to update name.');
-          return;
-        }
-
-        currentName = newName;
-        if (modalNameInput) modalNameInput.value = newName;
-        setEditing(false);
-        toggleConfirm(false);
-      };
-
-      const openEmailModal = () => {
-        if (!emailOverlay) return;
-        if (newEmailInput) newEmailInput.value = '';
-        if (emailCodeInput) emailCodeInput.value = '';
-        if (emailUpdateErr) {
-          emailUpdateErr.textContent = '';
-          emailUpdateErr.style.display = 'none';
-        }
-        emailOverlay.classList.add('open');
-      };
-
-      const closeEmailModalFn = () => {
-        if (!emailOverlay) return;
-        emailOverlay.classList.remove('open');
-      };
-
-      editNameBtn?.addEventListener('click', () => setEditing(true));
-      saveNameBtn?.addEventListener('click', () => toggleConfirm(true));
-      confirmNameBtn?.addEventListener('click', persistDisplayName);
-      dismissNameBtn?.addEventListener('click', () => toggleConfirm(false));
-      cancelNameBtn?.addEventListener('click', () => {
-        if (modalNameInput) modalNameInput.value = currentName;
-        setEditing(false);
-      });
-      editEmailBtn?.addEventListener('click', openEmailModal);
-      closeEmailModal?.addEventListener('click', closeEmailModalFn);
-      cancelEmailBtn?.addEventListener('click', closeEmailModalFn);
-      emailOverlay?.addEventListener('click', (event) => {
-        if (event.target === emailOverlay) closeEmailModalFn();
-      });
-      sendEmailCodeBtn?.addEventListener('click', async () => {
-        if (!sendEmailCodeBtn || sendEmailCodeBtn.disabled) return;
-        const emailValue = (newEmailInput?.value || '').trim();
-        const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue);
-        if (!emailOk) {
-          if (emailUpdateErr) {
-            emailUpdateErr.textContent = 'Please enter a valid email before requesting a code.';
-            emailUpdateErr.style.display = 'block';
-          }
-          return;
-        }
-        if (emailUpdateErr) {
-          emailUpdateErr.textContent = '';
-          emailUpdateErr.style.display = 'none';
-        }
-        sendEmailCodeBtn.disabled = true;
-        sendEmailCodeBtn.textContent = 'Sending...';
-        try {
-          await profileApi.sendEmailCode(emailValue);
-          codeRemaining = 60;
-          sendEmailCodeBtn.textContent = `Resend in ${codeRemaining}s`;
-          if (codeTimer) clearInterval(codeTimer);
-          codeTimer = setInterval(() => {
-            codeRemaining -= 1;
-            if (codeRemaining <= 0) {
-              clearInterval(codeTimer);
-              codeTimer = null;
-              sendEmailCodeBtn.disabled = false;
-              sendEmailCodeBtn.textContent = 'Send code';
-              return;
-            }
-            sendEmailCodeBtn.textContent = `Resend in ${codeRemaining}s`;
-          }, 1000);
-        } catch (err) {
-          console.error(err);
-          sendEmailCodeBtn.disabled = false;
-          sendEmailCodeBtn.textContent = 'Send code';
-          if (emailUpdateErr) {
-            emailUpdateErr.textContent = (err && err.message) ? err.message : 'Failed to send verification code.';
-            emailUpdateErr.style.display = 'block';
-          }
-        }
-      });
-      confirmEmailBtn?.addEventListener('click', async () => {
-        const nextEmail = (newEmailInput?.value || '').trim();
-        const code = (emailCodeInput?.value || '').trim();
-        if (!nextEmail || !code) {
-          if (emailUpdateErr) {
-            emailUpdateErr.textContent = 'Please enter the new email and verification code.';
-            emailUpdateErr.style.display = 'block';
-          }
-          return;
-        }
-        if (!/^\d{6}$/.test(code)) {
-          if (emailUpdateErr) {
-            emailUpdateErr.textContent = 'Verification code must be 6 digits.';
-            emailUpdateErr.style.display = 'block';
-          }
-          return;
-        }
-        if (emailUpdateErr) {
-          emailUpdateErr.textContent = '';
-          emailUpdateErr.style.display = 'none';
-        }
-        let updated;
-        try {
-          updated = await profileApi.updateEmail(nextEmail, code);
-        } catch (err) {
-          console.error(err);
-          if (emailUpdateErr) {
-            emailUpdateErr.textContent = (err && err.message) ? err.message : 'Verification failed. Please check the code and try again.';
-            emailUpdateErr.style.display = 'block';
-          }
-          return;
-        }
-        persistSessionToken(updated?.token);
-        syncLocalProfileState(updated);
-        currentEmail = nextEmail;
-        if (modalEmailInput) modalEmailInput.value = nextEmail;
-        if (codeTimer) {
-          clearInterval(codeTimer);
-          codeTimer = null;
-        }
-        if (sendEmailCodeBtn) {
-          sendEmailCodeBtn.disabled = false;
-          sendEmailCodeBtn.textContent = 'Send code';
-        }
-        closeEmailModalFn();
-      });
-
-      emailCodeInput?.addEventListener('input', () => {
-        if (!emailCodeInput) return;
-        const cleaned = emailCodeInput.value.replace(/\D/g, '').slice(0, 6);
-        if (emailCodeInput.value !== cleaned) emailCodeInput.value = cleaned;
-      });
-      modalNameInput?.addEventListener('keydown', (event) => {
-        if (modalNameInput.readOnly) {
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            setEditing(true);
-            return;
-          }
-          if (event.key.length === 1 || event.key === 'Backspace' || event.key === 'Delete') {
-            setEditing(true);
-          }
-        }
-        if (event.key === 'Enter') {
-          event.preventDefault();
-          toggleConfirm(true);
-        }
-      });
-
-      avatarInput?.addEventListener('change', async (event) => {
-        const file = event.target.files && event.target.files[0];
-        if (!file) return;
-        const previousAvatar = String(avatarImg?.getAttribute('src') || readStoredAvatar() || '').trim();
-        const previewUrl = await fileToAvatarDataUrl(file);
-        if (previewUrl) {
-          applyAvatarPreview(previewUrl);
-        }
-
-        try {
-          const uploaded = await profileApi.uploadAvatar(file);
-          const serverAvatar = String(uploaded?.avatarUrl || uploaded?.avatar || '').trim();
-          if (serverAvatar) {
-            persistAvatar(serverAvatar);
-            applyAvatarPreview(serverAvatar);
-          }
-        } catch (err) {
-          console.error(err);
-          if (previousAvatar) {
-            applyAvatarPreview(previousAvatar);
-          } else {
-            applyAvatarPreview('');
-          }
-          window.alert((err && err.message) ? err.message : 'Failed to upload avatar.');
-        }
-      });
-
-      document.getElementById('updatePassBtn')?.addEventListener('click', async () => {
-        currentPassErr.style.display = 'none';
-        newPassErr.style.display = 'none';
-        confirmPassErr.style.display = 'none';
-
-        const currentPass = currentPassInput.value;
-        const newPass = newPassInput.value;
-        const confirmPass = confirmPassInput.value;
-
-        let valid = true;
-
-        if (!currentPass) {
-          currentPassErr.textContent = 'Current password is required.';
-          currentPassErr.style.display = 'block';
-          valid = false;
-        }
-        if (!newPass) {
-          newPassErr.textContent = 'New password is required.';
-          newPassErr.style.display = 'block';
-          valid = false;
-        }
-        if (newPass && confirmPass && newPass !== confirmPass) {
-          confirmPassErr.textContent = 'Passwords do not match.';
-          confirmPassErr.style.display = 'block';
-          valid = false;
-        }
-
-        if (!valid) return;
-
-        const updateBtn = document.getElementById('updatePassBtn');
-        if (updateBtn) {
-          updateBtn.disabled = true;
-          updateBtn.textContent = 'Updating...';
-        }
-        try {
-          const updated = await profileApi.updatePassword(currentPass, newPass);
-          persistSessionToken(updated?.token);
-          if (updateBtn) {
-            updateBtn.textContent = 'Password updated';
-          }
-          setTimeout(() => {
-            if (updateBtn) {
-              updateBtn.disabled = false;
-              updateBtn.textContent = 'Update Password';
-            }
-            resetSecurity();
-          }, 900);
-        } catch (err) {
-          console.error(err);
-          const message = (err && err.message) ? err.message : 'Failed to update password.';
-          if (/current password/i.test(message)) {
-            currentPassErr.textContent = message;
-            currentPassErr.style.display = 'block';
-          } else {
-            newPassErr.textContent = message;
-            newPassErr.style.display = 'block';
-          }
-          if (updateBtn) {
-            updateBtn.disabled = false;
-            updateBtn.textContent = 'Update Password';
-          }
-        }
-      });
-
-      loadAndDisplay();
-      loadBookings();
-      switchPanel('bookings');
-    });
-  </script>
-
-  <script src="auth-modal.js?v=20260308g" defer></script>
+  <script type="module" src="user-profile.js?v=20260329b"></script>
+  <script type="module" src="auth-modal.js?v=20260324a"></script>
 </body>
 </html>
 

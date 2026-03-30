@@ -1,18 +1,537 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Redirecting...</title>
-    <meta http-equiv="refresh" content="0; url=/club.html" />
-  </head>
-  <body>
-    <p>Redirecting to club.html...</p>
-    <script>
-      (function () {
-        var target = '/club.html' + (window.location.search || '') + (window.location.hash || '');
-        window.location.replace(target);
-      })();
-    </script>
-  </body>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Club Directory</title>
+  <link rel="stylesheet" href="theme.css?v=20260324a">
+  <style>
+    :root {
+      --bg: #f7f8fb;
+      --card: #fff;
+      --ink: #172033;
+      --muted: #667085;
+      --line: #dde3ee;
+      --chip: #eef3ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top right, rgba(37, 99, 235, .10), transparent 28%),
+        linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
+      color: var(--ink);
+      font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(255, 255, 255, .92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+    .wrap {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+    .header-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .brand {
+      display: grid;
+      gap: 4px;
+    }
+    .brand a {
+      color: inherit;
+      text-decoration: none;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -.02em;
+    }
+    .brand p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .btn {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      min-height: 38px;
+      padding: 0 14px;
+      background: #111827;
+      color: #fff;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn.ghost {
+      background: #fff;
+      color: #111827;
+    }
+    .hero {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr);
+      align-items: start;
+      margin-top: 18px;
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      box-shadow: 0 14px 38px rgba(15, 23, 42, .06);
+    }
+    .hero-copy {
+      padding: 24px;
+      display: grid;
+      gap: 12px;
+    }
+    .hero-copy h1 {
+      margin: 0;
+      font-size: clamp(30px, 5vw, 46px);
+      line-height: 1.02;
+      letter-spacing: -.04em;
+    }
+    .hero-copy p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 60ch;
+    }
+    .hero-stats {
+      padding: 24px;
+      display: grid;
+      gap: 12px;
+    }
+    .hero-stats h2 {
+      margin: 0;
+      font-size: 14px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .stat-card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fbfcff;
+      padding: 14px;
+      display: grid;
+      gap: 4px;
+    }
+    .stat-card strong {
+      font-size: 24px;
+      letter-spacing: -.03em;
+    }
+    .stat-card span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .toolbar {
+      margin-top: 18px;
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+    .toolbar-top {
+      display: flex;
+      gap: 12px;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .toolbar h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+    .toolbar p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .search-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+    }
+    input[type="search"] {
+      width: 100%;
+      min-height: 46px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 0 14px;
+      font: inherit;
+      background: #fff;
+    }
+    .tag-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .tag-btn {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      min-height: 34px;
+      padding: 0 12px;
+      background: #fff;
+      color: #334155;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .tag-btn.active {
+      background: var(--chip);
+      border-color: #bfd4ff;
+      color: #1d4ed8;
+    }
+    .cards {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(255px, 1fr));
+      gap: 14px;
+    }
+    .club-card {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: var(--card);
+      padding: 18px;
+      display: grid;
+      gap: 12px;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, .05);
+    }
+    .club-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 28px;
+      border-radius: 999px;
+      background: var(--chip);
+      border: 1px solid #d9e4ff;
+      color: #1d4ed8;
+      padding: 0 10px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .tag-chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      border-radius: 999px;
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      color: #475467;
+      padding: 0 9px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .club-card h3 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: -.02em;
+    }
+    .club-card p {
+      margin: 0;
+      color: var(--muted);
+      min-height: 42px;
+    }
+    .club-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .empty {
+      margin-top: 18px;
+      padding: 26px;
+      border: 1px dashed #c6d2e4;
+      border-radius: 18px;
+      background: rgba(255,255,255,.7);
+      color: var(--muted);
+      text-align: center;
+    }
+    @media (max-width: 860px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (max-width: 640px) {
+      .search-row {
+        grid-template-columns: 1fr;
+      }
+      .hero-copy,
+      .hero-stats,
+      .toolbar {
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap header-wrap">
+      <div class="brand">
+        <a href="home.html">Club Booking Portal</a>
+        <p>Browse clubs, compare categories, and jump straight into join or booking flows.</p>
+      </div>
+      <div class="header-actions">
+        <a class="btn ghost" href="home.html">Home</a>
+        <a class="btn ghost" id="accountLink" href="login.html#login">Login</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <article class="panel hero-copy">
+        <h1>Club directory with direct paths to view, join, and book.</h1>
+        <p>`clubs.html` is now a real directory page. It loads club data from the backend, supports search and tag filtering, and lets users open either the full club page or the dedicated join entry page.</p>
+      </article>
+      <aside class="panel hero-stats">
+        <h2>Snapshot</h2>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <strong id="clubCount">0</strong>
+            <span>clubs loaded</span>
+          </div>
+          <div class="stat-card">
+            <strong id="categoryCount">0</strong>
+            <span>categories</span>
+          </div>
+          <div class="stat-card">
+            <strong id="resultCount">0</strong>
+            <span>visible results</span>
+          </div>
+          <div class="stat-card">
+            <strong id="selectedTagLabel">All</strong>
+            <span>active filter</span>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="panel toolbar">
+      <div class="toolbar-top">
+        <div>
+          <h2>Explore Clubs</h2>
+          <p>Type a keyword or lock onto a category to narrow the directory.</p>
+        </div>
+      </div>
+      <div class="search-row">
+        <input id="searchInput" type="search" placeholder="Search by club name, category, or description" />
+        <button id="clearBtn" class="btn ghost" type="button">Clear</button>
+      </div>
+      <div id="tagBar" class="tag-bar"></div>
+    </section>
+
+    <section id="cards" class="cards" aria-live="polite"></section>
+    <div id="emptyState" class="empty" style="display:none;">No clubs match the current filters.</div>
+  </main>
+
+  <script>
+    const cardsEl = document.getElementById('cards');
+    const emptyStateEl = document.getElementById('emptyState');
+    const searchInputEl = document.getElementById('searchInput');
+    const clearBtnEl = document.getElementById('clearBtn');
+    const tagBarEl = document.getElementById('tagBar');
+    const clubCountEl = document.getElementById('clubCount');
+    const categoryCountEl = document.getElementById('categoryCount');
+    const resultCountEl = document.getElementById('resultCount');
+    const selectedTagLabelEl = document.getElementById('selectedTagLabel');
+    const accountLinkEl = document.getElementById('accountLink');
+
+    const params = new URLSearchParams(window.location.search);
+    let clubs = [];
+    let selectedTag = '';
+
+    const safeParseJSON = (raw) => {
+      try { return JSON.parse(raw); } catch { return null; }
+    };
+
+    const safe = (value) => String(value ?? '').trim();
+    const normalizeId = (value) => safe(value);
+    const authFetch = (url, options = {}) => {
+      const token = localStorage.getItem('token') || '';
+      const headers = { ...(options.headers || {}) };
+      if (token) headers.Authorization = `Bearer ${token}`;
+      return fetch(url, {
+        ...options,
+        credentials: options.credentials ?? 'include',
+        headers
+      });
+    };
+
+    const escapeHtml = (value) => safe(value).replace(/[&<>"']/g, (ch) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[ch]));
+
+    const getLoggedUser = () => {
+      const raw = safeParseJSON(localStorage.getItem('loggedUser') || 'null');
+      return raw && typeof raw === 'object' ? raw : null;
+    };
+
+    const updateAccountLink = () => {
+      const loggedUser = getLoggedUser();
+      if (!loggedUser) {
+        accountLinkEl.href = 'login.html#login';
+        accountLinkEl.textContent = 'Login';
+        return;
+      }
+      accountLinkEl.href = loggedUser.type === 'club' ? 'club home.html' : 'user.html';
+      accountLinkEl.textContent = loggedUser.type === 'club' ? 'Club Home' : 'My Account';
+    };
+
+    const storeSelectedClub = (club) => {
+      try {
+        localStorage.setItem('selectedClub', JSON.stringify({
+          id: club.clubId ?? club.id,
+          clubId: club.clubId ?? club.id,
+          name: club.name,
+          tags: Array.isArray(club.tags) ? club.tags : []
+        }));
+      } catch {}
+    };
+
+    const readSearchTerm = () => safe(params.get('q') || '');
+
+    const buildTags = () => {
+      const tags = new Set();
+      clubs.forEach((club) => {
+        const primary = safe(club.category);
+        if (primary) tags.add(primary);
+        (Array.isArray(club.tags) ? club.tags : []).forEach((tag) => {
+          const normalized = safe(tag);
+          if (normalized) tags.add(normalized);
+        });
+      });
+      const ordered = [''].concat([...tags].sort((a, b) => a.localeCompare(b)));
+      tagBarEl.innerHTML = ordered.map((tag) => {
+        const active = tag === selectedTag;
+        const label = tag || 'All';
+        return `<button class="tag-btn ${active ? 'active' : ''}" type="button" data-tag="${escapeHtml(tag)}">${escapeHtml(label)}</button>`;
+      }).join('');
+      tagBarEl.querySelectorAll('[data-tag]').forEach((button) => {
+        button.addEventListener('click', () => {
+          selectedTag = safe(button.getAttribute('data-tag'));
+          render();
+        });
+      });
+      categoryCountEl.textContent = String(Math.max(ordered.length - 1, 0));
+    };
+
+    const matchesClub = (club, keyword, tag) => {
+      const haystack = [
+        safe(club.name),
+        safe(club.description),
+        safe(club.category),
+        ...(Array.isArray(club.tags) ? club.tags.map(safe) : [])
+      ].join(' ').toLowerCase();
+      const keywordOk = !keyword || haystack.includes(keyword);
+      const tagOk = !tag || safe(club.category).toLowerCase() === tag || (Array.isArray(club.tags) && club.tags.some((item) => safe(item).toLowerCase() === tag));
+      return keywordOk && tagOk;
+    };
+
+    const render = () => {
+      const keyword = safe(searchInputEl.value).toLowerCase();
+      const tag = safe(selectedTag).toLowerCase();
+      const visible = clubs.filter((club) => matchesClub(club, keyword, tag));
+
+      selectedTagLabelEl.textContent = selectedTag || 'All';
+      clubCountEl.textContent = String(clubs.length);
+      resultCountEl.textContent = String(visible.length);
+
+      cardsEl.innerHTML = visible.map((club) => {
+        const clubId = normalizeId(club.clubId ?? club.id);
+        const tags = Array.isArray(club.tags) ? club.tags.filter(Boolean).slice(0, 4) : [];
+        return `
+          <article class="club-card">
+            <div class="club-meta">
+              <span class="chip">${escapeHtml(club.category || 'Club')}</span>
+              ${tags.map((tag) => `<span class="tag-chip">${escapeHtml(tag)}</span>`).join('')}
+            </div>
+            <div>
+              <h3>${escapeHtml(club.name || `Club ${clubId}`)}</h3>
+            </div>
+            <p>${escapeHtml(club.description || 'No description available yet.')}</p>
+            <div class="club-actions">
+              <a class="btn ghost" href="club.html?club=${encodeURIComponent(clubId)}" data-club-link="${escapeHtml(clubId)}">View club</a>
+              <a class="btn" href="join.html?club=${encodeURIComponent(clubId)}" data-join-link="${escapeHtml(clubId)}">Join / book</a>
+              <a class="btn ghost" href="venue%20overview.html?club=${encodeURIComponent(clubId)}" data-overview-link="${escapeHtml(clubId)}">Venue overview</a>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      cardsEl.querySelectorAll('[data-club-link], [data-join-link], [data-overview-link]').forEach((link) => {
+        const clubId = safe(link.getAttribute('data-club-link') || link.getAttribute('data-join-link') || link.getAttribute('data-overview-link'));
+        const club = clubs.find((item) => normalizeId(item.clubId ?? item.id) === clubId);
+        link.addEventListener('click', () => {
+          if (club) storeSelectedClub(club);
+        });
+      });
+
+      emptyStateEl.style.display = visible.length ? 'none' : 'block';
+    };
+
+    const loadClubs = async () => {
+      cardsEl.innerHTML = '<div class="empty">Loading clubs...</div>';
+      try {
+        const res = await authFetch('/api/clubs');
+        if (!res.ok) throw new Error(`Failed to load clubs (${res.status})`);
+        const data = await res.json();
+        clubs = Array.isArray(data) ? data : [];
+        buildTags();
+        render();
+      } catch (err) {
+        console.error(err);
+        cardsEl.innerHTML = '';
+        emptyStateEl.style.display = 'block';
+        emptyStateEl.textContent = 'Failed to load clubs right now.';
+      }
+    };
+
+    searchInputEl.value = readSearchTerm();
+    clearBtnEl.addEventListener('click', () => {
+      searchInputEl.value = '';
+      selectedTag = '';
+      buildTags();
+      render();
+    });
+    searchInputEl.addEventListener('input', render);
+
+    updateAccountLink();
+    loadClubs();
+  </script>
+</body>
 </html>

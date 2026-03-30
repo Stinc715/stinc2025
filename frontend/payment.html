@@ -1,129 +1,45 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Club Booking Portal - Payment</title>
-<link rel="stylesheet" href="theme.css?v=20260220b">
+<title>Club Booking Portal - Payment Status</title>
+<link rel="stylesheet" href="theme.css?v=20260324a">
 <style>
-  body {
-    margin: 0;
-    background: #f7f8fb;
-  }
-  header {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    border-bottom: 1px solid var(--line);
-    background: #fff;
-  }
-  .wrap {
-    max-width: 920px;
-    margin: 0 auto;
-    padding: 16px;
-  }
-  .header-wrap {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  .back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 14px;
-    color: #2563eb;
-    text-decoration: none;
-    border: none;
-    background: none;
-    cursor: pointer;
-    padding: 0;
-  }
-  .card {
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
-  }
-  .card .pad {
-    padding: 18px;
-  }
-  .muted {
-    color: var(--muted);
-    font-size: 13px;
-  }
-  .summary {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 12px;
-    margin-top: 14px;
-  }
-  .summary-item {
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    background: #fbfcff;
-    padding: 12px;
-    display: grid;
-    gap: 4px;
-  }
-  .summary-item span:first-child {
-    color: var(--muted);
-    font-size: 12px;
-  }
-  .summary-item span:last-child {
-    color: var(--ink);
-    font-size: 14px;
-    font-weight: 600;
-  }
-  .status {
-    margin-top: 14px;
-    font-size: 13px;
-    color: #1f3bb3;
-    background: rgba(59, 130, 246, .08);
-    border: 1px solid rgba(59, 130, 246, .25);
-    border-radius: 10px;
-    padding: 10px 12px;
-    display: none;
-  }
-  .status.error {
-    color: #b91c1c;
-    background: rgba(239, 68, 68, .08);
-    border-color: rgba(239, 68, 68, .35);
-  }
-  .actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-top: 16px;
-  }
-  .btn {
-    border-radius: 8px;
-    padding: 8px 14px;
-    font-size: 13px;
-    border: 1px solid var(--line);
-    cursor: pointer;
-  }
-  .btn.blue {
-    background: #2563eb;
-    border-color: #2563eb;
-    color: #fff;
-  }
-  .btn.ghost {
-    background: #fff;
-    color: #111;
-  }
-  .btn[disabled] {
-    opacity: .6;
-    cursor: not-allowed;
-  }
+  body { margin: 0; background: #f7f8fb; }
+  header { position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--line); background: #fff; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 16px; }
+  .header-wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: #64748b; text-decoration: none; border: 1px solid rgba(148, 163, 184, 0.24); background: rgba(255, 255, 255, 0.9); cursor: pointer; padding: 8px 12px; border-radius: 999px; box-shadow: 0 8px 18px rgba(29, 29, 31, 0.08); transition: color .2s ease, border-color .2s ease, background .2s ease, transform .2s ease, box-shadow .2s ease; }
+  .back-link::before { content: '<'; }
+  .back-link:hover { color: var(--ink); background: rgba(255, 255, 255, 0.96); border-color: rgba(100, 116, 139, 0.28); box-shadow: 0 12px 22px rgba(29, 29, 31, 0.12); transform: translateY(-1px); }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 2px 8px rgba(0, 0, 0, .04); }
+  .card .pad { padding: 18px; }
+  .muted { color: var(--muted); font-size: 13px; }
+  .status-chip { display: inline-flex; align-items: center; gap: 8px; min-height: 34px; border-radius: 999px; padding: 0 14px; font-size: 12px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; }
+  .status-chip.pending { background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; }
+  .status-chip.success { background: #f0fdf4; border: 1px solid #86efac; color: #166534; }
+  .status-chip.error { background: #fef2f2; border: 1px solid #fca5a5; color: #b91c1c; }
+  .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 16px; }
+  .summary-item { border: 1px solid var(--line); border-radius: 12px; background: #fbfcff; padding: 12px; display: grid; gap: 4px; }
+  .summary-item span:first-child { color: var(--muted); font-size: 12px; }
+  .summary-item span:last-child { color: var(--ink); font-size: 14px; font-weight: 600; }
+  .status-box { margin-top: 16px; border-radius: 12px; padding: 12px 14px; border: 1px solid #bfdbfe; background: #eff6ff; color: #1e3a8a; font-size: 13px; line-height: 1.5; }
+  .status-box.error { border-color: #fca5a5; background: #fef2f2; color: #991b1b; }
+  .status-box.success { border-color: #86efac; background: #f0fdf4; color: #166534; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+  .btn { border-radius: 8px; padding: 8px 14px; font-size: 13px; border: 1px solid var(--line); cursor: pointer; }
+  .btn.blue { background: #2563eb; border-color: #2563eb; color: #fff; }
+  .btn.ghost { background: #fff; color: #111; }
+  .btn[hidden] { display: none !important; }
+  .btn[disabled] { opacity: .6; cursor: not-allowed; }
 </style>
 </head>
 <body>
   <header>
     <div class="wrap header-wrap">
-      <button id="btnBack" class="back-link" type="button" aria-label="Back">&larr; Back</button>
-      <h2 id="pageTitle" style="margin:0;font-size:18px;font-weight:600;">Confirm payment</h2>
+      <button id="btnBack" class="back-link" type="button" aria-label="Back">Back</button>
+      <h2 id="pageTitle" style="margin:0;font-size:18px;font-weight:600;">Payment status</h2>
       <div></div>
     </div>
   </header>
@@ -131,141 +47,49 @@
   <main class="wrap">
     <section class="card">
       <div class="pad">
-        <h3 id="cardTitle" style="margin:0;">Confirm and pay</h3>
-        <p id="cardDesc" class="muted" style="margin:8px 0 0;">This is a placeholder payment page for test flow only. No real charge is made.</p>
-        <div class="summary" id="summary"></div>
-        <div id="statusBox" class="status"></div>
+        <div id="statusChip" class="status-chip pending">Loading</div>
+        <h3 id="cardTitle" style="margin:14px 0 0;">Loading payment details...</h3>
+        <p id="cardDesc" class="muted" style="margin:8px 0 0;">Fetching the latest checkout state from the server.</p>
+        <div id="summary" class="summary"></div>
+        <div id="statusBox" class="status-box">Loading checkout session...</div>
         <div class="actions">
-          <button id="payBtn" class="btn blue" type="button">Simulate payment success</button>
-          <button id="cancelBtn" class="btn ghost" type="button">Cancel</button>
-          <button id="loginBtn" class="btn ghost" type="button" style="display:none;">Go to login</button>
+          <button id="continueBtn" class="btn blue" type="button" hidden>Continue to Stripe</button>
+          <button id="confirmBtn" class="btn blue" type="button" hidden>Confirm payment</button>
+          <button id="cancelBtn" class="btn ghost" type="button" hidden>Cancel checkout</button>
+          <button id="refreshBtn" class="btn ghost" type="button">Refresh</button>
+          <button id="loginBtn" class="btn ghost" type="button" hidden>Go to login</button>
+          <button id="returnBtn" class="btn ghost" type="button">Back</button>
         </div>
       </div>
     </section>
   </main>
 
   <script>
-    const safeParseJSON = (raw) => {
-      try {
-        return JSON.parse(raw);
-      } catch {
-        return null;
-      }
-    };
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = String(params.get('sessionId') || '').trim();
+    const stripeStep = String(params.get('stripe') || '').trim().toLowerCase();
 
-    const draft = safeParseJSON(localStorage.getItem('pendingPayment') || 'null');
-    const token = localStorage.getItem('token') || '';
-    const loggedUser = safeParseJSON(localStorage.getItem('loggedUser') || 'null');
-
-    const summaryEl = document.getElementById('summary');
-    const statusBox = document.getElementById('statusBox');
-    const payBtn = document.getElementById('payBtn');
-    const cancelBtn = document.getElementById('cancelBtn');
-    const loginBtn = document.getElementById('loginBtn');
-    const btnBack = document.getElementById('btnBack');
-    const pageTitleEl = document.getElementById('pageTitle');
+    const statusChipEl = document.getElementById('statusChip');
     const cardTitleEl = document.getElementById('cardTitle');
     const cardDescEl = document.getElementById('cardDesc');
+    const summaryEl = document.getElementById('summary');
+    const statusBoxEl = document.getElementById('statusBox');
+    const continueBtn = document.getElementById('continueBtn');
+    const confirmBtn = document.getElementById('confirmBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const loginBtn = document.getElementById('loginBtn');
+    const returnBtn = document.getElementById('returnBtn');
+    const btnBack = document.getElementById('btnBack');
+    const pageTitleEl = document.getElementById('pageTitle');
 
-    const draftType = String(draft?.paymentType || draft?.kind || 'booking').trim().toLowerCase() === 'membership'
-      ? 'membership'
-      : 'booking';
+    let sessionDetail = null;
+    let pollTimer = null;
 
-    const formatDateTime = (iso) => {
-      if (!iso || typeof iso !== 'string') return '--';
-      const d = new Date(iso);
-      if (Number.isNaN(d.getTime())) return iso;
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      const hh = String(d.getHours()).padStart(2, '0');
-      const mm = String(d.getMinutes()).padStart(2, '0');
-      return `${y}-${m}-${day} ${hh}:${mm}`;
-    };
-
-    const formatPrice = (raw) => {
-      const n = Number(raw);
-      if (!Number.isFinite(n)) return 'GBP 0.00';
-      return `GBP ${n.toFixed(2)}`;
-    };
-
-    const getReturnUrl = () => {
-      const value = String(draft?.returnUrl || '').trim();
-      return value || 'club.html';
-    };
-
-    const goBack = () => {
-      window.location.href = getReturnUrl();
-    };
-
-    const showStatus = (msg, isError = false) => {
-      if (!statusBox) return;
-      statusBox.textContent = msg;
-      statusBox.classList.toggle('error', !!isError);
-      statusBox.style.display = 'block';
-    };
-
-    const requireValidDraft = () => {
-      const valid = draftType === 'membership'
-        ? Number.isFinite(Number(draft?.planId))
-        : Number.isFinite(Number(draft?.timeslotId));
-      if (!draft || !valid) {
-        showStatus(draftType === 'membership'
-          ? 'Missing membership data. Please go back and choose a plan again.'
-          : 'Missing booking data. Please go back and select a slot again.', true);
-        if (payBtn) payBtn.disabled = true;
-        return false;
-      }
-      return true;
-    };
-
-    const renderPageText = () => {
-      if (draftType === 'membership') {
-        if (pageTitleEl) pageTitleEl.textContent = 'Membership payment';
-        if (cardTitleEl) cardTitleEl.textContent = 'Confirm membership purchase';
-        if (cardDescEl) cardDescEl.textContent = 'This is a placeholder payment page for membership purchases. No real charge is made.';
-        if (payBtn) payBtn.textContent = 'Simulate membership purchase';
-        return;
-      }
-      if (pageTitleEl) pageTitleEl.textContent = 'Booking payment';
-      if (cardTitleEl) cardTitleEl.textContent = 'Confirm and pay';
-      if (cardDescEl) cardDescEl.textContent = 'This is a placeholder payment page for test flow only. No real charge is made.';
-      if (payBtn) payBtn.textContent = 'Simulate payment success';
-    };
-
-    const renderSummary = () => {
-      if (!summaryEl) return;
-      if (!draft) {
-        summaryEl.innerHTML = '';
-        return;
-      }
-      const items = draftType === 'membership'
-        ? [
-            ['Club', String(draft.clubName || draft.clubId || '--')],
-            ['Plan', String(draft.planName || 'Membership')],
-            ['Duration', Number.isFinite(Number(draft.durationDays)) ? `${draft.durationDays} days` : '--'],
-            ['Discount', Number.isFinite(Number(draft.discountPercent)) ? `${Number(draft.discountPercent)}% off bookings` : '--'],
-            ['Price', formatPrice(draft.price)]
-          ]
-        : [
-            ['Club ID', String(draft.clubId || '--')],
-            ['Venue', String(draft.venueName || 'Venue')],
-            ['Start', formatDateTime(draft.startTime)],
-            ['End', formatDateTime(draft.endTime)],
-            ['Capacity', Number.isFinite(Number(draft.maxCapacity)) ? String(draft.maxCapacity) : '--'],
-            ['Price', formatPrice(draft.price)]
-          ];
-      summaryEl.innerHTML = items.map(([k, v]) => (
-        `<div class="summary-item"><span>${k}</span><span>${v}</span></div>`
-      )).join('');
-    };
-
-    const isUserAccount = () => {
-      if (!loggedUser || typeof loggedUser !== 'object') return false;
-      return String(loggedUser.type || '').toLowerCase() === 'user';
-    };
+    const isVirtualProvider = (detail) => String(detail?.provider || '').trim().toUpperCase() === 'VIRTUAL_CHECKOUT';
 
     const authFetch = (url, options = {}) => {
+      const token = localStorage.getItem('token') || '';
       const headers = { ...(options.headers || {}) };
       if (token) headers.Authorization = `Bearer ${token}`;
       return fetch(url, {
@@ -275,87 +99,252 @@
       });
     };
 
-    const markAndReturn = (message, isError = false) => {
-      localStorage.setItem('paymentFeedback', JSON.stringify({
-        type: isError ? 'error' : 'success',
-        message
-      }));
-      goBack();
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>\"']/g, (ch) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[ch]));
+
+    const formatPrice = (value, currency = 'GBP') => {
+      const num = Number(value);
+      if (!Number.isFinite(num)) return `${currency} 0.00`;
+      return `${currency} ${num.toFixed(2)}`;
     };
 
-    const handlePay = async () => {
-      if (!requireValidDraft()) return;
-      if (!token) {
-        showStatus('Your session is missing. Please log in again.', true);
-        if (loginBtn) loginBtn.style.display = 'inline-flex';
+    const formatDateTime = (raw) => {
+      if (!raw || typeof raw !== 'string') return '--';
+      const date = new Date(raw);
+      if (Number.isNaN(date.getTime())) return raw;
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      const hh = String(date.getHours()).padStart(2, '0');
+      const mm = String(date.getMinutes()).padStart(2, '0');
+      return `${y}-${m}-${d} ${hh}:${mm}`;
+    };
+
+    const setStatusBox = (message, tone = 'pending') => {
+      const text = String(message || '').trim() || 'Loading checkout session...';
+      statusBoxEl.textContent = text;
+      statusBoxEl.classList.toggle('success', tone === 'success');
+      statusBoxEl.classList.toggle('error', tone === 'error');
+    };
+
+    const setStatusChip = (label, tone = 'pending') => {
+      statusChipEl.textContent = String(label || 'Unknown').trim() || 'Unknown';
+      statusChipEl.className = `status-chip ${tone}`;
+    };
+
+    const readErrorText = async (res) => {
+      try {
+        const text = await res.text();
+        return String(text || '').trim() || `Request failed (${res.status})`;
+      } catch {
+        return `Request failed (${res.status})`;
+      }
+    };
+
+    const renderSummary = () => {
+      const detail = sessionDetail;
+      if (!detail) {
+        summaryEl.innerHTML = '';
         return;
       }
-      if (!isUserAccount()) {
-        showStatus('Only user accounts can complete booking payments.', true);
-        return;
+      const items = detail.type === 'MEMBERSHIP'
+        ? [
+            ['Club', detail.clubName || '--'],
+            ['Plan', detail.planName || '--'],
+            ['Duration', Number.isFinite(Number(detail.durationDays)) ? `${detail.durationDays} days` : '--'],
+            ['Amount', formatPrice(detail.amount, detail.currency || 'GBP')],
+            ['Provider', detail.provider || 'Stripe Checkout'],
+            ['Expires', formatDateTime(detail.expiresAt)]
+          ]
+        : [
+            ['Club', detail.clubName || '--'],
+            ['Venue', detail.venueName || '--'],
+            ['Start', formatDateTime(detail.slotStartTime)],
+            ['End', formatDateTime(detail.slotEndTime)],
+            ['Amount', formatPrice(detail.amount, detail.currency || 'GBP')],
+            ['Expires', formatDateTime(detail.expiresAt)]
+          ];
+      summaryEl.innerHTML = items.map(([k, v]) =>
+        `<div class="summary-item"><span>${escapeHtml(k)}</span><span>${escapeHtml(v)}</span></div>`
+      ).join('');
+    };
+
+    const renderDetail = () => {
+      const detail = sessionDetail;
+      if (!detail) return;
+
+      const status = String(detail.status || '').trim().toUpperCase();
+      const active = status === 'CREATED' || status === 'PAYING';
+      const virtualProvider = isVirtualProvider(detail);
+
+      pageTitleEl.textContent = detail.type === 'MEMBERSHIP' ? 'Membership payment' : 'Booking payment';
+      cardTitleEl.textContent = detail.title || (detail.type === 'MEMBERSHIP' ? 'Membership payment' : 'Booking payment');
+      cardDescEl.textContent = detail.subtitle || 'Payment state is synchronised from the server.';
+      returnBtn.textContent = 'Back';
+
+      if (status === 'PAID') {
+        setStatusChip('Paid', 'success');
+        setStatusBox('Payment confirmed by Stripe. The club portal has recorded your purchase.', 'success');
+      } else if (status === 'FAILED') {
+        setStatusChip('Failed', 'error');
+        setStatusBox(detail.failureReason || 'Stripe reported that this payment failed.', 'error');
+      } else if (status === 'CANCELED') {
+        setStatusChip('Canceled', 'error');
+        setStatusBox('Checkout was canceled before payment was completed.', 'error');
+      } else if (status === 'EXPIRED') {
+        setStatusChip('Expired', 'error');
+        setStatusBox(detail.failureReason || 'This checkout session expired before payment was completed.', 'error');
+      } else {
+        setStatusChip(status || 'Pending', 'pending');
+        if (virtualProvider) {
+          setStatusBox('This environment uses virtual payment. Confirm payment below to complete this order and write the booking or membership into the database.', 'pending');
+        } else if (stripeStep === 'success') {
+          setStatusBox('Stripe has redirected you back. Waiting for webhook confirmation from the server...', 'pending');
+        } else if (stripeStep === 'cancel') {
+          setStatusBox('Stripe checkout was canceled. You can still reopen checkout before the session expires.', 'pending');
+        } else {
+          setStatusBox('Complete payment in Stripe to finish this checkout.', 'pending');
+        }
       }
 
-      if (payBtn) {
-        payBtn.disabled = true;
-        payBtn.textContent = 'Processing...';
+      continueBtn.hidden = virtualProvider || !(detail.canContinueCheckout && detail.checkoutUrl);
+      confirmBtn.hidden = !virtualProvider || !detail.canContinueCheckout;
+      cancelBtn.hidden = !detail.canCancel;
+      continueBtn.textContent = 'Continue to Stripe';
+      loginBtn.hidden = true;
+      renderSummary();
+      schedulePolling(active);
+    };
+
+    const schedulePolling = (shouldPoll) => {
+      if (pollTimer) {
+        clearTimeout(pollTimer);
+        pollTimer = null;
       }
+      if (!shouldPoll) return;
+      pollTimer = window.setTimeout(() => loadSession(false), 3000);
+    };
+
+    const renderAuthRequired = (message) => {
+      sessionDetail = null;
+      renderSummary();
+      setStatusChip('Login required', 'error');
+      cardTitleEl.textContent = 'Sign in to view this payment';
+      cardDescEl.textContent = 'Payment sessions are tied to your account.';
+      setStatusBox(message || 'Please log in to view this checkout session.', 'error');
+      continueBtn.hidden = true;
+      confirmBtn.hidden = true;
+      cancelBtn.hidden = true;
+      loginBtn.hidden = false;
+    };
+
+    const loadSession = async (showSpinner = true) => {
+      if (!sessionId) {
+        renderAuthRequired('Missing checkout session id. Please return to the club page and start again.');
+        loginBtn.hidden = true;
+        return;
+      }
+      if (showSpinner) {
+        setStatusChip('Loading', 'pending');
+        setStatusBox('Loading checkout session...', 'pending');
+      }
+
       try {
-        const res = draftType === 'membership'
-          ? await authFetch(`/api/membership-plans/${encodeURIComponent(String(draft.planId))}/purchase`, {
-              method: 'POST'
-            })
-          : await authFetch(`/api/timeslots/${encodeURIComponent(String(draft.timeslotId))}/bookings`, {
-              method: 'POST'
-            });
-        if (res.ok) {
-          localStorage.removeItem('pendingPayment');
-          markAndReturn(
-            draftType === 'membership'
-              ? 'Membership purchased successfully.'
-              : 'Payment successful. Booking confirmed.',
-            false
-          );
-          return;
-        }
-        const text = await res.text().catch(() => '');
+        const res = await authFetch(`/api/payments/checkout-sessions/${encodeURIComponent(sessionId)}`);
         if (res.status === 401) {
-          showStatus(text || 'Session expired. Please log in again.', true);
-          if (loginBtn) loginBtn.style.display = 'inline-flex';
+          renderAuthRequired('Your session has expired. Please log in again to continue.');
           return;
         }
-        showStatus(text || (draftType === 'membership'
-          ? 'Payment completed but membership activation failed.'
-          : 'Payment completed but booking failed.'), true);
+        if (!res.ok) {
+          const text = await readErrorText(res);
+          setStatusChip('Unavailable', 'error');
+          setStatusBox(text || 'Unable to load checkout session.', 'error');
+          continueBtn.hidden = true;
+          confirmBtn.hidden = true;
+          cancelBtn.hidden = true;
+          return;
+        }
+        sessionDetail = await res.json();
+        renderDetail();
       } catch (err) {
         console.error(err);
-        showStatus('Network error. Please try again.', true);
-      } finally {
-        if (payBtn) {
-          payBtn.disabled = false;
-          payBtn.textContent = draftType === 'membership'
-            ? 'Simulate membership purchase'
-            : 'Simulate payment success';
-        }
+        setStatusChip('Unavailable', 'error');
+        setStatusBox('Network error while loading checkout state. Try again in a moment.', 'error');
       }
     };
 
-    btnBack?.addEventListener('click', goBack);
-    cancelBtn?.addEventListener('click', goBack);
-    payBtn?.addEventListener('click', handlePay);
-    loginBtn?.addEventListener('click', () => {
-      try {
-        localStorage.setItem('postLoginRedirect', JSON.stringify({
-          page: 'payment',
-          returnUrl: getReturnUrl()
-        }));
-      } catch {}
-      window.location.href = 'login.html#login';
+    continueBtn.addEventListener('click', () => {
+      const target = String(sessionDetail?.checkoutUrl || '').trim();
+      if (!target) return;
+      window.location.href = target;
     });
 
-    renderPageText();
-    renderSummary();
-    requireValidDraft();
+    confirmBtn.addEventListener('click', async () => {
+      if (!sessionId) return;
+      confirmBtn.disabled = true;
+      try {
+        const res = await authFetch(`/api/payments/checkout-sessions/${encodeURIComponent(sessionId)}/confirm-virtual`, { method: 'POST' });
+        if (!res.ok) {
+          const text = await readErrorText(res);
+          setStatusBox(text || 'Unable to confirm virtual payment.', 'error');
+          return;
+        }
+        sessionDetail = await res.json();
+        renderDetail();
+      } catch (err) {
+        console.error(err);
+        setStatusBox('Network error while confirming virtual payment.', 'error');
+      } finally {
+        confirmBtn.disabled = false;
+      }
+    });
+
+    cancelBtn.addEventListener('click', async () => {
+      if (!sessionId) return;
+      cancelBtn.disabled = true;
+      try {
+        const res = await authFetch(`/api/payments/checkout-sessions/${encodeURIComponent(sessionId)}/cancel`, { method: 'POST' });
+        if (!res.ok) {
+          const text = await readErrorText(res);
+          setStatusBox(text || 'Unable to cancel checkout.', 'error');
+          return;
+        }
+        sessionDetail = await res.json();
+        renderDetail();
+      } catch (err) {
+        console.error(err);
+        setStatusBox('Network error while cancelling checkout.', 'error');
+      } finally {
+        cancelBtn.disabled = false;
+      }
+    });
+
+    refreshBtn.addEventListener('click', () => loadSession(true));
+    const handleBack = () => {
+      const value = String(sessionDetail?.returnUrl || '').trim();
+      window.location.href = value || 'club.html';
+    };
+    returnBtn.addEventListener('click', handleBack);
+    btnBack.addEventListener('click', handleBack);
+    loginBtn.addEventListener('click', () => {
+      const target = sessionId
+        ? `payment.html?sessionId=${encodeURIComponent(sessionId)}`
+        : 'payment.html';
+      window.location.href = `login.html?returnTo=${encodeURIComponent(target)}#login`;
+    });
+
+    window.addEventListener('visibilitychange', () => {
+      if (!document.hidden && sessionDetail && (sessionDetail.status === 'PAYING' || sessionDetail.status === 'CREATED')) {
+        loadSession(false);
+      }
+    });
+
+    loadSession(true);
   </script>
 </body>
 </html>
-

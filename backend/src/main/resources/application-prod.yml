@@ -1,0 +1,19 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  datasource:
+    url: ${DB_URL:${SPRING_DATASOURCE_URL:jdbc:mysql://127.0.0.1:3306/club_portal?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC}}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${DB_USERNAME:${SPRING_DATASOURCE_USERNAME:club_portal_app}}
+    password: ${DB_PASSWORD:${SPRING_DATASOURCE_PASSWORD:}}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database-platform: org.hibernate.dialect.MySQLDialect
+    open-in-view: false
+  h2:
+    console:
+      enabled: false
+  security:
+    debug: false

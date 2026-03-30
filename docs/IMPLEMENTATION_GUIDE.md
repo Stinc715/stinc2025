@@ -434,10 +434,10 @@ Frontend:
 How booking works:
 
 1. user chooses a slot
-2. `club.html` creates a `pendingPayment` object in `localStorage`
-3. user goes to `payment.html`
-4. payment page simulates payment confirmation
-5. `POST /api/timeslots/{timeslotId}/bookings` creates the booking
+2. `club.html` requests `POST /api/payments/checkout-sessions`
+3. backend creates a checkout session and returns the payment page / Stripe checkout URL
+4. `payment.html` reads `sessionId` from the URL and polls backend checkout state
+5. Stripe webhook confirmation finalises the booking
 
 Important business rules:
 
@@ -723,17 +723,17 @@ Frontend:
 
 What it currently does:
 
-- reads `pendingPayment` from `localStorage`
-- shows either booking payment or membership purchase confirmation
-- simulates payment, then calls backend write endpoint
+- reads `sessionId` from the URL
+- loads checkout state from `/api/payments/checkout-sessions/{sessionId}`
+- can continue to Stripe, cancel checkout, or wait for webhook confirmation
 
 Booking endpoint:
 
-- `/api/timeslots/{timeslotId}/bookings`
+- `/api/payments/checkout-sessions`
 
 Membership endpoint:
 
-- `/api/membership-plans/{planId}/purchase`
+- `/api/payments/checkout-sessions`
 
 Important limitation:
 
@@ -842,8 +842,6 @@ Examples:
 - `selectedClub`
 - `loggedUser`
 - `token`
-- `postLoginRedirect`
-- `pendingPayment`
 
 This keeps the pages loosely coupled, but it also means:
 
@@ -876,7 +874,7 @@ The current production feature set is maintained mostly through standalone HTML 
 The most important current gaps are:
 
 1. `payment.html` is still a simulated payment flow.
-2. local development defaults to H2 while deployment scripts target MySQL, so cross-environment drift still needs attention.
+2. local H2 is now limited to the explicit `dev` profile; the default runtime path uses the `prod` profile and MySQL validation.
 3. some deployment and generated artifacts are mixed into the working tree, so operational and source concerns are not fully separated.
 
 ## 20. Suggested Reading Order for New Developers

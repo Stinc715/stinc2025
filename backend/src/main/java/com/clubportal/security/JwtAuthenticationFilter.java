@@ -4,6 +4,7 @@ import com.clubportal.model.User;
 import com.clubportal.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -23,6 +24,8 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+    private static final String CHAT_VERSION_PATH = "/api/debug/chat-version";
+    private static final String DEBUG_PING_PATH = "/api/debug/ping";
 
     private final JwtUtil jwtUtil;
     private final UserRepository userRepo;
@@ -33,16 +36,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String uri = request == null ? null : request.getRequestURI();
+        if (CHAT_VERSION_PATH.equals(uri) || DEBUG_PING_PATH.equals(uri)) {
+            log.info("[CLUB_CHAT_DEBUG] debug endpoint bypassed at JwtAuthenticationFilter: path={}", uri);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        String header = request.getHeader("Authorization");
+        String token = resolveToken(request);
 
-        if (header != null && header.startsWith("Bearer ")) {
-
-            String token = header.substring(7);
+        if (token != null && !token.isBlank()) {
 
             try {
                 String email = jwtUtil.extractEmail(token);
@@ -83,5 +94,37 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private static String resolveToken(HttpServletRequest request) {
+        String header = request.getHeader("Authorization");
+        if (header != null && header.startsWith("Bearer ")) {
+            return header.substring(7);
+        }
+
+        if (isChatStreamRequest(request)) {
+            Cookie[] cookies = request.getCookies();
+            if (cookies == null) {
+                return null;
+            }
+            for (Cookie cookie : cookies) {
+                if (cookie == null) continue;
+                if (StreamAuthCookieService.STREAM_TOKEN_COOKIE.equals(cookie.getName())) {
+                    String value = cookie.getValue();
+                    if (value != null && !value.isBlank()) {
+                        return value.trim();
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private static boolean isChatStreamRequest(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        return "GET".equalsIgnoreCase(request.getMethod())
+                && uri != null
+                && uri.startsWith("/api/")
+                && uri.endsWith("/chat/stream");
     }
 }

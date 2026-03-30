@@ -64,7 +64,6 @@ public class MembershipController {
         if (!clubRepo.existsById(clubId)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Club not found");
         }
-        membershipService.ensureStandardPlansForClub(clubId);
         return ResponseEntity.ok(membershipPlanRepo.findByClubIdAndEnabledTrueOrderByDurationDaysAsc(clubId).stream()
                 .map(this::toPlanResponse)
                 .toList());
@@ -149,7 +148,7 @@ public class MembershipController {
             plan.setDiscountPercent(normalizedDiscount);
             plan.setEnabled(membershipService.normalizeEnabled(
                     row.getEnabled(),
-                    membershipService.normalizeEnabled(plan.getEnabled(), true)
+                    membershipService.normalizeEnabled(plan.getEnabled(), false)
             ));
 
             String description = safe(row.getDescription());
@@ -259,66 +258,8 @@ public class MembershipController {
     @PostMapping("/membership-plans/{planId}/purchase")
     @Transactional
     public ResponseEntity<?> purchaseMembership(@PathVariable Integer planId) {
-        User me = currentUserService.requireUser();
-        if (me.getRole() == null || me.getRole() != User.Role.USER) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Only user accounts can purchase memberships");
-        }
-
-        MembershipPlan plan = membershipPlanRepo.findById(planId).orElse(null);
-        if (plan == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Membership plan not found");
-        }
-        if (!Boolean.TRUE.equals(plan.getEnabled())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("This membership plan is currently unavailable");
-        }
-
-        Club club = clubRepo.findById(plan.getClubId()).orElse(null);
-        if (club == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Club not found");
-        }
-
-        Optional<MembershipService.ActiveMembershipContext> activeMembership = membershipService.findActiveMembership(
-                me.getUserId(),
-                plan.getClubId(),
-                LocalDate.now()
-        );
-        if (activeMembership.isPresent()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("You already have an active membership for this club until " + activeMembership.get().membership().getEndDate());
-        }
-
-        LocalDate startDate = LocalDate.now();
-        LocalDate endDate = startDate.plusDays(Math.max(1, Optional.ofNullable(plan.getDurationDays()).orElse(30)) - 1L);
-
-        UserMembership membership = new UserMembership();
-        membership.setUserId(me.getUserId());
-        membership.setPlanId(plan.getPlanId());
-        membership.setStartDate(startDate);
-        membership.setEndDate(endDate);
-        membership.setStatus("ACTIVE");
-        UserMembership savedMembership = userMembershipRepo.save(membership);
-
-        TransactionRecord tx = new TransactionRecord();
-        tx.setUserId(me.getUserId());
-        tx.setUserMembershipId(savedMembership.getUserMembershipId());
-        tx.setAmount(membershipService.normalizePrice(plan.getPrice()));
-        tx.setPaymentMethod("MOCK_CARD");
-        tx.setStatus("PAID");
-        transactionRepo.save(tx);
-
-        return ResponseEntity.ok(new MembershipPurchaseResponse(
-                savedMembership.getUserMembershipId(),
-                plan.getPlanId(),
-                plan.getClubId(),
-                safe(club.getClubName()),
-                safe(plan.getPlanCode()),
-                safe(plan.getPlanName()),
-                membershipService.normalizePrice(plan.getPrice()),
-                membershipService.normalizeDiscount(plan.getDiscountPercent()),
-                savedMembership.getStartDate(),
-                savedMembership.getEndDate(),
-                membershipService.effectiveStatus(savedMembership, LocalDate.now())
-        ));
+        return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED)
+                .body("Create a checkout session first via /api/payments/checkout-sessions");
     }
 
     private List<MyMembershipResponse> loadUserMembershipResponses(Integer userId) {
@@ -374,7 +315,7 @@ public class MembershipController {
                 membershipService.normalizePrice(plan.getPrice()),
                 Optional.ofNullable(plan.getDurationDays()).orElse(0),
                 membershipService.normalizeDiscount(plan.getDiscountPercent()),
-                membershipService.normalizeEnabled(plan.getEnabled(), true),
+                membershipService.normalizeEnabled(plan.getEnabled(), false),
                 safe(plan.getDescription())
         );
     }

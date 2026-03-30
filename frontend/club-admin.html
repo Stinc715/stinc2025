@@ -1,10 +1,10 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Club Admin - Manage Venues & Time Slots</title>
-  <link rel="stylesheet" href="theme.css?v=20260220b">
+  <link rel="stylesheet" href="theme.css?v=20260324a">
   <style>
     :root {
       --bg: #ffffff;
@@ -53,15 +53,27 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      color: #2563eb;
+      color: #64748b;
       text-decoration: none;
       font-size: 13px;
       font-weight: 600;
       justify-self: start;
-      border: 1px solid rgba(37, 99, 235, 0.18);
-      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      background: rgba(255, 255, 255, 0.9);
       border-radius: 999px;
-      padding: 6px 11px;
+      padding: 8px 12px;
+      box-shadow: 0 8px 18px rgba(29, 29, 31, 0.08);
+      transition: color .2s ease, border-color .2s ease, background .2s ease, transform .2s ease, box-shadow .2s ease;
+    }
+    .back-link::before {
+      content: '<';
+    }
+    .back-link:hover {
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.96);
+      border-color: rgba(100, 116, 139, 0.28);
+      box-shadow: 0 12px 22px rgba(29, 29, 31, 0.12);
+      transform: translateY(-1px);
     }
     .page-title {
       margin: 0;
@@ -86,9 +98,7 @@
     .grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
     @media (min-width: 960px) { .grid { grid-template-columns: 1fr 1fr; } }
     .admin-main { display: grid; gap: 12px; padding-top: 0; padding-bottom: 0; }
-    .page-head { align-items: flex-start; }
     .section-head { margin-bottom: 12px; align-items: flex-start; }
-    .section-hint { margin-top: 4px; }
     .workspace-shell {
       margin-top: 0;
       padding: 0;
@@ -98,7 +108,6 @@
       padding-bottom: 12px;
       border-bottom: 1px dashed #d6ddeb;
     }
-    .workspace-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
     .workspace-grid {
       grid-template-columns: minmax(300px, .92fr) minmax(360px, 1.08fr) !important;
       gap: 14px !important;
@@ -106,11 +115,6 @@
     }
     .slot-section {
       margin-top: 8px;
-    }
-    .slot-list-block {
-      margin-top: 12px;
-      padding-top: 10px;
-      border-top: 1px dashed #d6ddeb;
     }
     .added-slots-section {
       margin-top: 8px;
@@ -155,32 +159,6 @@
     .added-venues-panel {
       overflow: hidden;
     }
-    .spacer-sm { height: 10px; }
-    .club-toolbar {
-      display: flex;
-      gap: 10px;
-      align-items: flex-end;
-      flex-wrap: wrap;
-      margin-top: 10px;
-    }
-    .club-switch {
-      min-width: 260px;
-      flex: 1 1 260px;
-      max-width: 420px;
-    }
-    #selectedClubLabel {
-      display: inline-flex;
-      align-items: center;
-      padding: 2px 9px;
-      border-radius: 999px;
-      border: 1px solid #c6d4f3;
-      background: var(--surface-strong);
-      color: #1e3a8a;
-      font-weight: 600;
-      margin-left: 4px;
-    }
-    #weekRangeLabel { font-size: 13px; font-weight: 600; padding-bottom: 6px; color: #475569; }
-
     .btn {
       border: 1px solid var(--line);
       background: #111;
@@ -259,10 +237,6 @@
       align-items: center;
       flex-wrap: wrap;
       grid-column: 1 / -1;
-    }
-    .form-note {
-      grid-column: 1 / -1;
-      font-size: 13px;
     }
     .slot-form { margin-top: 10px !important; margin-bottom: 12px !important; }
     form[aria-disabled="true"] { opacity: 0.86; }
@@ -492,44 +466,6 @@
       font-weight: 700;
       box-shadow: inset 0 0 0 1px #d5dde9;
     }
-    .venue-details {
-      border-top: 1px solid #e8eef7;
-      padding: 0 20px 20px;
-      display: grid;
-      gap: 14px;
-      background: #ffffff;
-    }
-    .venue-address-shell {
-      display: grid;
-      gap: 8px;
-      margin-top: 16px;
-      padding: 16px;
-      border: 1px solid #dde6f2;
-      border-radius: 16px;
-      background: #fff;
-    }
-    .venue-detail-label {
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: #64748b;
-    }
-    .venue-detail-address {
-      color: #0f172a;
-      font-size: 14px;
-      line-height: 1.5;
-      word-break: break-word;
-    }
-    .venue-detail-address.is-empty {
-      color: #94a3b8;
-      font-style: italic;
-    }
-    .venue-detail-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
     .venue-edit-form {
       display: grid;
       gap: 12px;
@@ -647,16 +583,13 @@
       .venue-summary-toggle {
         min-width: 104px;
       }
-      .venue-details {
-        padding: 0 14px 14px;
-      }
     }
   </style>
 </head>
 <body class="club-admin-page">
   <header>
     <div class="wrap header-wrap">
-      <a class="back-link" href="club home.html">&larr; Back</a>
+      <a class="back-link" href="club home.html">Back</a>
       <h1 class="page-title">Club Admin</h1>
       <span></span>
     </div>
@@ -730,7 +663,7 @@
 
   <div id="venueModal" class="venue-modal" aria-hidden="true"></div>
 
-  <script src="ui-prompt.js?v=20260309b"></script>
+  <script type="module" src="ui-prompt.js?v=20260309b"></script>
   <script>
     const statusLine = document.getElementById('statusLine');
     const setStatus = (msg, kind) => {
@@ -797,9 +730,6 @@
     const WEEKLY_RECURRENCE_WEEKS = 52;
     const DAILY_RECURRENCE_DAYS = 7;
 
-    const selectedClubLabel = document.getElementById('selectedClubLabel');
-    const clubSwitchEl = document.getElementById('clubSwitch');
-    const btnViewAsUserEl = document.getElementById('btnViewAsUser');
     const venueList = document.getElementById('venueList');
     const venueModalEl = document.getElementById('venueModal');
     const venueEmpty = document.getElementById('venueEmpty');
@@ -807,13 +737,10 @@
     const venueNameEl = document.getElementById('venueName');
     const venueLocEl = document.getElementById('venueLoc');
     const btnCreateVenueEl = document.getElementById('btnCreateVenue');
-    const venueFormNoteEl = document.getElementById('venueFormNote');
     const slotList = document.getElementById('slotList');
     const slotEmpty = document.getElementById('slotEmpty');
-    const weekRangeLabelEl = document.getElementById('weekRangeLabel');
     const slotVenueEl = document.getElementById('slotVenue');
     const weekTabsEl = document.getElementById('weekTabs');
-    const selectedDayLabelEl = document.getElementById('selectedDayLabel');
     const slotStartTimeEl = document.getElementById('slotStartTime');
     const slotEndTimeEl = document.getElementById('slotEndTime');
     const slotCapEl = document.getElementById('slotCap');
@@ -823,63 +750,6 @@
     const btnCopyDayToWeek = document.getElementById('btnCopyDayToWeek');
     const btnCopyDayToDaily = document.getElementById('btnCopyDayToDaily');
     let venuesCache = [];
-    let myClubsCache = [];
-
-    const clubFormTitle = document.getElementById('clubFormTitle');
-    const clubFormHint = document.getElementById('clubFormHint');
-    const clubNameEl = document.getElementById('clubName');
-    const clubCategoryEl = document.getElementById('clubCategory');
-    const clubEmailEl = document.getElementById('clubEmail');
-    const clubPhoneEl = document.getElementById('clubPhone');
-    const clubDescEl = document.getElementById('clubDesc');
-    const btnCreateClub = document.getElementById('btnCreateClub');
-
-    const setClubFormMode = (mode) => {
-      const isEdit = mode === 'edit';
-      if (clubFormTitle) clubFormTitle.textContent = isEdit ? 'Club profile' : 'Create Club';
-      if (clubFormHint) clubFormHint.textContent = isEdit
-        ? 'Edit the club details saved from onboarding.'
-        : 'Creates a club and assigns you as admin.';
-      if (btnCreateClub) btnCreateClub.textContent = isEdit ? 'Save' : 'Create';
-    };
-
-    const fillClubForm = (club) => {
-      if (!club) return;
-      const name = club.name || club.clubName || '';
-      const category = club.category || (Array.isArray(club.tags) ? club.tags[0] : '') || '';
-      if (clubNameEl) clubNameEl.value = name;
-      if (clubCategoryEl) clubCategoryEl.value = category;
-      if (clubEmailEl) clubEmailEl.value = club.email || '';
-      if (clubPhoneEl) clubPhoneEl.value = club.phone || '';
-      if (clubDescEl) clubDescEl.value = club.description || '';
-    };
-
-    const prefillClubFormFallback = () => {
-      // Only used when no club exists yet (no selectedClubId).
-      try {
-        const logged = JSON.parse(localStorage.getItem('loggedUser') || 'null');
-        if (clubEmailEl && !clubEmailEl.value) clubEmailEl.value = logged?.email || '';
-      } catch {}
-      try {
-        const profile = JSON.parse(localStorage.getItem('profile') || 'null');
-        if (clubNameEl && !clubNameEl.value) clubNameEl.value = profile?.displayName || '';
-        if (clubCategoryEl && !clubCategoryEl.value) clubCategoryEl.value = Array.isArray(profile?.sports) ? (profile.sports[0] || '') : '';
-      } catch {}
-    };
-
-    const loadClubDetailToForm = async () => {
-      if (!clubNameEl) return;
-      if (!selectedClubId) {
-        setClubFormMode('create');
-        prefillClubFormFallback();
-        return;
-      }
-      setClubFormMode('edit');
-      const res = await authFetch(`/api/clubs/${encodeURIComponent(selectedClubId)}`);
-      if (!res.ok) return;
-      const club = await res.json();
-      fillClubForm(club);
-    };
 
     const setSelectedClub = (club) => {
       selectedClubId = club?.id ?? club?.clubId ?? null;
@@ -888,29 +758,8 @@
       expandedVenueId = null;
       editingVenueId = null;
       setSlotEditMode(null);
-      if (selectedClubLabel) {
-        selectedClubLabel.textContent = selectedClubId ? `${selectedClubName || 'Club'} (#${selectedClubId})` : 'none';
-      }
       if (selectedClubId) {
         try { localStorage.setItem('selectedClub', JSON.stringify({ id: String(selectedClubId), name: selectedClubName || `Club #${selectedClubId}` })); } catch {}
-      }
-      if (clubSwitchEl) {
-        if (selectedClubId) {
-          try { clubSwitchEl.value = String(selectedClubId); } catch {}
-        } else {
-          try { clubSwitchEl.value = ''; } catch {}
-        }
-      }
-      if (btnViewAsUserEl) {
-        if (selectedClubId) {
-          btnViewAsUserEl.href = `club.html?club=${encodeURIComponent(String(selectedClubId))}`;
-          btnViewAsUserEl.classList.remove('is-disabled');
-          btnViewAsUserEl.removeAttribute('aria-disabled');
-        } else {
-          btnViewAsUserEl.href = 'club.html';
-          btnViewAsUserEl.classList.add('is-disabled');
-          btnViewAsUserEl.setAttribute('aria-disabled', 'true');
-        }
       }
     };
 
@@ -974,34 +823,6 @@
       });
 
       if (selectedVenueId) slotVenueEl.value = String(selectedVenueId);
-    };
-
-    const renderMyClubs = (clubs) => {
-      myClubsCache = Array.isArray(clubs) ? clubs : [];
-      if (!clubSwitchEl) return;
-      clubSwitchEl.innerHTML = '';
-
-      if (!myClubsCache.length) {
-        const emptyOpt = document.createElement('option');
-        emptyOpt.value = '';
-        emptyOpt.textContent = 'No clubs yet';
-        clubSwitchEl.appendChild(emptyOpt);
-        clubSwitchEl.disabled = true;
-        setSelectedClub(null);
-        return;
-      }
-
-      clubSwitchEl.disabled = false;
-      myClubsCache.forEach((c) => {
-        const id = c.id ?? c.clubId;
-        const name = c.name || c.clubName || `Club #${id}`;
-        const opt = document.createElement('option');
-        opt.value = String(id);
-        opt.textContent = `${name} (#${id})`;
-        clubSwitchEl.appendChild(opt);
-      });
-
-      if (selectedClubId) clubSwitchEl.value = String(selectedClubId);
     };
 
     const escapeHtml = (s) => String(s ?? '')
@@ -1266,12 +1087,10 @@
       weekFrom = weekDays[0]?.iso || localDateISO(base);
       weekTo = weekDays[6]?.iso || localDateISO(base);
       if (!selectedDayISO) selectedDayISO = weekFrom;
-      if (weekRangeLabelEl) weekRangeLabelEl.textContent = `Week: ${weekFrom} -> ${weekTo}`;
     };
 
     const fmtWeekday = new Intl.DateTimeFormat(DISPLAY_LOCALE, { weekday: 'short' });
     const fmtMonthDay = new Intl.DateTimeFormat(DISPLAY_LOCALE, { month: '2-digit', day: '2-digit' });
-    const fmtLongDay = new Intl.DateTimeFormat(DISPLAY_LOCALE, { weekday: 'short', year: 'numeric', month: 'short', day: '2-digit' });
     const dayLabel = (day) => `${fmtWeekday.format(day.date)} ${fmtMonthDay.format(day.date)}`;
 
     const loadMyClubs = async () => {
@@ -1292,24 +1111,9 @@
         || clubs[0]
         || null;
       setSelectedClub(pick);
-      renderMyClubs(clubs);
 
       setStatus('', '');
     };
-
-    clubSwitchEl?.addEventListener('change', async () => {
-      const nextId = String(clubSwitchEl.value || '');
-      if (!nextId) return;
-      const nextClub = myClubsCache.find((c) => String(c.id ?? c.clubId) === nextId);
-      if (!nextClub) return;
-      if (String(selectedClubId ?? '') === nextId) return;
-      setSelectedClub(nextClub);
-      try {
-        await reloadAll();
-      } catch (err) {
-        setStatus(err?.message || 'Failed to switch club', 'err');
-      }
-    });
 
     const setVenueModalOpen = (open) => {
       if (!venueModalEl) return;
@@ -1571,15 +1375,6 @@
       if (!weekDays.length || !weekFrom || !weekTo) initWeek();
       if (!selectedDayISO) selectedDayISO = weekFrom;
 
-      const dayObj = weekDays.find(d => d.iso === selectedDayISO) || weekDays[0] || null;
-      if (selectedDayLabelEl) {
-        try {
-          selectedDayLabelEl.textContent = dayObj ? fmtLongDay.format(dayObj.date) : String(selectedDayISO);
-        } catch {
-          selectedDayLabelEl.textContent = String(selectedDayISO);
-        }
-      }
-
       if (!selectedVenueId) {
         slotList.innerHTML = "";
         slotEmpty.style.display = "block";
@@ -1678,70 +1473,12 @@
       renderDaySlots();
     };
     const reloadAll = async () => {
-      await loadClubDetailToForm();
       if (!selectedClubId) return;
       setStatus('Loading venues, slots and bookings...', '');
       await loadVenues();
       await loadTimeslots();
       setStatus('', '');
     };
-
-    document.getElementById('btnReloadMyClubs')?.addEventListener('click', async () => {
-      try {
-        await loadMyClubs();
-        await reloadAll();
-      } catch (e) {
-        setStatus(e.message || 'Failed', 'err');
-      }
-    });
-
-    document.getElementById('btnReloadSlots')?.addEventListener('click', async () => {
-      try {
-        await loadTimeslots();
-      } catch (e) {
-        setStatus(e.message || 'Failed', 'err');
-      }
-    });
-
-    document.getElementById('formCreateClub')?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const name = document.getElementById('clubName')?.value?.trim();
-      const category = document.getElementById('clubCategory')?.value?.trim();
-      const email = document.getElementById('clubEmail')?.value?.trim();
-      const phone = document.getElementById('clubPhone')?.value?.trim();
-      const description = document.getElementById('clubDesc')?.value?.trim();
-
-      if (!name) { setStatus('Missing club name', 'err'); return; }
-      const isEdit = !!selectedClubId;
-      const endpoint = isEdit ? `/api/clubs/${encodeURIComponent(selectedClubId)}` : '/api/clubs';
-
-      try {
-        setStatus(isEdit ? 'Saving club...' : 'Creating club...', '');
-        if (btnCreateClub) {
-          btnCreateClub.disabled = true;
-          btnCreateClub.textContent = isEdit ? 'Saving...' : 'Creating...';
-        }
-
-        const res = await authFetch(endpoint, {
-          method: isEdit ? 'PUT' : 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, category, email, phone, description })
-        });
-        if (!res.ok) {
-          const body = await apiJson(res);
-          setStatus(body?.message || (isEdit ? 'Save club failed' : 'Create club failed'), 'err');
-          return;
-        }
-        const club = await res.json();
-        setSelectedClub(club);
-        await loadMyClubs();
-        await reloadAll();
-        setStatus(isEdit ? 'Club saved.' : 'Club created.', 'ok');
-      } finally {
-        setClubFormMode(selectedClubId ? 'edit' : 'create');
-        if (btnCreateClub) btnCreateClub.disabled = false;
-      }
-    });
 
     document.getElementById('formCreateVenue')?.addEventListener('submit', async (e) => {
       e.preventDefault();
