@@ -15,6 +15,7 @@ import java.util.Optional;
 public interface CheckoutSessionRepository extends JpaRepository<CheckoutSession, Integer> {
     Optional<CheckoutSession> findBySessionId(String sessionId);
     Optional<CheckoutSession> findByProviderSessionId(String providerSessionId);
+    boolean existsByOrderNo(String orderNo);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select s from CheckoutSession s where s.sessionId = :sessionId")
@@ -55,4 +56,24 @@ public interface CheckoutSessionRepository extends JpaRepository<CheckoutSession
                                                            @Param("now") Instant now);
 
     List<CheckoutSession> findByStatusInAndExpiresAtBefore(Collection<String> statuses, Instant now);
+
+    @Query("""
+            select s
+            from CheckoutSession s
+            where s.bookingId in :bookingIds
+              and s.status = :status
+            order by s.createdAt desc
+            """)
+    List<CheckoutSession> findByBookingIdInAndStatusOrderByCreatedAtDesc(@Param("bookingIds") Collection<Integer> bookingIds,
+                                                                         @Param("status") String status);
+
+    @Query("""
+            select s
+            from CheckoutSession s
+            where s.userMembershipId in :userMembershipIds
+              and s.status = :status
+            order by s.createdAt desc
+            """)
+    List<CheckoutSession> findByUserMembershipIdInAndStatusOrderByCreatedAtDesc(@Param("userMembershipIds") Collection<Integer> userMembershipIds,
+                                                                                 @Param("status") String status);
 }

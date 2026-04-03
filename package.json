@@ -4,16 +4,23 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "start": "vite preview",
-    "test": "npm run test:frontend && npm run test:backend",
-    "test:frontend": "node --test tests/frontend/regression.test.mjs",
-    "test:backend": "mvn -f backend/pom.xml test",
-    "check:prompts": "node scripts/check-prompts.mjs"
+    "dev": "node scripts/portable-vite.mjs dev",
+    "dev:backend": "node scripts/run-maven.mjs -f backend/pom.xml -Dspring-boot.run.profiles=dev spring-boot:run",
+    "build": "node scripts/portable-vite.mjs build",
+    "preview": "node scripts/portable-vite.mjs preview",
+    "start": "node scripts/portable-vite.mjs preview",
+    "test": "npm run test:frontend:fast && npm run test:backend",
+    "test:frontend": "npm run test:frontend:fast",
+    "test:frontend:fast": "node --test tests/frontend/regression.test.mjs",
+    "test:frontend:visual": "node scripts/portable-playwright.mjs test",
+    "test:backend": "node scripts/run-maven.mjs -f backend/pom.xml test",
+    "test:acceptance": "npm test && npm run test:frontend:visual && npm run build",
+    "check:prompts": "node scripts/check-prompts.mjs",
+    "package:submission": "node scripts/prepare-submission.mjs",
+    "verify:submission": "node scripts/verify-submission.mjs"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "vite": "^5.4.2"
   }
 }

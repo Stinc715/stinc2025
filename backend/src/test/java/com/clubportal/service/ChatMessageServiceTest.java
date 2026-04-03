@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -220,17 +221,29 @@ class ChatMessageServiceTest {
         existing.setUserId(45);
         existing.setSender("USER");
         existing.setMessageText("Need help");
-        existing.setCreatedAt(LocalDateTime.now().minusSeconds(2));
+        existing.setCreatedAt(LocalDateTime.now().minusSeconds(7));
+
+        ChatMessage assistant = new ChatMessage();
+        assistant.setMessageId(889);
+        assistant.setClubId(12);
+        assistant.setUserId(45);
+        assistant.setSender("ASSISTANT");
+        assistant.setMessageText("How can I help?");
+        assistant.setCreatedAt(LocalDateTime.now().minusSeconds(6));
 
         when(chatSessionService.getOrCreateSession(12, 45)).thenReturn(session);
         when(chatMessageRepository.findTopByClubIdAndUserIdAndSenderOrderByCreatedAtDescMessageIdDesc(12, 45, "USER"))
                 .thenReturn(existing);
+        when(chatMessageRepository.findByClubIdAndUserIdAndMessageIdGreaterThanEqualOrderByMessageIdAsc(12, 45, 888))
+                .thenReturn(List.of(existing, assistant));
 
         ChatMessageService service = new ChatMessageService(chatSessionService, chatSessionRepository, chatMessageRepository, clubChatAiService, new KeyedLockService());
         ChatMessageService.ChatSendResult result = service.sendUserMessage(12, 45, "Need help");
 
         assertEquals(Integer.valueOf(888), result.responseMessage().getMessageId());
-        assertEquals(1, result.savedMessages().size());
+        assertEquals(2, result.savedMessages().size());
+        assertEquals("USER", result.savedMessages().get(0).getSender());
+        assertEquals("ASSISTANT", result.savedMessages().get(1).getSender());
         assertEquals(false, result.notifyUserThread());
         assertEquals(false, result.notifyClubConversation());
         verifyNoInteractions(clubChatAiService);

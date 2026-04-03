@@ -20,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -27,7 +28,8 @@ import java.util.Objects;
 public class ChatMessageService {
 
     private static final Logger log = LoggerFactory.getLogger(ChatMessageService.class);
-    private static final Duration DUPLICATE_RETRY_WINDOW = Duration.ofSeconds(6);
+    private static final Duration AI_DUPLICATE_RETRY_WINDOW = Duration.ofSeconds(20);
+    private static final Duration HUMAN_DUPLICATE_RETRY_WINDOW = Duration.ofSeconds(8);
 
     private final ChatSessionService chatSessionService;
     private final ChatSessionRepository chatSessionRepository;
@@ -252,7 +254,7 @@ public class ChatMessageService {
                 session.getUserId(),
                 senderType.name()
         );
-        if (!isLikelyDuplicateRetry(latestSameSender, content)) {
+        if (!isLikelyDuplicateRetry(session, senderType, latestSameSender, content)) {
             return null;
         }
         log.info("[CLUB_CHAT_DEBUG] duplicate chat retry suppressed: sessionId={}, clubId={}, userId={}, sender={}, messageId={}, createdAt={}",
@@ -262,24 +264,76 @@ public class ChatMessageService {
                 senderType.name(),
                 latestSameSender.getMessageId(),
                 latestSameSender.getCreatedAt());
+        List<ChatMessage> retryMessages = buildDuplicateRetryMessages(session, senderType, latestSameSender);
+        ChatMessage latestVisibleMessage = retryMessages.isEmpty()
+                ? latestSameSender
+                : retryMessages.get(retryMessages.size() - 1);
         return new ChatSendResult(
                 latestSameSender,
-                List.of(latestSameSender),
-                latestSameSender.getMessageId(),
+                retryMessages,
+                latestVisibleMessage.getMessageId(),
                 false,
                 false
         );
     }
 
-    private static boolean isLikelyDuplicateRetry(ChatMessage latestSameSender, String content) {
+    private boolean isLikelyDuplicateRetry(ChatSession session,
+                                           MessageSenderType senderType,
+                                           ChatMessage latestSameSender,
+                                           String content) {
         if (latestSameSender == null || latestSameSender.getCreatedAt() == null) {
             return false;
         }
         if (!Objects.equals(normalizeDuplicateContent(latestSameSender.getMessageText()), normalizeDuplicateContent(content))) {
             return false;
         }
-        LocalDateTime cutoff = LocalDateTime.now().minus(DUPLICATE_RETRY_WINDOW);
+        LocalDateTime cutoff = LocalDateTime.now().minus(resolveDuplicateRetryWindow(session, senderType));
         return !latestSameSender.getCreatedAt().isBefore(cutoff);
+    }
+
+    private Duration resolveDuplicateRetryWindow(ChatSession session, MessageSenderType senderType) {
+        if (senderType == MessageSenderType.USER && normalizeMode(session) == ChatMode.AI) {
+            return AI_DUPLICATE_RETRY_WINDOW;
+        }
+        return HUMAN_DUPLICATE_RETRY_WINDOW;
+    }
+
+    private List<ChatMessage> buildDuplicateRetryMessages(ChatSession session,
+                                                          MessageSenderType senderType,
+                                                          ChatMessage latestSameSender) {
+        if (session == null || latestSameSender == null) {
+            return List.of();
+        }
+        if (!(senderType == MessageSenderType.USER && normalizeMode(session) == ChatMode.AI)) {
+            return List.of(latestSameSender);
+        }
+
+        List<ChatMessage> trailingMessages = chatMessageRepository.findByClubIdAndUserIdAndMessageIdGreaterThanEqualOrderByMessageIdAsc(
+                session.getClubId(),
+                session.getUserId(),
+                latestSameSender.getMessageId()
+        );
+        if (trailingMessages.isEmpty()) {
+            return List.of(latestSameSender);
+        }
+
+        List<ChatMessage> retryMessages = new ArrayList<>();
+        boolean collecting = false;
+        for (ChatMessage message : trailingMessages) {
+            if (!collecting) {
+                if (!Objects.equals(message.getMessageId(), latestSameSender.getMessageId())) {
+                    continue;
+                }
+                collecting = true;
+                retryMessages.add(message);
+                continue;
+            }
+            if (MessageSenderType.USER.name().equalsIgnoreCase(message.getSender())) {
+                break;
+            }
+            retryMessages.add(message);
+        }
+        return retryMessages.isEmpty() ? List.of(latestSameSender) : List.copyOf(retryMessages);
     }
 
     private static String normalizeDuplicateContent(String value) {

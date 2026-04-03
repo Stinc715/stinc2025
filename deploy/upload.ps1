@@ -1,98 +1,177 @@
-# Windows上传脚本 - Club Portal
-# 使用方法: .\upload.ps1
+[CmdletBinding()]
+param(
+    [string]$ServerHost = $env:CLUB_PORTAL_DEPLOY_HOST,
+    [string]$ServerUser = $env:CLUB_PORTAL_DEPLOY_USER,
+    [string]$SshKey = $env:CLUB_PORTAL_DEPLOY_SSH_KEY,
+    [string]$RemoteDeployDir = $env:CLUB_PORTAL_DEPLOY_DIR,
+    [switch]$SkipBuild,
+    [switch]$SkipTests,
+    [switch]$UploadOnly
+)
 
-$SERVER_IP = "13.40.74.21"
-$SSH_KEY = "C:\Users\shenn\Sntc00715.pem"
-$SERVER_USER = "ec2-user"
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
 
-Write-Host "=========================================" -ForegroundColor Cyan
-Write-Host "  Club Portal 上传脚本" -ForegroundColor Cyan
-Write-Host "=========================================" -ForegroundColor Cyan
+$repoRoot = Split-Path -Parent $PSScriptRoot
+$backendDir = Join-Path $repoRoot "backend"
+$deployDir = Join-Path $repoRoot "deploy"
+$artifactsDir = Join-Path $repoRoot "artifacts\deploy"
+$schemaPath = Join-Path $deployDir "mysql_schema.sql"
+$migrationDir = Join-Path $deployDir "migrations"
+$backendJar = Join-Path $backendDir "target\club-portal-backend-1.0-SNAPSHOT.jar"
+$archiveName = "dist-deploy-{0}.tgz" -f (Get-Date -Format "yyyyMMddHHmmss")
+$archivePath = Join-Path $artifactsDir $archiveName
+$npmExecutable = if ($IsWindows -or $env:OS -eq "Windows_NT") { "npm.cmd" } else { "npm" }
+$nodeExecutable = if (Get-Command node -ErrorAction SilentlyContinue) { "node" } else { "node.exe" }
 
-# 检查SSH密钥
-if (-not (Test-Path $SSH_KEY)) {
-    Write-Host "错误: SSH密钥未找到: $SSH_KEY" -ForegroundColor Red
-    exit 1
+function Assert-RequiredValue {
+    param(
+        [string]$Name,
+        [string]$Value,
+        [string]$EnvironmentVariable
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        throw "Missing required value: $Name. Pass -$Name or set $EnvironmentVariable."
+    }
 }
 
-# 1. 打包前端文件
-Write-Host "`n步骤 1: 打包前端文件..." -ForegroundColor Yellow
-$frontendZip = "frontend.zip"
-if (Test-Path $frontendZip) { Remove-Item $frontendZip -Force }
-Compress-Archive -Path "dist\*" -DestinationPath $frontendZip
-Write-Host "✅ 前端文件已打包: $frontendZip" -ForegroundColor Green
+Assert-RequiredValue -Name "ServerHost" -Value $ServerHost -EnvironmentVariable "CLUB_PORTAL_DEPLOY_HOST"
+Assert-RequiredValue -Name "ServerUser" -Value $ServerUser -EnvironmentVariable "CLUB_PORTAL_DEPLOY_USER"
+Assert-RequiredValue -Name "SshKey" -Value $SshKey -EnvironmentVariable "CLUB_PORTAL_DEPLOY_SSH_KEY"
 
-# 2. 编译后端
-Write-Host "`n步骤 2: 编译后端..." -ForegroundColor Yellow
-Set-Location backend
-mvn clean package -DskipTests
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ 后端编译失败" -ForegroundColor Red
-    exit 1
+if ([string]::IsNullOrWhiteSpace($RemoteDeployDir)) {
+    $RemoteDeployDir = "/home/$ServerUser/deploy"
 }
-Set-Location ..
-Write-Host "✅ 后端编译成功" -ForegroundColor Green
 
-# 3. 上传文件到服务器
-Write-Host "`n步骤 3: 上传文件到服务器..." -ForegroundColor Yellow
+$remoteArchivePath = "$remoteDeployDir/$archiveName"
+$remoteTarget = "$ServerUser@$ServerHost"
 
-# 上传前端
-Write-Host "  上传前端文件..." -ForegroundColor Cyan
-scp -i $SSH_KEY $frontendZip "${SERVER_USER}@${SERVER_IP}:~/"
+function Write-Step {
+    param([string]$Message)
+    Write-Host ""
+    Write-Host $Message -ForegroundColor Yellow
+}
 
-# 上传后端
-Write-Host "  上传后端JAR..." -ForegroundColor Cyan
-scp -i $SSH_KEY "backend\target\club-portal-backend-1.0-SNAPSHOT.jar" "${SERVER_USER}@${SERVER_IP}:~/"
+function Invoke-Checked {
+    param(
+        [string]$FilePath,
+        [string[]]$Arguments,
+        [string]$FailureMessage
+    )
 
-# 上传部署脚本
-Write-Host "  上传部署脚本..." -ForegroundColor Cyan
-scp -i $SSH_KEY "deploy\deploy.sh" "${SERVER_USER}@${SERVER_IP}:~/"
-scp -i $SSH_KEY "deploy\nginx.conf" "${SERVER_USER}@${SERVER_IP}:~/"
+    & $FilePath @Arguments
+    if ($LASTEXITCODE -ne 0) {
+        throw $FailureMessage
+    }
+}
 
-Write-Host "✅ 所有文件上传完成" -ForegroundColor Green
+if (-not (Test-Path $SshKey)) {
+    throw "SSH key not found: $SshKey"
+}
 
-# 4. 在服务器上执行部署
-Write-Host "`n步骤 4: 在服务器上执行部署..." -ForegroundColor Yellow
-Write-Host "连接到服务器并执行部署脚本..." -ForegroundColor Cyan
-
-ssh -i $SSH_KEY "${SERVER_USER}@${SERVER_IP}" @"
-echo '解压前端文件...'
-mkdir -p ~/deploy/dist
-unzip -o ~/frontend.zip -d ~/deploy/dist
-
-echo '创建部署目录...'
-mkdir -p ~/deploy
-
-echo '移动文件到部署目录...'
-mv ~/deploy.sh ~/deploy/
-mv ~/nginx.conf ~/deploy/
-mv ~/club-portal-backend-1.0-SNAPSHOT.jar ~/deploy/backend.jar
-
-echo '设置执行权限...'
-chmod +x ~/deploy/deploy.sh
-
-echo '准备就绪！现在可以执行: cd ~/deploy && sudo ./deploy.sh'
-echo ''
-echo '或者手动部署:'
-echo '  1. 安装Nginx: sudo apt-get install nginx'
-echo '  2. 安装Java: sudo apt-get install openjdk-17-jdk'
-echo '  3. 复制前端: sudo cp -r ~/deploy/dist/* /var/www/club-portal/'
-echo '  4. 配置Nginx: sudo cp ~/deploy/nginx.conf /etc/nginx/sites-available/club-portal'
-echo '  5. 启动后端: java -jar ~/deploy/backend.jar'
-"@
-
-Write-Host ""
 Write-Host "=========================================" -ForegroundColor Cyan
-Write-Host "  上传完成！" -ForegroundColor Cyan
+Write-Host "  Club Portal upload script (parameterized)" -ForegroundColor Cyan
 Write-Host "=========================================" -ForegroundColor Cyan
-Write-Host ""
-Write-Host "下一步操作:" -ForegroundColor Yellow
-Write-Host "  1. 连接到服务器: ssh -i $SSH_KEY ${SERVER_USER}@${SERVER_IP}" -ForegroundColor White
-Write-Host "  2. 执行部署: cd ~/deploy && sudo ./deploy.sh" -ForegroundColor White
-Write-Host ""
-Write-Host "或者现在立即部署? (Y/N)" -ForegroundColor Yellow
-$response = Read-Host
-if ($response -eq 'Y' -or $response -eq 'y') {
-    Write-Host "开始自动部署..." -ForegroundColor Green
-    ssh -i $SSH_KEY "${SERVER_USER}@${SERVER_IP}" "cd ~/deploy && sudo ./deploy.sh"
+Write-Host "Server: $remoteTarget" -ForegroundColor White
+if ($SkipTests) {
+    Write-Host "Safety checks: tests will be skipped because -SkipTests was provided." -ForegroundColor Yellow
+}
+else {
+    Write-Host "Safety checks: tests will run before packaging." -ForegroundColor White
+}
+
+Push-Location $repoRoot
+try {
+    if (-not $SkipBuild) {
+        if (-not $SkipTests) {
+            Write-Step "Step 1/5: running acceptance tests"
+            Invoke-Checked -FilePath $npmExecutable -Arguments @("run", "test:acceptance") -FailureMessage "Acceptance test chain failed."
+
+            Write-Step "Step 2/5: packaging backend with tests enabled"
+            Invoke-Checked -FilePath $nodeExecutable -Arguments @("scripts/run-maven.mjs", "-f", "backend/pom.xml", "clean", "package") -FailureMessage "Backend package failed."
+        }
+        else {
+            Write-Step "Step 1/5: building frontend"
+            Invoke-Checked -FilePath $npmExecutable -Arguments @("run", "build") -FailureMessage "Frontend build failed."
+
+            Write-Step "Step 2/5: packaging backend without tests"
+            Invoke-Checked -FilePath $nodeExecutable -Arguments @("scripts/run-maven.mjs", "-f", "backend/pom.xml", "clean", "package", "-DskipTests") -FailureMessage "Backend package failed."
+        }
+    }
+
+    if (-not (Test-Path $backendJar)) {
+        throw "Backend JAR not found: $backendJar"
+    }
+    if (-not (Test-Path (Join-Path $repoRoot "dist"))) {
+        throw "Frontend dist directory not found. Run the frontend build first."
+    }
+
+    Write-Step "Step 3/5: packaging frontend"
+    New-Item -ItemType Directory -Force -Path $artifactsDir | Out-Null
+    if (Test-Path $archivePath) {
+        Remove-Item $archivePath -Force
+    }
+    Invoke-Checked -FilePath "tar" -Arguments @("-czf", $archivePath, "-C", (Join-Path $repoRoot "dist"), ".") -FailureMessage "Frontend archive creation failed."
+
+    Write-Step "Step 4/5: uploading deploy assets"
+    Invoke-Checked -FilePath "ssh" -Arguments @(
+        "-o", "StrictHostKeyChecking=accept-new",
+        "-i", $SshKey,
+        $remoteTarget,
+        "mkdir -p $remoteDeployDir/migrations"
+    ) -FailureMessage "Failed to create remote deploy directories."
+
+    $scpCommonArgs = @("-o", "StrictHostKeyChecking=accept-new", "-i", $SshKey)
+    $uploadSpecs = @(
+        @{ Local = $archivePath; Remote = "$remoteTarget`:$remoteDeployDir/" },
+        @{ Local = $backendJar; Remote = "$remoteTarget`:$remoteDeployDir/club-portal-backend-1.0-SNAPSHOT.jar" },
+        @{ Local = $schemaPath; Remote = "$remoteTarget`:$remoteDeployDir/mysql_schema.sql" },
+        @{ Local = (Join-Path $deployDir "nginx.conf"); Remote = "$remoteTarget`:$remoteDeployDir/nginx.conf" },
+        @{ Local = (Join-Path $deployDir "remote_release_frontend_only.sh"); Remote = "$remoteTarget`:$remoteDeployDir/remote_release_frontend_only.sh" },
+        @{ Local = (Join-Path $deployDir "remote_release_full.sh"); Remote = "$remoteTarget`:$remoteDeployDir/remote_release_full.sh" },
+        @{ Local = (Join-Path $deployDir "remote_apply_schema_from_env.sh"); Remote = "$remoteTarget`:$remoteDeployDir/remote_apply_schema_from_env.sh" },
+        @{ Local = (Join-Path $deployDir "remote_deploy_backend.sh"); Remote = "$remoteTarget`:$remoteDeployDir/remote_deploy_backend.sh" }
+    )
+
+    foreach ($uploadSpec in $uploadSpecs) {
+        Invoke-Checked -FilePath "scp" -Arguments ($scpCommonArgs + @($uploadSpec.Local, $uploadSpec.Remote)) -FailureMessage "Upload failed for $($uploadSpec.Local)"
+    }
+
+    $migrationFiles = Get-ChildItem -Path $migrationDir -Filter "*.sql" -File | Sort-Object Name
+    foreach ($migrationFile in $migrationFiles) {
+        Invoke-Checked -FilePath "scp" -Arguments ($scpCommonArgs + @($migrationFile.FullName, "$remoteTarget`:$remoteDeployDir/migrations/")) -FailureMessage "Upload failed for $($migrationFile.FullName)"
+    }
+
+    $remotePrepCommand = "chmod +x $remoteDeployDir/*.sh"
+    Invoke-Checked -FilePath "ssh" -Arguments @(
+        "-o", "StrictHostKeyChecking=accept-new",
+        "-i", $SshKey,
+        $remoteTarget,
+        $remotePrepCommand
+    ) -FailureMessage "Failed to prepare remote deploy scripts."
+
+    if ($UploadOnly) {
+        Write-Host ""
+        Write-Host "Upload completed. Remote release was skipped because -UploadOnly was provided." -ForegroundColor Green
+        Write-Host "Run this on the server to release manually:" -ForegroundColor White
+        Write-Host "  cd $remoteDeployDir && ./remote_release_full.sh $remoteArchivePath" -ForegroundColor White
+        exit 0
+    }
+
+    Write-Step "Step 5/5: releasing on the server"
+    Invoke-Checked -FilePath "ssh" -Arguments @(
+        "-o", "StrictHostKeyChecking=accept-new",
+        "-i", $SshKey,
+        $remoteTarget,
+        "cd $remoteDeployDir && ./remote_release_full.sh $remoteArchivePath"
+    ) -FailureMessage "Remote release failed."
+
+    Write-Host ""
+    Write-Host "Deployment completed successfully." -ForegroundColor Green
+    Write-Host "Frontend archive: $archiveName" -ForegroundColor White
+    Write-Host "Remote host: $remoteTarget" -ForegroundColor White
+}
+finally {
+    Pop-Location
 }

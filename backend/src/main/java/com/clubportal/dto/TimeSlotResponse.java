@@ -16,7 +16,10 @@ public record TimeSlotResponse(
         long remaining,
         BigDecimal basePrice,
         String membershipPlanName,
+        String membershipBenefitType,
         BigDecimal membershipDiscountPercent,
+        Integer membershipIncludedBookings,
+        Integer membershipRemainingBookings,
         boolean membershipApplied
 ) {
 }

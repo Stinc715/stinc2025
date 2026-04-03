@@ -31,6 +31,9 @@ public class BookingRecord {
     @Column(name = "user_membership_id")
     private Integer userMembershipId;
 
+    @Column(name = "membership_credit_used", nullable = false)
+    private Boolean membershipCreditUsed = false;
+
     @Column(name = "booking_verification_code", length = 6)
     private String bookingVerificationCode;
 
@@ -48,6 +51,8 @@ public class BookingRecord {
     public void setPricePaid(java.math.BigDecimal pricePaid) { this.pricePaid = pricePaid; }
     public Integer getUserMembershipId() { return userMembershipId; }
     public void setUserMembershipId(Integer userMembershipId) { this.userMembershipId = userMembershipId; }
+    public Boolean getMembershipCreditUsed() { return membershipCreditUsed; }
+    public void setMembershipCreditUsed(Boolean membershipCreditUsed) { this.membershipCreditUsed = membershipCreditUsed; }
     public String getBookingVerificationCode() { return bookingVerificationCode; }
     public void setBookingVerificationCode(String bookingVerificationCode) { this.bookingVerificationCode = bookingVerificationCode; }
 }

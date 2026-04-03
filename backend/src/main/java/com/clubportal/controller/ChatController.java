@@ -4,6 +4,7 @@ import com.clubportal.dto.ChatConversationSummaryResponse;
 import com.clubportal.dto.ChatMarkReadResponse;
 import com.clubportal.dto.ChatMessageCreateRequest;
 import com.clubportal.dto.ChatMessageResponse;
+import com.clubportal.dto.ChatSendResponse;
 import com.clubportal.dto.ChatThreadResponse;
 import com.clubportal.model.ChatSession;
 import com.clubportal.model.ChatMessage;
@@ -139,7 +140,7 @@ public class ChatController {
             ChatMessageService.ChatSendResult result = chatMessageService.sendUserMessage(clubId, me.getUserId(), text);
             ChatSession session = chatSessionService.getOrCreateSession(clubId, me.getUserId());
             notifyChatSendAfterCommit(clubId, me.getUserId(), result);
-            return ResponseEntity.ok(buildUserThreadResponse(club, me, session));
+            return ResponseEntity.ok(buildUserSendResponse(club, me, session, result));
         } catch (ResponseStatusException ex) {
             return ResponseEntity.status(ex.getStatusCode()).body(ex.getReason());
         }
@@ -446,6 +447,30 @@ public class ChatController {
                 session.getHandoffRequestedAt(),
                 normalizeHandoffReason(session),
                 normalizeClubUnreadCount(session)
+        );
+    }
+
+    private ChatSendResponse buildUserSendResponse(Club club,
+                                                   User me,
+                                                   ChatSession session,
+                                                   ChatMessageService.ChatSendResult result) {
+        List<ChatMessageResponse> messages = (result == null ? List.<ChatMessage>of() : result.savedMessages()).stream()
+                .map(msg -> toMessageResponse(msg, safe(club.getClubName()), safe(me.getUsername())))
+                .toList();
+        long unread = chatMessageRepo.countByClubIdAndUserIdAndSenderAndReadByUserFalse(club.getClubId(), me.getUserId(), SENDER_CLUB);
+        return new ChatSendResponse(
+                club.getClubId(),
+                safe(club.getClubName()),
+                me.getUserId(),
+                safe(me.getUsername()),
+                unread,
+                messages,
+                session.getSessionId(),
+                normalizeChatMode(session),
+                session.getHandoffRequestedAt(),
+                normalizeHandoffReason(session),
+                normalizeClubUnreadCount(session),
+                false
         );
     }
 

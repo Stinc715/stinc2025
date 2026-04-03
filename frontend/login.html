@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data: blob: https://maps.gstatic.com https://maps.googleapis.com https://*.googleusercontent.com https://www.google.com https://www.gstatic.com; font-src 'self' data: https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://accounts.google.com https://maps.googleapis.com; connect-src 'self' https://accounts.google.com https://maps.googleapis.com https://api.stripe.com; frame-src 'self' https://accounts.google.com https://js.stripe.com; form-action 'self' https://accounts.google.com">
 <title>Club Booking Portal</title>
 <style>
   :root{ --bg:#fff; --card:#fff; --line:#e5e7eb; --ink:#111827; --muted:#6b7280; --accent:#2563eb; }
@@ -10,6 +12,8 @@
   body{
     margin:0;background:var(--bg);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
     min-height:100vh;display:flex;flex-direction:column;align-items:stretch;
+    font-variant-numeric:lining-nums proportional-nums;
+    font-feature-settings:"lnum" 1,"pnum" 1;
   }
   body.embedded{
     background:transparent;
@@ -140,41 +144,6 @@
   .btn-row{ display:flex;gap:12px;margin-top:18px; }
   body.embedded .mb-3{ margin-bottom:14px; }
   body.embedded .btn-row{ margin-top:14px; }
-  .btn{ 
-    flex:1;
-    height:44px;
-    border-radius:10px;
-    border:1px solid #000;
-    background:#111;
-    color:#fff;
-    font-size:16px;
-    cursor:pointer;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    text-decoration:none;
-    box-shadow:none !important;
-    transition:transform 0.15s ease;
-    outline:none;
-  }
-  .btn:hover{
-    transform:translateY(-2px);
-    box-shadow:none !important;
-  }
-  .btn:active{
-    transform:translateY(0);
-    box-shadow:none !important;
-  }
-  .btn:focus{
-    outline:none;
-    box-shadow:none !important;
-  }
-  .btn:focus-visible{
-    outline:none;
-    box-shadow:none !important;
-  }
-  .btn[disabled]{opacity:.6;cursor:not-allowed}
-  .btn.light{ background:#fff;color:#000; }
   .link-btn{ background:none;border:none;color:#2563eb;font-size:13px;cursor:pointer;padding:0; }
   .error{ font-size:12px;color:#dc2626;margin-top:4px;display:none; }
   .success{
@@ -214,6 +183,23 @@
   .verify-row{display:flex;gap:8px;align-items:center;}
   .verify-row + .verify-row{margin-top:8px;}
   .verify-row input{flex:1;}
+  .verify-row-code{display:block;}
+  .code-slot-row{
+    display:grid;
+    grid-template-columns:repeat(6, minmax(0, 1fr));
+    gap:8px;
+    width:100%;
+  }
+  .code-slot{
+    width:100%;
+    height:46px;
+    padding:0 !important;
+    border-radius:12px !important;
+    text-align:center;
+    font-size:20px !important;
+    font-weight:700;
+    letter-spacing:.02em;
+  }
   .verify-action{
     border:1px solid #d1d5db;
     background:#fff;
@@ -252,10 +238,12 @@
   body.route-locked #btnBackLogin{display:none !important;}
   @keyframes fadeUp{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
 </style>
+<link rel="stylesheet" href="desktop-consistency.css?v=20260403a">
+<script src="auth-session.js?v=20260331b"></script>
 </head>
-<body>
-  <main class="auth-wrap">
-    <div class="card">
+<body class="desktop-consistency desktop-shell--narrow desktop-page--login">
+  <main class="auth-wrap desktop-shell-main">
+    <div class="card desktop-form-shell">
 <h1>Club Booking Portal</h1>
 
     <div class="tabs">
@@ -353,9 +341,16 @@
         <div class="verify-row">
           <button id="reg-send-code-btn" class="verify-action" type="button">Send code</button>
         </div>
-        <div class="verify-row">
-          <input id="reg-email-code" type="text" placeholder="6-digit code" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" />
-          <button id="reg-verify-code-btn" class="verify-action" type="button">Verify</button>
+        <div class="verify-row verify-row-code">
+          <div class="code-slot-row" role="group" aria-label="6-digit verification code">
+            <input class="code-slot" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="one-time-code" aria-label="Verification digit 1" />
+            <input class="code-slot" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Verification digit 2" />
+            <input class="code-slot" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Verification digit 3" />
+            <input class="code-slot" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Verification digit 4" />
+            <input class="code-slot" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Verification digit 5" />
+            <input class="code-slot" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Verification digit 6" />
+          </div>
+          <input id="reg-email-code" type="hidden" value="" />
         </div>
         <div id="reg-verify-msg" class="verify-state" role="status" aria-live="polite"></div>
       </div>
@@ -512,8 +507,8 @@
   const regPassInput = document.getElementById('reg-pass');
   const regPass2Input = document.getElementById('reg-pass2');
   const regSendCodeBtn = document.getElementById('reg-send-code-btn');
-  const regVerifyCodeBtn = document.getElementById('reg-verify-code-btn');
   const regEmailCodeInput = document.getElementById('reg-email-code');
+  const regCodeSlots = Array.from(document.querySelectorAll('#panel-register .code-slot'));
   const regVerifyMsg = document.getElementById('reg-verify-msg');
   const btnRegisterDo = document.getElementById('btnRegisterDo');
   const btnGoRegister = document.getElementById('btnGoRegister');
@@ -536,6 +531,7 @@
   const passwordInput = document.getElementById('password');
   let registerVerifiedEmail = '';
   let regCodeTimer = null;
+  let regVerifyInFlight = false;
   let resetRequestedEmail = '';
 
   const showLoginError = (msg) => {
@@ -632,6 +628,57 @@
     requestResize();
   }
 
+  function syncRegCodeSlots(value) {
+    const digits = String(value || '').replace(/\D/g, '').slice(0, 6);
+    if (regEmailCodeInput) regEmailCodeInput.value = digits;
+    regCodeSlots.forEach((slot, index) => {
+      const next = digits[index] || '';
+      if (slot.value !== next) slot.value = next;
+    });
+    return digits;
+  }
+
+  function readCurrentRegCode() {
+    return String(regEmailCodeInput?.value || '').trim();
+  }
+
+  function focusRegCodeSlot(index) {
+    const next = regCodeSlots[index];
+    if (!next) return;
+    next.focus();
+    next.select?.();
+  }
+
+  function clearRegCodeEntry(focusFirst = false) {
+    syncRegCodeSlots('');
+    if (focusFirst) focusRegCodeSlot(0);
+  }
+
+  function updateRegCodeFromSlots() {
+    return syncRegCodeSlots(
+      regCodeSlots.map((slot) => String(slot.value || '').replace(/\D/g, '').slice(-1)).join('')
+    );
+  }
+
+  function applyRegCodeFromIndex(rawValue, startIndex = 0) {
+    const digits = String(rawValue || '').replace(/\D/g, '');
+    if (!regCodeSlots.length) return syncRegCodeSlots(digits);
+    const nextValues = regCodeSlots.map((slot) => String(slot.value || '').replace(/\D/g, '').slice(-1));
+    let writeIndex = Math.max(0, Math.min(startIndex, regCodeSlots.length - 1));
+    for (const digit of digits) {
+      if (writeIndex >= regCodeSlots.length) break;
+      nextValues[writeIndex] = digit;
+      writeIndex += 1;
+    }
+    const combined = syncRegCodeSlots(nextValues.join(''));
+    if (combined.length === 6 && !regVerifyInFlight) {
+      handleRegisterVerifyCode({ auto: true });
+    } else if (writeIndex < regCodeSlots.length) {
+      focusRegCodeSlot(writeIndex);
+    }
+    return combined;
+  }
+
   function stopRegCodeTimer(){
     if (regCodeTimer) {
       clearInterval(regCodeTimer);
@@ -678,7 +725,8 @@
 
   function resetRegisterVerification(message){
     setRegisterVerificationState('', false);
-    if (regEmailCodeInput) regEmailCodeInput.value = '';
+    clearRegCodeEntry(false);
+    regVerifyInFlight = false;
     if (message) setRegVerifyMessage(message, 'error');
     else setRegVerifyMessage('', '');
   }
@@ -766,9 +814,53 @@
       if (!registerVerifiedEmail) setRegVerifyMessage('', '');
     }
   });
-  regEmailCodeInput?.addEventListener('input', () => {
-    const cleaned = String(regEmailCodeInput.value || '').replace(/\D/g, '').slice(0, 6);
-    if (regEmailCodeInput.value !== cleaned) regEmailCodeInput.value = cleaned;
+  regCodeSlots.forEach((slot, index) => {
+    slot.addEventListener('focus', () => {
+      slot.select?.();
+    });
+    slot.addEventListener('input', () => {
+      const cleaned = String(slot.value || '').replace(/\D/g, '');
+      if (!cleaned) {
+        slot.value = '';
+        updateRegCodeFromSlots();
+        return;
+      }
+      if (cleaned.length > 1) {
+        applyRegCodeFromIndex(cleaned, index);
+        return;
+      }
+      slot.value = cleaned;
+      const combined = updateRegCodeFromSlots();
+      if (combined.length === 6 && !regVerifyInFlight) {
+        handleRegisterVerifyCode({ auto: true });
+      } else if (index < regCodeSlots.length - 1) {
+        focusRegCodeSlot(index + 1);
+      }
+    });
+    slot.addEventListener('keydown', (event) => {
+      if (event.key === 'Backspace' && !slot.value && index > 0) {
+        regCodeSlots[index - 1].value = '';
+        updateRegCodeFromSlots();
+        focusRegCodeSlot(index - 1);
+        event.preventDefault();
+        return;
+      }
+      if (event.key === 'ArrowLeft' && index > 0) {
+        focusRegCodeSlot(index - 1);
+        event.preventDefault();
+        return;
+      }
+      if (event.key === 'ArrowRight' && index < regCodeSlots.length - 1) {
+        focusRegCodeSlot(index + 1);
+        event.preventDefault();
+      }
+    });
+    slot.addEventListener('paste', (event) => {
+      const pasted = event.clipboardData?.getData('text') || '';
+      if (!pasted) return;
+      event.preventDefault();
+      applyRegCodeFromIndex(pasted, index);
+    });
   });
   resetEmail?.addEventListener('input', () => {
     if (resetEmailErr) resetEmailErr.style.display = 'none';
@@ -819,6 +911,35 @@
     if (!r) return 'user';
     if (r.includes('club') || r.includes('admin') || r.includes('leader')) return 'club';
     return 'user';
+  }
+
+  function persistAuthToken(token) {
+    const normalized = String(token || '').trim();
+    if (window.AuthSession?.setToken) {
+      window.AuthSession.setToken(normalized);
+      return;
+    }
+    if (normalized) localStorage.setItem('token', normalized);
+    else localStorage.removeItem('token');
+  }
+
+  function persistStoredUser(payload) {
+    const profile = payload && typeof payload === 'object' ? payload : null;
+    if (window.AuthSession?.setStoredUser) {
+      window.AuthSession.setStoredUser(profile);
+      return;
+    }
+    if (!profile) {
+      localStorage.removeItem('user');
+      return;
+    }
+    const sanitized = { ...profile };
+    delete sanitized.token;
+    delete sanitized.accessToken;
+    delete sanitized.refreshToken;
+    delete sanitized.idToken;
+    delete sanitized.jwt;
+    localStorage.setItem('user', JSON.stringify(sanitized));
   }
 
   // Locked login landing rules:
@@ -897,9 +1018,8 @@
       });
        if (res.ok) {
          const data = await res.json();
-         if (data && data.token) localStorage.setItem('token', data.token);
-         else localStorage.removeItem('token');
-         localStorage.setItem('user', JSON.stringify(data));
+         persistAuthToken(data?.token);
+         persistStoredUser(data);
          const role = data.role || data.type;
          let userType = resolveUserType(role);
          const resolvedEmail = (data.email || email).trim();
@@ -945,14 +1065,14 @@
       }
 
       const user = await res.json();
-      if (user && user.token) localStorage.setItem('token', user.token);
-      localStorage.setItem('user', JSON.stringify(user));
+      persistAuthToken(user?.token);
+      persistStoredUser(user);
 
       const role = user.role || user.type;
       const userType = resolveUserType(role);
       if (userType !== 'user') {
         // Locked policy: Google sign-in is USER-only; CLUB must use email+password login.
-        localStorage.removeItem('token');
+        persistAuthToken('');
         localStorage.removeItem('user');
         localStorage.removeItem('loggedUser');
         showLoginError('Google sign-in is only for user accounts. Club accounts must log in with email and password.');
@@ -997,6 +1117,7 @@
 
       if (res.ok) {
         setRegisterVerificationState('', false);
+        clearRegCodeEntry(true);
         setRegVerifyMessage(`Verification code sent to ${email}.`, '');
         startRegCodeCooldown(60);
         return;
@@ -1027,12 +1148,13 @@
     }
   }
 
-  async function handleRegisterVerifyCode(){
+  async function handleRegisterVerifyCode({ auto = false } = {}){
     const email = normalizeEmail(regEmailInput?.value);
-    const code = String(regEmailCodeInput?.value || '').trim();
+    const code = readCurrentRegCode();
+    if (regVerifyInFlight) return;
     if (!emailRe.test(email)) {
       document.getElementById('reg-email-err').style.display = 'block';
-      setRegVerifyMessage('Please enter a valid email address first.', 'error');
+      setRegVerifyMessage(auto ? 'Enter a valid email so verification can complete automatically.' : 'Please enter a valid email address first.', 'error');
       return;
     }
     if (!/^\d{6}$/.test(code)) {
@@ -1040,7 +1162,7 @@
       return;
     }
 
-    regVerifyCodeBtn.disabled = true;
+    regVerifyInFlight = true;
     setRegVerifyMessage('Verifying code...', '');
     try {
       const res = await fetch(AUTH_ENDPOINTS.registerCodeVerify, {
@@ -1049,10 +1171,18 @@
         body: JSON.stringify({ email, code })
       });
 
+      const currentEmail = normalizeEmail(regEmailInput?.value);
+      const currentCode = readCurrentRegCode();
+      const inputChangedSinceRequest = currentEmail !== email || currentCode !== code;
+      if (inputChangedSinceRequest) {
+        return;
+      }
+
       if (!res.ok) {
         const text = await res.text().catch(() => '');
         setRegVerifyMessage(text || 'Verification failed. Please try again.', 'error');
         setRegisterVerificationState('', false);
+        clearRegCodeEntry(true);
         return;
       }
 
@@ -1061,7 +1191,15 @@
     } catch (err) {
       setRegVerifyMessage('Network error. Please try again.', 'error');
     } finally {
-      regVerifyCodeBtn.disabled = false;
+      regVerifyInFlight = false;
+      const latestEmail = normalizeEmail(regEmailInput?.value);
+      const latestCode = readCurrentRegCode();
+      const shouldRetryLatestCode = (latestEmail !== email || latestCode !== code)
+        && emailRe.test(latestEmail)
+        && /^\d{6}$/.test(latestCode);
+      if (shouldRetryLatestCode) {
+        handleRegisterVerifyCode({ auto: true });
+      }
     }
   }
 
@@ -1107,9 +1245,8 @@
         let saved = null;
         try { saved = await res.json(); } catch (e) { saved = null; }
         const profileToSave = saved || { fullName, email, role: 'user' };
-        if (profileToSave && profileToSave.token) localStorage.setItem('token', profileToSave.token);
-        else localStorage.removeItem('token');
-        localStorage.setItem('user', JSON.stringify(profileToSave));
+        persistAuthToken(profileToSave?.token);
+        persistStoredUser(profileToSave);
         const role = profileToSave.role || profileToSave.type || 'user';
         const userType = resolveUserType(role);
         localStorage.setItem('loggedUser', JSON.stringify({
@@ -1139,7 +1276,6 @@
   }
 
   regSendCodeBtn?.addEventListener('click', handleRegisterSendCode);
-  regVerifyCodeBtn?.addEventListener('click', handleRegisterVerifyCode);
 
   document.getElementById('btnForgot')?.addEventListener('click', function(){
     const loginEmail = normalizeEmail(document.getElementById('email')?.value);
@@ -1224,4 +1360,5 @@
 </script>
 </body>
 </html>
+
 

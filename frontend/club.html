@@ -1,10 +1,12 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data: blob: https://maps.gstatic.com https://maps.googleapis.com https://*.googleusercontent.com https://www.google.com https://www.gstatic.com; font-src 'self' data: https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://accounts.google.com https://maps.googleapis.com; connect-src 'self' https://accounts.google.com https://maps.googleapis.com https://api.stripe.com; frame-src 'self' https://accounts.google.com https://js.stripe.com; form-action 'self' https://accounts.google.com">
 <title>Club Booking Portal - Club Page</title>
-  <link rel="stylesheet" href="theme.css?v=20260324a">
+  <link rel="stylesheet" href="theme.css?v=20260402a">
 <style>
   :root {
     --bg: #f7f7f8;
@@ -25,6 +27,7 @@
     background: var(--bg);
     color: var(--ink);
     font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    overflow-x: clip;
   }
 
   header {
@@ -35,11 +38,30 @@
     z-index: 10;
   }
 
-  header .wrap,
-  .wrap {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 16px;
+  .page-main {
+    width: min(1580px, calc(100vw - 72px));
+    max-width: none;
+    margin: 20px auto 0;
+    padding: 20px 0 28px;
+  }
+
+  .club-page-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
+    gap: 18px;
+    align-items: start;
+    transition: grid-template-columns .24s ease, gap .24s ease;
+  }
+
+  .club-page-grid.rail-collapsed {
+    grid-template-columns: minmax(0, 1fr) 56px;
+    gap: 18px;
+  }
+
+  .club-primary-column {
+    min-width: 0;
+    display: grid;
+    gap: 24px;
   }
 
   a {
@@ -103,10 +125,6 @@
   .card:hover {
     box-shadow: 0 12px 28px rgba(15, 23, 42, .08);
     border-color: #dbe2ea;
-  }
-
-  .wrap > .card + .card {
-    margin-top: 72px;
   }
 
   .card .pad {
@@ -289,49 +307,24 @@
     justify-self: end;
     display: flex;
     align-items: center;
-  }
-
-  .header-chat-btn {
-    width: 38px;
-    height: 38px;
-    border-radius: 999px;
-    border: 1px solid #bfdbfe;
-    background: #eff6ff;
-    color: #1d4ed8;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    transition: background .18s ease, border-color .18s ease, transform .18s ease;
-  }
-
-  .header-chat-btn:hover {
-    background: #dbeafe;
-    border-color: #93c5fd;
-    transform: translateY(-1px);
-  }
-
-  .header-chat-btn:focus-visible {
-    outline: 2px solid #93c5fd;
-    outline-offset: 2px;
-  }
-
-  .header-chat-icon {
-    font-size: 18px;
-    line-height: 1;
+    justify-content: flex-end;
   }
 
   .club-chat-backdrop {
     display: none;
   }
 
+  body > .club-chat-backdrop,
+  body > .club-chat-panel {
+    display: none !important;
+  }
+
   .club-chat-panel {
     position: fixed;
-    right: 20px;
-    bottom: 18px;
-    width: min(390px, calc(100vw - 24px));
-    max-height: min(72vh, 620px);
+    right: 34px;
+    bottom: 30px;
+    width: min(390px, calc(100vw - 56px));
+    max-height: min(68vh, calc(100dvh - 96px));
     border: 1px solid var(--line);
     border-radius: 16px;
     background: #fff;
@@ -342,6 +335,7 @@
     opacity: 0;
     pointer-events: none;
     transform: translateY(14px) scale(.98);
+    transform-origin: bottom right;
     transition: transform .2s ease, opacity .2s ease;
     z-index: 2600;
   }
@@ -356,7 +350,7 @@
     padding: 12px 14px;
     border-bottom: 1px solid var(--line);
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
     background: #fff;
@@ -398,24 +392,8 @@
     line-height: 1;
   }
 
-  .header-chat-badge {
-    position: absolute;
-    top: -4px;
-    right: -4px;
-    min-width: 18px;
-    height: 18px;
-    padding: 0 5px;
-    font-size: 10px;
-  }
-
-  .club-chat-close {
-    width: 30px;
-    height: 30px;
-    border-radius: 999px;
-    border: 1px solid var(--line);
-    background: #fff;
-    color: var(--muted);
-    cursor: pointer;
+  .club-chat-badge[hidden] {
+    display: none !important;
   }
 
   .club-chat-thread {
@@ -487,6 +465,38 @@
     flex: 0 0 auto;
   }
 
+  .rail-panel-close {
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    background: rgba(255, 255, 255, 0.98);
+    color: #64748b;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font: inherit;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+    flex: 0 0 auto;
+    transition: border-color .18s ease, box-shadow .18s ease, color .18s ease, transform .18s ease;
+  }
+
+  .rail-panel-close:hover {
+    border-color: #cbd5e1;
+    color: #334155;
+    box-shadow: 0 16px 28px rgba(15, 23, 42, 0.12);
+    transform: translateY(-1px);
+  }
+
+  .rail-panel-close:focus-visible {
+    outline: 2px solid rgba(96, 165, 250, 0.55);
+    outline-offset: 2px;
+  }
+
   .club-chat-launcher {
     position: relative;
     z-index: 1;
@@ -552,7 +562,10 @@
   }
 
   .club-chat-toast {
-    position: relative;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(100% + 14px);
     z-index: 1;
     width: 100%;
     border: 1px solid #bfdbfe;
@@ -768,23 +781,32 @@
     background: #fff;
     padding: 12px;
     display: grid;
-    gap: 8px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 10px;
   }
 
   .club-chat-input {
+    width: 100%;
     border: 1px solid var(--line);
     border-radius: 10px;
     font: inherit;
     line-height: 1.4;
-    min-height: 70px;
+    min-height: 52px;
     padding: 8px 10px;
-    resize: vertical;
-    max-height: 160px;
+    resize: none;
+    max-height: 120px;
+    overflow-y: hidden;
   }
 
   .club-chat-send {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    align-self: end;
     justify-self: end;
     min-width: 92px;
+    min-height: 44px;
     border: 1px solid #1d4ed8;
     border-radius: 999px;
     background: #1d4ed8;
@@ -813,12 +835,22 @@
       padding-left: 2px;
     }
 
+    .club-chat-form {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .club-chat-send {
+      width: 100%;
+      justify-self: stretch;
+    }
+
     .club-chat-panel {
+      position: fixed;
       left: 10px;
       right: 10px;
       bottom: 10px;
       width: auto;
-      max-height: 80vh;
+      max-height: min(80vh, calc(100dvh - 20px));
     }
 
     .club-chat-launcher,
@@ -848,7 +880,7 @@
 
   .club-booking-layout {
     display: block;
-    position: relative;
+    min-width: 0;
   }
 
   .booking-stage-card .pad {
@@ -856,28 +888,291 @@
   }
 
   .booking-detail-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
-    gap: 22px;
-    align-items: start;
+    display: block;
     margin-top: 14px;
   }
 
   .booking-side-rail {
-    position: sticky;
-    top: 80px;
+    --booking-side-rail-stack-width: 320px;
+    position: relative;
     align-self: start;
+    min-width: 0;
+    width: 100%;
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+    justify-self: stretch;
+  }
+
+  .booking-side-rail-toggle {
+    position: static;
+    min-height: 40px;
+    padding: 0 16px;
+    border: 1px solid #dbe2ff;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.98);
+    color: #4f46e5;
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    cursor: pointer;
+    z-index: 4;
+    transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+  }
+
+  .booking-side-rail-toggle:hover {
+    border-color: #c7d2fe;
+    box-shadow: 0 16px 30px rgba(15, 23, 42, 0.14);
+    transform: translateY(-1px);
+  }
+
+  .booking-side-rail-toggle-icon {
+    font-size: 16px;
+    line-height: 1;
+    font-weight: 700;
+  }
+
+  .booking-side-rail-toggle-label {
+    font-size: 13px;
+    line-height: 1;
+    font-weight: 700;
+    color: #4f46e5;
+    white-space: nowrap;
+  }
+
+  .booking-side-rail-stack {
+    position: relative;
+    width: 100%;
     display: grid;
-    gap: 18px;
+    gap: 22px;
+    transition: opacity .18s ease, transform .18s ease, max-height .24s ease;
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+    z-index: 3;
+  }
+
+  .booking-side-rail-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 14px;
+    border: 1px solid #dbe2ff;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.98);
+    color: #4f46e5;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.1);
+    transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+  }
+
+  .booking-side-rail-back:hover {
+    border-color: #c7d2fe;
+    box-shadow: 0 16px 30px rgba(15, 23, 42, 0.14);
+    transform: translateY(-1px);
+  }
+
+  .booking-side-rail-back-icon {
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  .booking-side-rail.is-collapsed {
+    width: 56px;
+    justify-self: end;
+  }
+
+  .booking-side-rail.is-collapsed .booking-side-rail-stack {
+    opacity: 0;
+    transform: translateX(18px);
+    pointer-events: none;
+    max-height: 0;
+    overflow: hidden;
+  }
+
+  @media (min-width: 1321px) {
+    .booking-side-rail.chat-focus .club-chat-launcher,
+    .booking-side-rail.chat-focus .club-chat-toast,
+    .booking-side-rail.chat-focus .membership-rail,
+    .booking-side-rail.chat-focus .community-rail {
+      display: none;
+    }
+
+    .booking-side-rail.chat-focus .booking-side-rail-stack {
+      min-height: 0;
+    }
+
+    .booking-side-rail.chat-focus .booking-chat-rail {
+      position: relative;
+      inset: auto;
+      display: block;
+      z-index: 6;
+    }
+
+    .booking-side-rail.chat-focus .club-chat-panel {
+      position: relative;
+      inset: auto;
+      right: auto;
+      bottom: auto;
+      width: auto;
+      height: min(760px, calc(100dvh - 168px));
+      max-height: calc(100dvh - 168px);
+      border-radius: 30px;
+      background: rgba(255, 255, 255, 0.99);
+      box-shadow: none;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      z-index: 6;
+      transform: none;
+    }
+
+    .booking-side-rail.chat-focus .club-chat-head {
+      padding: 16px 18px 14px;
+      background: rgba(255, 255, 255, 0.98);
+    }
+
+    .booking-side-rail.chat-focus .club-chat-form {
+      padding: 14px;
+    }
+
+    .booking-side-rail.chat-focus .club-chat-thread {
+      min-height: 0;
+    }
+
+    .booking-side-rail.membership-focus .booking-chat-rail,
+    .booking-side-rail.membership-focus .community-rail,
+    .booking-side-rail.membership-focus .membership-rail > .membership-section {
+      display: none;
+    }
+
+    .booking-side-rail.membership-focus .booking-side-rail-stack {
+      min-height: 0;
+    }
+
+    .booking-side-rail.membership-focus .membership-rail {
+      position: relative;
+      display: block;
+      z-index: 6;
+    }
+
+    .booking-side-rail.membership-focus .membership-popover {
+      position: static;
+      inset: auto;
+      width: 100%;
+      max-width: 100%;
+      z-index: 6;
+    }
+
+    .booking-side-rail.membership-focus .membership-popover-shell {
+      width: 100%;
+      max-width: 100%;
+      border-radius: 30px;
+      box-shadow: none;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: rgba(255, 255, 255, 0.99);
+      max-height: calc(100dvh - 168px);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .booking-side-rail.membership-focus .membership-popover-head {
+      padding: 16px 18px 0;
+      background: rgba(255, 255, 255, 0.98);
+    }
+
+    .booking-side-rail.membership-focus .membership-plans-wrap {
+      overflow: auto;
+      padding: 0 16px 16px;
+      min-height: 0;
+    }
+
+    .booking-side-rail.membership-focus .membership-popover .membership-grid {
+      max-height: none;
+      overflow: visible;
+      padding-right: 0;
+    }
+
+    .booking-side-rail.community-focus .booking-chat-rail,
+    .booking-side-rail.community-focus .membership-rail,
+    .booking-side-rail.community-focus .community-rail {
+      display: none;
+    }
+
+    .booking-side-rail.community-focus .booking-side-rail-stack {
+      min-height: 0;
+    }
+
+    .booking-side-rail.community-focus .community-dialog {
+      position: relative;
+      inset: auto;
+      z-index: 6;
+      display: block;
+    }
+
+    .booking-side-rail.community-focus .community-dialog-backdrop {
+      display: none;
+    }
+
+    .booking-side-rail.community-focus .community-dialog-panel {
+      position: relative;
+      inset: auto;
+      width: auto;
+      height: min(820px, calc(100dvh - 168px));
+      max-height: calc(100dvh - 168px);
+      border-radius: 30px;
+      background: rgba(255, 255, 255, 0.99);
+      box-shadow: none;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      display: grid;
+      grid-template-rows: minmax(0, 1fr);
+    }
+
+    .booking-side-rail.community-focus .community-dialog-head {
+      padding: 16px 18px 14px;
+      background: rgba(255, 255, 255, 0.98);
+    }
+
+    .booking-side-rail.community-focus .community-dialog-head-copy h3 {
+      font-size: clamp(20px, 1.8vw, 28px);
+    }
+
+    .booking-side-rail.community-focus .community-dialog-body {
+      padding: 56px 14px 16px;
+      min-height: 0;
+      overflow: auto;
+    }
+
+    .booking-side-rail.community-focus .community-ask-btn,
+    .booking-side-rail.community-focus .community-answer-btn {
+      box-shadow: none;
+    }
   }
 
   .booking-chat-rail {
+    position: relative;
     display: grid;
-    gap: 12px;
+    gap: 16px;
+    overflow: visible;
+    align-self: start;
+    margin-top: 0;
   }
 
   .membership-rail {
-    position: static;
+    position: relative;
+  }
+
+  .membership-rail,
+  .community-rail,
+  .booking-chat-rail {
+    display: block;
   }
 
   .schedule-grid {
@@ -1106,32 +1401,6 @@
     color: var(--muted);
   }
 
-  .back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #64748b;
-    text-decoration: none;
-    border: 1px solid rgba(148, 163, 184, 0.24);
-    background: rgba(255, 255, 255, 0.9);
-    cursor: pointer;
-    padding: 8px 12px;
-    border-radius: 999px;
-    box-shadow: 0 8px 18px rgba(29, 29, 31, 0.08);
-    transition: color .2s ease, border-color .2s ease, background .2s ease, transform .2s ease, box-shadow .2s ease;
-  }
-  .back-link::before {
-    content: '<';
-  }
-  .back-link:hover {
-    color: var(--ink);
-    background: rgba(255, 255, 255, 0.96);
-    border-color: rgba(100, 116, 139, 0.28);
-    box-shadow: 0 12px 22px rgba(29, 29, 31, 0.12);
-    transform: translateY(-1px);
-  }
   .club-title-trigger {
     display: inline-flex;
     align-items: center;
@@ -1152,8 +1421,8 @@
 
   .membership-section {
     display: grid;
-    gap: 12px;
-    padding: 18px 18px 16px;
+    gap: 10px;
+    padding: 16px 16px 14px;
     border: 1px solid rgba(148, 163, 184, 0.16);
     border-radius: 22px;
     background:
@@ -1194,7 +1463,7 @@
 
   .membership-head h3 {
     margin: 0;
-    font-size: 16px;
+    font-size: 15px;
   }
 
   .membership-head p {
@@ -1217,9 +1486,16 @@
     cursor: pointer;
   }
 
+  .membership-toggle[aria-expanded="true"] {
+    border-color: #bfdbfe;
+    background: #eef2ff;
+    color: #1d4ed8;
+    box-shadow: 0 12px 22px rgba(59, 130, 246, 0.12);
+  }
+
   .membership-summary {
     color: var(--muted);
-    font-size: 13px;
+    font-size: 12px;
     line-height: 1.5;
   }
 
@@ -1228,13 +1504,96 @@
     background: #f0fdf4;
     color: #166534;
     border-radius: 12px;
-    padding: 10px 12px;
+    padding: 9px 11px;
     font-size: 12px;
     line-height: 1.45;
   }
 
+  .membership-status-card {
+    display: grid;
+    gap: 8px;
+  }
+
+  .membership-status-card .membership-plan-copy {
+    color: #166534;
+  }
+
+  .membership-status-current {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(22, 101, 52, 0.14);
+    background: rgba(255, 255, 255, 0.92);
+    color: #166534;
+    font-size: 13px;
+    font-weight: 700;
+    width: fit-content;
+  }
+
   .membership-plans-wrap[hidden] {
     display: none !important;
+  }
+
+  .membership-popover {
+    position: absolute;
+    top: 12px;
+    right: calc(100% + 16px);
+    width: min(380px, calc(100vw - 96px));
+    z-index: 24;
+  }
+
+  .membership-popover[hidden] {
+    display: none !important;
+  }
+
+  .membership-popover-shell {
+    border: 1px solid rgba(59, 130, 246, 0.14);
+    border-radius: 28px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(248, 250, 255, 0.97));
+    box-shadow: 0 32px 90px rgba(15, 23, 42, 0.18);
+    padding: 16px;
+    display: grid;
+    gap: 14px;
+  }
+
+  .membership-popover-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .membership-popover-copy {
+    min-width: 0;
+    display: grid;
+    gap: 6px;
+  }
+
+  .membership-popover-copy h4 {
+    margin: 0;
+    font-size: 20px;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    font-family: "Fraunces", Georgia, serif;
+    color: #22223e;
+  }
+
+  .membership-popover-copy p {
+    margin: 0;
+    color: #6d7388;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .membership-popover .membership-grid {
+    grid-template-columns: 1fr;
+    max-height: min(62vh, 520px);
+    overflow: auto;
+    padding-right: 4px;
+    scrollbar-width: thin;
   }
 
   .membership-grid {
@@ -1329,9 +1688,517 @@
     color: #111827;
   }
 
+  .community-section {
+    border: 1px solid rgba(59, 130, 246, 0.12);
+    border-radius: 28px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 255, 0.96));
+    box-shadow: 0 28px 70px rgba(15, 23, 42, 0.08);
+    padding: 18px 18px 16px;
+    display: grid;
+    gap: 12px;
+  }
+
+  .community-summary-card {
+    gap: 14px;
+  }
+
+  .community-open-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(59, 130, 246, 0.18);
+    background: rgba(255, 255, 255, 0.92);
+    color: #3950da;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+  }
+
+  .community-open-btn:hover {
+    border-color: rgba(59, 130, 246, 0.32);
+    background: #fff;
+  }
+
+  .community-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .community-copy {
+    min-width: 0;
+    display: grid;
+    gap: 8px;
+  }
+
+  .community-copy-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    max-width: 100%;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: rgba(37, 99, 235, 0.08);
+    border: 1px solid rgba(96, 165, 250, 0.45);
+    color: #3950da;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .community-head h3 {
+    margin: 0;
+    font-size: clamp(18px, 1.6vw, 22px);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    font-family: "Fraunces", Georgia, serif;
+    color: #22223e;
+  }
+
+  .community-head p {
+    margin: 0;
+    color: #6d7388;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .community-ask-form {
+    display: grid;
+    gap: 10px;
+  }
+
+  .community-ask-input,
+  .community-answer-input,
+  .community-edit-input {
+    width: 100%;
+    min-height: 72px;
+    border-radius: 18px;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    background: rgba(255, 255, 255, 0.92);
+    padding: 14px 15px;
+    font: inherit;
+    line-height: 1.45;
+    color: #1f2937;
+    resize: vertical;
+  }
+
+  .community-ask-input:focus,
+  .community-answer-input:focus,
+  .community-edit-input:focus {
+    border-color: rgba(59, 130, 246, 0.55);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+    outline: none;
+  }
+
+  .community-ask-actions,
+  .community-answer-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .community-action-note {
+    color: #6d7388;
+    font-size: 11px;
+  }
+
+  .community-ask-actions {
+    justify-content: flex-end;
+  }
+
+  .community-ask-btn,
+  .community-answer-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(37, 99, 235, 0.18);
+    background: linear-gradient(135deg, #5b63f3, #3543c7);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 16px 32px rgba(53, 67, 199, 0.22);
+  }
+
+  .community-ask-btn:disabled,
+  .community-answer-btn:disabled {
+    cursor: wait;
+    opacity: 0.7;
+    box-shadow: none;
+  }
+
+  .community-list {
+    max-height: none;
+    overflow: visible;
+    display: grid;
+    gap: 8px;
+    padding-right: 0;
+  }
+
+  .community-empty {
+    border: 1px dashed rgba(148, 163, 184, 0.4);
+    border-radius: 20px;
+    padding: 14px 14px;
+    color: #6d7388;
+    font-size: 13px;
+    line-height: 1.5;
+    background: rgba(255, 255, 255, 0.72);
+  }
+
+  .community-question {
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 12px 12px 10px;
+    display: grid;
+    gap: 8px;
+  }
+
+  .community-question-toggle {
+    display: grid;
+    gap: 8px;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .community-question-toggle--static {
+    cursor: default;
+  }
+
+  .community-question-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .community-question-author {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #4b5563;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .community-question-author::before {
+    content: '';
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    background: rgba(37, 99, 235, 0.1);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233950da' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7.75 16.25H5.5A1.75 1.75 0 0 1 3.75 14.5V6.75A1.75 1.75 0 0 1 5.5 5h13a1.75 1.75 0 0 1 1.75 1.75v7.75a1.75 1.75 0 0 1-1.75 1.75h-7l-3.75 2v-2Z'/%3E%3Ccircle cx='9' cy='10.5' r='1' fill='%233950da' stroke='none'/%3E%3Ccircle cx='12' cy='10.5' r='1' fill='%233950da' stroke='none'/%3E%3Ccircle cx='15' cy='10.5' r='1' fill='%233950da' stroke='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 12px 12px;
+    flex: 0 0 auto;
+  }
+
+  .community-question-badges {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .community-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 22px;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    background: rgba(37, 99, 235, 0.08);
+    color: #3950da;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+  }
+
+  .community-chip.club {
+    border-color: rgba(34, 197, 94, 0.28);
+    background: rgba(34, 197, 94, 0.12);
+    color: #15803d;
+  }
+
+  .community-question-text {
+    margin: 0;
+    color: #1f2937;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .community-question-meta {
+    color: #6d7388;
+    font-size: 12px;
+  }
+
+  .community-item-actions,
+  .community-answer-controls,
+  .community-edit-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .community-item-actions {
+    justify-content: flex-end;
+    padding-top: 2px;
+  }
+
+  .community-answer-controls {
+    justify-content: flex-end;
+  }
+
+  .community-inline-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 30px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: rgba(255, 255, 255, 0.92);
+    color: #334155;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .community-inline-btn.danger {
+    border-color: rgba(248, 113, 113, 0.34);
+    color: #b91c1c;
+    background: rgba(254, 242, 242, 0.95);
+  }
+
+  .community-inline-btn:disabled {
+    cursor: wait;
+    opacity: 0.7;
+  }
+
+  .community-edit-form {
+    display: grid;
+    gap: 8px;
+  }
+
+  .community-edit-actions {
+    justify-content: flex-end;
+  }
+
+  .community-answer-list {
+    display: grid;
+    gap: 10px;
+  }
+
+  .community-answer {
+    border-radius: 16px;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    background: #fff;
+    padding: 10px 11px;
+    display: grid;
+    gap: 6px;
+  }
+
+  .community-answer.club {
+    border-color: rgba(34, 197, 94, 0.24);
+    background: rgba(240, 253, 244, 0.95);
+  }
+
+  .community-answer-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .community-answer-meta-group {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .community-answer-author {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #334155;
+  }
+
+  .community-answer-time {
+    color: #6d7388;
+    font-size: 12px;
+  }
+
+  .community-answer-text {
+    margin: 0;
+    color: #1f2937;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .community-answer-form {
+    display: grid;
+    gap: 8px;
+    padding-top: 4px;
+  }
+
   .membership-plan-btn[disabled] {
     opacity: .65;
     cursor: not-allowed;
+  }
+
+  .community-dialog {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    display: none;
+  }
+
+  .community-dialog.open {
+    display: block;
+  }
+
+  .community-dialog-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.24);
+    backdrop-filter: blur(8px);
+  }
+
+  .community-dialog-panel {
+    position: absolute;
+    top: 88px;
+    right: 28px;
+    width: min(440px, calc(100vw - 40px));
+    max-height: calc(100dvh - 120px);
+    border: 1px solid rgba(59, 130, 246, 0.14);
+    border-radius: 30px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(248, 250, 255, 0.97));
+    box-shadow: 0 32px 90px rgba(15, 23, 42, 0.18);
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    overflow: hidden;
+  }
+
+  .community-dialog-panel > .rail-panel-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 4;
+  }
+
+  .community-dialog-head {
+    display: grid;
+    gap: 14px;
+    justify-items: start;
+    align-content: start;
+    padding: 20px 22px 16px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+    background: rgba(255, 255, 255, 0.84);
+  }
+
+  .community-dialog-head-copy {
+    min-width: 0;
+    display: grid;
+    gap: 8px;
+  }
+
+  .community-dialog-head-copy h3 {
+    margin: 0;
+    font-size: clamp(24px, 2vw, 32px);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    font-family: "Fraunces", Georgia, serif;
+    color: #22223e;
+  }
+
+  .community-dialog-head-copy p {
+    margin: 0;
+    color: #6d7388;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .community-dialog-body {
+    overflow: auto;
+    scrollbar-gutter: stable;
+    padding: 58px 18px 20px;
+  }
+
+  .community-dialog-toast {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    margin: 0 0 14px;
+    padding: 12px 14px;
+    border-radius: 18px;
+    background: #1f2937;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.4;
+    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.16);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-8px);
+    transition: opacity .18s ease, transform .18s ease;
+  }
+
+  .community-dialog-toast[hidden] {
+    display: none !important;
+  }
+
+  .community-dialog-toast.open {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .community-dialog-toast[data-type="success"] {
+    background: #1f2937;
+  }
+
+  .community-dialog-toast[data-type="warn"] {
+    background: #7c2d12;
+  }
+
+  .community-dialog-toast[data-type="error"] {
+    background: #7f1d1d;
+  }
+
+  .community-section--dialog {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
   }
 
   .slot-note {
@@ -1341,58 +2208,101 @@
     line-height: 1.2;
   }
 
-  @media (max-width: 980px) {
-    .booking-detail-layout {
+  @media (max-width: 1320px) {
+    .page-main {
+      width: min(1380px, calc(100vw - 40px));
+    }
+
+    .club-page-grid {
       grid-template-columns: 1fr;
+      gap: 28px;
+    }
+
+    .club-page-grid.rail-collapsed {
+      grid-template-columns: 1fr;
+      gap: 28px;
     }
 
     .booking-side-rail {
       position: static;
+      top: auto;
+      width: auto;
+      max-height: none;
+      overflow: visible;
+      padding-right: 0;
+    }
+
+    .booking-side-rail-toggle {
+      display: none;
+    }
+
+    .booking-side-rail-stack {
+      position: static;
+      width: auto;
+      max-height: none;
+      overflow: visible;
+      opacity: 1;
+      transform: none;
+      z-index: auto;
+    }
+
+    .booking-chat-rail {
+      margin-top: 0;
+    }
+
+    .community-dialog-panel {
+      top: 26px;
+      right: 20px;
+      left: 20px;
+      width: auto;
+      max-height: calc(100dvh - 52px);
+    }
+
+    .membership-popover {
+      top: calc(100% + 12px);
+      right: 0;
+      width: min(420px, calc(100vw - 40px));
     }
   }
 
-  @media (min-width: 1500px) {
-    .club-booking-layout {
-      overflow: visible;
+  @media (max-width: 720px) {
+    .membership-popover {
+      left: 0;
+      right: 0;
+      width: auto;
     }
 
-    .booking-detail-layout {
-      display: block;
-      margin-top: 14px;
-    }
-
-    .booking-side-rail {
-      position: absolute;
-      top: -14px;
-      left: calc(100% + 56px);
-      width: 320px;
-      max-width: 320px;
-      z-index: 1;
+    .membership-popover .membership-grid {
+      max-height: min(48vh, 420px);
     }
   }
 </style>
+<link rel="stylesheet" href="desktop-consistency.css?v=20260403a">
+<script src="auth-session.js?v=20260331b"></script>
 </head>
-<body class="page-with-footer">
+<body class="page-with-footer desktop-consistency desktop-shell--wide desktop-page--club">
   <!-- 棰勮鐘舵€佹彁绀猴細鏄剧ず杩欐槸涓婃灦鍓嶇殑棰勮鐗堟湰 -->
 
   <!-- 椤堕儴瀵艰埅鏍忥細鍖呭惈缃戠珯鏍囬銆佽繑鍥為椤甸摼鎺ュ拰鐢ㄦ埛鐧诲綍/娉ㄥ唽鍏ュ彛 -->
   <header>
-    <div class="wrap preview-topbar">
+    <div class="wrap preview-topbar desktop-shell-header">
       <div class="top-back-wrap">
-        <button class="back-link" id="btnBack" type="button" aria-label="Back">Back</button>
+        <button class="back-link desktop-back-link" id="btnBack" type="button" aria-label="Back">Back</button>
       </div>
       <h2 id="pageTitle" class="preview-title">Club</h2>
       <div class="top-right-wrap">
-        <button id="openClubChatBtn" class="header-chat-btn" type="button" aria-label="Talk with club" aria-haspopup="dialog" aria-controls="clubChatPanel">
-          <span class="header-chat-icon" aria-hidden="true">&#x1F4AC;</span>
-          <span id="clubChatBadge" class="club-chat-badge header-chat-badge" hidden>0</span>
+        <button id="bookingSideRailToggle" class="booking-side-rail-toggle" type="button" aria-label="Open chat, Q&A, and member pricing" aria-controls="bookingSideRailStack" aria-expanded="false">
+          <span id="bookingSideRailToggleIcon" class="booking-side-rail-toggle-icon" aria-hidden="true">&rarr;</span>
+          <span id="bookingSideRailToggleLabel" class="booking-side-rail-toggle-label" aria-hidden="true">Open club chat, Q&amp;A &amp; plans</span>
         </button>
       </div>
     </div>
   </header>
 
-  <main class="wrap page-main">
-    <div class="card"><div class="pad">
+  <main class="wrap page-main desktop-shell-main">
+      <div class="club-page-grid rail-collapsed">
+      <div class="club-primary-column desktop-card-gap">
+        <div class="card"><div class="pad">
       <div id="clubHero" class="hero-carousel" aria-label="Club gallery">
         <div id="clubHeroScroll" class="hero-scroll">
           <div class="hero-slide">Club cover / banner</div>
@@ -1424,59 +2334,114 @@
     
 
     <!-- 鎺掔▼绠＄悊鍗＄墖锛氬寘鍚惀涓氭椂闂磋缃€佸満鍦扮鐞嗗拰鎺掔▼缃戞牸 -->
-    <section class="club-booking-layout" aria-label="Booking and membership">
+    <section class="club-booking-layout" aria-label="Booking schedule">
       <div class="card booking-stage-card"><div class="pad">
         <div id="weekTabs" class="week-tabs" aria-label="Next 7 days"></div>
         <div class="booking-detail-layout">
           <div id="schedule"></div>
-          <div class="booking-side-rail">
-            <aside id="clubMembershipSection" class="membership-rail"><div class="membership-section">
-              <div class="membership-head">
-                <div class="membership-copy">
-                  <span class="membership-copy-eyebrow">Booking extras</span>
-                  <h3>Member pricing</h3>
-                  <p id="clubMembershipIntro">Check member discounts while you review available slots.</p>
-                </div>
-                <button id="clubMembershipToggle" class="membership-toggle" type="button" aria-expanded="false" aria-controls="membershipPlansWrap">View plans</button>
-              </div>
-              <div id="clubMembershipSummary" class="membership-summary" style="display:none;"></div>
-              <div id="clubMembershipStatus" class="membership-status" style="display:none;"></div>
-              <div id="membershipPlansWrap" class="membership-plans-wrap" hidden>
-                <div id="membershipPlans" class="membership-grid">
-                  <div class="muted">Loading memberships...</div>
-                </div>
-              </div>
-            </div></aside>
-            <div class="booking-chat-rail">
-              <div id="clubChatToast" class="club-chat-toast" aria-live="polite" aria-hidden="true">
-                <button id="clubChatToastAction" class="club-chat-toast-body" type="button">
-                  <span class="club-chat-toast-eyebrow">New message</span>
-                  <span id="clubChatToastTitle" class="club-chat-toast-title">Club reply</span>
-                  <span id="clubChatToastText" class="club-chat-toast-text"></span>
-                </button>
-                <button id="dismissClubChatToastBtn" class="club-chat-toast-close" type="button" aria-label="Dismiss notification">&times;</button>
-              </div>
-              <button id="clubChatLauncher" class="club-chat-launcher" type="button" aria-label="Open club chat" aria-controls="clubChatPanel" aria-expanded="false">
-                <span class="club-chat-launcher-icon" aria-hidden="true">&#x1F4AC;</span>
-                <span class="club-chat-launcher-copy">
-                  <span class="club-chat-launcher-title">Chat with club</span>
-                  <span id="clubChatLauncherSubtitle" class="club-chat-launcher-subtitle">Ask while you browse</span>
-                </span>
-                <span id="clubChatLauncherBadge" class="club-chat-badge" hidden>0</span>
-              </button>
-            </div>
-          </div>
         </div>
       </div></div>
     </section>
+      </div>
+      <div id="bookingSideRail" class="booking-side-rail is-collapsed">
+        <div id="bookingSideRailStack" class="booking-side-rail-stack">
+        <div class="booking-chat-rail">
+          <div id="clubChatToast" class="club-chat-toast" aria-live="polite" aria-hidden="true">
+            <button id="clubChatToastAction" class="club-chat-toast-body" type="button">
+              <span class="club-chat-toast-eyebrow">New message</span>
+              <span id="clubChatToastTitle" class="club-chat-toast-title">Club reply</span>
+              <span id="clubChatToastText" class="club-chat-toast-text"></span>
+            </button>
+            <button id="dismissClubChatToastBtn" class="club-chat-toast-close" type="button" aria-label="Dismiss notification">&times;</button>
+          </div>
+          <button id="clubChatLauncher" class="club-chat-launcher" type="button" aria-label="Open club chat" aria-controls="clubChatPanel" aria-expanded="false">
+            <span class="club-chat-launcher-icon" aria-hidden="true">&#x1F4AC;</span>
+            <span class="club-chat-launcher-copy">
+              <span class="club-chat-launcher-title">Chat with club</span>
+            </span>
+            <span id="clubChatLauncherBadge" class="club-chat-badge desktop-badge" hidden>0</span>
+          </button>
+          <aside id="clubChatPanel" class="club-chat-panel" aria-hidden="true">
+            <div class="club-chat-head">
+              <div class="club-chat-head-copy">
+                <h3 id="clubChatTitle">Talk with club</h3>
+              </div>
+              <button id="closeClubChatBtn" class="rail-panel-close" type="button" aria-label="Close chat and return to side rail">&times;</button>
+            </div>
+            <div id="clubChatThread" class="club-chat-thread" aria-live="polite"></div>
+            <form id="clubChatForm" class="club-chat-form">
+              <textarea id="clubChatInput" class="club-chat-input" placeholder="Type your message..." maxlength="500"></textarea>
+              <button class="club-chat-send" type="submit">Send</button>
+            </form>
+          </aside>
+        </div>
+        <aside id="clubMembershipSection" class="membership-rail"><div class="membership-section">
+          <div class="membership-head">
+            <div class="membership-copy">
+              <span class="membership-copy-eyebrow desktop-badge">Member pricing</span>
+            </div>
+            <button id="clubMembershipToggle" class="membership-toggle" type="button" aria-expanded="false" aria-controls="membershipPlansPopover">View plans</button>
+          </div>
+          <div id="clubMembershipSummary" class="membership-summary" style="display:none;"></div>
+          <div id="clubMembershipStatus" class="membership-status" style="display:none;"></div>
+        </div>
+          <div id="membershipPlansPopover" class="membership-popover" hidden aria-hidden="true">
+            <div class="membership-popover-shell" role="dialog" aria-modal="false" aria-labelledby="membershipPlansTitle">
+              <div class="membership-popover-head">
+                <div class="membership-popover-copy">
+                  <span class="membership-copy-eyebrow desktop-badge">Member pricing</span>
+                  <h4 id="membershipPlansTitle">Member plans</h4>
+                  <p id="membershipPlansMeta">Review current passes and booking discounts.</p>
+                </div>
+                <button id="closeMembershipPlansBtn" class="rail-panel-close" type="button" aria-label="Close plans and return to side rail">&times;</button>
+              </div>
+              <div id="membershipPlansWrap" class="membership-plans-wrap">
+            <div id="membershipPlans" class="membership-grid">
+              <div class="muted">Loading memberships...</div>
+            </div>
+          </div>
+            </div>
+          </div>
+        </aside>
+        <aside id="clubCommunitySection" class="community-rail">
+          <div class="community-section community-summary-card">
+            <div class="community-head">
+              <div class="community-copy">
+                <span class="community-copy-eyebrow desktop-badge">Community Q&amp;A</span>
+              </div>
+            </div>
+            <button id="clubCommunityOpenBtn" class="community-open-btn" type="button" aria-controls="clubCommunityDialog" aria-expanded="false">Open Q&amp;A</button>
+          </div>
+        </aside>
+        <div id="clubCommunityDialog" class="community-dialog" hidden aria-hidden="true">
+          <div class="community-dialog-backdrop" data-community-dialog-close></div>
+          <div class="community-dialog-panel" role="dialog" aria-modal="false" aria-label="Community Q&amp;A">
+            <button id="closeClubCommunityBtn" class="rail-panel-close" type="button" aria-label="Close community Q&amp;A and return to side rail">&times;</button>
+            <div class="community-dialog-body">
+              <div id="clubCommunityToast" class="community-dialog-toast" hidden aria-hidden="true" aria-live="polite" aria-atomic="true"></div>
+              <div class="community-section community-section--dialog">
+                <form id="clubCommunityAskForm" class="community-ask-form">
+                  <textarea id="clubCommunityAskInput" class="community-ask-input" maxlength="400" placeholder="Ask a question about this club..."></textarea>
+                  <div class="community-ask-actions">
+                    <button id="clubCommunityAskBtn" class="community-ask-btn" type="submit">Post question</button>
+                  </div>
+                </form>
+                <div id="clubCommunityList" class="community-list"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
 
     <!-- 鎴愬憳鍒楄〃鍗＄墖锛氬睍绀轰勘涔愰儴鎴愬憳鍙婄鐞嗘搷浣?-->
 <!-- 椋庨櫓鎿嶄綔鍖猴細鍒犻櫎淇变箰閮ㄦ垨閲嶇疆鏁版嵁 -->
+    </div>
   </main>
 
   <!-- 椤佃剼锛氬寘鍚増鏉冧俊鎭拰杈呭姪閾炬帴 -->
   <footer class="site-footer">
-    <div class="site-footer__wrap">
+    <div class="site-footer__wrap desktop-shell-wrap">
       <span class="site-footer__text">&copy; <span id="y"></span> Club Booking Portal</span>
       <div class="site-footer__actions">
         <button class="site-footer__btn info-trigger" type="button" data-info="privacy">Privacy</button>
@@ -1495,23 +2460,6 @@
     </div>
   </div>
 
-  <div id="clubChatBackdrop" class="club-chat-backdrop" aria-hidden="true"></div>
-  <aside id="clubChatPanel" class="club-chat-panel" aria-hidden="true">
-    <div class="club-chat-head">
-      <div class="club-chat-head-copy">
-        <h3 id="clubChatTitle">Talk with club</h3>
-        <p id="clubChatSubtitle">Keep chatting while you browse this club.</p>
-      </div>
-      <div class="club-chat-head-actions">
-        <button id="closeClubChatBtn" class="club-chat-close" type="button" aria-label="Minimize chat">−</button>
-      </div>
-    </div>
-    <div id="clubChatThread" class="club-chat-thread" aria-live="polite"></div>
-    <form id="clubChatForm" class="club-chat-form">
-      <textarea id="clubChatInput" class="club-chat-input" placeholder="Type your message..." maxlength="500"></textarea>
-      <button class="club-chat-send" type="submit">Send</button>
-    </form>
-  </aside>
   <script type="module" src="ui-prompt.js?v=20260220b"></script>
   <script>
     // 1. 鐢ㄦ埛浼氳瘽绠＄悊
@@ -1596,9 +2544,30 @@
 
     // ---- 鐪熷疄棰勮鐪嬫澘 (鍩轰簬鏁版嵁搴? ----
     // 鍏紑棰勮锛氭樉绀轰勘涔愰儴绠＄悊鍛樺彂甯冪殑鐩稿悓鏃堕棿娈碉紙鏈潵7澶╋級銆?
+    const getAuthToken = () => {
+      try {
+        return String(
+          window.AuthSession?.getToken?.()
+          || sessionStorage.getItem('clubPortal.authToken')
+          || localStorage.getItem('token')
+          || ''
+        ).trim();
+      } catch {
+        return '';
+      }
+    };
+
     const authFetch = (url, options = {}) => {
-      const token = localStorage.getItem('token');
       const headers = { ...(options.headers || {}) };
+      const authFetchImpl = window.AuthSession?.authFetch;
+      if (typeof authFetchImpl === 'function') {
+        return authFetchImpl(url, {
+          ...options,
+          credentials: options.credentials ?? 'include',
+          headers
+        });
+      }
+      const token = getAuthToken();
       if (token) headers.Authorization = `Bearer ${token}`;
       return fetch(url, {
         ...options,
@@ -1657,6 +2626,17 @@
       const t = String(isoDateTime || '').split('T')[1] || '';
       return t.slice(0, 5);
     };
+    const formatDateTime = (raw) => {
+      if (!raw || typeof raw !== 'string') return '--';
+      const date = new Date(raw);
+      if (Number.isNaN(date.getTime())) return raw;
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      const hh = String(date.getHours()).padStart(2, '0');
+      const mm = String(date.getMinutes()).padStart(2, '0');
+      return `${y}-${m}-${d} ${hh}:${mm}`;
+    };
     const parsePrice = (raw) => {
       const n = Number(raw);
       if (!Number.isFinite(n) || n < 0) return null;
@@ -1698,36 +2678,47 @@
     const clubLocationBtnEl = document.getElementById('clubLocationBtn');
     const clubTitleEl = document.getElementById('clubTitle');
     const clubDescEl = document.getElementById('clubDesc');
+    const pageMainEl = document.querySelector('.page-main');
     const membershipPlansEl = document.getElementById('membershipPlans');
-    const membershipPlansWrapEl = document.getElementById('membershipPlansWrap');
+    const membershipPlansPopoverEl = document.getElementById('membershipPlansPopover');
+    const membershipPlansMetaEl = document.getElementById('membershipPlansMeta');
     const clubMembershipStatusEl = document.getElementById('clubMembershipStatus');
     const clubMembershipSummaryEl = document.getElementById('clubMembershipSummary');
+    const clubPageGridEl = document.querySelector('.club-page-grid');
+    const bookingSideRailEl = document.getElementById('bookingSideRail');
+    const bookingSideRailToggleEl = document.getElementById('bookingSideRailToggle');
+    const bookingSideRailToggleIconEl = document.getElementById('bookingSideRailToggleIcon');
+    const bookingSideRailToggleLabelEl = document.getElementById('bookingSideRailToggleLabel');
     const clubMembershipToggleEl = document.getElementById('clubMembershipToggle');
-    const clubMembershipIntroEl = document.getElementById('clubMembershipIntro');
+    const closeMembershipPlansBtnEl = document.getElementById('closeMembershipPlansBtn');
     const clubMembershipSectionEl = document.getElementById('clubMembershipSection');
+    const clubCommunitySectionEl = document.getElementById('clubCommunitySection');
+    const clubCommunityOpenBtnEl = document.getElementById('clubCommunityOpenBtn');
+    const clubCommunityDialogEl = document.getElementById('clubCommunityDialog');
+    const closeClubCommunityBtnEl = document.getElementById('closeClubCommunityBtn');
+    const clubCommunityToastEl = document.getElementById('clubCommunityToast');
+    const clubCommunityAskFormEl = document.getElementById('clubCommunityAskForm');
+    const clubCommunityAskInputEl = document.getElementById('clubCommunityAskInput');
+    const clubCommunityAskBtnEl = document.getElementById('clubCommunityAskBtn');
+    const clubCommunityListEl = document.getElementById('clubCommunityList');
     const clubHeroScrollEl = document.getElementById('clubHeroScroll');
     const clubHeroDotsEl = document.getElementById('clubHeroDots');
     const clubHeroPrevEl = document.getElementById('clubHeroPrev');
     const clubHeroNextEl = document.getElementById('clubHeroNext');
-    const openClubChatBtnEl = document.getElementById('openClubChatBtn');
-    const closeClubChatBtnEl = document.getElementById('closeClubChatBtn');
     const clubChatLauncherEl = document.getElementById('clubChatLauncher');
     const clubChatLauncherBadgeEl = document.getElementById('clubChatLauncherBadge');
-    const clubChatLauncherSubtitleEl = document.getElementById('clubChatLauncherSubtitle');
     const clubChatPanelEl = document.getElementById('clubChatPanel');
-    const clubChatBackdropEl = document.getElementById('clubChatBackdrop');
     const clubChatToastEl = document.getElementById('clubChatToast');
     const clubChatToastActionEl = document.getElementById('clubChatToastAction');
     const clubChatToastTitleEl = document.getElementById('clubChatToastTitle');
     const clubChatToastTextEl = document.getElementById('clubChatToastText');
     const dismissClubChatToastBtnEl = document.getElementById('dismissClubChatToastBtn');
+    const closeClubChatBtnEl = document.getElementById('closeClubChatBtn');
     const clubChatThreadEl = document.getElementById('clubChatThread');
     const clubChatFormEl = document.getElementById('clubChatForm');
     const clubChatInputEl = document.getElementById('clubChatInput');
     const clubChatSendBtnEl = clubChatFormEl?.querySelector('.club-chat-send');
-    const clubChatBadgeEl = document.getElementById('clubChatBadge');
     const clubChatTitleEl = document.getElementById('clubChatTitle');
-    const clubChatSubtitleEl = document.getElementById('clubChatSubtitle');
 
     let heroImageUrls = [];
     let heroActiveIndex = 0;
@@ -1742,6 +2733,24 @@
     let clubMembershipPlans = [];
     let myClubMembership = null;
     let clubMembershipExpanded = false;
+    let pendingMembershipAutoOpen = ['membershipPlansPopover', 'membershipPlansWrap'].includes(String(window.location.hash || '').replace(/^#/, ''));
+    let bookingSideRailCollapsed = true;
+    let communityBoard = {
+      canAsk: false,
+      canAnswer: false,
+      canReplyAsClub: false,
+      questionCount: 0,
+      questions: []
+    };
+    let expandedCommunityQuestionId = null;
+    let communityAskInFlight = false;
+    let communityAnswerInFlightQuestionId = null;
+    let communityDialogOpen = false;
+    let communityToastTimer = null;
+    let editingCommunityQuestionId = null;
+    let editingCommunityAnswerKey = '';
+    let communityQuestionMutationId = null;
+    let communityAnswerMutationKey = '';
     let clubMapLocationText = '';
     let clubDisplayMeta = {
       location: '',
@@ -1946,6 +2955,20 @@
       return Promise.resolve(window.confirm(text));
     };
 
+    const openCommunityDeleteConfirm = ({ title, message, okText = 'Delete' }) => {
+      const heading = String(title || 'Delete item?').trim() || 'Delete item?';
+      const body = String(message || 'This change cannot be undone.').trim() || 'This change cannot be undone.';
+      if (window.AppPrompt && typeof window.AppPrompt.confirm === 'function') {
+        return window.AppPrompt.confirm({
+          title: heading,
+          message: body,
+          okText,
+          cancelText: 'Keep'
+        });
+      }
+      return Promise.resolve(window.confirm(`${heading}\n\n${body}`));
+    };
+
     const resolveAccountType = (raw) => {
       const role = String(raw || '').trim().toLowerCase();
       if (!role) return '';
@@ -1955,17 +2978,57 @@
     };
 
     const getLoggedUser = () => {
-      const u = safeParseJSON(localStorage.getItem('loggedUser') || 'null');
+      const u = safeParseJSON(localStorage.getItem('loggedUser') || localStorage.getItem('user') || 'null');
       if (!u || typeof u !== 'object') return null;
       const type = resolveAccountType(u.type || u.role);
       if (!type) return null;
       return { ...u, type };
     };
 
+    let authenticatedProfileSyncPromise = null;
+
+    const persistLoggedUserProfile = (profile) => {
+      if (!profile || typeof profile !== 'object') return null;
+      const type = resolveAccountType(profile.type || profile.role);
+      if (!type) return null;
+      const normalized = {
+        email: String(profile.email || '').trim(),
+        name: String(profile.displayName || profile.fullName || profile.name || '').trim(),
+        type
+      };
+      try {
+        localStorage.setItem('loggedUser', JSON.stringify(normalized));
+      } catch {}
+      if (window.AuthSession?.setStoredUser) {
+        window.AuthSession.setStoredUser(profile);
+      }
+      if (profile.token && window.AuthSession?.setToken) {
+        window.AuthSession.setToken(profile.token);
+      }
+      return normalized;
+    };
+
+    const syncAuthenticatedProfile = async () => {
+      if (authenticatedProfileSyncPromise) return authenticatedProfileSyncPromise;
+      authenticatedProfileSyncPromise = (async () => {
+        try {
+          const res = await authFetch('/api/profile', { cache: 'no-store' });
+          if (!res.ok) return null;
+          const data = await res.json().catch(() => null);
+          return persistLoggedUserProfile(data);
+        } catch {
+          return null;
+        } finally {
+          authenticatedProfileSyncPromise = null;
+        }
+      })();
+      return authenticatedProfileSyncPromise;
+    };
+
     const refreshMyBookedTimeslotIds = async () => {
       myBookedTimeslotIds = new Set();
       const loggedUser = getLoggedUser();
-      const token = localStorage.getItem('token') || '';
+      const token = getAuthToken();
       if (!loggedUser || loggedUser.type !== 'user' || !token) return;
       try {
         const res = await authFetch('/api/my/bookings');
@@ -2034,22 +3097,76 @@
       return date.toISOString().slice(0, 10);
     };
 
+    const normalizeMembershipBenefitType = (value) => String(value || '').trim().toUpperCase() === 'BOOKING_PACK' ? 'BOOKING_PACK' : 'DISCOUNT';
+
+    const isBookingPackMembership = (row) => normalizeMembershipBenefitType(row?.benefitType) === 'BOOKING_PACK';
+
+    const membershipBenefitBadge = (row) => {
+      if (isBookingPackMembership(row)) {
+        const included = Math.max(0, Number(row?.includedBookings || 0));
+        return `${included} ${included === 1 ? 'booking' : 'bookings'}`;
+      }
+      const discount = Math.max(0, Number(row?.discountPercent || 0));
+      return discount >= 100 ? 'Free booking' : `${discount}% off`;
+    };
+
+    const hasMembershipPlans = () => Array.isArray(clubMembershipPlans) && clubMembershipPlans.length > 0;
+
+    const setMembershipPlansOpen = (open) => {
+      const next = Boolean(open && hasMembershipPlans());
+      clubMembershipExpanded = next;
+      if (membershipPlansPopoverEl) {
+        membershipPlansPopoverEl.hidden = !next;
+        membershipPlansPopoverEl.setAttribute('aria-hidden', next ? 'false' : 'true');
+      }
+      if (clubMembershipToggleEl) {
+        clubMembershipToggleEl.setAttribute('aria-expanded', next ? 'true' : 'false');
+      }
+      syncMembershipPlansMode();
+      if (next) {
+        window.setTimeout(() => bookingSideRailToggleEl?.focus(), 60);
+      }
+    };
+
     const renderMembershipSection = () => {
       if (!membershipPlansEl || !clubMembershipSectionEl) return;
 
       const hasActiveMembership = Boolean(myClubMembership && String(myClubMembership?.status || '').toUpperCase() === 'ACTIVE');
       const availablePlans = Array.isArray(clubMembershipPlans) ? clubMembershipPlans : [];
-
-      if (clubMembershipIntroEl) {
-        clubMembershipIntroEl.textContent = hasActiveMembership
-          ? 'Your current pass already applies member pricing to eligible bookings.'
-          : 'Optional passes can reduce booking prices at this club.';
-      }
+      const activePlan = hasActiveMembership
+        ? availablePlans.find((plan) => Number(plan?.planId) === Number(myClubMembership?.planId)) || null
+        : null;
 
       if (clubMembershipStatusEl) {
         if (hasActiveMembership) {
+          const activePlanName = String(myClubMembership?.planName || activePlan?.planName || 'Membership').trim() || 'Membership';
+          const activeDurationLabel = Number.isFinite(Number(activePlan?.durationDays))
+            ? `${activePlan.durationDays} days`
+            : '--';
+          const activePackPlan = isBookingPackMembership(myClubMembership || activePlan);
+          const activeBenefitBadge = membershipBenefitBadge(myClubMembership || activePlan);
+          const activePriceLabel = formatPrice(activePlan?.price);
+          const activeUntilLabel = formatDateLabel(myClubMembership.endDate);
+          const remainingBookings = Math.max(0, Number(myClubMembership?.remainingBookings || 0));
+          const includedBookings = Math.max(0, Number(myClubMembership?.includedBookings || activePlan?.includedBookings || 0));
+          const activeCopy = activePackPlan
+            ? `Valid until ${activeUntilLabel}. ${remainingBookings} of ${includedBookings} booking credits remain.`
+            : `Active until ${activeUntilLabel}. Member pricing is already applied to eligible bookings.`;
           clubMembershipStatusEl.style.display = 'block';
-          clubMembershipStatusEl.innerHTML = `Active pass: <strong>${escapeHtml(myClubMembership.planName || 'Membership')}</strong> until <strong>${escapeHtml(formatDateLabel(myClubMembership.endDate))}</strong>. Member pricing is applied automatically when you book.`;
+          clubMembershipStatusEl.innerHTML = `
+            <div class="membership-status-card">
+              <div class="membership-plan-top">
+                <div>
+                  <div class="membership-plan-duration">${escapeHtml(activeDurationLabel)}</div>
+                  <div class="membership-plan-name">${escapeHtml(activePlanName)}</div>
+                </div>
+                <div class="membership-plan-discount">${escapeHtml(activeBenefitBadge)}</div>
+              </div>
+              ${activePriceLabel ? `<div class="membership-plan-price">${escapeHtml(activePriceLabel)}</div>` : ''}
+              <div class="membership-plan-copy">${escapeHtml(activeCopy)}</div>
+              <div class="membership-status-current">Current plan</div>
+            </div>
+          `;
         } else {
           clubMembershipStatusEl.style.display = 'none';
           clubMembershipStatusEl.textContent = '';
@@ -2065,7 +3182,10 @@
           clubMembershipToggleEl.style.display = 'none';
           clubMembershipToggleEl.setAttribute('aria-expanded', 'false');
         }
-        if (membershipPlansWrapEl) membershipPlansWrapEl.hidden = true;
+        if (membershipPlansMetaEl) {
+          membershipPlansMetaEl.textContent = 'New memberships are currently unavailable for this club.';
+        }
+        setMembershipPlansOpen(false);
         if (hasActiveMembership) {
           clubMembershipSectionEl.style.display = '';
           membershipPlansEl.innerHTML = '<div class="muted">New memberships are currently unavailable for this club.</div>';
@@ -2094,19 +3214,24 @@
 
       if (clubMembershipToggleEl) {
         clubMembershipToggleEl.style.display = '';
-        clubMembershipToggleEl.textContent = clubMembershipExpanded ? 'Hide plans' : 'View plans';
-        clubMembershipToggleEl.setAttribute('aria-expanded', clubMembershipExpanded ? 'true' : 'false');
+        clubMembershipToggleEl.textContent = 'View plans';
       }
-      if (membershipPlansWrapEl) membershipPlansWrapEl.hidden = !clubMembershipExpanded;
+      if (membershipPlansMetaEl) {
+        const count = availablePlans.length;
+        membershipPlansMetaEl.textContent = hasActiveMembership
+          ? `${count} plan${count === 1 ? '' : 's'} listed. Your active pass is highlighted below.`
+          : `${count} member pass${count === 1 ? '' : 'es'} available${lowestPrice === null ? '' : ` from ${formatPrice(lowestPrice)}`}.`;
+      }
 
       clubMembershipSectionEl.style.display = '';
       membershipPlansEl.innerHTML = availablePlans.map((plan) => {
         const isCurrentPlan = hasActiveMembership && Number(plan?.planId) === Number(myClubMembership?.planId);
         const priceLabel = formatPrice(plan?.price) || 'GBP 0.00';
-        const discount = Number(plan?.discountPercent || 0);
         const durationLabel = Number.isFinite(Number(plan?.durationDays)) ? `${plan.durationDays} days` : '--';
         const planName = String(plan?.planName || 'Membership').trim() || 'Membership';
-        const description = String(plan?.description || '').trim() || `Save ${discount}% on eligible bookings.`;
+        const description = String(plan?.description || '').trim() || (isBookingPackMembership(plan)
+          ? `Includes ${Math.max(0, Number(plan?.includedBookings || 0))} prepaid bookings.`
+          : `Save ${Math.max(0, Number(plan?.discountPercent || 0))}% on eligible bookings.`);
         const buttonLabel = isCurrentPlan ? 'Current plan' : (hasActiveMembership ? 'Already active' : 'Buy membership');
         const buttonDisabled = isCurrentPlan || hasActiveMembership;
         return `
@@ -2116,7 +3241,7 @@
                 <div class="membership-plan-duration">${escapeHtml(durationLabel)}</div>
                 <div class="membership-plan-name">${escapeHtml(planName)}</div>
               </div>
-              <div class="membership-plan-discount">${escapeHtml(String(discount))}% off</div>
+              <div class="membership-plan-discount">${escapeHtml(membershipBenefitBadge(plan))}</div>
             </div>
             <div class="membership-plan-price">${escapeHtml(priceLabel)}</div>
             <div class="membership-plan-copy">${escapeHtml(description)}</div>
@@ -2132,12 +3257,610 @@
           if (plan) goToMembershipPayment(plan);
         });
       });
+
+      if (pendingMembershipAutoOpen) {
+        clubMembershipExpanded = true;
+        pendingMembershipAutoOpen = false;
+      }
+      setMembershipPlansOpen(clubMembershipExpanded);
     };
 
     clubMembershipToggleEl?.addEventListener('click', () => {
-      clubMembershipExpanded = !clubMembershipExpanded;
-      renderMembershipSection();
+      if (chatWidgetOpen) {
+        setClubChatOpen(false);
+      }
+      if (communityDialogOpen) {
+        setCommunityDialogOpen(false);
+      }
+      setMembershipPlansOpen(!clubMembershipExpanded);
     });
+
+    const normalizeCommunityAnswer = (raw) => {
+      if (!raw || typeof raw !== 'object') return null;
+      const answerId = Number(raw.answerId);
+      if (!Number.isFinite(answerId)) return null;
+      return {
+        answerId,
+        authorName: String(raw.authorName || 'Club member').trim() || 'Club member',
+        responderType: String(raw.responderType || 'USER').trim().toUpperCase() || 'USER',
+        answerText: String(raw.answerText || '').trim(),
+        createdAt: String(raw.createdAt || '').trim(),
+        canEdit: Boolean(raw.canEdit),
+        canDelete: Boolean(raw.canDelete)
+      };
+    };
+
+    const normalizeCommunityQuestion = (raw) => {
+      if (!raw || typeof raw !== 'object') return null;
+      const questionId = Number(raw.questionId);
+      if (!Number.isFinite(questionId)) return null;
+      return {
+        questionId,
+        authorName: String(raw.authorName || 'Member').trim() || 'Member',
+        questionText: String(raw.questionText || '').trim(),
+        clubAnswered: Boolean(raw.clubAnswered),
+        answerCount: Math.max(0, Number(raw.answerCount) || 0),
+        createdAt: String(raw.createdAt || '').trim(),
+        updatedAt: String(raw.updatedAt || '').trim(),
+        canEdit: Boolean(raw.canEdit),
+        canDelete: Boolean(raw.canDelete),
+        answers: Array.isArray(raw.answers) ? raw.answers.map(normalizeCommunityAnswer).filter(Boolean) : []
+      };
+    };
+
+    const normalizeCommunityBoard = (raw) => ({
+      canAsk: Boolean(raw?.canAsk),
+      canAnswer: Boolean(raw?.canAnswer),
+      canReplyAsClub: Boolean(raw?.canReplyAsClub),
+      questionCount: Math.max(0, Number(raw?.questionCount) || 0),
+      questions: Array.isArray(raw?.questions) ? raw.questions.map(normalizeCommunityQuestion).filter(Boolean) : []
+    });
+
+    const getCommunityAnswerEditKey = (questionId, answerId) => `${Number(questionId) || 0}:${Number(answerId) || 0}`;
+
+    const getCommunityQuestionById = (questionId) => communityBoard.questions.find((question) => question.questionId === Number(questionId)) || null;
+
+    const getCommunityAnswerById = (questionId, answerId) => {
+      const question = getCommunityQuestionById(questionId);
+      if (!question) return null;
+      return question.answers.find((answer) => answer.answerId === Number(answerId)) || null;
+    };
+
+    const syncCommunityEditingState = () => {
+      if (editingCommunityQuestionId && !communityBoard.questions.some((question) => question.questionId === editingCommunityQuestionId)) {
+        editingCommunityQuestionId = null;
+      }
+      if (editingCommunityAnswerKey) {
+        const answerStillExists = communityBoard.questions.some((question) =>
+          question.answers.some((answer) => getCommunityAnswerEditKey(question.questionId, answer.answerId) === editingCommunityAnswerKey));
+        if (!answerStillExists) {
+          editingCommunityAnswerKey = '';
+        }
+      }
+    };
+
+    const resetCommunityEditors = () => {
+      editingCommunityQuestionId = null;
+      editingCommunityAnswerKey = '';
+    };
+
+    const setCommunityAskState = (busy) => {
+      communityAskInFlight = Boolean(busy);
+      if (clubCommunityAskBtnEl) {
+        clubCommunityAskBtnEl.disabled = communityAskInFlight;
+        clubCommunityAskBtnEl.textContent = communityAskInFlight ? 'Posting...' : 'Post question';
+      }
+      if (clubCommunityAskInputEl) {
+        clubCommunityAskInputEl.disabled = communityAskInFlight;
+      }
+    };
+
+    const hideCommunityToast = () => {
+      if (communityToastTimer) {
+        window.clearTimeout(communityToastTimer);
+        communityToastTimer = null;
+      }
+      if (!clubCommunityToastEl) return;
+      clubCommunityToastEl.classList.remove('open');
+      clubCommunityToastEl.hidden = true;
+      clubCommunityToastEl.setAttribute('aria-hidden', 'true');
+      clubCommunityToastEl.textContent = '';
+      delete clubCommunityToastEl.dataset.type;
+    };
+
+    const showCommunityToast = (message, type = 'info') => {
+      const text = String(message || '').trim();
+      if (!text) return;
+      if (!clubCommunityToastEl || !communityDialogOpen) {
+        showPageToast(text, type);
+        return;
+      }
+      if (communityToastTimer) {
+        window.clearTimeout(communityToastTimer);
+        communityToastTimer = null;
+      }
+      clubCommunityToastEl.textContent = text;
+      clubCommunityToastEl.dataset.type = String(type || 'info').trim().toLowerCase() || 'info';
+      clubCommunityToastEl.hidden = false;
+      clubCommunityToastEl.setAttribute('aria-hidden', 'false');
+      window.requestAnimationFrame(() => {
+        clubCommunityToastEl.classList.add('open');
+      });
+      communityToastTimer = window.setTimeout(() => {
+        hideCommunityToast();
+      }, 2600);
+    };
+
+    const syncClubChatMode = () => {
+      const railOverlay = window.matchMedia('(min-width: 1321px)').matches
+        && !bookingSideRailCollapsed
+        && chatWidgetOpen;
+      bookingSideRailEl?.classList.toggle('chat-focus', railOverlay);
+    };
+
+    const syncMembershipPlansMode = () => {
+      const railOverlay = window.matchMedia('(min-width: 1321px)').matches
+        && !bookingSideRailCollapsed
+        && clubMembershipExpanded;
+      bookingSideRailEl?.classList.toggle('membership-focus', railOverlay);
+    };
+
+    const syncCommunityDialogMode = () => {
+      const railOverlay = window.matchMedia('(min-width: 1321px)').matches
+        && !bookingSideRailCollapsed
+        && communityDialogOpen;
+      bookingSideRailEl?.classList.toggle('community-focus', railOverlay);
+    };
+
+    const setCommunityDialogOpen = (open) => {
+      communityDialogOpen = Boolean(open);
+      clubCommunityDialogEl?.classList.toggle('open', communityDialogOpen);
+      if (clubCommunityDialogEl) {
+        clubCommunityDialogEl.hidden = !communityDialogOpen;
+        clubCommunityDialogEl.setAttribute('aria-hidden', communityDialogOpen ? 'false' : 'true');
+      }
+      if (!communityDialogOpen) {
+        hideCommunityToast();
+        resetCommunityEditors();
+      }
+      clubCommunityOpenBtnEl?.setAttribute('aria-expanded', communityDialogOpen ? 'true' : 'false');
+      syncCommunityDialogMode();
+      if (communityDialogOpen) {
+        window.setTimeout(() => clubCommunityAskInputEl?.focus(), 60);
+      }
+    };
+
+    const isCommunityAnswerAllowedForUser = () => Boolean(communityBoard.canAnswer && !communityBoard.canReplyAsClub);
+
+    const isCommunityQuestionAllowedForUser = () => Boolean(communityBoard.canAsk);
+
+    const renderCommunitySection = () => {
+      if (!clubCommunitySectionEl || !clubCommunityListEl) return;
+      clubCommunitySectionEl.style.display = '';
+      const canAskQuestion = isCommunityQuestionAllowedForUser();
+      if (clubCommunityAskFormEl) {
+        clubCommunityAskFormEl.style.display = canAskQuestion ? '' : 'none';
+      }
+
+      if (!communityBoard.questions.length) {
+        expandedCommunityQuestionId = null;
+        resetCommunityEditors();
+        clubCommunityListEl.innerHTML = '<div class="community-empty">No questions yet.</div>';
+        return;
+      }
+
+      const activeQuestionId = communityBoard.questions.some((question) => question.questionId === expandedCommunityQuestionId)
+        ? expandedCommunityQuestionId
+        : null;
+      expandedCommunityQuestionId = activeQuestionId;
+
+      clubCommunityListEl.innerHTML = communityBoard.questions.map((question) => {
+        const expanded = question.questionId === activeQuestionId;
+        const questionEditing = editingCommunityQuestionId === question.questionId;
+        const questionMutating = communityQuestionMutationId === question.questionId;
+        const questionActionsHtml = expanded && (question.canEdit || question.canDelete)
+          ? `
+            <div class="community-item-actions">
+              ${question.canEdit ? `<button class="community-inline-btn" type="button" data-community-question-edit="${question.questionId}" ${questionEditing || questionMutating ? 'disabled' : ''}>Edit</button>` : ''}
+              ${question.canDelete ? `<button class="community-inline-btn danger" type="button" data-community-question-delete="${question.questionId}" ${questionMutating ? 'disabled' : ''}>${questionMutating ? 'Deleting...' : 'Delete'}</button>` : ''}
+            </div>
+          `
+          : '';
+        const questionEditorHtml = expanded && questionEditing
+          ? `
+            <form class="community-edit-form" data-community-question-edit-form="${question.questionId}">
+              <textarea class="community-edit-input" data-community-question-edit-input="${question.questionId}" maxlength="400" placeholder="Update your question...">${escapeHtml(question.questionText)}</textarea>
+              <div class="community-edit-actions">
+                <button class="community-inline-btn" type="button" data-community-question-edit-cancel="${question.questionId}" ${questionMutating ? 'disabled' : ''}>Cancel</button>
+                <button class="community-answer-btn" type="submit" ${questionMutating ? 'disabled' : ''}>${questionMutating ? 'Saving...' : 'Save question'}</button>
+              </div>
+            </form>
+          `
+          : '';
+        const answersHtml = question.answers.length
+          ? `<div class="community-answer-list">${question.answers.map((answer) => `
+              <article class="community-answer ${answer.responderType === 'CLUB' ? 'club' : 'member'}">
+                <div class="community-answer-head">
+                  <span class="community-answer-author">
+                    ${escapeHtml(answer.authorName)}
+                    <span class="community-chip ${answer.responderType === 'CLUB' ? 'club' : ''}">${answer.responderType === 'CLUB' ? 'Club reply' : 'Member reply'}</span>
+                  </span>
+                  <span class="community-answer-meta-group">
+                    <span class="community-answer-time">${escapeHtml(formatDateTime(answer.createdAt))}</span>
+                    ${(answer.canEdit || answer.canDelete) ? `
+                      <span class="community-answer-controls">
+                        ${answer.canEdit ? `<button class="community-inline-btn" type="button" data-community-answer-edit="${question.questionId}" data-community-answer-id="${answer.answerId}" ${editingCommunityAnswerKey === getCommunityAnswerEditKey(question.questionId, answer.answerId) || communityAnswerMutationKey === getCommunityAnswerEditKey(question.questionId, answer.answerId) ? 'disabled' : ''}>Edit</button>` : ''}
+                        ${answer.canDelete ? `<button class="community-inline-btn danger" type="button" data-community-answer-delete="${question.questionId}" data-community-answer-id="${answer.answerId}" ${communityAnswerMutationKey === getCommunityAnswerEditKey(question.questionId, answer.answerId) ? 'disabled' : ''}>${communityAnswerMutationKey === getCommunityAnswerEditKey(question.questionId, answer.answerId) ? 'Deleting...' : 'Delete'}</button>` : ''}
+                      </span>
+                    ` : ''}
+                  </span>
+                </div>
+                ${editingCommunityAnswerKey === getCommunityAnswerEditKey(question.questionId, answer.answerId)
+                  ? `
+                    <form class="community-edit-form" data-community-answer-edit-form="${question.questionId}" data-community-answer-edit-id="${answer.answerId}">
+                      <textarea class="community-edit-input" data-community-answer-edit-input="${question.questionId}" data-community-answer-input-id="${answer.answerId}" maxlength="500" placeholder="Update your answer...">${escapeHtml(answer.answerText)}</textarea>
+                      <div class="community-edit-actions">
+                        <button class="community-inline-btn" type="button" data-community-answer-edit-cancel="${question.questionId}" data-community-answer-id="${answer.answerId}" ${communityAnswerMutationKey === getCommunityAnswerEditKey(question.questionId, answer.answerId) ? 'disabled' : ''}>Cancel</button>
+                        <button class="community-answer-btn" type="submit" ${communityAnswerMutationKey === getCommunityAnswerEditKey(question.questionId, answer.answerId) ? 'disabled' : ''}>${communityAnswerMutationKey === getCommunityAnswerEditKey(question.questionId, answer.answerId) ? 'Saving...' : 'Save answer'}</button>
+                      </div>
+                    </form>
+                  `
+                  : `<p class="community-answer-text">${escapeHtml(answer.answerText).replace(/\n/g, '<br>')}</p>`}
+              </article>
+            `).join('')}</div>`
+          : '<div class="community-empty">No replies yet.</div>';
+        const answerFormHtml = isCommunityAnswerAllowedForUser()
+          ? `
+            <form class="community-answer-form" data-community-answer-form="${question.questionId}">
+              <textarea class="community-answer-input" data-community-answer-input="${question.questionId}" maxlength="500" placeholder="Share an answer from your own booking experience..."></textarea>
+              <div class="community-answer-actions">
+                <span class="community-action-note">Booked members can reply here.</span>
+                <button class="community-answer-btn" type="submit" ${communityAnswerInFlightQuestionId === question.questionId ? 'disabled' : ''}>${communityAnswerInFlightQuestionId === question.questionId ? 'Posting...' : 'Post answer'}</button>
+              </div>
+            </form>
+          `
+          : '';
+        const questionSummaryHtml = `
+          <div class="community-question-top">
+            <span class="community-question-author">${escapeHtml(question.authorName)}</span>
+            <div class="community-question-badges">
+              ${question.clubAnswered ? '<span class="community-chip club">Club answered</span>' : ''}
+              <span class="community-chip">${question.answerCount} repl${question.answerCount === 1 ? 'y' : 'ies'}</span>
+            </div>
+          </div>
+          <p class="community-question-text">${escapeHtml(question.questionText)}</p>
+          <div class="community-question-meta">Asked ${escapeHtml(formatDateTime(question.createdAt))}</div>
+        `;
+        return `
+          <article class="community-question" data-community-question="${question.questionId}">
+            ${questionEditing
+              ? `<div class="community-question-toggle community-question-toggle--static" aria-expanded="true">${questionSummaryHtml}</div>`
+              : `<button class="community-question-toggle" type="button" data-community-question-toggle="${question.questionId}" aria-expanded="${expanded ? 'true' : 'false'}">${questionSummaryHtml}</button>`}
+            ${expanded ? `${questionActionsHtml}${questionEditorHtml}${answersHtml}${answerFormHtml}` : ''}
+          </article>
+        `;
+      }).join('');
+    };
+
+    const loadCommunityQuestions = async ({ preserveExpanded = true } = {}) => {
+      const clubId = getClubId();
+      if (!clubId || !isNumericId(clubId)) {
+        communityBoard = { canAsk: false, canAnswer: false, canReplyAsClub: false, questionCount: 0, questions: [] };
+        renderCommunitySection();
+        return;
+      }
+
+      const previousExpanded = preserveExpanded ? expandedCommunityQuestionId : null;
+      try {
+        const res = await authFetch(`/api/clubs/${encodeURIComponent(clubId)}/community-questions`, {
+          cache: 'no-store'
+        });
+        if (!res.ok) {
+          communityBoard = { canAsk: false, canAnswer: false, canReplyAsClub: false, questionCount: 0, questions: [] };
+          renderCommunitySection();
+          return;
+        }
+        communityBoard = normalizeCommunityBoard(await res.json().catch(() => null));
+        expandedCommunityQuestionId = previousExpanded;
+        syncCommunityEditingState();
+      } catch (err) {
+        console.warn('[club] community questions error', err);
+        communityBoard = { canAsk: false, canAnswer: false, canReplyAsClub: false, questionCount: 0, questions: [] };
+        resetCommunityEditors();
+      }
+      renderCommunitySection();
+    };
+
+    const ensureCommunityMemberAuth = async ({ redirectOnMissing = false, notify = false } = {}) => {
+      const loggedUser = await syncAuthenticatedProfile();
+      if (!loggedUser) {
+        if (notify) showCommunityToast('Please log in with a member account to ask or answer questions.', 'warn');
+        if (redirectOnMissing) {
+          window.location.href = buildLoginHref(buildClubPageHref('clubCommunitySection'));
+        }
+        return { ok: false, reason: 'not_logged_in' };
+      }
+      if (loggedUser.type !== 'user') {
+        if (notify) showCommunityToast('Please use a member account to post in Community Q&A.', 'warn');
+        return { ok: false, reason: 'wrong_role' };
+      }
+      return { ok: true, reason: '' };
+    };
+
+    const ensureCommunityActorAuth = async ({ redirectOnMissing = false, notify = false } = {}) => {
+      const loggedUser = await syncAuthenticatedProfile();
+      if (!loggedUser) {
+        if (notify) showCommunityToast('Please log in to manage Community Q&A posts.', 'warn');
+        if (redirectOnMissing) {
+          window.location.href = buildLoginHref(buildClubPageHref('clubCommunitySection'));
+        }
+        return { ok: false, reason: 'not_logged_in' };
+      }
+      return { ok: true, reason: '' };
+    };
+
+    const submitCommunityQuestion = async () => {
+      if (communityAskInFlight) return;
+      const auth = await ensureCommunityMemberAuth({ redirectOnMissing: true, notify: true });
+      if (!auth.ok) return;
+      const clubId = getClubId();
+      if (!clubId || !isNumericId(clubId)) return;
+      const questionText = String(clubCommunityAskInputEl?.value || '').replace(/\s+/g, ' ').trim();
+      if (!questionText) {
+        showCommunityToast('Enter a question before posting.', 'warn');
+        return;
+      }
+      if (questionText.length < 5) {
+        showCommunityToast('Questions must be at least 5 characters long.', 'warn');
+        return;
+      }
+
+      setCommunityAskState(true);
+      try {
+        const res = await authFetch(`/api/clubs/${encodeURIComponent(clubId)}/community-questions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ questionText })
+        });
+        if (!res.ok) {
+          const msg = await readErrorText(res);
+          showCommunityToast(msg || 'Failed to post question.', 'error');
+          return;
+        }
+        const createdQuestion = normalizeCommunityQuestion(await res.json().catch(() => null));
+        if (clubCommunityAskInputEl) {
+          clubCommunityAskInputEl.value = '';
+        }
+        if (createdQuestion) {
+          communityBoard = {
+            ...communityBoard,
+            questionCount: Math.max(Number(communityBoard.questionCount) || 0, communityBoard.questions.length) + 1,
+            questions: [createdQuestion, ...communityBoard.questions.filter((question) => question.questionId !== createdQuestion.questionId)]
+          };
+          expandedCommunityQuestionId = createdQuestion.questionId;
+          renderCommunitySection();
+        }
+        loadCommunityQuestions({ preserveExpanded: false }).catch((err) => {
+          console.warn('[club] refresh community questions after ask error', err);
+        });
+        showCommunityToast('Question posted.', 'success');
+      } catch (err) {
+        console.warn('[club] ask community question error', err);
+        showCommunityToast('Failed to post question.', 'error');
+      } finally {
+        setCommunityAskState(false);
+      }
+    };
+
+    const submitCommunityAnswer = async (questionId, text) => {
+      if (communityAnswerInFlightQuestionId) return;
+      const auth = await ensureCommunityMemberAuth({ redirectOnMissing: true, notify: true });
+      if (!auth.ok) return;
+      const clubId = getClubId();
+      if (!clubId || !isNumericId(clubId)) return;
+      const answerText = String(text || '').replace(/\s+/g, ' ').trim();
+      if (!answerText) {
+        showCommunityToast('Enter an answer before posting.', 'warn');
+        return;
+      }
+
+      communityAnswerInFlightQuestionId = Number(questionId) || null;
+      renderCommunitySection();
+      try {
+        const res = await authFetch(`/api/clubs/${encodeURIComponent(clubId)}/community-questions/${encodeURIComponent(String(questionId))}/answers`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ answerText })
+        });
+        if (!res.ok) {
+          const msg = await readErrorText(res);
+          showCommunityToast(msg || 'Failed to post answer.', 'error');
+          return;
+        }
+        expandedCommunityQuestionId = Number(questionId) || null;
+        await loadCommunityQuestions({ preserveExpanded: true });
+        showCommunityToast('Answer posted.', 'success');
+      } catch (err) {
+        console.warn('[club] answer community question error', err);
+        showCommunityToast('Failed to post answer.', 'error');
+      } finally {
+        communityAnswerInFlightQuestionId = null;
+        renderCommunitySection();
+      }
+    };
+
+    const submitCommunityQuestionUpdate = async (questionId, rawText) => {
+      if (communityQuestionMutationId) return false;
+      const auth = await ensureCommunityMemberAuth({ redirectOnMissing: true, notify: true });
+      if (!auth.ok) return false;
+      const clubId = getClubId();
+      if (!clubId || !isNumericId(clubId)) return false;
+      const questionText = String(rawText || '').replace(/\s+/g, ' ').trim();
+      if (!questionText) {
+        showCommunityToast('Enter a question before saving.', 'warn');
+        return false;
+      }
+      if (questionText.length < 5) {
+        showCommunityToast('Questions must be at least 5 characters long.', 'warn');
+        return false;
+      }
+
+      communityQuestionMutationId = Number(questionId) || null;
+      renderCommunitySection();
+      try {
+        const res = await authFetch(`/api/clubs/${encodeURIComponent(clubId)}/community-questions/${encodeURIComponent(String(questionId))}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ questionText })
+        });
+        if (!res.ok) {
+          const msg = await readErrorText(res);
+          showCommunityToast(msg || 'Failed to save question.', 'error');
+          return false;
+        }
+        editingCommunityQuestionId = null;
+        expandedCommunityQuestionId = Number(questionId) || null;
+        await loadCommunityQuestions({ preserveExpanded: true });
+        showCommunityToast('Question updated.', 'success');
+        return true;
+      } catch (err) {
+        console.warn('[club] update community question error', err);
+        showCommunityToast('Failed to save question.', 'error');
+        return false;
+      } finally {
+        communityQuestionMutationId = null;
+        renderCommunitySection();
+      }
+    };
+
+    const deleteCommunityQuestion = async (questionId) => {
+      if (communityQuestionMutationId) return false;
+      const question = getCommunityQuestionById(questionId);
+      if (!question) return false;
+      const confirmed = await openCommunityDeleteConfirm({
+        title: 'Delete this question?',
+        message: 'This will also remove every reply on this thread.',
+        okText: 'Delete question'
+      });
+      if (!confirmed) return false;
+      const auth = await ensureCommunityMemberAuth({ redirectOnMissing: true, notify: true });
+      if (!auth.ok) return false;
+      const clubId = getClubId();
+      if (!clubId || !isNumericId(clubId)) return false;
+
+      communityQuestionMutationId = Number(questionId) || null;
+      renderCommunitySection();
+      try {
+        const res = await authFetch(`/api/clubs/${encodeURIComponent(clubId)}/community-questions/${encodeURIComponent(String(questionId))}`, {
+          method: 'DELETE'
+        });
+        if (!res.ok) {
+          const msg = await readErrorText(res);
+          showCommunityToast(msg || 'Failed to delete question.', 'error');
+          return false;
+        }
+        if (expandedCommunityQuestionId === Number(questionId)) {
+          expandedCommunityQuestionId = null;
+        }
+        if (editingCommunityQuestionId === Number(questionId)) {
+          editingCommunityQuestionId = null;
+        }
+        editingCommunityAnswerKey = '';
+        await loadCommunityQuestions({ preserveExpanded: true });
+        showCommunityToast('Question deleted.', 'success');
+        return true;
+      } catch (err) {
+        console.warn('[club] delete community question error', err);
+        showCommunityToast('Failed to delete question.', 'error');
+        return false;
+      } finally {
+        communityQuestionMutationId = null;
+        renderCommunitySection();
+      }
+    };
+
+    const submitCommunityAnswerUpdate = async (questionId, answerId, rawText) => {
+      if (communityAnswerMutationKey) return false;
+      const auth = await ensureCommunityActorAuth({ redirectOnMissing: true, notify: true });
+      if (!auth.ok) return false;
+      const clubId = getClubId();
+      if (!clubId || !isNumericId(clubId)) return false;
+      const answerText = String(rawText || '').replace(/\s+/g, ' ').trim();
+      if (!answerText) {
+        showCommunityToast('Enter an answer before saving.', 'warn');
+        return false;
+      }
+
+      communityAnswerMutationKey = getCommunityAnswerEditKey(questionId, answerId);
+      renderCommunitySection();
+      try {
+        const res = await authFetch(`/api/clubs/${encodeURIComponent(clubId)}/community-questions/${encodeURIComponent(String(questionId))}/answers/${encodeURIComponent(String(answerId))}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ answerText })
+        });
+        if (!res.ok) {
+          const msg = await readErrorText(res);
+          showCommunityToast(msg || 'Failed to save answer.', 'error');
+          return false;
+        }
+        editingCommunityAnswerKey = '';
+        expandedCommunityQuestionId = Number(questionId) || null;
+        await loadCommunityQuestions({ preserveExpanded: true });
+        showCommunityToast('Answer updated.', 'success');
+        return true;
+      } catch (err) {
+        console.warn('[club] update community answer error', err);
+        showCommunityToast('Failed to save answer.', 'error');
+        return false;
+      } finally {
+        communityAnswerMutationKey = '';
+        renderCommunitySection();
+      }
+    };
+
+    const deleteCommunityAnswer = async (questionId, answerId) => {
+      if (communityAnswerMutationKey) return false;
+      const answer = getCommunityAnswerById(questionId, answerId);
+      if (!answer) return false;
+      const confirmed = await openCommunityDeleteConfirm({
+        title: 'Delete this reply?',
+        message: 'This reply will be removed from the thread.',
+        okText: 'Delete reply'
+      });
+      if (!confirmed) return false;
+      const auth = await ensureCommunityActorAuth({ redirectOnMissing: true, notify: true });
+      if (!auth.ok) return false;
+      const clubId = getClubId();
+      if (!clubId || !isNumericId(clubId)) return false;
+
+      communityAnswerMutationKey = getCommunityAnswerEditKey(questionId, answerId);
+      renderCommunitySection();
+      try {
+        const res = await authFetch(`/api/clubs/${encodeURIComponent(clubId)}/community-questions/${encodeURIComponent(String(questionId))}/answers/${encodeURIComponent(String(answerId))}`, {
+          method: 'DELETE'
+        });
+        if (!res.ok) {
+          const msg = await readErrorText(res);
+          showCommunityToast(msg || 'Failed to delete answer.', 'error');
+          return false;
+        }
+        if (editingCommunityAnswerKey === getCommunityAnswerEditKey(questionId, answerId)) {
+          editingCommunityAnswerKey = '';
+        }
+        expandedCommunityQuestionId = Number(questionId) || null;
+        await loadCommunityQuestions({ preserveExpanded: true });
+        showCommunityToast('Answer deleted.', 'success');
+        return true;
+      } catch (err) {
+        console.warn('[club] delete community answer error', err);
+        showCommunityToast('Failed to delete answer.', 'error');
+        return false;
+      } finally {
+        communityAnswerMutationKey = '';
+        renderCommunitySection();
+      }
+    };
 
     const loadMembershipPlans = async () => {
       const clubId = getClubId();
@@ -2166,7 +3889,7 @@
     const loadMyMembership = async () => {
       myClubMembership = null;
       const loggedUser = getLoggedUser();
-      const token = localStorage.getItem('token') || '';
+      const token = getAuthToken();
       const clubId = getClubId();
       if (!loggedUser || loggedUser.type !== 'user' || !token || !clubId || !isNumericId(clubId)) {
         renderMembershipSection();
@@ -2185,7 +3908,7 @@
     };
 
     const startCheckoutSession = async (payload, failureMessage) => {
-      const token = localStorage.getItem('token') || '';
+      const token = getAuthToken();
       if (!token) {
         showPageToast('Your session has expired. Please log in again.', 'error');
         return;
@@ -2224,7 +3947,7 @@
     const goToMembershipPayment = async (plan) => {
       const loggedUser = getLoggedUser();
       if (!loggedUser) {
-        window.location.href = buildLoginHref(buildClubPageHref('membershipPlansWrap'));
+        window.location.href = buildLoginHref(buildClubPageHref('membershipPlansPopover'));
         return;
       }
       if (loggedUser.type === 'club') {
@@ -2483,19 +4206,31 @@
           const cls = isBookedByMe ? 'slot-booked' : (isFull ? 'slot-full' : 'slot-ok');
           const priceLabel = formatPrice(slot.price);
           const basePriceLabel = formatPrice(slot.basePrice);
-          const membershipApplied = Boolean(slot.membershipApplied) && parsePrice(slot.basePrice) !== null && parsePrice(slot.price) !== null && Number(slot.price) <= Number(slot.basePrice);
+          const membershipBenefitType = normalizeMembershipBenefitType(slot.membershipBenefitType);
+          const packApplied = Boolean(slot.membershipApplied) && membershipBenefitType === 'BOOKING_PACK';
+          const membershipApplied = packApplied
+            || (Boolean(slot.membershipApplied) && parsePrice(slot.basePrice) !== null && parsePrice(slot.price) !== null && Number(slot.price) <= Number(slot.basePrice));
           const capBits = [];
-          if (membershipApplied && basePriceLabel && priceLabel && basePriceLabel !== priceLabel) {
+          if (!packApplied && membershipApplied && basePriceLabel && priceLabel && basePriceLabel !== priceLabel) {
             capBits.push(`Regular: ${basePriceLabel}`);
+          }
+          if (packApplied) {
+            const creditsLeft = Math.max(0, Number(slot.membershipRemainingBookings || 0));
+            capBits.push(`Credits left: ${creditsLeft}`);
           }
           if (hasCap) {
             capBits.push(`Capacity: ${remaining}/${maxCap}`);
           }
-          const capLabel = capBits.join(' • ');
-          const topMetaLabel = isBookedByMe ? 'You already booked this slot' : (membershipApplied ? `Member ${priceLabel}` : priceLabel);
+          const capLabel = capBits.join(' | ');
+          const topMetaLabel = isBookedByMe
+            ? 'You already booked this slot'
+            : (packApplied ? 'Included with pass' : (membershipApplied ? `Member ${priceLabel}` : priceLabel));
           const stateTitle = isBookedByMe ? 'Booked by you' : (isFull ? 'Fully booked' : 'Available');
           const stateLabel = isBookedByMe ? 'Booked' : (isFull ? 'Fully booked' : 'Available');
-          html += `<div class="cell"><div class="${cls}" data-timeslot-id="${escapeHtml(slotId)}" title="${stateTitle}"><div class="slot-label">${stateLabel}</div>${topMetaLabel ? `<div class="slot-price">${escapeHtml(topMetaLabel)}</div>` : ''}${membershipApplied ? `<div class="slot-note">${escapeHtml(String(slot.membershipPlanName || 'Membership'))}</div>` : ''}${capLabel ? `<div class="slot-capacity">${escapeHtml(capLabel)}</div>` : ''}</div></div>`;
+          const slotNote = packApplied
+            ? `${String(slot.membershipPlanName || 'Booking pack')}${Number.isFinite(Number(slot.membershipRemainingBookings)) ? ` • ${Math.max(0, Number(slot.membershipRemainingBookings || 0))} left` : ''}`
+            : String(slot.membershipPlanName || 'Membership');
+          html += `<div class="cell"><div class="${cls}" data-timeslot-id="${escapeHtml(slotId)}" title="${stateTitle}"><div class="slot-label">${stateLabel}</div>${topMetaLabel ? `<div class="slot-price">${escapeHtml(topMetaLabel)}</div>` : ''}${membershipApplied ? `<div class="slot-note">${escapeHtml(slotNote)}</div>` : ''}${capLabel ? `<div class="slot-capacity">${escapeHtml(capLabel)}</div>` : ''}</div></div>`;
         });
       });
 
@@ -2510,7 +4245,7 @@
           if (!slot) return;
 
           const loggedUser = getLoggedUser();
-          const token = localStorage.getItem('token') || '';
+          const token = getAuthToken();
           const isBookedByMe = cell.classList.contains('slot-booked') || myBookedTimeslotIds.has(String(timeslotId));
 
           if (isBookedByMe) {
@@ -2518,7 +4253,9 @@
               showPageToast('Please log in with a user account to manage your bookings.', 'warn');
               return;
             }
-            const priceLabel = formatPrice(slot.price) || 'GBP 0.00';
+            const priceLabel = normalizeMembershipBenefitType(slot.membershipBenefitType) === 'BOOKING_PACK' && Boolean(slot.membershipApplied)
+              ? 'Included with pass'
+              : (formatPrice(slot.price) || 'GBP 0.00');
             const when = `${parseDateISO(slot.startTime)} ${parseTimeHHMM(slot.startTime)} - ${parseTimeHHMM(slot.endTime)}`;
             const venue = String(slot.venueName || 'Venue');
             const okCancel = await openCancelBookingConfirm({ venue, when, priceLabel });
@@ -2599,9 +4336,12 @@
         console.warn('[club] club details error', err);
       }
 
+      await syncAuthenticatedProfile().catch(() => null);
+
       await Promise.all([
         loadMembershipPlans(),
-        loadMyMembership()
+        loadMyMembership(),
+        loadCommunityQuestions()
       ]);
 
       await loadClubImages(clubId);
@@ -2677,6 +4417,8 @@
     let chatSendInFlight = false;
     let pendingUserChatMessage = null;
     let pendingUserChatMessageSeq = 0;
+    let lastChatSubmitFingerprint = '';
+    let lastChatSubmitAt = 0;
     let chatWidgetOpen = false;
     let chatBackgroundSyncStarted = false;
     let chatHasHydrated = false;
@@ -2728,6 +4470,14 @@
       }
     };
 
+    const resizeClubChatInput = () => {
+      if (!clubChatInputEl) return;
+      clubChatInputEl.style.height = 'auto';
+      const nextHeight = Math.max(52, Math.min(clubChatInputEl.scrollHeight, 120));
+      clubChatInputEl.style.height = `${nextHeight}px`;
+      clubChatInputEl.style.overflowY = clubChatInputEl.scrollHeight > nextHeight ? 'auto' : 'hidden';
+    };
+
     const resolveClubChatName = () => {
       const label = String(clubContactMeta?.name || clubTitleEl?.textContent || 'Club').trim();
       return label || 'Club';
@@ -2762,7 +4512,7 @@
 
     const ensureUserChatAuth = ({ redirectOnMissing = false, notify = false } = {}) => {
       const loggedUser = getLoggedUser();
-      const token = localStorage.getItem('token') || '';
+      const token = getAuthToken();
 
       if (!loggedUser) {
         if (notify) showPageToast('Please log in with a user account to chat with clubs.', 'warn');
@@ -2830,6 +4580,26 @@
       ].join('|');
     };
 
+    const mergeChatMessages = (incomingMessages) => {
+      const existingMessages = Array.isArray(chatMessages)
+        ? chatMessages.filter((msg) => !msg?.pending)
+        : [];
+      const mergedMessages = [...existingMessages];
+      incomingMessages.forEach((msg) => {
+        if (!msg || typeof msg !== 'object') return;
+        const incomingId = msg.messageId;
+        const existingIndex = mergedMessages.findIndex((current) => (
+          current && String(current.messageId ?? '') === String(incomingId ?? '')
+        ));
+        if (existingIndex >= 0) {
+          mergedMessages[existingIndex] = msg;
+          return;
+        }
+        mergedMessages.push(msg);
+      });
+      chatMessages = mergedMessages;
+    };
+
     const getLatestIncomingChatMessage = (messages) => {
       if (!Array.isArray(messages)) return null;
       for (let index = messages.length - 1; index >= 0; index -= 1) {
@@ -2865,20 +4635,14 @@
 
     const updateChatLauncher = () => {
       const count = Math.max(0, Number(chatUnreadCount) || 0);
-      const subtitle = count > 0
-        ? `${count} unread ${count === 1 ? 'reply' : 'replies'}`
-        : 'Ask while you browse';
-      if (clubChatLauncherSubtitleEl) {
-        clubChatLauncherSubtitleEl.textContent = subtitle;
-      }
-      [clubChatBadgeEl, clubChatLauncherBadgeEl].forEach((badgeEl) => {
+      const showUnreadBadge = chatSessionMode === 'HUMAN' && count > 0;
+      [clubChatLauncherBadgeEl].forEach((badgeEl) => {
         if (!badgeEl) return;
-        badgeEl.hidden = count <= 0;
-        badgeEl.textContent = String(count);
+        badgeEl.hidden = !showUnreadBadge;
+        badgeEl.textContent = showUnreadBadge ? String(count) : '';
       });
       clubChatLauncherEl?.classList.toggle('hidden', chatWidgetOpen);
       clubChatLauncherEl?.setAttribute('aria-expanded', chatWidgetOpen ? 'true' : 'false');
-      openClubChatBtnEl?.setAttribute('aria-expanded', chatWidgetOpen ? 'true' : 'false');
     };
 
     const noteChatBackgroundActivity = (messages) => {
@@ -3035,11 +4799,6 @@
     const renderClubChatThread = (shouldScrollBottom = false) => {
       if (!clubChatThreadEl) return;
       if (clubChatTitleEl) clubChatTitleEl.textContent = `Talk with ${resolveClubChatName()}`;
-      if (clubChatSubtitleEl) {
-        clubChatSubtitleEl.textContent = isHumanSessionMode()
-          ? 'Replies now come from club staff.'
-          : 'Keep chatting while you browse this club.';
-      }
       const renderedMessages = pendingUserChatMessage ? [...chatMessages, pendingUserChatMessage] : chatMessages;
       updateChatBadge();
 
@@ -3284,26 +5043,95 @@
       chatWidgetOpen = Boolean(open);
       clubChatPanelEl?.classList.toggle('open', chatWidgetOpen);
       clubChatPanelEl?.setAttribute('aria-hidden', chatWidgetOpen ? 'false' : 'true');
+      syncClubChatMode();
       updateChatLauncher();
       if (chatWidgetOpen) {
+        setMembershipPlansOpen(false);
+        setCommunityDialogOpen(false);
         hideChatToast();
         fetchUserChatThread({ scrollBottom: true, markRead: true });
         startChatPolling();
-        window.setTimeout(() => clubChatInputEl?.focus(), 60);
+        window.setTimeout(() => {
+          resizeClubChatInput();
+          clubChatInputEl?.focus();
+        }, 60);
       }
     };
 
-    openClubChatBtnEl?.addEventListener('click', () => {
-      const auth = ensureUserChatAuth({ redirectOnMissing: true, notify: true });
-      if (!auth.ok) return;
-      setClubChatOpen(true);
-    });
+    const updateBookingSideRail = () => {
+      const collapsible = window.matchMedia('(min-width: 1321px)').matches;
+      const collapsed = collapsible ? bookingSideRailCollapsed : false;
+      bookingSideRailEl?.classList.toggle('is-collapsed', collapsed);
+      clubPageGridEl?.classList.toggle('rail-collapsed', collapsed);
+      pageMainEl?.classList.toggle('rail-open', !collapsed);
+      bookingSideRailToggleEl?.toggleAttribute('hidden', !collapsible);
+      bookingSideRailToggleEl?.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      bookingSideRailToggleEl?.setAttribute('aria-label', collapsed ? 'Open chat, Q&A, and member pricing' : 'Back to booking details');
+      if (bookingSideRailToggleIconEl) {
+        bookingSideRailToggleIconEl.textContent = collapsed ? '→' : '←';
+      }
+      if (bookingSideRailToggleLabelEl) {
+        bookingSideRailToggleLabelEl.textContent = collapsed ? 'Open club chat, Q&A & plans' : 'Back to booking';
+      }
+      if (collapsed && chatWidgetOpen) {
+        setClubChatOpen(false);
+        hideChatToast();
+      }
+      if (collapsed && communityDialogOpen) {
+        setCommunityDialogOpen(false);
+      }
+      if (collapsed && clubMembershipExpanded) {
+        setMembershipPlansOpen(false);
+      }
+      syncClubChatMode();
+      syncMembershipPlansMode();
+      syncCommunityDialogMode();
+    };
+
     clubChatLauncherEl?.addEventListener('click', () => {
       const auth = ensureUserChatAuth({ redirectOnMissing: true, notify: true });
       if (!auth.ok) return;
       setClubChatOpen(true);
     });
-    closeClubChatBtnEl?.addEventListener('click', () => setClubChatOpen(false));
+    closeClubChatBtnEl?.addEventListener('click', () => {
+      setClubChatOpen(false);
+      bookingSideRailCollapsed = false;
+      updateBookingSideRail();
+      window.setTimeout(() => clubChatLauncherEl?.focus(), 60);
+    });
+    bookingSideRailToggleEl?.addEventListener('click', () => {
+      bookingSideRailCollapsed = !bookingSideRailCollapsed;
+      updateBookingSideRail();
+    });
+    clubCommunityOpenBtnEl?.addEventListener('click', () => {
+      setMembershipPlansOpen(false);
+      if (chatWidgetOpen) {
+        setClubChatOpen(false);
+      }
+      setCommunityDialogOpen(true);
+    });
+    closeClubCommunityBtnEl?.addEventListener('click', () => {
+      setCommunityDialogOpen(false);
+      bookingSideRailCollapsed = false;
+      updateBookingSideRail();
+      window.setTimeout(() => clubCommunityOpenBtnEl?.focus(), 60);
+    });
+    clubCommunityDialogEl?.addEventListener('click', (evt) => {
+      if (evt.target.closest('[data-community-dialog-close]')) {
+        setCommunityDialogOpen(false);
+      }
+    });
+    document.addEventListener('click', (evt) => {
+      if (!clubMembershipExpanded) return;
+      if (evt.target.closest('#clubMembershipSection')) return;
+      setMembershipPlansOpen(false);
+    });
+    closeMembershipPlansBtnEl?.addEventListener('click', () => {
+      setMembershipPlansOpen(false);
+      bookingSideRailCollapsed = false;
+      updateBookingSideRail();
+      window.setTimeout(() => clubMembershipToggleEl?.focus(), 60);
+    });
     clubChatToastActionEl?.addEventListener('click', () => {
       hideChatToast();
       setClubChatOpen(true);
@@ -3311,10 +5139,27 @@
     dismissClubChatToastBtnEl?.addEventListener('click', () => hideChatToast());
 
     document.addEventListener('keydown', (evt) => {
+      if (evt.key === 'Escape' && communityDialogOpen) {
+        setCommunityDialogOpen(false);
+        return;
+      }
+      if (evt.key === 'Escape' && clubMembershipExpanded) {
+        setMembershipPlansOpen(false);
+        return;
+      }
       if (evt.key === 'Escape' && chatWidgetOpen) {
         setClubChatOpen(false);
       }
     });
+
+    const handleBookingSideRailViewportChange = () => updateBookingSideRail();
+    const bookingSideRailViewport = window.matchMedia('(min-width: 1321px)');
+    if (typeof bookingSideRailViewport.addEventListener === 'function') {
+      bookingSideRailViewport.addEventListener('change', handleBookingSideRailViewportChange);
+    } else if (typeof bookingSideRailViewport.addListener === 'function') {
+      bookingSideRailViewport.addListener(handleBookingSideRailViewportChange);
+    }
+    updateBookingSideRail();
 
     document.addEventListener('visibilitychange', () => {
       if (!shouldMaintainChatSync()) return;
@@ -3326,6 +5171,9 @@
       if (!shouldMaintainChatSync()) return;
       scheduleChatPolling();
       runUserChatSync({ scrollBottom: chatWidgetOpen, markRead: chatWidgetOpen });
+      loadCommunityQuestions({ preserveExpanded: true }).catch((err) => {
+        console.warn('[club] community refresh on focus error', err);
+      });
     });
 
     clubChatFormEl?.addEventListener('submit', async (evt) => {
@@ -3342,6 +5190,12 @@
 
       const text = sanitizeChatText(clubChatInputEl?.value || '');
       if (!text) return;
+      const submitFingerprint = text.replace(/\s+/g, ' ').trim().toLowerCase();
+      const now = Date.now();
+      if (submitFingerprint && submitFingerprint === lastChatSubmitFingerprint && (now - lastChatSubmitAt) < 20000) {
+        showPageToast('This message is already sending. Please wait for the reply.', 'info');
+        return;
+      }
 
       if (needsHumanPromptFromInput(text) && !isHumanSessionMode()) {
         openInlineHumanPrompt({
@@ -3355,9 +5209,12 @@
       }
 
       const previousInput = text;
+      lastChatSubmitFingerprint = submitFingerprint;
+      lastChatSubmitAt = now;
       pendingUserChatMessage = createPendingUserChatMessage(previousInput);
       if (clubChatInputEl) {
         clubChatInputEl.value = '';
+        resizeClubChatInput();
       }
       setClubChatSendingState(true);
       renderClubChatThread(true);
@@ -3376,8 +5233,11 @@
           }
           pendingUserChatMessage = null;
           setClubChatSendingState(false);
+          lastChatSubmitFingerprint = '';
+          lastChatSubmitAt = 0;
           if (clubChatInputEl) {
             clubChatInputEl.value = previousInput;
+            resizeClubChatInput();
             clubChatInputEl.focus();
           }
           showPageToast(msg, 'error');
@@ -3388,9 +5248,14 @@
         const returnedThreadMessages = Array.isArray(savedPayload?.messages)
           ? savedPayload.messages.map(normalizeChatMessage).filter(Boolean)
           : [];
+        const isFullThreadPayload = Boolean(savedPayload?.fullThread);
 
         if (returnedThreadMessages.length) {
-          chatMessages = returnedThreadMessages;
+          if (isFullThreadPayload) {
+            chatMessages = returnedThreadMessages;
+          } else {
+            mergeChatMessages(returnedThreadMessages);
+          }
           chatUnreadCount = Math.max(0, Number(savedPayload?.unreadCount) || 0);
           chatSessionId = Number.isFinite(Number(savedPayload?.sessionId)) ? Number(savedPayload.sessionId) : chatSessionId;
           chatSessionMode = String(savedPayload?.chatMode || chatSessionMode || 'AI').trim() || 'AI';
@@ -3401,10 +5266,13 @@
             chatLoadError = 'Message was not confirmed by the server. Please refresh and try again.';
             pendingUserChatMessage = null;
             setClubChatSendingState(false);
+            lastChatSubmitFingerprint = '';
+            lastChatSubmitAt = 0;
             renderClubChatThread(false);
             showPageToast('Message was not saved by server.', 'error');
             if (clubChatInputEl) {
               clubChatInputEl.value = previousInput;
+              resizeClubChatInput();
               clubChatInputEl.focus();
             }
             fetchUserChatThread({ scrollBottom: false, markRead: false });
@@ -3417,6 +5285,8 @@
         chatLoadError = '';
         pendingUserChatMessage = null;
         setClubChatSendingState(false);
+        lastChatSubmitFingerprint = '';
+        lastChatSubmitAt = 0;
         renderClubChatThread(true);
         window.setTimeout(() => {
           fetchUserChatThread({ scrollBottom: true, markRead: false }).catch((err) => {
@@ -3427,12 +5297,134 @@
         console.warn('[club] chat send error', err);
         pendingUserChatMessage = null;
         setClubChatSendingState(false);
+        lastChatSubmitFingerprint = '';
+        lastChatSubmitAt = 0;
         if (clubChatInputEl) {
           clubChatInputEl.value = previousInput;
+          resizeClubChatInput();
           clubChatInputEl.focus();
         }
         renderClubChatThread(false);
         showPageToast('Failed to send message. Please try again.', 'error');
+      }
+    });
+
+    clubChatInputEl?.addEventListener('input', resizeClubChatInput);
+    clubChatInputEl?.addEventListener('keydown', (evt) => {
+      if (evt.key !== 'Enter' || evt.shiftKey || evt.isComposing) return;
+      evt.preventDefault();
+      clubChatFormEl?.requestSubmit?.();
+    });
+    resizeClubChatInput();
+
+    clubCommunityAskFormEl?.addEventListener('submit', async (evt) => {
+      evt.preventDefault();
+      await submitCommunityQuestion();
+    });
+
+    clubCommunityListEl?.addEventListener('click', (evt) => {
+      const questionEditCancel = evt.target.closest('[data-community-question-edit-cancel]');
+      if (questionEditCancel) {
+        editingCommunityQuestionId = null;
+        renderCommunitySection();
+        return;
+      }
+      const answerEditCancel = evt.target.closest('[data-community-answer-edit-cancel]');
+      if (answerEditCancel) {
+        editingCommunityAnswerKey = '';
+        renderCommunitySection();
+        return;
+      }
+      const questionEdit = evt.target.closest('[data-community-question-edit]');
+      if (questionEdit) {
+        const questionId = Number(questionEdit.getAttribute('data-community-question-edit'));
+        if (!Number.isFinite(questionId)) return;
+        expandedCommunityQuestionId = questionId;
+        editingCommunityQuestionId = questionId;
+        editingCommunityAnswerKey = '';
+        renderCommunitySection();
+        const nextTick = window.setTimeout(() => {
+          const input = clubCommunityListEl.querySelector(`[data-community-question-edit-input="${questionId}"]`);
+          input?.focus?.();
+        }, 0);
+        void nextTick;
+        return;
+      }
+      const questionDelete = evt.target.closest('[data-community-question-delete]');
+      if (questionDelete) {
+        const questionId = Number(questionDelete.getAttribute('data-community-question-delete'));
+        if (!Number.isFinite(questionId)) return;
+        deleteCommunityQuestion(questionId).catch((err) => {
+          console.warn('[club] delete community question click error', err);
+        });
+        return;
+      }
+      const answerEdit = evt.target.closest('[data-community-answer-edit]');
+      if (answerEdit) {
+        const questionId = Number(answerEdit.getAttribute('data-community-answer-edit'));
+        const answerId = Number(answerEdit.getAttribute('data-community-answer-id'));
+        if (!Number.isFinite(questionId) || !Number.isFinite(answerId)) return;
+        expandedCommunityQuestionId = questionId;
+        editingCommunityQuestionId = null;
+        editingCommunityAnswerKey = getCommunityAnswerEditKey(questionId, answerId);
+        renderCommunitySection();
+        const nextTick = window.setTimeout(() => {
+          const input = clubCommunityListEl.querySelector(`[data-community-answer-edit-input="${questionId}"][data-community-answer-input-id="${answerId}"]`);
+          input?.focus?.();
+        }, 0);
+        void nextTick;
+        return;
+      }
+      const answerDelete = evt.target.closest('[data-community-answer-delete]');
+      if (answerDelete) {
+        const questionId = Number(answerDelete.getAttribute('data-community-answer-delete'));
+        const answerId = Number(answerDelete.getAttribute('data-community-answer-id'));
+        if (!Number.isFinite(questionId) || !Number.isFinite(answerId)) return;
+        deleteCommunityAnswer(questionId, answerId).catch((err) => {
+          console.warn('[club] delete community answer click error', err);
+        });
+        return;
+      }
+      const toggle = evt.target.closest('[data-community-question-toggle]');
+      if (!toggle) return;
+      const questionId = Number(toggle.getAttribute('data-community-question-toggle'));
+      if (!Number.isFinite(questionId)) return;
+      editingCommunityQuestionId = null;
+      editingCommunityAnswerKey = '';
+      expandedCommunityQuestionId = expandedCommunityQuestionId === questionId ? null : questionId;
+      renderCommunitySection();
+    });
+
+    clubCommunityListEl?.addEventListener('submit', async (evt) => {
+      const questionEditForm = evt.target.closest('[data-community-question-edit-form]');
+      if (questionEditForm) {
+        evt.preventDefault();
+        const questionId = Number(questionEditForm.getAttribute('data-community-question-edit-form'));
+        const input = questionEditForm.querySelector(`[data-community-question-edit-input="${questionId}"]`);
+        if (!Number.isFinite(questionId) || !input) return;
+        await submitCommunityQuestionUpdate(questionId, input.value);
+        return;
+      }
+      const answerEditForm = evt.target.closest('[data-community-answer-edit-form]');
+      if (answerEditForm) {
+        evt.preventDefault();
+        const questionId = Number(answerEditForm.getAttribute('data-community-answer-edit-form'));
+        const answerId = Number(answerEditForm.getAttribute('data-community-answer-edit-id'));
+        const input = answerEditForm.querySelector(`[data-community-answer-edit-input="${questionId}"][data-community-answer-input-id="${answerId}"]`);
+        if (!Number.isFinite(questionId) || !Number.isFinite(answerId) || !input) return;
+        await submitCommunityAnswerUpdate(questionId, answerId, input.value);
+        return;
+      }
+      const form = evt.target.closest('[data-community-answer-form]');
+      if (!form) return;
+      evt.preventDefault();
+      const questionId = Number(form.getAttribute('data-community-answer-form'));
+      const input = form.querySelector('[data-community-answer-input]');
+      if (!Number.isFinite(questionId) || !input) return;
+      const text = input.value;
+      await submitCommunityAnswer(questionId, text);
+      if (!communityAnswerInFlightQuestionId) {
+        input.value = '';
       }
     });
 
@@ -3452,6 +5444,9 @@
         if (shouldMaintainChatSync()) {
           startChatPolling();
         }
+        loadCommunityQuestions({ preserveExpanded: true }).catch((err) => {
+          console.warn('[club] community refresh on storage error', err);
+        });
       }
     });
 
@@ -3544,6 +5539,7 @@
 
   <script type="module" src="auth-modal.js?v=20260324a"></script>
   
+
 
 
 

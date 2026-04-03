@@ -6,12 +6,14 @@ import com.clubportal.dto.MembershipPlanUpsertRequest;
 import com.clubportal.dto.MembershipPurchaseResponse;
 import com.clubportal.dto.MyMembershipResponse;
 import com.clubportal.model.Club;
+import com.clubportal.model.CheckoutSession;
 import com.clubportal.model.MembershipPlan;
 import com.clubportal.model.TransactionRecord;
 import com.clubportal.model.User;
 import com.clubportal.model.UserMembership;
 import com.clubportal.repository.ClubAdminRepository;
 import com.clubportal.repository.ClubRepository;
+import com.clubportal.repository.CheckoutSessionRepository;
 import com.clubportal.repository.MembershipPlanRepository;
 import com.clubportal.repository.TransactionRecordRepository;
 import com.clubportal.repository.UserMembershipRepository;
@@ -35,6 +37,7 @@ public class MembershipController {
     private final MembershipPlanRepository membershipPlanRepo;
     private final UserMembershipRepository userMembershipRepo;
     private final TransactionRecordRepository transactionRepo;
+    private final CheckoutSessionRepository checkoutSessionRepo;
     private final ClubRepository clubRepo;
     private final UserRepository userRepo;
     private final ClubAdminRepository clubAdminRepo;
@@ -44,6 +47,7 @@ public class MembershipController {
     public MembershipController(MembershipPlanRepository membershipPlanRepo,
                                 UserMembershipRepository userMembershipRepo,
                                 TransactionRecordRepository transactionRepo,
+                                CheckoutSessionRepository checkoutSessionRepo,
                                 ClubRepository clubRepo,
                                 UserRepository userRepo,
                                 ClubAdminRepository clubAdminRepo,
@@ -52,6 +56,7 @@ public class MembershipController {
         this.membershipPlanRepo = membershipPlanRepo;
         this.userMembershipRepo = userMembershipRepo;
         this.transactionRepo = transactionRepo;
+        this.checkoutSessionRepo = checkoutSessionRepo;
         this.clubRepo = clubRepo;
         this.userRepo = userRepo;
         this.clubAdminRepo = clubAdminRepo;
@@ -64,7 +69,7 @@ public class MembershipController {
         if (!clubRepo.existsById(clubId)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Club not found");
         }
-        return ResponseEntity.ok(membershipPlanRepo.findByClubIdAndEnabledTrueOrderByDurationDaysAsc(clubId).stream()
+        return ResponseEntity.ok(membershipService.catalogPlans(membershipPlanRepo.findByClubIdAndEnabledTrueOrderByDurationDaysAsc(clubId)).stream()
                 .map(this::toPlanResponse)
                 .toList());
     }
@@ -79,7 +84,7 @@ public class MembershipController {
         ResponseEntity<?> denied = requireClubAdmin(me, clubId);
         if (denied != null) return denied;
 
-        return ResponseEntity.ok(membershipService.ensureStandardPlansForClub(clubId).stream()
+        return ResponseEntity.ok(membershipService.catalogPlans(membershipPlanRepo.findByClubIdOrderByDurationDaysAsc(clubId)).stream()
                 .map(this::toPlanResponse)
                 .toList());
     }
@@ -102,9 +107,9 @@ public class MembershipController {
         }
 
         Map<String, MembershipPlan> existingByCode = membershipPlanRepo.findByClubId(clubId).stream()
-                .filter(plan -> !membershipService.normalizePlanCode(plan.getPlanCode()).isBlank())
+                .filter(plan -> !membershipService.normalizeStandardPlanCode(plan.getPlanCode()).isBlank())
                 .collect(Collectors.toMap(
-                        plan -> membershipService.normalizePlanCode(plan.getPlanCode()),
+                        plan -> membershipService.normalizeStandardPlanCode(plan.getPlanCode()),
                         plan -> plan,
                         (left, right) -> left,
                         LinkedHashMap::new
@@ -113,54 +118,82 @@ public class MembershipController {
         Set<String> seenCodes = new HashSet<>();
         List<MembershipPlan> saved = new ArrayList<>();
         for (MembershipPlanUpsertRequest row : rows) {
-            String planCode = membershipService.normalizePlanCode(row.getPlanCode());
-            if (planCode.isBlank()) {
-                return ResponseEntity.badRequest().body("Invalid membership plan code");
+            MembershipPlan plan;
+            String planCode = membershipService.normalizeStandardPlanCode(row.getPlanCode());
+            if (row.getPlanId() != null) {
+                plan = membershipPlanRepo.findById(row.getPlanId()).orElse(null);
+                if (plan == null || !Objects.equals(plan.getClubId(), clubId)) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Membership plan not found");
+                }
+                String existingCode = membershipService.normalizePlanCode(plan.getPlanCode());
+                planCode = membershipService.isStandardPlanCode(existingCode)
+                        ? membershipService.normalizeStandardPlanCode(existingCode)
+                        : existingCode;
+            } else if (!planCode.isBlank()) {
+                plan = existingByCode.getOrDefault(planCode, new MembershipPlan());
+            } else {
+                return ResponseEntity.badRequest().body("Missing membership plan identifier");
             }
             if (!seenCodes.add(planCode)) {
                 return ResponseEntity.badRequest().body("Duplicate membership plan code: " + planCode);
             }
-
-            MembershipPlan plan = existingByCode.getOrDefault(planCode, new MembershipPlan());
-            plan.setClubId(clubId);
-            plan.setPlanCode(planCode);
-
-            String planName = safe(row.getPlanName());
-            plan.setPlanName(planName.isBlank() ? membershipService.defaultPlanName(planCode) : planName);
-
-            Integer durationDays = row.getDurationDays();
-            if (durationDays == null || durationDays <= 0) {
-                durationDays = membershipService.defaultDurationDays(planCode);
+            try {
+                saved.add(saveMembershipPlan(clubId, plan, row, !membershipService.isStandardPlanCode(planCode)));
+            } catch (IllegalArgumentException ex) {
+                return ResponseEntity.badRequest().body(ex.getMessage());
             }
-            plan.setDurationDays(durationDays);
-
-            BigDecimal price = row.getPrice();
-            if (price == null && plan.getPrice() != null) {
-                price = plan.getPrice();
-            }
-            plan.setPrice(membershipService.normalizePrice(price));
-
-            BigDecimal discountPercent = row.getDiscountPercent();
-            if (discountPercent == null && plan.getDiscountPercent() != null) {
-                discountPercent = plan.getDiscountPercent();
-            }
-            BigDecimal normalizedDiscount = membershipService.normalizeDiscount(discountPercent);
-            plan.setDiscountPercent(normalizedDiscount);
-            plan.setEnabled(membershipService.normalizeEnabled(
-                    row.getEnabled(),
-                    membershipService.normalizeEnabled(plan.getEnabled(), false)
-            ));
-
-            String description = safe(row.getDescription());
-            plan.setDescription(description.isBlank()
-                    ? membershipService.defaultDescription(planCode, normalizedDiscount)
-                    : description);
-
-            saved.add(membershipPlanRepo.save(plan));
         }
 
-        saved.sort(Comparator.comparingInt(MembershipPlan::getDurationDays));
-        return ResponseEntity.ok(saved.stream().map(this::toPlanResponse).toList());
+        return ResponseEntity.ok(membershipService.sortPlans(saved).stream().map(this::toPlanResponse).toList());
+    }
+
+    @PostMapping("/my/clubs/{clubId}/membership-plans")
+    @Transactional
+    public ResponseEntity<?> createCustomMembershipPlan(@PathVariable Integer clubId,
+                                                        @RequestBody MembershipPlanUpsertRequest request) {
+        if (!clubRepo.existsById(clubId)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Club not found");
+        }
+
+        User me = currentUserService.requireUser();
+        ResponseEntity<?> denied = requireClubAdmin(me, clubId);
+        if (denied != null) return denied;
+
+        MembershipPlan draft = new MembershipPlan();
+        draft.setClubId(clubId);
+        draft.setPlanCode(membershipService.newCustomPlanCode());
+        try {
+            MembershipPlan saved = saveMembershipPlan(clubId, draft, request, true);
+            return ResponseEntity.status(HttpStatus.CREATED).body(toPlanResponse(saved));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+    }
+
+    @DeleteMapping("/my/clubs/{clubId}/membership-plans/{planId}")
+    @Transactional
+    public ResponseEntity<?> deleteCustomMembershipPlan(@PathVariable Integer clubId,
+                                                        @PathVariable Integer planId) {
+        if (!clubRepo.existsById(clubId)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Club not found");
+        }
+
+        User me = currentUserService.requireUser();
+        ResponseEntity<?> denied = requireClubAdmin(me, clubId);
+        if (denied != null) return denied;
+
+        MembershipPlan plan = membershipPlanRepo.findById(planId).orElse(null);
+        if (plan == null || !Objects.equals(plan.getClubId(), clubId)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Membership plan not found");
+        }
+        if (membershipService.isStandardPlanCode(plan.getPlanCode())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Standard membership plans cannot be deleted");
+        }
+        if (userMembershipRepo.existsByPlanId(planId)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("This membership plan has already been purchased and cannot be deleted");
+        }
+        membershipPlanRepo.delete(plan);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/my/memberships")
@@ -236,12 +269,15 @@ public class MembershipController {
                             user == null ? "" : safe(user.getEmail()),
                             plan.getPlanId(),
                             safe(plan.getPlanCode()),
+                            membershipService.normalizeBenefitType(plan.getBenefitType()),
                             safe(plan.getPlanName()),
                             membershipService.normalizePrice(plan.getPrice()),
                             membershipService.normalizeDiscount(plan.getDiscountPercent()),
+                            membershipService.normalizeIncludedBookings(plan.getIncludedBookings()),
+                            membershipService.normalizeRemainingBookings(membership.getRemainingBookings()),
                             membership.getStartDate(),
                             membership.getEndDate(),
-                            membershipService.effectiveStatus(membership, today),
+                            membershipService.effectiveStatus(membership, plan, today),
                             membership.getCreatedAt()
                     );
                 })
@@ -281,6 +317,19 @@ public class MembershipController {
         Map<Integer, Club> clubById = clubRepo.findAllById(clubIds).stream()
                 .collect(Collectors.toMap(Club::getClubId, club -> club));
 
+        Set<Integer> membershipIds = memberships.stream()
+                .map(UserMembership::getUserMembershipId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<Integer, String> orderNoByMembershipId = new HashMap<>();
+        if (!membershipIds.isEmpty()) {
+            for (CheckoutSession session : checkoutSessionRepo.findByUserMembershipIdInAndStatusOrderByCreatedAtDesc(membershipIds, "PAID")) {
+                if (session.getUserMembershipId() != null) {
+                    orderNoByMembershipId.putIfAbsent(session.getUserMembershipId(), safe(session.getOrderNo()));
+                }
+            }
+        }
+
         LocalDate today = LocalDate.now();
         return memberships.stream()
                 .map(membership -> {
@@ -289,16 +338,20 @@ public class MembershipController {
                     Club club = clubById.get(plan.getClubId());
                     return new MyMembershipResponse(
                             membership.getUserMembershipId(),
+                            orderNoByMembershipId.getOrDefault(membership.getUserMembershipId(), ""),
                             plan.getClubId(),
                             club == null ? "" : safe(club.getClubName()),
                             plan.getPlanId(),
                             safe(plan.getPlanCode()),
+                            membershipService.normalizeBenefitType(plan.getBenefitType()),
                             safe(plan.getPlanName()),
                             membershipService.normalizePrice(plan.getPrice()),
                             membershipService.normalizeDiscount(plan.getDiscountPercent()),
+                            membershipService.normalizeIncludedBookings(plan.getIncludedBookings()),
+                            membershipService.normalizeRemainingBookings(membership.getRemainingBookings()),
                             membership.getStartDate(),
                             membership.getEndDate(),
-                            membershipService.effectiveStatus(membership, today),
+                            membershipService.effectiveStatus(membership, plan, today),
                             membership.getCreatedAt()
                     );
                 })
@@ -311,13 +364,116 @@ public class MembershipController {
                 plan.getPlanId(),
                 plan.getClubId(),
                 safe(plan.getPlanCode()),
+                membershipService.normalizeBenefitType(plan.getBenefitType()),
                 safe(plan.getPlanName()),
                 membershipService.normalizePrice(plan.getPrice()),
                 Optional.ofNullable(plan.getDurationDays()).orElse(0),
                 membershipService.normalizeDiscount(plan.getDiscountPercent()),
+                membershipService.normalizeIncludedBookings(plan.getIncludedBookings()),
                 membershipService.normalizeEnabled(plan.getEnabled(), false),
+                membershipService.isStandardPlanCode(plan.getPlanCode()),
                 safe(plan.getDescription())
         );
+    }
+
+    private MembershipPlan saveMembershipPlan(Integer clubId,
+                                              MembershipPlan plan,
+                                              MembershipPlanUpsertRequest row,
+                                              boolean allowCustomPlan) {
+        if (plan == null) {
+            throw new IllegalArgumentException("Membership plan not found");
+        }
+        plan.setClubId(clubId);
+        String existingCode = membershipService.normalizePlanCode(plan.getPlanCode());
+        String standardCode = membershipService.normalizeStandardPlanCode(existingCode);
+        String planCode = standardCode.isBlank()
+                ? (allowCustomPlan ? existingCode : membershipService.normalizeStandardPlanCode(row == null ? null : row.getPlanCode()))
+                : standardCode;
+        if (planCode.isBlank()) {
+            throw new IllegalArgumentException("Invalid membership plan code");
+        }
+        plan.setPlanCode(planCode);
+
+        String benefitType = membershipService.normalizeBenefitType(row == null ? null : row.getBenefitType());
+        if (safe(plan.getBenefitType()).isBlank()) {
+            plan.setBenefitType(benefitType);
+        } else if (safe(row == null ? null : row.getBenefitType()).isBlank()) {
+            benefitType = membershipService.normalizeBenefitType(plan.getBenefitType());
+        }
+        plan.setBenefitType(benefitType);
+
+        Integer durationDays = row == null ? null : row.getDurationDays();
+        if (durationDays == null || durationDays <= 0) {
+            durationDays = plan.getDurationDays();
+        }
+        if (durationDays == null || durationDays <= 0) {
+            durationDays = membershipService.isStandardPlanCode(planCode)
+                    ? membershipService.defaultDurationDays(planCode)
+                    : 30;
+        }
+        plan.setDurationDays(durationDays);
+
+        BigDecimal price = row == null ? null : row.getPrice();
+        if (price == null) {
+            price = plan.getPrice();
+        }
+        if (price == null && membershipService.isStandardPlanCode(planCode)) {
+            price = membershipService.defaultPlanPrice(planCode);
+        }
+        plan.setPrice(membershipService.normalizePrice(price));
+
+        BigDecimal discountPercent = row == null ? null : row.getDiscountPercent();
+        if (discountPercent == null) {
+            discountPercent = plan.getDiscountPercent();
+        }
+        if (discountPercent == null && membershipService.isStandardPlanCode(planCode)) {
+            discountPercent = membershipService.defaultPlanDiscount(planCode);
+        }
+        BigDecimal normalizedDiscount = membershipService.normalizeDiscount(discountPercent);
+
+        Integer includedBookings = row == null ? null : row.getIncludedBookings();
+        if (includedBookings == null) {
+            includedBookings = plan.getIncludedBookings();
+        }
+        int normalizedIncludedBookings = membershipService.normalizeIncludedBookings(includedBookings);
+
+        if (MembershipService.BENEFIT_BOOKING_PACK.equals(benefitType)) {
+            if (normalizedIncludedBookings <= 0) {
+                throw new IllegalArgumentException("Booking packs must include at least 1 booking");
+            }
+            plan.setDiscountPercent(BigDecimal.ZERO.setScale(2));
+            plan.setIncludedBookings(normalizedIncludedBookings);
+        } else {
+            plan.setDiscountPercent(normalizedDiscount);
+            plan.setIncludedBookings(0);
+        }
+
+        plan.setEnabled(membershipService.normalizeEnabled(
+                row == null ? null : row.getEnabled(),
+                membershipService.normalizeEnabled(plan.getEnabled(), false)
+        ));
+
+        String planName = safe(row == null ? null : row.getPlanName());
+        if (planName.isBlank()) {
+            planName = membershipService.isStandardPlanCode(planCode)
+                    ? membershipService.defaultPlanName(planCode)
+                    : membershipService.defaultCustomPlanName(benefitType);
+        }
+        plan.setPlanName(planName);
+
+        String description = safe(row == null ? null : row.getDescription());
+        if (description.isBlank()) {
+            description = membershipService.defaultDescription(
+                    benefitType,
+                    planCode,
+                    plan.getDiscountPercent(),
+                    plan.getIncludedBookings(),
+                    plan.getDurationDays()
+            );
+        }
+        plan.setDescription(description);
+
+        return membershipPlanRepo.save(plan);
     }
 
     private ResponseEntity<?> requireClubAdmin(User me, Integer clubId) {
@@ -336,9 +492,10 @@ public class MembershipController {
     private static int statusRank(String status) {
         return switch (safe(status).toUpperCase(Locale.ROOT)) {
             case "ACTIVE" -> 0;
-            case "SCHEDULED" -> 1;
-            case "EXPIRED" -> 2;
-            default -> 3;
+            case "EXHAUSTED" -> 1;
+            case "SCHEDULED" -> 2;
+            case "EXPIRED" -> 3;
+            default -> 4;
         };
     }
 

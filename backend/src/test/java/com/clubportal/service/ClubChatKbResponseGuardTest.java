@@ -60,4 +60,50 @@ class ClubChatKbResponseGuardTest {
         assertTrue(decision.allow());
         assertEquals(ClubChatKbGuardRejectReason.NONE, decision.rejectReason());
     }
+
+    @Test
+    void chineseHighRiskKeywordIsRejected() {
+        ClubChatKbResponseGuard guard = new ClubChatKbResponseGuard(
+                new ClubChatKbGuardProperties(),
+                new ClubChatKbMatcherProperties(),
+                normalizer
+        );
+
+        ClubChatKbMatchResult matchResult = ClubChatKbMatchResult.hit(
+                18,
+                "预约后可以取消吗？",
+                "请联系工作人员。",
+                0.93d,
+                0.41d,
+                "预约后可以取消吗"
+        );
+
+        ClubChatKbResponseGuard.Decision decision = guard.evaluate("我想退款", matchResult);
+
+        assertFalse(decision.allow());
+        assertEquals(ClubChatKbGuardRejectReason.HIGH_RISK_KEYWORD, decision.rejectReason());
+    }
+
+    @Test
+    void chineseRealtimeKeywordIsRejected() {
+        ClubChatKbResponseGuard guard = new ClubChatKbResponseGuard(
+                new ClubChatKbGuardProperties(),
+                new ClubChatKbMatcherProperties(),
+                normalizer
+        );
+
+        ClubChatKbMatchResult matchResult = ClubChatKbMatchResult.hit(
+                19,
+                "你们什么时候营业？",
+                "周一到周五 10:00-22:00。",
+                0.91d,
+                0.40d,
+                "你们什么时候营业"
+        );
+
+        ClubChatKbResponseGuard.Decision decision = guard.evaluate("今天现在营业吗？", matchResult);
+
+        assertFalse(decision.allow());
+        assertEquals(ClubChatKbGuardRejectReason.REALTIME_KEYWORD, decision.rejectReason());
+    }
 }

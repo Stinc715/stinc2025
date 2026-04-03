@@ -3,10 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Redirecting...</title>
+    
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data: blob: https://maps.gstatic.com https://maps.googleapis.com https://*.googleusercontent.com https://www.google.com https://www.gstatic.com; font-src 'self' data: https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://accounts.google.com https://maps.googleapis.com; connect-src 'self' https://accounts.google.com https://maps.googleapis.com https://api.stripe.com; frame-src 'self' https://accounts.google.com https://js.stripe.com; form-action 'self' https://accounts.google.com">
+<title>Redirecting...</title>
+    <link rel="stylesheet" href="desktop-consistency.css?v=20260403a" />
     <meta http-equiv="refresh" content="0; url=/home.html" />
   </head>
-  <body>
+  <body class="desktop-consistency desktop-shell--narrow desktop-page--redirect">
     <script>
       (function(){
         var target = '/home.html' + (window.location.search || '') + (window.location.hash || '');
@@ -15,3 +18,4 @@
     </script>
   </body>
 </html>
+

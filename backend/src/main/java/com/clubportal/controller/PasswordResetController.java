@@ -2,10 +2,10 @@ package com.clubportal.controller;
 
 import com.clubportal.model.User;
 import com.clubportal.repository.UserRepository;
+import com.clubportal.service.PasswordPolicyService;
 import com.clubportal.service.PasswordResetService;
 import com.clubportal.service.VerificationEmailSenderService;
 import com.clubportal.util.PasswordEncryptionUtil;
-import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -32,12 +31,14 @@ public class PasswordResetController {
 
     private static final Logger log = LoggerFactory.getLogger(PasswordResetController.class);
     private static final Pattern EMAIL_RE = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
-    private static final Pattern PASSWORD_RE = Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$");
+    private static final String GENERIC_RESET_REQUEST_MESSAGE =
+            "If an account exists for this email, a password reset link will be sent shortly.";
 
     private final PasswordResetService passwordResetService;
     private final VerificationEmailSenderService emailSenderService;
     private final UserRepository userRepo;
     private final PasswordEncryptionUtil passwordUtil;
+    private final PasswordPolicyService passwordPolicyService;
 
     @Value("${app.public.base-url:}")
     private String publicBaseUrl;
@@ -45,16 +46,17 @@ public class PasswordResetController {
     public PasswordResetController(PasswordResetService passwordResetService,
                                    VerificationEmailSenderService emailSenderService,
                                    UserRepository userRepo,
-                                   PasswordEncryptionUtil passwordUtil) {
+                                   PasswordEncryptionUtil passwordUtil,
+                                   PasswordPolicyService passwordPolicyService) {
         this.passwordResetService = passwordResetService;
         this.emailSenderService = emailSenderService;
         this.userRepo = userRepo;
         this.passwordUtil = passwordUtil;
+        this.passwordPolicyService = passwordPolicyService;
     }
 
     @PostMapping("/request")
-    public ResponseEntity<?> requestPasswordReset(@RequestBody Map<String, Object> body,
-                                                  HttpServletRequest request) {
+    public ResponseEntity<?> requestPasswordReset(@RequestBody Map<String, Object> body) {
         String email = normalizeEmail(body.get("email"));
         if (email.isBlank()) {
             return ResponseEntity.badRequest().body("Missing email");
@@ -65,34 +67,38 @@ public class PasswordResetController {
 
         User user = userRepo.findByEmailIgnoreCase(email).orElse(null);
         if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No account found for this email");
+            log.info("Password reset requested for non-existent email={}", email);
+            return genericResetRequestAccepted();
         }
 
         PasswordResetService.IssueResetResult issued = passwordResetService.issueReset(email);
         if (!issued.success()) {
-            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(Map.of(
-                    "message", "Please wait before requesting another reset email",
-                    "retryAfterSeconds", issued.retryAfterSeconds()
-            ));
+            log.info("Password reset request rate-limited for email={} retryAfterSeconds={}",
+                    email, issued.retryAfterSeconds());
+            return genericResetRequestAccepted();
         }
 
-        String resetLink = buildResetLink(request, issued.token());
+        String resetLink;
+        try {
+            resetLink = buildResetLink(issued.token());
+        } catch (Exception ex) {
+            passwordResetService.clearForEmail(email);
+            log.error("Password reset link generation failed for email={}", email, ex);
+            return genericResetRequestAccepted();
+        }
         VerificationEmailSenderService.SendEmailResult sent =
                 emailSenderService.sendPasswordResetLink(email, resetLink, issued.expiresAt());
         if (!sent.success()) {
             passwordResetService.clearForEmail(email);
-            if (VerificationEmailSenderService.REASON_RECIPIENT_REJECTED.equals(sent.reasonCode())) {
-                return ResponseEntity.badRequest().body(sent.message());
-            }
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(sent.message());
+            log.warn("Password reset email dispatch failed for email={} reasonCode={} message={}",
+                    email, safe(sent.reasonCode()), safe(sent.message()));
+            return genericResetRequestAccepted();
         }
 
         long expiresInSeconds = Math.max(1, Duration.between(Instant.now(), issued.expiresAt()).getSeconds());
-        log.info("Issued password reset for email={} resetLinkBase={}", email, safe(resolvePublicBaseUrl(request)));
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "expiresInSeconds", expiresInSeconds
-        ));
+        log.info("Issued password reset for email={} resetLinkBase={} expiresInSeconds={}",
+                email, safe(resolveTrustedPublicBaseUrl()), expiresInSeconds);
+        return genericResetRequestAccepted();
     }
 
     @GetMapping("/validate")
@@ -112,7 +118,7 @@ public class PasswordResetController {
     @PostMapping("/confirm")
     public ResponseEntity<?> confirmPasswordReset(@RequestBody Map<String, Object> body) {
         String token = safe(body.get("token"));
-        String password = safe(body.get("password"));
+        String password = raw(body.get("password"));
 
         if (token.isBlank()) {
             return ResponseEntity.badRequest().body("Missing token");
@@ -120,8 +126,9 @@ public class PasswordResetController {
         if (password.isBlank()) {
             return ResponseEntity.badRequest().body("Password is required");
         }
-        if (!PASSWORD_RE.matcher(password).matches()) {
-            return ResponseEntity.badRequest().body("Password must include uppercase, lowercase, and a number");
+        String passwordValidationMessage = passwordPolicyService.validate(password).orElse(null);
+        if (passwordValidationMessage != null) {
+            return ResponseEntity.badRequest().body(passwordValidationMessage);
         }
 
         PasswordResetService.ConsumeResetResult result = passwordResetService.consumeToken(token);
@@ -144,48 +151,17 @@ public class PasswordResetController {
         ));
     }
 
-    private String buildResetLink(HttpServletRequest request, String token) {
-        String base = resolvePublicBaseUrl(request);
+    private String buildResetLink(String token) {
+        String base = resolveTrustedPublicBaseUrl();
         return base + "/reset-password.html?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
     }
 
-    private String resolvePublicBaseUrl(HttpServletRequest request) {
-        String origin = safe(request == null ? null : request.getHeader("Origin"));
-        if (isPublicHttpUrl(origin)) {
-            return trimTrailingSlash(origin);
-        }
-
-        String referer = safe(request == null ? null : request.getHeader("Referer"));
-        if (!referer.isBlank()) {
-            try {
-                URI uri = URI.create(referer);
-                if (uri.getScheme() != null && uri.getAuthority() != null) {
-                    String candidate = uri.getScheme() + "://" + uri.getAuthority();
-                    if (isPublicHttpUrl(candidate)) {
-                        return trimTrailingSlash(candidate);
-                    }
-                }
-            } catch (Exception ignored) {
-            }
-        }
-
+    private String resolveTrustedPublicBaseUrl() {
         String configured = safe(publicBaseUrl);
         if (isPublicHttpUrl(configured)) {
             return trimTrailingSlash(configured);
         }
-
-        String scheme = safe(request == null ? null : request.getScheme());
-        String serverName = safe(request == null ? null : request.getServerName());
-        int port = request == null ? -1 : request.getServerPort();
-        if (!scheme.isBlank() && !serverName.isBlank()) {
-            boolean defaultPort = ("http".equalsIgnoreCase(scheme) && port == 80)
-                    || ("https".equalsIgnoreCase(scheme) && port == 443)
-                    || port <= 0;
-            String suffix = defaultPort ? "" : ":" + port;
-            return trimTrailingSlash(scheme + "://" + serverName + suffix);
-        }
-
-        return "http://localhost:5173";
+        throw new IllegalStateException("APP_PUBLIC_BASE_URL is not configured with a valid http(s) URL");
     }
 
     private static boolean isPublicHttpUrl(String value) {
@@ -205,7 +181,18 @@ public class PasswordResetController {
         return value == null ? "" : String.valueOf(value).trim();
     }
 
+    private static String raw(Object value) {
+        return value == null ? "" : String.valueOf(value);
+    }
+
     private static String normalizeEmail(Object value) {
         return safe(value).toLowerCase();
+    }
+
+    private ResponseEntity<Map<String, Object>> genericResetRequestAccepted() {
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", GENERIC_RESET_REQUEST_MESSAGE
+        ));
     }
 }

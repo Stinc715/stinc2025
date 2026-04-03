@@ -1,8 +1,10 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data: blob: https://maps.gstatic.com https://maps.googleapis.com https://*.googleusercontent.com https://www.google.com https://www.gstatic.com; font-src 'self' data: https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://accounts.google.com https://maps.googleapis.com; connect-src 'self' https://accounts.google.com https://maps.googleapis.com https://api.stripe.com; frame-src 'self' https://accounts.google.com https://js.stripe.com; form-action 'self' https://accounts.google.com">
 <title>Club Booking Portal</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@600;700&display=swap');
@@ -42,14 +44,6 @@
   footer {
     border-top: 1px solid var(--line);
     background: #fff;
-  }
-
-  header .wrap,
-  footer .wrap,
-  .wrap {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 16px;
   }
 
   h1 {
@@ -652,14 +646,14 @@
     }
   }
 </style>
-
-
-  <link rel="stylesheet" href="theme.css?v=20260324a">
+  <link rel="stylesheet" href="theme.css?v=20260402a">
+  <link rel="stylesheet" href="desktop-consistency.css?v=20260403a">
+  <script src="auth-session.js?v=20260331b"></script>
 </head>
-<body class="page-with-footer">
+<body class="page-with-footer desktop-consistency desktop-shell--standard desktop-page--home">
   <!-- 顶部导航栏：包含网站标题和用户登�?注册入口 -->
   <header id="top">
-    <div class="wrap" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+    <div class="wrap desktop-shell-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
       <h1 class="site-title" style="display:flex;align-items:center;">
         <a class="site-title-link" href="#top">Club Booking Portal</a>
       </h1>
@@ -670,7 +664,7 @@
     </div>
   </header>
 
-  <main class="wrap page-main">
+  <main class="wrap page-main desktop-shell-main">
     <!-- 搜索与筛选区域：包含搜索框、清除按钮和筛选折叠面�?-->
     <section id="p1" class="page">
       <div class="card search-card"><div class="pad">
@@ -696,12 +690,12 @@
       <!-- 俱乐部卡片列表容器：动态渲染搜索结�?-->
       <div id="cards" class="cards"></div>
       <div id="loading" class="empty" style="display:none">Loading clubs...</div>
-      <div id="empty" class="empty" style="display:none">No clubs match your keyword.</div>
+      <div id="empty" class="empty" style="display:none">No clubs found.</div>
     </section>
   </main>
   <!-- 页脚：包含版权信息和辅助链接（隐私、条款、帮助） -->
   <footer class="site-footer">
-    <div class="site-footer__wrap">
+    <div class="site-footer__wrap desktop-shell-wrap">
       <span class="site-footer__text">&copy; 2026 Club Booking Portal</span>
       <div class="site-footer__actions">
         <button class="site-footer__btn info-trigger" type="button" data-info="privacy">Privacy</button>
@@ -764,6 +758,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
   const clearStaleSession = () => {
+    if (window.AuthSession?.clearAll) {
+      window.AuthSession.clearAll();
+      return;
+    }
     localStorage.removeItem('token');
     localStorage.removeItem('loggedUser');
     localStorage.removeItem('user');
@@ -907,11 +905,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 绑定下拉菜单中的按钮事件
     document.getElementById('btnDetails')?.addEventListener('click', () => { window.location.href = targetHref; });
-    document.getElementById('btnLogout')?.addEventListener('click', () => { 
-      localStorage.removeItem('loggedUser'); 
-      localStorage.removeItem('user'); 
-      localStorage.removeItem('selectedClub'); 
-      location.reload(); 
+    document.getElementById('btnLogout')?.addEventListener('click', () => {
+      if (window.AuthSession?.logout) {
+        window.AuthSession.logout('', { reload: true });
+        return;
+      }
+      localStorage.removeItem('loggedUser');
+      localStorage.removeItem('user');
+      localStorage.removeItem('selectedClub');
+      location.reload();
     });
 
     // 控制下拉菜单的显示与隐藏（支持点击和鼠标悬停�?
@@ -1158,7 +1160,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!list.length) {
       cardsEl.innerHTML = '';
       if (emptyEl) {
-        emptyEl.textContent = CLUBS.length ? 'No clubs match your keyword.' : 'No clubs available yet.';
+        emptyEl.textContent = CLUBS.length ? 'No clubs found.' : 'No clubs yet.';
       }
       emptyEl.style.display = 'block';
     } else {
@@ -1350,4 +1352,5 @@ document.addEventListener('DOMContentLoaded', () => {
   <script type="module" src="auth-modal.js?v=20260324a"></script>
 </body>
 </html>
+
 

@@ -1,10 +1,12 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Club Booking Portal - Member Chats</title>
-  <link rel="stylesheet" href="theme.css?v=20260324a">
+  
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data: blob: https://maps.gstatic.com https://maps.googleapis.com https://*.googleusercontent.com https://www.google.com https://www.gstatic.com; font-src 'self' data: https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://accounts.google.com https://maps.googleapis.com; connect-src 'self' https://accounts.google.com https://maps.googleapis.com https://api.stripe.com; frame-src 'self' https://accounts.google.com https://js.stripe.com; form-action 'self' https://accounts.google.com">
+<title>Club Booking Portal - Member Chats</title>
+  <link rel="stylesheet" href="theme.css?v=20260402a">
   <style>
     :root {
       --chat-line: #e2e8f0;
@@ -23,21 +25,6 @@
       height: 100%;
       overflow: hidden;
     }
-    body.page-with-footer {
-      min-height: 100dvh;
-      height: 100dvh;
-      display: grid;
-      grid-template-rows: auto minmax(0, 1fr) auto;
-      padding-bottom: 0 !important;
-      overflow: hidden;
-    }
-    body.page-with-footer > .site-footer {
-      position: static;
-      left: auto;
-      right: auto;
-      bottom: auto;
-      z-index: auto;
-    }
     header {
       border-bottom: 1px solid var(--line);
       background: #fff;
@@ -45,43 +32,12 @@
       top: 0;
       z-index: 20;
     }
-    .wrap {
-      max-width: 1180px;
-      margin: 0 auto;
-      padding: 14px 16px;
-    }
     .head-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
       flex-wrap: wrap;
-    }
-    .back-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      color: #64748b;
-      text-decoration: none;
-      border: 1px solid rgba(148, 163, 184, 0.24);
-      background: rgba(255, 255, 255, 0.9);
-      cursor: pointer;
-      padding: 8px 12px;
-      font-size: 14px;
-      font-weight: 600;
-      border-radius: 999px;
-      box-shadow: 0 8px 18px rgba(29, 29, 31, 0.08);
-      transition: color .2s ease, border-color .2s ease, background .2s ease, transform .2s ease, box-shadow .2s ease;
-    }
-    .back-link::before {
-      content: '<';
-    }
-    .back-link:hover {
-      color: var(--ink);
-      background: rgba(255, 255, 255, 0.96);
-      border-color: rgba(100, 116, 139, 0.28);
-      box-shadow: 0 12px 22px rgba(29, 29, 31, 0.12);
-      transform: translateY(-1px);
     }
     .head-title {
       margin: 0;
@@ -111,12 +67,12 @@
       border-right: 1px solid var(--chat-line);
       background: #fff;
       display: grid;
-      grid-template-rows: minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr);
       min-height: 0;
       height: 100%;
     }
     .thread-list {
-      padding: 14px 10px 10px;
+      padding: 10px 10px 10px;
       min-height: 0;
       overflow: auto;
       overscroll-behavior: contain;
@@ -235,6 +191,349 @@
       grid-template-rows: auto minmax(0, 1fr) auto;
       background: #fff;
       overflow: hidden;
+      padding-bottom: 12px;
+    }
+    .qa-dock {
+      border-bottom: 1px solid var(--chat-line);
+      background: #fff;
+      padding: 12px 10px 10px;
+      display: grid;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    .qa-dock-toggle {
+      width: 100%;
+      border: 1px solid rgba(191, 219, 254, 0.95);
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-radius: 14px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .qa-count {
+      min-width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      background: rgba(29, 78, 216, 0.12);
+      color: #1d4ed8;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 8px;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .qa-dock-panel[hidden] {
+      display: none !important;
+    }
+    .qa-dock-panel {
+      padding-bottom: 0;
+      max-height: min(44vh, 360px);
+      overflow: hidden;
+    }
+    .qa-dock-list {
+      max-height: min(44vh, 360px);
+      min-height: 0;
+      overflow: auto;
+      display: grid;
+      gap: 8px;
+      padding-right: 4px;
+    }
+    .qa-dock-question {
+      border: 1px solid var(--chat-line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 10px 11px;
+      display: grid;
+      gap: 6px;
+      cursor: pointer;
+      text-align: left;
+    }
+    .qa-dock-question.active {
+      border-color: #93c5fd;
+      background: #eff6ff;
+      box-shadow: 0 10px 20px rgba(37, 99, 235, 0.12);
+    }
+    .qa-dock-question-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .qa-dock-question-author {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--chat-ink-soft);
+    }
+    .qa-dock-question-text {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.4;
+    }
+    .qa-dock-question-meta {
+      font-size: 11px;
+      color: var(--chat-ink-soft);
+    }
+    .qa-dock-empty {
+      border: 1px dashed #cbd5e1;
+      border-radius: 12px;
+      background: #fff;
+      color: #475569;
+      font-size: 12px;
+      line-height: 1.45;
+      padding: 12px;
+    }
+    .qa-thread-view[hidden] {
+      display: none !important;
+    }
+    .qa-thread-view {
+      grid-row: 2 / 4;
+      min-height: 0;
+      height: 100%;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
+      background: #fff;
+      overflow: hidden;
+    }
+    .qa-thread-log {
+      padding: 14px;
+      min-height: 0;
+      overflow: auto;
+      display: grid;
+      gap: 14px;
+      align-content: start;
+      background: #fff;
+    }
+    .qa-thread-card {
+      display: grid;
+      gap: 14px;
+      min-height: 0;
+    }
+    .qa-thread-question {
+      border: 1px solid var(--chat-line);
+      border-radius: 14px;
+      background: #f8fafc;
+      padding: 14px;
+      display: grid;
+      gap: 8px;
+    }
+    .qa-thread-question-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .qa-thread-question-author {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--chat-ink-soft);
+    }
+    .qa-thread-question-text {
+      font-size: 18px;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.4;
+    }
+    .qa-thread-question-meta {
+      font-size: 12px;
+      color: var(--chat-ink-soft);
+    }
+    .qa-inline-actions,
+    .qa-inline-form-actions,
+    .qa-dock-answer-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .qa-inline-actions {
+      justify-content: flex-end;
+    }
+    .qa-inline-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 30px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid #dbe2ea;
+      background: #fff;
+      color: #334155;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .qa-inline-btn.danger {
+      border-color: #fecaca;
+      background: #fef2f2;
+      color: #b91c1c;
+    }
+    .qa-inline-btn:disabled {
+      cursor: wait;
+      opacity: 0.7;
+    }
+    .qa-inline-form {
+      display: grid;
+      gap: 8px;
+    }
+    .qa-inline-form textarea,
+    .qa-dock-reply textarea {
+      width: 100%;
+      min-height: 82px;
+      border: 1px solid var(--chat-line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 10px 11px;
+      font: inherit;
+      line-height: 1.45;
+      resize: vertical;
+    }
+    .qa-inline-form-actions {
+      justify-content: flex-end;
+    }
+    .qa-thread-answers {
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+    .qa-thread-reply-host {
+      border-top: 1px solid var(--chat-line);
+      padding: 12px 14px;
+      background: #fff;
+    }
+    .qa-dock-selected {
+      display: grid;
+      gap: 12px;
+      min-height: 0;
+    }
+    .qa-dock-selected-head {
+      display: grid;
+      gap: 6px;
+    }
+    .qa-dock-selected-title {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.35;
+    }
+    .qa-dock-selected-meta {
+      font-size: 12px;
+      color: var(--chat-ink-soft);
+    }
+    .qa-dock-answers {
+      max-height: 180px;
+      overflow: auto;
+      display: grid;
+      gap: 8px;
+      padding-right: 4px;
+    }
+    .qa-dock-answer {
+      border-radius: 12px;
+      border: 1px solid #dbe2ea;
+      background: #fff;
+      padding: 10px 11px;
+      display: grid;
+      gap: 6px;
+    }
+    .qa-dock-answer.club {
+      border-color: #bbf7d0;
+      background: #f0fdf4;
+    }
+    .qa-dock-answer-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .qa-dock-answer-meta-group {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .qa-dock-answer-author {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #334155;
+    }
+    .qa-chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 20px;
+      padding: 0 8px;
+      border-radius: 999px;
+      border: 1px solid #dbe2ea;
+      background: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      line-height: 1;
+    }
+    .qa-chip.club {
+      border-color: #bbf7d0;
+      background: #f0fdf4;
+      color: #15803d;
+    }
+    .qa-dock-answer-time {
+      font-size: 11px;
+      color: var(--chat-ink-soft);
+    }
+    .qa-dock-answer-text {
+      font-size: 13px;
+      color: #0f172a;
+      line-height: 1.45;
+    }
+    .qa-dock-reply {
+      display: grid;
+      gap: 8px;
+    }
+    .qa-dock-reply-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .qa-dock-reply-note {
+      font-size: 11px;
+      color: var(--chat-ink-soft);
+    }
+    .qa-dock-reply button,
+    .qa-primary-btn {
+      border: 1px solid var(--chat-brand);
+      background: var(--chat-brand);
+      color: #fff;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1;
+      padding: 8px 14px;
+      cursor: pointer;
+    }
+    .qa-dock-reply button:disabled,
+    .qa-primary-btn:disabled {
+      opacity: 0.72;
+      cursor: wait;
+      border-color: #93c5fd;
+      background: #93c5fd;
     }
     .thread-head {
       padding: 14px;
@@ -262,6 +561,10 @@
       gap: 10px;
       align-content: start;
       background: #fff;
+    }
+    .chat-log[hidden],
+    .reply-form[hidden] {
+      display: none !important;
     }
     .chat-empty {
       border: 1px dashed #cbd5e1;
@@ -326,7 +629,7 @@
     }
     .reply-form {
       border-top: 1px solid var(--chat-line);
-      padding: 12px 14px;
+      padding: 12px 14px 14px;
       background: #fff;
       display: grid;
       gap: 8px;
@@ -384,7 +687,7 @@
       display: flex;
       overflow: hidden;
       padding-top: 18px;
-      padding-bottom: 18px;
+      padding-bottom: 24px;
     }
     .footer-wrap {
       max-width: 1180px;
@@ -438,7 +741,9 @@
       }
       .thread-head,
       .chat-log,
-      .reply-form {
+      .reply-form,
+      .qa-thread-log,
+      .qa-thread-reply-host {
         padding-left: 10px;
         padding-right: 10px;
       }
@@ -447,11 +752,13 @@
       }
     }
   </style>
+<link rel="stylesheet" href="desktop-consistency.css?v=20260403a">
+<script src="auth-session.js?v=20260331b"></script>
 </head>
-<body class="page-with-footer">
+<body class="page-with-footer desktop-consistency desktop-shell--standard desktop-page--club-chat">
   <header id="top">
-    <div class="wrap head-row">
-      <button class="back-link" type="button" onclick="window.location.href='club home.html'" aria-label="Back">Back</button>
+    <div class="wrap head-row desktop-shell-header">
+      <button class="back-link desktop-back-link" type="button" onclick="window.location.href='club home.html'" aria-label="Back">Back</button>
       <div style="display:grid;gap:4px;min-width:0">
         <h1 class="head-title">Member chats</h1>
         <p class="head-sub">Messages synced from the public club page chat widget.</p>
@@ -460,9 +767,18 @@
     </div>
   </header>
 
-  <main class="wrap page-main">
+  <main class="wrap page-main desktop-shell-main">
     <section class="chat-shell">
       <aside class="thread-list-panel">
+        <section id="clubQaDock" class="qa-dock">
+          <button id="clubQaToggle" class="qa-dock-toggle" type="button" aria-expanded="false" aria-controls="clubQaPanel">
+            <span>Community Q&amp;A</span>
+            <span id="clubQaCount" class="qa-count desktop-badge">0</span>
+          </button>
+          <div id="clubQaPanel" class="qa-dock-panel" hidden>
+            <div id="clubQaList" class="qa-dock-list"></div>
+          </div>
+        </section>
         <div id="threadList" class="thread-list" aria-label="Conversation list"></div>
       </aside>
 
@@ -473,6 +789,10 @@
           </div>
         </div>
         <div id="chatLog" class="chat-log" aria-live="polite"></div>
+        <div id="clubQaThreadView" class="qa-thread-view" hidden>
+          <div id="clubQaThreadLog" class="qa-thread-log"></div>
+          <div id="clubQaReplyHost" class="qa-thread-reply-host"></div>
+        </div>
         <form id="replyForm" class="reply-form">
           <textarea id="replyInput" class="reply-input" placeholder="Type a reply as club staff..." maxlength="500"></textarea>
           <div class="reply-actions">
@@ -484,7 +804,7 @@
   </main>
 
   <footer class="site-footer">
-    <div class="footer-wrap">&copy; 2026 Club Booking Portal</div>
+    <div class="footer-wrap desktop-shell-wrap">&copy; 2026 Club Booking Portal</div>
   </footer>
 
   <script type="module" src="ui-prompt.js?v=20260309b"></script>
@@ -495,10 +815,18 @@
   const threadListEl = document.getElementById('threadList');
   const activeTitleEl = document.getElementById('activeTitle');
   const chatLogEl = document.getElementById('chatLog');
+  const clubQaThreadViewEl = document.getElementById('clubQaThreadView');
+  const clubQaThreadLogEl = document.getElementById('clubQaThreadLog');
+  const clubQaReplyHostEl = document.getElementById('clubQaReplyHost');
   const replyFormEl = document.getElementById('replyForm');
   const replyInputEl = document.getElementById('replyInput');
   const replySendBtnEl = document.getElementById('replySendBtn');
   const threadViewEl = document.querySelector('.thread-view');
+  const clubQaDockEl = document.getElementById('clubQaDock');
+  const clubQaToggleEl = document.getElementById('clubQaToggle');
+  const clubQaCountEl = document.getElementById('clubQaCount');
+  const clubQaPanelEl = document.getElementById('clubQaPanel');
+  const clubQaListEl = document.getElementById('clubQaList');
 
   let selectedClubId = '';
   let selectedClubName = '';
@@ -516,6 +844,16 @@
   let replySendInFlight = false;
   let pendingClubReply = null;
   let pendingClubReplySeq = 0;
+  let clubQaBoard = { canAsk: false, canAnswer: false, canReplyAsClub: false, questionCount: 0, questions: [] };
+  let activeClubQaQuestionId = null;
+  let clubQaExpanded = false;
+  let clubQaLoading = false;
+  let clubQaReplyInFlightQuestionId = null;
+  let editingClubQaQuestionId = null;
+  let editingClubQaAnswerKey = '';
+  let clubQaQuestionMutationId = null;
+  let clubQaAnswerMutationKey = '';
+  let activeThreadPane = 'chat';
 
   const parseJsonSafe = (raw, fallback = null) => {
     try {
@@ -647,7 +985,7 @@
 
     if (!loggedUser || !token) {
       if (notify) showModalAlert('Please log in with a club account.');
-      if (redirectOnMissing) window.location.href = 'login.html#login';
+      if (redirectOnMissing) window.location.replace('home.html');
       return { ok: false, reason: 'not_logged_in' };
     }
     if (type !== 'club') {
@@ -680,6 +1018,20 @@
     alert(text);
   };
 
+  const openClubQaDeleteConfirm = ({ title, message, okText = 'Delete' }) => {
+    const heading = String(title || 'Delete item?').trim() || 'Delete item?';
+    const body = String(message || 'This change cannot be undone.').trim() || 'This change cannot be undone.';
+    if (window.AppPrompt && typeof window.AppPrompt.confirm === 'function') {
+      return window.AppPrompt.confirm({
+        title: heading,
+        message: body,
+        okText,
+        cancelText: 'Keep'
+      });
+    }
+    return Promise.resolve(window.confirm(`${heading}\n\n${body}`));
+  };
+
   const formatTime = (raw) => {
     if (!raw) return '';
     const date = new Date(raw);
@@ -699,10 +1051,12 @@
     replyInputEl.style.height = `${nextHeight}px`;
   };
 
-  const bindPanelWheelScroll = (panelEl, scrollEl) => {
-    if (!panelEl || !scrollEl) return;
+  const bindPanelWheelScroll = (panelEl, scrollTarget) => {
+    if (!panelEl || !scrollTarget) return;
     panelEl.addEventListener('wheel', (event) => {
       if (window.innerWidth <= 980) return;
+      const scrollEl = typeof scrollTarget === 'function' ? scrollTarget() : scrollTarget;
+      if (!scrollEl || scrollEl.hidden) return;
       const deltaY = Number(event.deltaY || 0);
       if (!deltaY) return;
       if (scrollEl.scrollHeight <= scrollEl.clientHeight + 1) return;
@@ -757,6 +1111,520 @@
       readByUser: Boolean(raw.readByUser),
       createdAt: String(raw.createdAt || '')
     };
+  };
+
+  const normalizeClubQaAnswer = (raw) => {
+    if (!raw || typeof raw !== 'object') return null;
+    const answerId = Number(raw.answerId);
+    if (!Number.isFinite(answerId)) return null;
+    return {
+      answerId,
+      userId: Number.isFinite(Number(raw.userId)) ? Number(raw.userId) : null,
+      authorName: String(raw.authorName || 'Club member').trim() || 'Club member',
+      responderType: String(raw.responderType || 'USER').trim().toUpperCase() === 'CLUB' ? 'CLUB' : 'USER',
+      answerText: String(raw.answerText || '').trim(),
+      createdAt: String(raw.createdAt || '').trim(),
+      canEdit: Boolean(raw.canEdit),
+      canDelete: Boolean(raw.canDelete)
+    };
+  };
+
+  const normalizeClubQaQuestion = (raw) => {
+    if (!raw || typeof raw !== 'object') return null;
+    const questionId = Number(raw.questionId);
+    if (!Number.isFinite(questionId)) return null;
+    const answers = Array.isArray(raw.answers)
+      ? raw.answers.map(normalizeClubQaAnswer).filter(Boolean)
+      : [];
+    return {
+      questionId,
+      userId: Number.isFinite(Number(raw.userId)) ? Number(raw.userId) : null,
+      authorName: String(raw.authorName || `Member #${questionId}`).trim() || `Member #${questionId}`,
+      questionText: String(raw.questionText || '').trim(),
+      clubAnswered: Boolean(raw.clubAnswered),
+      answerCount: Math.max(0, Number(raw.answerCount) || answers.length),
+      createdAt: String(raw.createdAt || '').trim(),
+      updatedAt: String(raw.updatedAt || '').trim(),
+      canEdit: Boolean(raw.canEdit),
+      canDelete: Boolean(raw.canDelete),
+      answers
+    };
+  };
+
+  const normalizeClubQaBoard = (raw) => {
+    if (!raw || typeof raw !== 'object') {
+      return { canAsk: false, canAnswer: false, canReplyAsClub: false, questionCount: 0, questions: [] };
+    }
+    const questions = Array.isArray(raw.questions)
+      ? raw.questions.map(normalizeClubQaQuestion).filter(Boolean)
+      : [];
+    return {
+      canAsk: Boolean(raw.canAsk),
+      canAnswer: Boolean(raw.canAnswer),
+      canReplyAsClub: Boolean(raw.canReplyAsClub),
+      questionCount: Math.max(0, Number(raw.questionCount) || questions.length),
+      questions
+    };
+  };
+
+  const getClubQaAnswerEditKey = (questionId, answerId) => `${Number(questionId) || 0}:${Number(answerId) || 0}`;
+
+  const getActiveClubQaQuestion = () => {
+    if (!activeClubQaQuestionId) return null;
+    return clubQaBoard.questions.find((question) => question.questionId === activeClubQaQuestionId) || null;
+  };
+
+  const getClubQaQuestionById = (questionId) => clubQaBoard.questions.find((question) => question.questionId === Number(questionId)) || null;
+
+  const getClubQaAnswerById = (questionId, answerId) => {
+    const question = getClubQaQuestionById(questionId);
+    if (!question) return null;
+    return question.answers.find((answer) => answer.answerId === Number(answerId)) || null;
+  };
+
+  const resetClubQaEditingState = () => {
+    editingClubQaQuestionId = null;
+    editingClubQaAnswerKey = '';
+  };
+
+  const syncClubQaEditingState = () => {
+    if (editingClubQaQuestionId && !clubQaBoard.questions.some((question) => question.questionId === editingClubQaQuestionId)) {
+      editingClubQaQuestionId = null;
+    }
+    if (editingClubQaAnswerKey) {
+      const stillExists = clubQaBoard.questions.some((question) =>
+        question.answers.some((answer) => getClubQaAnswerEditKey(question.questionId, answer.answerId) === editingClubQaAnswerKey));
+      if (!stillExists) {
+        editingClubQaAnswerKey = '';
+      }
+    }
+  };
+
+  const renderClubQaThreadView = ({ scrollTop = false } = {}) => {
+    if (!clubQaThreadViewEl || !clubQaThreadLogEl || !clubQaReplyHostEl || !activeTitleEl) return;
+
+    activeTitleEl.textContent = 'Community Q&A';
+
+    if (!selectedClubId) {
+      clubQaThreadLogEl.innerHTML = '<div class="chat-empty">Select a club to load community questions.</div>';
+      clubQaReplyHostEl.innerHTML = '';
+      return;
+    }
+
+    if (!clubQaExpanded) {
+      clubQaThreadLogEl.innerHTML = '<div class="chat-empty">Open Community Q&A on the left to browse member questions.</div>';
+      clubQaReplyHostEl.innerHTML = '';
+      return;
+    }
+
+    if (clubQaLoading && !clubQaBoard.questions.length) {
+      clubQaThreadLogEl.innerHTML = '<div class="chat-empty">Loading community question details...</div>';
+      clubQaReplyHostEl.innerHTML = '';
+      return;
+    }
+
+    const activeQuestion = getActiveClubQaQuestion();
+    if (!activeQuestion) {
+      resetClubQaEditingState();
+      clubQaThreadLogEl.innerHTML = '<div class="chat-empty">Select a question on the left to read replies here.</div>';
+      clubQaReplyHostEl.innerHTML = '';
+      return;
+    }
+
+    const answerCount = activeQuestion.answerCount || activeQuestion.answers.length || 0;
+    const questionEditing = editingClubQaQuestionId === activeQuestion.questionId;
+    const questionMutating = clubQaQuestionMutationId === activeQuestion.questionId;
+    const questionActionsHtml = (activeQuestion.canEdit || activeQuestion.canDelete)
+      ? `
+        <div class="qa-inline-actions">
+          ${activeQuestion.canEdit ? `<button class="qa-inline-btn" type="button" data-club-qa-question-edit="${activeQuestion.questionId}" ${questionEditing || questionMutating ? 'disabled' : ''}>Edit</button>` : ''}
+          ${activeQuestion.canDelete ? `<button class="qa-inline-btn danger" type="button" data-club-qa-question-delete="${activeQuestion.questionId}" ${questionMutating ? 'disabled' : ''}>${questionMutating ? 'Deleting...' : 'Delete'}</button>` : ''}
+        </div>
+      `
+      : '';
+    const questionEditorHtml = questionEditing
+      ? `
+        <form class="qa-inline-form" data-club-qa-question-edit-form="${activeQuestion.questionId}">
+          <textarea data-club-qa-question-edit-input="${activeQuestion.questionId}" maxlength="400" placeholder="Update this question...">${escapeHtml(activeQuestion.questionText)}</textarea>
+          <div class="qa-inline-form-actions">
+            <button class="qa-inline-btn" type="button" data-club-qa-question-edit-cancel="${activeQuestion.questionId}" ${questionMutating ? 'disabled' : ''}>Cancel</button>
+            <button class="qa-primary-btn" type="submit" ${questionMutating ? 'disabled' : ''}>${questionMutating ? 'Saving...' : 'Save question'}</button>
+          </div>
+        </form>
+      `
+      : '';
+    const answersHtml = activeQuestion.answers.length
+      ? activeQuestion.answers.map((answer) => `
+          <article class="qa-dock-answer ${answer.responderType === 'CLUB' ? 'club' : ''}">
+            <div class="qa-dock-answer-head">
+              <span class="qa-dock-answer-author">
+                ${escapeHtml(answer.authorName)}
+                <span class="qa-chip ${answer.responderType === 'CLUB' ? 'club' : ''}">${answer.responderType === 'CLUB' ? 'Club' : 'Member'}</span>
+              </span>
+              <span class="qa-dock-answer-meta-group">
+                <span class="qa-dock-answer-time">${escapeHtml(formatTime(answer.createdAt) || 'Just now')}</span>
+                ${(answer.canEdit || answer.canDelete) ? `
+                  <span class="qa-dock-answer-controls">
+                    ${answer.canEdit ? `<button class="qa-inline-btn" type="button" data-club-qa-answer-edit="${activeQuestion.questionId}" data-club-qa-answer-id="${answer.answerId}" ${editingClubQaAnswerKey === getClubQaAnswerEditKey(activeQuestion.questionId, answer.answerId) || clubQaAnswerMutationKey === getClubQaAnswerEditKey(activeQuestion.questionId, answer.answerId) ? 'disabled' : ''}>Edit</button>` : ''}
+                    ${answer.canDelete ? `<button class="qa-inline-btn danger" type="button" data-club-qa-answer-delete="${activeQuestion.questionId}" data-club-qa-answer-id="${answer.answerId}" ${clubQaAnswerMutationKey === getClubQaAnswerEditKey(activeQuestion.questionId, answer.answerId) ? 'disabled' : ''}>${clubQaAnswerMutationKey === getClubQaAnswerEditKey(activeQuestion.questionId, answer.answerId) ? 'Deleting...' : 'Delete'}</button>` : ''}
+                  </span>
+                ` : ''}
+              </span>
+            </div>
+            ${editingClubQaAnswerKey === getClubQaAnswerEditKey(activeQuestion.questionId, answer.answerId)
+              ? `
+                <form class="qa-inline-form" data-club-qa-answer-edit-form="${activeQuestion.questionId}" data-club-qa-answer-edit-id="${answer.answerId}">
+                  <textarea data-club-qa-answer-edit-input="${activeQuestion.questionId}" data-club-qa-answer-input-id="${answer.answerId}" maxlength="500" placeholder="Update this reply...">${escapeHtml(answer.answerText)}</textarea>
+                  <div class="qa-inline-form-actions">
+                    <button class="qa-inline-btn" type="button" data-club-qa-answer-edit-cancel="${activeQuestion.questionId}" data-club-qa-answer-id="${answer.answerId}" ${clubQaAnswerMutationKey === getClubQaAnswerEditKey(activeQuestion.questionId, answer.answerId) ? 'disabled' : ''}>Cancel</button>
+                    <button class="qa-primary-btn" type="submit" ${clubQaAnswerMutationKey === getClubQaAnswerEditKey(activeQuestion.questionId, answer.answerId) ? 'disabled' : ''}>${clubQaAnswerMutationKey === getClubQaAnswerEditKey(activeQuestion.questionId, answer.answerId) ? 'Saving...' : 'Save answer'}</button>
+                  </div>
+                </form>
+              `
+              : `<div class="qa-dock-answer-text">${escapeHtml(answer.answerText).replace(/\n/g, '<br>')}</div>`}
+          </article>
+        `).join('')
+      : '<div class="chat-empty">No replies yet.</div>';
+
+    const replyFormHtml = clubQaBoard.canReplyAsClub
+      ? `
+        <form class="qa-dock-reply" data-club-qa-reply-form="${activeQuestion.questionId}">
+          <textarea data-club-qa-reply-input="${activeQuestion.questionId}" maxlength="500" placeholder="Reply as club staff to this question..."></textarea>
+          <div class="qa-dock-reply-actions">
+            <span class="qa-dock-reply-note">Visible to everyone viewing this club page.</span>
+            <button type="submit" ${clubQaReplyInFlightQuestionId === activeQuestion.questionId ? 'disabled' : ''}>${clubQaReplyInFlightQuestionId === activeQuestion.questionId ? 'Posting...' : 'Post answer'}</button>
+          </div>
+        </form>
+      `
+      : '<div class="chat-empty">Only club staff can reply from this panel.</div>';
+
+    clubQaThreadLogEl.innerHTML = `
+      <section class="qa-thread-card">
+        <article class="qa-thread-question">
+          <div class="qa-thread-question-top">
+            <span class="qa-thread-question-author">${escapeHtml(activeQuestion.authorName)}</span>
+            ${activeQuestion.clubAnswered ? '<span class="qa-chip club">Club answered</span>' : ''}
+          </div>
+          <div class="qa-thread-question-text">${escapeHtml(activeQuestion.questionText)}</div>
+          <div class="qa-thread-question-meta">${answerCount} repl${answerCount === 1 ? 'y' : 'ies'} · ${escapeHtml(formatTime(activeQuestion.createdAt) || 'Just now')}</div>
+          ${questionActionsHtml}
+          ${questionEditorHtml}
+        </article>
+        <div class="qa-thread-answers">${answersHtml}</div>
+      </section>
+    `;
+    clubQaReplyHostEl.innerHTML = replyFormHtml;
+
+    if (scrollTop) {
+      clubQaThreadLogEl.scrollTop = 0;
+    }
+  };
+
+  const syncThreadViewMode = ({ scrollQaTop = false, scrollChatBottom = false } = {}) => {
+    const qaMode = activeThreadPane === 'qa';
+    if (threadViewEl) {
+      threadViewEl.classList.toggle('thread-view--qa', qaMode);
+    }
+    if (chatLogEl) {
+      chatLogEl.hidden = qaMode;
+    }
+    if (replyFormEl) {
+      replyFormEl.hidden = qaMode;
+    }
+    if (clubQaThreadViewEl) {
+      clubQaThreadViewEl.hidden = !qaMode;
+    }
+
+    if (qaMode) {
+      renderClubQaThreadView({ scrollTop: scrollQaTop });
+      return;
+    }
+
+    renderChatLog(scrollChatBottom);
+  };
+
+  const renderClubQaDock = () => {
+    if (!clubQaDockEl || !clubQaToggleEl || !clubQaCountEl || !clubQaPanelEl || !clubQaListEl) return;
+
+    const totalQuestions = clubQaBoard.questionCount || clubQaBoard.questions.length || 0;
+    clubQaCountEl.textContent = String(totalQuestions);
+    clubQaToggleEl.setAttribute('aria-expanded', clubQaExpanded ? 'true' : 'false');
+    clubQaPanelEl.hidden = !clubQaExpanded;
+
+    if (!selectedClubId) {
+      clubQaListEl.innerHTML = '<div class="qa-dock-empty">Select a club to load community questions.</div>';
+      syncThreadViewMode();
+      return;
+    }
+
+    if (!clubQaExpanded) {
+      syncThreadViewMode();
+      return;
+    }
+
+    if (clubQaLoading && !clubQaBoard.questions.length) {
+      clubQaListEl.innerHTML = '<div class="qa-dock-empty">Loading community questions...</div>';
+      syncThreadViewMode();
+      return;
+    }
+
+    if (!clubQaBoard.questions.length) {
+      activeClubQaQuestionId = null;
+      clubQaListEl.innerHTML = '<div class="qa-dock-empty">No questions yet.</div>';
+      syncThreadViewMode();
+      return;
+    }
+
+    const nextActiveQuestionId = clubQaBoard.questions.some((question) => question.questionId === activeClubQaQuestionId)
+      ? activeClubQaQuestionId
+      : clubQaBoard.questions[0].questionId;
+    activeClubQaQuestionId = nextActiveQuestionId;
+
+    clubQaListEl.innerHTML = clubQaBoard.questions.map((question) => {
+      const isActive = question.questionId === nextActiveQuestionId;
+      const answerCount = question.answerCount || question.answers.length || 0;
+      return `
+        <button class="qa-dock-question${isActive ? ' active' : ''}" type="button" data-club-qa-question="${question.questionId}">
+          <div class="qa-dock-question-top">
+            <span class="qa-dock-question-author">${escapeHtml(question.authorName)}</span>
+            ${question.clubAnswered ? '<span class="qa-chip club">Club answered</span>' : ''}
+          </div>
+          <div class="qa-dock-question-text">${escapeHtml(question.questionText)}</div>
+          <div class="qa-dock-question-meta">${answerCount} repl${answerCount === 1 ? 'y' : 'ies'} · ${escapeHtml(formatTime(question.updatedAt || question.createdAt) || 'Just now')}</div>
+        </button>
+      `;
+    }).join('');
+
+    syncThreadViewMode();
+  };
+
+  const loadClubQaBoard = async ({ preserveSelection = true, quiet = false } = {}) => {
+    if (!selectedClubId || !isNumericId(selectedClubId)) {
+      clubQaBoard = { canAsk: false, canAnswer: false, canReplyAsClub: false, questionCount: 0, questions: [] };
+      activeClubQaQuestionId = null;
+      resetClubQaEditingState();
+      renderClubQaDock();
+      return;
+    }
+
+    const previousSelection = preserveSelection ? activeClubQaQuestionId : null;
+    clubQaLoading = true;
+    if (!quiet) renderClubQaDock();
+
+    try {
+      const res = await authFetch(`/api/clubs/${encodeURIComponent(selectedClubId)}/community-questions`);
+      if (!res.ok) {
+        clubQaBoard = { canAsk: false, canAnswer: false, canReplyAsClub: false, questionCount: 0, questions: [] };
+        if (!quiet) {
+          showModalAlert(await readErrorText(res), 'Community Q&A');
+        }
+      } else {
+        clubQaBoard = normalizeClubQaBoard(await res.json().catch(() => null));
+      }
+      activeClubQaQuestionId = previousSelection;
+      syncClubQaEditingState();
+    } catch (err) {
+      console.warn('[club chat] community board error', err);
+      clubQaBoard = { canAsk: false, canAnswer: false, canReplyAsClub: false, questionCount: 0, questions: [] };
+      resetClubQaEditingState();
+      if (!quiet) {
+        showModalAlert('Failed to load community questions.', 'Community Q&A');
+      }
+    } finally {
+      clubQaLoading = false;
+      renderClubQaDock();
+    }
+  };
+
+  const submitClubQaAnswer = async (questionId, rawText) => {
+    if (clubQaReplyInFlightQuestionId) return false;
+    if (!clubQaBoard.canReplyAsClub) {
+      showModalAlert('Only club staff can reply from this panel.', 'Community Q&A');
+      return false;
+    }
+    const answerText = String(rawText || '').replace(/\s+/g, ' ').trim();
+    if (!answerText) {
+      showModalAlert('Enter an answer before posting.', 'Community Q&A');
+      return false;
+    }
+
+    clubQaReplyInFlightQuestionId = Number(questionId) || null;
+    renderClubQaDock();
+    try {
+      const res = await authFetch(`/api/clubs/${encodeURIComponent(selectedClubId)}/community-questions/${encodeURIComponent(String(questionId))}/answers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answerText })
+      });
+      if (!res.ok) {
+        showModalAlert(await readErrorText(res), 'Community Q&A');
+        return false;
+      }
+      activeClubQaQuestionId = Number(questionId) || null;
+      await loadClubQaBoard({ preserveSelection: true, quiet: true });
+      return true;
+    } catch (err) {
+      console.warn('[club chat] post community answer error', err);
+      showModalAlert('Failed to post community answer.', 'Community Q&A');
+      return false;
+    } finally {
+      clubQaReplyInFlightQuestionId = null;
+      renderClubQaDock();
+    }
+  };
+
+  const submitClubQaQuestionUpdate = async (questionId, rawText) => {
+    if (clubQaQuestionMutationId) return false;
+    const auth = ensureClubAuth({ notify: true, redirectOnMissing: true });
+    if (!auth.ok) return false;
+    const questionText = String(rawText || '').replace(/\s+/g, ' ').trim();
+    if (!questionText) {
+      showModalAlert('Enter a question before saving.', 'Community Q&A');
+      return false;
+    }
+    if (questionText.length < 5) {
+      showModalAlert('Questions must be at least 5 characters long.', 'Community Q&A');
+      return false;
+    }
+
+    clubQaQuestionMutationId = Number(questionId) || null;
+    renderClubQaDock();
+    try {
+      const res = await authFetch(`/api/clubs/${encodeURIComponent(selectedClubId)}/community-questions/${encodeURIComponent(String(questionId))}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ questionText })
+      });
+      if (!res.ok) {
+        showModalAlert(await readErrorText(res), 'Community Q&A');
+        return false;
+      }
+      editingClubQaQuestionId = null;
+      activeClubQaQuestionId = Number(questionId) || null;
+      await loadClubQaBoard({ preserveSelection: true, quiet: true });
+      return true;
+    } catch (err) {
+      console.warn('[club chat] update community question error', err);
+      showModalAlert('Failed to save community question.', 'Community Q&A');
+      return false;
+    } finally {
+      clubQaQuestionMutationId = null;
+      renderClubQaDock();
+    }
+  };
+
+  const deleteClubQaQuestion = async (questionId) => {
+    if (clubQaQuestionMutationId) return false;
+    const question = getClubQaQuestionById(questionId);
+    if (!question) return false;
+    const confirmed = await openClubQaDeleteConfirm({
+      title: 'Delete this question?',
+      message: 'This will remove the whole thread, including every reply.',
+      okText: 'Delete question'
+    });
+    if (!confirmed) return false;
+    const auth = ensureClubAuth({ notify: true, redirectOnMissing: true });
+    if (!auth.ok) return false;
+
+    clubQaQuestionMutationId = Number(questionId) || null;
+    renderClubQaDock();
+    try {
+      const res = await authFetch(`/api/clubs/${encodeURIComponent(selectedClubId)}/community-questions/${encodeURIComponent(String(questionId))}`, {
+        method: 'DELETE'
+      });
+      if (!res.ok) {
+        showModalAlert(await readErrorText(res), 'Community Q&A');
+        return false;
+      }
+      if (activeClubQaQuestionId === Number(questionId)) {
+        activeClubQaQuestionId = null;
+      }
+      resetClubQaEditingState();
+      await loadClubQaBoard({ preserveSelection: true, quiet: true });
+      return true;
+    } catch (err) {
+      console.warn('[club chat] delete community question error', err);
+      showModalAlert('Failed to delete community question.', 'Community Q&A');
+      return false;
+    } finally {
+      clubQaQuestionMutationId = null;
+      renderClubQaDock();
+    }
+  };
+
+  const submitClubQaAnswerUpdate = async (questionId, answerId, rawText) => {
+    if (clubQaAnswerMutationKey) return false;
+    const auth = ensureClubAuth({ notify: true, redirectOnMissing: true });
+    if (!auth.ok) return false;
+    const answerText = String(rawText || '').replace(/\s+/g, ' ').trim();
+    if (!answerText) {
+      showModalAlert('Enter an answer before saving.', 'Community Q&A');
+      return false;
+    }
+
+    clubQaAnswerMutationKey = getClubQaAnswerEditKey(questionId, answerId);
+    renderClubQaDock();
+    try {
+      const res = await authFetch(`/api/clubs/${encodeURIComponent(selectedClubId)}/community-questions/${encodeURIComponent(String(questionId))}/answers/${encodeURIComponent(String(answerId))}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answerText })
+      });
+      if (!res.ok) {
+        showModalAlert(await readErrorText(res), 'Community Q&A');
+        return false;
+      }
+      editingClubQaAnswerKey = '';
+      activeClubQaQuestionId = Number(questionId) || null;
+      await loadClubQaBoard({ preserveSelection: true, quiet: true });
+      return true;
+    } catch (err) {
+      console.warn('[club chat] update community answer error', err);
+      showModalAlert('Failed to save community answer.', 'Community Q&A');
+      return false;
+    } finally {
+      clubQaAnswerMutationKey = '';
+      renderClubQaDock();
+    }
+  };
+
+  const deleteClubQaAnswer = async (questionId, answerId) => {
+    if (clubQaAnswerMutationKey) return false;
+    const answer = getClubQaAnswerById(questionId, answerId);
+    if (!answer) return false;
+    const confirmed = await openClubQaDeleteConfirm({
+      title: 'Delete this reply?',
+      message: 'This reply will be removed from the thread.',
+      okText: 'Delete reply'
+    });
+    if (!confirmed) return false;
+    const auth = ensureClubAuth({ notify: true, redirectOnMissing: true });
+    if (!auth.ok) return false;
+
+    clubQaAnswerMutationKey = getClubQaAnswerEditKey(questionId, answerId);
+    renderClubQaDock();
+    try {
+      const res = await authFetch(`/api/clubs/${encodeURIComponent(selectedClubId)}/community-questions/${encodeURIComponent(String(questionId))}/answers/${encodeURIComponent(String(answerId))}`, {
+        method: 'DELETE'
+      });
+      if (!res.ok) {
+        showModalAlert(await readErrorText(res), 'Community Q&A');
+        return false;
+      }
+      if (editingClubQaAnswerKey === getClubQaAnswerEditKey(questionId, answerId)) {
+        editingClubQaAnswerKey = '';
+      }
+      activeClubQaQuestionId = Number(questionId) || null;
+      await loadClubQaBoard({ preserveSelection: true, quiet: true });
+      return true;
+    } catch (err) {
+      console.warn('[club chat] delete community answer error', err);
+      showModalAlert('Failed to delete community answer.', 'Community Q&A');
+      return false;
+    } finally {
+      clubQaAnswerMutationKey = '';
+      renderClubQaDock();
+    }
   };
 
   const createPendingClubReply = (text) => ({
@@ -872,7 +1740,7 @@
     if (!conversations.length) {
       threadListEl.innerHTML = `
         <div class="thread-empty">
-          No member conversations yet. New chats will appear here automatically.
+          No conversations yet.
         </div>
       `;
       return;
@@ -883,14 +1751,14 @@
       const timeLabel = formatTime(thread.lastMessageAt) || 'No timestamp';
       const activeClass = Number(activeUserId) === Number(thread.userId) ? ' active' : '';
       const unreadBadge = Math.max(0, Number(thread.unreadCount) || 0);
-      const handoffBadge = threadNeedsHumanBadge(thread) ? '<span class="thread-flag handoff">人工待接入</span>' : '';
+      const handoffBadge = threadNeedsHumanBadge(thread) ? '<span class="thread-flag handoff desktop-badge">人工待接入</span>' : '';
       return `
         <button class="thread-card${activeClass}" type="button" data-user-id="${thread.userId}">
           <div class="thread-top">
             <span class="thread-title">${escapeHtml(thread.userName)}</span>
             <span style="display:inline-flex; gap:6px; align-items:center;">
               ${handoffBadge}
-              ${unreadBadge > 0 ? `<span class="thread-count">${unreadBadge}</span>` : ''}
+              ${unreadBadge > 0 ? `<span class="thread-count desktop-badge">${unreadBadge}</span>` : ''}
             </span>
           </div>
           <div class="thread-preview" title="${escapeHtml(preview)}">${escapeHtml(preview)}</div>
@@ -903,8 +1771,10 @@
       btn.addEventListener('click', async () => {
         const userId = Number(btn.getAttribute('data-user-id'));
         if (!Number.isFinite(userId)) return;
+        activeThreadPane = 'chat';
         activeUserId = userId;
         renderThreadList();
+        syncThreadViewMode();
         await loadActiveThread({ markRead: true, scrollBottom: true, quiet: false });
       });
     });
@@ -912,9 +1782,10 @@
 
   const renderChatLog = (scrollBottom = false) => {
     if (!chatLogEl || !activeTitleEl) return;
+    const qaMode = activeThreadPane === 'qa';
 
     if (!selectedClubId) {
-      activeTitleEl.textContent = 'No club selected';
+      if (!qaMode) activeTitleEl.textContent = 'No club selected';
       chatLogEl.innerHTML = '<div class="chat-empty">No active club context.</div>';
       if (replyInputEl) replyInputEl.disabled = true;
       if (replySendBtnEl) replySendBtnEl.disabled = true;
@@ -922,16 +1793,18 @@
     }
 
     if (!activeThread) {
-      activeTitleEl.textContent = 'No conversation selected';
+      if (!qaMode) activeTitleEl.textContent = 'No conversation selected';
       chatLogEl.innerHTML = '<div class="chat-empty">No conversation available yet.</div>';
       if (replyInputEl) replyInputEl.disabled = true;
       if (replySendBtnEl) replySendBtnEl.disabled = true;
       return;
     }
 
-    activeTitleEl.textContent = activeThread.userName || `User #${activeThread.userId}`;
-    if (threadNeedsHumanBadge(activeThread)) {
-      activeTitleEl.textContent += ' · 人工待接入';
+    if (!qaMode) {
+      activeTitleEl.textContent = activeThread.userName || `User #${activeThread.userId}`;
+      if (threadNeedsHumanBadge(activeThread)) {
+        activeTitleEl.textContent += ' · 人工待接入';
+      }
     }
     setReplySendingState(replySendInFlight);
 
@@ -945,7 +1818,7 @@
     }
 
     if (!total) {
-      chatLogEl.innerHTML = '<div class="chat-empty">Conversation is empty. Start by sending a reply.</div>';
+      chatLogEl.innerHTML = '<div class="chat-empty">No messages yet.</div>';
       return;
     }
 
@@ -1218,6 +2091,146 @@
   window.addEventListener('focus', () => {
     scheduleChatPolling();
     runClubChatPoll();
+    if (clubQaExpanded) {
+      loadClubQaBoard({ preserveSelection: true, quiet: true }).catch((err) => {
+        console.warn('[club chat] focus community refresh error', err);
+      });
+    }
+  });
+
+  clubQaToggleEl?.addEventListener('click', async () => {
+    clubQaExpanded = !clubQaExpanded;
+    if (!clubQaExpanded && activeThreadPane === 'qa') {
+      activeThreadPane = 'chat';
+    }
+    if (!clubQaExpanded) {
+      resetClubQaEditingState();
+    }
+    renderClubQaDock();
+    if (clubQaExpanded) {
+      await loadClubQaBoard({ preserveSelection: true, quiet: true });
+    }
+  });
+
+  clubQaListEl?.addEventListener('click', (evt) => {
+    const trigger = evt.target instanceof Element
+      ? evt.target.closest('[data-club-qa-question]')
+      : null;
+    if (!trigger) return;
+    const nextQuestionId = Number(trigger.getAttribute('data-club-qa-question'));
+    if (!Number.isFinite(nextQuestionId)) return;
+    activeClubQaQuestionId = nextQuestionId;
+    resetClubQaEditingState();
+    activeThreadPane = 'qa';
+    renderClubQaDock();
+    syncThreadViewMode({ scrollQaTop: true });
+    if (window.innerWidth <= 980) {
+      threadViewEl?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    }
+  });
+
+  clubQaThreadLogEl?.addEventListener('click', (evt) => {
+    const target = evt.target instanceof Element ? evt.target : null;
+    if (!target) return;
+
+    const questionEditCancel = target.closest('[data-club-qa-question-edit-cancel]');
+    if (questionEditCancel) {
+      editingClubQaQuestionId = null;
+      renderClubQaDock();
+      return;
+    }
+    const answerEditCancel = target.closest('[data-club-qa-answer-edit-cancel]');
+    if (answerEditCancel) {
+      editingClubQaAnswerKey = '';
+      renderClubQaDock();
+      return;
+    }
+    const questionEdit = target.closest('[data-club-qa-question-edit]');
+    if (questionEdit) {
+      const questionId = Number(questionEdit.getAttribute('data-club-qa-question-edit'));
+      if (!Number.isFinite(questionId)) return;
+      editingClubQaQuestionId = questionId;
+      editingClubQaAnswerKey = '';
+      renderClubQaDock();
+      window.setTimeout(() => {
+        const input = clubQaThreadLogEl.querySelector(`[data-club-qa-question-edit-input="${questionId}"]`);
+        input?.focus?.();
+      }, 0);
+      return;
+    }
+    const questionDelete = target.closest('[data-club-qa-question-delete]');
+    if (questionDelete) {
+      const questionId = Number(questionDelete.getAttribute('data-club-qa-question-delete'));
+      if (!Number.isFinite(questionId)) return;
+      deleteClubQaQuestion(questionId).catch((err) => {
+        console.warn('[club chat] delete question click error', err);
+      });
+      return;
+    }
+    const answerEdit = target.closest('[data-club-qa-answer-edit]');
+    if (answerEdit) {
+      const questionId = Number(answerEdit.getAttribute('data-club-qa-answer-edit'));
+      const answerId = Number(answerEdit.getAttribute('data-club-qa-answer-id'));
+      if (!Number.isFinite(questionId) || !Number.isFinite(answerId)) return;
+      editingClubQaQuestionId = null;
+      editingClubQaAnswerKey = getClubQaAnswerEditKey(questionId, answerId);
+      renderClubQaDock();
+      window.setTimeout(() => {
+        const input = clubQaThreadLogEl.querySelector(`[data-club-qa-answer-edit-input="${questionId}"][data-club-qa-answer-input-id="${answerId}"]`);
+        input?.focus?.();
+      }, 0);
+      return;
+    }
+    const answerDelete = target.closest('[data-club-qa-answer-delete]');
+    if (answerDelete) {
+      const questionId = Number(answerDelete.getAttribute('data-club-qa-answer-delete'));
+      const answerId = Number(answerDelete.getAttribute('data-club-qa-answer-id'));
+      if (!Number.isFinite(questionId) || !Number.isFinite(answerId)) return;
+      deleteClubQaAnswer(questionId, answerId).catch((err) => {
+        console.warn('[club chat] delete answer click error', err);
+      });
+    }
+  });
+
+  clubQaThreadLogEl?.addEventListener('submit', async (evt) => {
+    const questionEditForm = evt.target instanceof Element
+      ? evt.target.closest('[data-club-qa-question-edit-form]')
+      : null;
+    if (questionEditForm) {
+      evt.preventDefault();
+      const questionId = Number(questionEditForm.getAttribute('data-club-qa-question-edit-form'));
+      const input = questionEditForm.querySelector(`[data-club-qa-question-edit-input="${questionId}"]`);
+      if (!Number.isFinite(questionId) || !(input instanceof HTMLTextAreaElement)) return;
+      await submitClubQaQuestionUpdate(questionId, input.value);
+      return;
+    }
+    const answerEditForm = evt.target instanceof Element
+      ? evt.target.closest('[data-club-qa-answer-edit-form]')
+      : null;
+    if (answerEditForm) {
+      evt.preventDefault();
+      const questionId = Number(answerEditForm.getAttribute('data-club-qa-answer-edit-form'));
+      const answerId = Number(answerEditForm.getAttribute('data-club-qa-answer-edit-id'));
+      const input = answerEditForm.querySelector(`[data-club-qa-answer-edit-input="${questionId}"][data-club-qa-answer-input-id="${answerId}"]`);
+      if (!Number.isFinite(questionId) || !Number.isFinite(answerId) || !(input instanceof HTMLTextAreaElement)) return;
+      await submitClubQaAnswerUpdate(questionId, answerId, input.value);
+    }
+  });
+
+  clubQaReplyHostEl?.addEventListener('submit', async (evt) => {
+    const form = evt.target instanceof HTMLFormElement
+      ? evt.target.closest('[data-club-qa-reply-form]')
+      : null;
+    if (!form) return;
+    evt.preventDefault();
+    const questionId = Number(form.getAttribute('data-club-qa-reply-form'));
+    if (!Number.isFinite(questionId)) return;
+    const input = form.querySelector(`[data-club-qa-reply-input="${questionId}"]`);
+    const text = input instanceof HTMLTextAreaElement ? input.value : '';
+    const posted = await submitClubQaAnswer(questionId, text);
+    if (posted && input instanceof HTMLTextAreaElement) {
+      input.value = '';
+    }
   });
 
   replyFormEl?.addEventListener('submit', async (evt) => {
@@ -1302,8 +2315,13 @@
       conversations = [];
       activeUserId = null;
       activeThread = null;
+      clubQaBoard = { canAsk: false, canAnswer: false, canReplyAsClub: false, questionCount: 0, questions: [] };
+      activeClubQaQuestionId = null;
+      clubQaExpanded = false;
+      activeThreadPane = 'chat';
       await loadConversations({ keepActive: false, quiet: false });
       await loadActiveThread({ markRead: true, scrollBottom: false, quiet: false });
+      await loadClubQaBoard({ preserveSelection: false, quiet: true });
       startChatPolling();
     }
 
@@ -1315,8 +2333,9 @@
         conversations = [];
         activeUserId = null;
         activeThread = null;
+        activeThreadPane = 'chat';
         renderThreadList();
-        renderChatLog();
+        syncThreadViewMode();
         return;
       }
       await refreshOwnedClubs();
@@ -1324,6 +2343,7 @@
       applySelectedClub(next, { persist: true });
       await loadConversations({ keepActive: true, quiet: false });
       await loadActiveThread({ markRead: true, scrollBottom: false, quiet: false });
+      await loadClubQaBoard({ preserveSelection: true, quiet: true });
       startChatPolling();
     }
   });
@@ -1339,13 +2359,16 @@
 
     await loadConversations({ keepActive: true, quiet: false });
     await loadActiveThread({ markRead: true, scrollBottom: false, quiet: false });
+    await loadClubQaBoard({ preserveSelection: false, quiet: true });
     startChatPolling();
     resizeReplyInput();
+    renderClubQaDock();
   })();
 
   replyInputEl?.addEventListener('input', resizeReplyInput);
-  bindPanelWheelScroll(threadViewEl, chatLogEl);
+  bindPanelWheelScroll(threadViewEl, () => (activeThreadPane === 'qa' ? clubQaThreadLogEl : chatLogEl));
 </script>
 </body>
 </html>
+
 

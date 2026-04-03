@@ -61,6 +61,16 @@ public class ChatResponseBuilder {
         log.info("[CLUB_CHAT_DEBUG] member-price reply slot: {}",
                 slot == null ? "none" : summarizeSlot(slot));
         if (slot != null && slot.membershipApplied() && slot.price() != null && slot.basePrice() != null) {
+            if (isBookingPack(slot.membershipBenefitType())) {
+                int remainingCredits = Math.max(0, slot.membershipRemainingBookings() == null ? 0 : slot.membershipRemainingBookings());
+                if (language == ChatLanguage.ZH) {
+                    return "是的。这个时段包含在你的会员次卡权益内。原价是 " + money(context, slot.basePrice())
+                            + "，预订会使用 1 次额度，你当前还剩 " + remainingCredits + " 次。";
+                }
+                return "Yes. This slot is included with your membership booking pack. The standard price is "
+                        + money(context, slot.basePrice()) + ", and booking it uses 1 credit. You currently have "
+                        + remainingCredits + " credits left.";
+            }
             if (language == ChatLanguage.ZH) {
                 return "是的，当前显示的 " + money(context, slot.price())
                         + " 已经包含你的会员折扣。原价是 " + money(context, slot.basePrice()) + "。";
@@ -323,6 +333,23 @@ public class ChatResponseBuilder {
 
         ClubChatContextDto.MembershipPlanInfo matchedPlan = findMatchedPlan(plans, userMessage);
         if (matchedPlan != null) {
+            if (isBookingPack(matchedPlan.benefitType())) {
+                int includedBookings = Math.max(0, matchedPlan.includedBookings() == null ? 0 : matchedPlan.includedBookings());
+                if (language == ChatLanguage.ZH) {
+                    String reply = matchedPlan.planName() + " 当前价格是 " + money(context, matchedPlan.price())
+                            + "，包含 " + includedBookings + " 次预付预订额度，有效期 " + matchedPlan.durationDays() + " 天。";
+                    if (!matchedPlan.description().isBlank()) {
+                        reply += " " + matchedPlan.description();
+                    }
+                    return reply;
+                }
+                String reply = "The " + matchedPlan.planName() + " is listed at " + money(context, matchedPlan.price())
+                        + " and includes " + includedBookings + " prepaid bookings valid for " + matchedPlan.durationDays() + " days.";
+                if (!matchedPlan.description().isBlank()) {
+                    reply += " " + matchedPlan.description();
+                }
+                return reply;
+            }
             if (language == ChatLanguage.ZH) {
                 String reply = matchedPlan.planName() + " 当前价格是 " + money(context, matchedPlan.price())
                         + "，时长 " + matchedPlan.durationDays() + " 天，折扣为 " + percent(matchedPlan.discountPercent()) + "。";
@@ -575,6 +602,10 @@ public class ChatResponseBuilder {
 
     private static String normalize(String value) {
         return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private boolean isBookingPack(String benefitType) {
+        return "booking_pack".equals(normalize(benefitType));
     }
 
     private String summarizeSlot(ClubChatContextDto.VisibleTimeslot slot) {

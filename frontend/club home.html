@@ -1,10 +1,12 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Club Booking Portal - Club Home</title>
-  <link rel="stylesheet" href="theme.css?v=20260324a">
+  
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data: blob: https://maps.gstatic.com https://maps.googleapis.com https://*.googleusercontent.com https://www.google.com https://www.gstatic.com; font-src 'self' data: https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://accounts.google.com https://maps.googleapis.com; connect-src 'self' https://accounts.google.com https://maps.googleapis.com https://api.stripe.com; frame-src 'self' https://accounts.google.com https://js.stripe.com; form-action 'self' https://accounts.google.com">
+<title>Club Booking Portal - Club Home</title>
+  <link rel="stylesheet" href="theme.css?v=20260402a">
   <style>
     html,
     body {
@@ -16,16 +18,6 @@
       display: flex;
       flex-direction: column;
       background: #ffffff !important;
-    }
-    body.page-with-footer {
-      padding-bottom: 0 !important;
-      overflow: hidden;
-    }
-    .wrap {
-      width: min(1680px, calc(100vw - 24px));
-      max-width: none;
-      margin: 0 auto;
-      padding: 14px 10px;
     }
     header {
       position: sticky;
@@ -60,31 +52,9 @@
       gap: 8px;
       flex-wrap: wrap;
     }
-    .btn {
-      padding: 8px 16px;
-      border-radius: 999px;
-      font-size: 13px;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.16s ease, box-shadow 0.16s ease;
-    }
-    .btn:hover {
-      transform: translateY(-1px);
-    }
     .logout-btn {
       min-width: 90px;
       font-weight: 600;
-    }
-    main.wrap {
-      flex: 1 1 auto;
-      width: 100%;
-      min-height: 0;
-      display: flex;
-      padding-top: 20px;
-      padding-bottom: 96px;
     }
     .workspace {
       flex: 1 1 auto;
@@ -183,8 +153,7 @@
       color: #0f172a;
     }
     .workspace-tab-copy {
-      display: grid;
-      gap: 2px;
+      display: block;
       min-width: 0;
     }
     .workspace-tab-title {
@@ -192,11 +161,6 @@
       font-weight: 700;
       letter-spacing: -0.01em;
       line-height: 1.2;
-    }
-    .workspace-tab-desc {
-      font-size: 11px;
-      color: var(--muted);
-      line-height: 1.3;
     }
     .workspace-main {
       display: grid;
@@ -576,10 +540,12 @@
       }
     }
   </style>
+<link rel="stylesheet" href="desktop-consistency.css?v=20260403a">
+<script src="auth-session.js?v=20260331b"></script>
 </head>
-<body class="page-with-footer">
+<body class="page-with-footer desktop-consistency desktop-shell--wide desktop-page--club-home">
   <header id="top">
-    <div class="wrap header-wrap">
+    <div class="wrap header-wrap desktop-shell-header">
       <div class="title-stack">
         <h1 class="site-title">Club Home</h1>
       </div>
@@ -589,8 +555,8 @@
     </div>
   </header>
 
-  <main class="wrap">
-    <section class="workspace card">
+  <main class="wrap desktop-shell-main">
+    <section class="workspace card desktop-card-gap">
       <aside class="workspace-nav">
         <div class="workspace-nav-top">
           <h2 class="workspace-title">Club Workspace</h2>
@@ -601,35 +567,30 @@
             <span class="workspace-tab-icon" aria-hidden="true">I</span>
             <span class="workspace-tab-copy">
               <span class="workspace-tab-title">Club information</span>
-              <span class="workspace-tab-desc">Profile, email, images</span>
             </span>
           </button>
           <button class="workspace-tab" type="button" data-section="venues">
             <span class="workspace-tab-icon" aria-hidden="true">V</span>
             <span class="workspace-tab-copy">
               <span class="workspace-tab-title">Venues and time slots</span>
-              <span class="workspace-tab-desc">Venue and schedule management</span>
             </span>
           </button>
           <button class="workspace-tab" type="button" data-section="bookings">
             <span class="workspace-tab-icon" aria-hidden="true">B</span>
             <span class="workspace-tab-copy">
               <span class="workspace-tab-title">Member bookings</span>
-              <span class="workspace-tab-desc">Review and update statuses</span>
             </span>
           </button>
           <button class="workspace-tab" type="button" data-section="updates">
             <span class="workspace-tab-icon" aria-hidden="true">U</span>
             <span class="workspace-tab-copy">
               <span class="workspace-tab-title">Memberships &amp; FAQ</span>
-              <span class="workspace-tab-desc">Manage plans, members, and chat replies</span>
             </span>
           </button>
           <button class="workspace-tab" type="button" data-section="chats">
             <span class="workspace-tab-icon" aria-hidden="true">C</span>
             <span class="workspace-tab-copy">
               <span class="workspace-tab-title">Member chats</span>
-              <span class="workspace-tab-desc">View conversation messages</span>
             </span>
           </button>
         </nav>
@@ -640,7 +601,6 @@
         <div class="workspace-head">
           <div class="workspace-head-main">
             <h2 id="sectionTitle">Club information</h2>
-            <p id="sectionDesc">Manage your club account profile and public content.</p>
           </div>
         </div>
 
@@ -660,7 +620,7 @@
   </main>
 
   <footer class="site-footer">
-    <div class="site-footer__wrap">
+    <div class="site-footer__wrap desktop-shell-wrap">
       <span class="site-footer__text">&copy; 2026 Club Booking Portal</span>
       <div class="site-footer__actions">
         <button class="site-footer__btn info-trigger" type="button" data-info="privacy">Privacy</button>
@@ -684,15 +644,12 @@
       <span class="guide-kicker">First-time guide</span>
       <h3 id="dashboardGuideTitle">Your club workspace is ready.</h3>
       <p id="dashboardGuideClubName" class="guide-club" hidden></p>
-      <p>Add at least one time slot and decide whether to offer membership cards. You can also skip this for now and come back later from the left menu.</p>
       <div class="guide-grid">
         <article class="guide-step">
           <h4>Venues and time slots</h4>
-          <p>Open your venue setup page and publish the first bookable time slot for members.</p>
         </article>
         <article class="guide-step">
           <h4>Memberships</h4>
-          <p>Review the default membership cards and manually turn on the plans you want to sell.</p>
         </article>
       </div>
       <div class="guide-actions">
@@ -706,6 +663,7 @@
   </div>
 
   <script>
+    const PUBLIC_HOME_TARGET = 'home.html';
     const LOCKED_LOGIN_TARGET = Object.freeze({
       user: 'home.html',
       club: 'club home.html'
@@ -716,27 +674,22 @@
     const SECTION_CONFIG = Object.freeze({
       info: {
         title: 'Club information',
-        desc: 'Manage your club account profile and public content.',
         src: 'club-info.html?v=20260225i'
       },
       venues: {
         title: 'Venues and time slots',
-        desc: '',
         src: 'club-admin.html?v=20260309f'
       },
       bookings: {
         title: 'Member bookings',
-        desc: 'Review bookings, member statuses, and attendance changes.',
         src: 'club bookings.html'
       },
       updates: {
         title: 'Memberships & FAQ',
-        desc: 'Set membership plans, review active members, and manage club chat replies.',
         src: 'club updates.html?v=20260328-chat-kb-b'
       },
       chats: {
         title: 'Member chats',
-        desc: '',
         src: 'club chat.html?v=20260309e'
       }
     });
@@ -759,8 +712,20 @@
       return false;
     })();
 
+    const getAuthToken = () => {
+      try {
+        const sessionToken = String(window.AuthSession?.getToken?.() || '').trim();
+        if (sessionToken) return sessionToken;
+      } catch {}
+      try {
+        return String(localStorage.getItem('token') || '').trim();
+      } catch {
+        return '';
+      }
+    };
+
     const requireClubLogin = () => {
-      const token = localStorage.getItem('token');
+      const token = getAuthToken();
       if (!token) return false;
       try {
         const user = JSON.parse(localStorage.getItem('loggedUser') || 'null');
@@ -772,19 +737,27 @@
     };
 
     const clearAuthState = () => {
+      if (window.AuthSession?.clearAll) {
+        window.AuthSession.clearAll();
+        return;
+      }
       localStorage.removeItem('token');
       localStorage.removeItem('loggedUser');
       localStorage.removeItem('user');
     };
 
-    const forceLogout = (target = 'login.html#login') => {
+    let logoutInFlight = false;
+
+    const forceLogout = (target = PUBLIC_HOME_TARGET) => {
+      if (logoutInFlight) return;
+      logoutInFlight = true;
       clearAuthState();
       localStorage.removeItem('selectedClub');
       window.location.replace(target);
     };
 
     const authFetch = (url, options = {}) => {
-      const token = localStorage.getItem('token');
+      const token = getAuthToken();
       const headers = { ...(options.headers || {}) };
       if (token) headers.Authorization = `Bearer ${token}`;
       return fetch(url, {
@@ -806,7 +779,7 @@
       if (enforcedAwayFromClubHome) return null;
       if (!requireClubLogin()) {
         clearAuthState();
-        window.location.href = 'login.html#login';
+        window.location.replace(PUBLIC_HOME_TARGET);
         return null;
       }
 
@@ -814,7 +787,7 @@
         const res = await authFetch('/api/my/clubs');
         if (!res.ok) {
           clearAuthState();
-          window.location.href = 'login.html#login';
+          window.location.replace(PUBLIC_HOME_TARGET);
           return null;
         }
         const clubs = await res.json();
@@ -844,7 +817,6 @@
     };
 
     const sectionTitleEl = document.getElementById('sectionTitle');
-    const sectionDescEl = document.getElementById('sectionDesc');
     const frameShellEl = document.getElementById('frameShell');
     const frameLoadingEl = document.getElementById('frameLoading');
     const frameLoadingTextEl = document.getElementById('frameLoadingText');
@@ -887,7 +859,7 @@
     const SESSION_CHECK_INTERVAL_MS = 15000;
     let sessionCheckTimer = null;
     let sessionCheckInFlight = false;
-    let currentTokenSessionVersion = getTokenSessionVersion(localStorage.getItem('token') || '');
+    let currentTokenSessionVersion = getTokenSessionVersion(getAuthToken());
     let dashboardGuideClubId = '';
 
     const normalizeSection = (raw) => {
@@ -1029,11 +1001,6 @@
       });
 
       if (sectionTitleEl) sectionTitleEl.textContent = config.title;
-      if (sectionDescEl) {
-        const desc = String(config.desc || '').trim();
-        sectionDescEl.textContent = desc;
-        sectionDescEl.hidden = !desc;
-      }
 
       if (options.updateUrl !== false) {
         updateUrlSection(key);
@@ -1082,11 +1049,15 @@
     });
 
     document.getElementById('logoutBtn')?.addEventListener('click', () => {
+      if (window.AuthSession?.logout) {
+        window.AuthSession.logout(PUBLIC_HOME_TARGET, { replace: true });
+        return;
+      }
       localStorage.removeItem('token');
       localStorage.removeItem('loggedUser');
       localStorage.removeItem('user');
       localStorage.removeItem('selectedClub');
-      window.location.href = 'home.html';
+      window.location.replace(PUBLIC_HOME_TARGET);
     });
 
     window.addEventListener('resize', () => {
@@ -1097,14 +1068,14 @@
     });
     window.addEventListener('storage', (event) => {
       if (event.key === 'token') {
-        const newToken = String(event.newValue || '').trim();
-        if (!newToken) {
-          forceLogout('login.html#login');
+        const liveToken = getAuthToken();
+        if (!liveToken) {
+          forceLogout(PUBLIC_HOME_TARGET);
           return;
         }
-        const newSessionVersion = getTokenSessionVersion(newToken);
+        const newSessionVersion = getTokenSessionVersion(liveToken);
         if (currentTokenSessionVersion && newSessionVersion && newSessionVersion !== currentTokenSessionVersion) {
-          forceLogout('login.html#login');
+          forceLogout(PUBLIC_HOME_TARGET);
           return;
         }
         currentTokenSessionVersion = newSessionVersion || currentTokenSessionVersion;
@@ -1112,7 +1083,7 @@
       if (event.key === 'loggedUser') {
         const user = parseJsonSafe(localStorage.getItem('loggedUser') || 'null');
         if (!user || user.type !== 'club') {
-          forceLogout('login.html#login');
+          forceLogout(PUBLIC_HOME_TARGET);
           return;
         }
       }
@@ -1135,14 +1106,14 @@
     const checkSessionAlive = async () => {
       if (sessionCheckInFlight) return;
       if (!requireClubLogin()) {
-        forceLogout('login.html#login');
+        forceLogout(PUBLIC_HOME_TARGET);
         return;
       }
       sessionCheckInFlight = true;
       try {
         const res = await authFetch('/api/profile', { cache: 'no-store' });
         if (res.status === 401) {
-          forceLogout('login.html#login');
+          forceLogout(PUBLIC_HOME_TARGET);
         }
       } catch {
         // Network blips should not force logout.
@@ -1319,3 +1290,4 @@
   </script>
 </body>
 </html>
+

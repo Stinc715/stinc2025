@@ -64,14 +64,16 @@ public class GoogleAuthController {
             }
             int nextSessionVersion = user.bumpSessionVersion();
             User savedUser = userRepo.save(user);
-            String token = jwtUtil.generateToken(savedUser.getEmail(), auth.getRole(), nextSessionVersion);
-            streamAuthCookieService.writeStreamToken(request, response, token);
+            String token = jwtUtil.generateToken(savedUser.getEmail(), auth.getRole(), nextSessionVersion, auth.getAuthProvider());
+            streamAuthCookieService.writeAuthCookies(request, response, token);
             return ResponseEntity.ok(Map.of(
                     "token", token,
                     "id", savedUser.getUserId(),
                     "email", savedUser.getEmail(),
                     "fullName", savedUser.getUsername(),
-                    "role", savedUser.getRole() == null ? "user" : savedUser.getRole().toAccountType()
+                    "role", savedUser.getRole() == null ? "user" : savedUser.getRole().toAccountType(),
+                    "authProvider", auth.getAuthProvider(),
+                    "canChangePassword", false
             ));
         } catch (GoogleLoginPolicyException ex) {
             return ResponseEntity.status(403).body(ex.getMessage());

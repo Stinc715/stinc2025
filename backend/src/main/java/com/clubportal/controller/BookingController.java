@@ -6,12 +6,14 @@ import com.clubportal.dto.ClubTimeslotBookingResponse;
 import com.clubportal.dto.MyBookingResponse;
 import com.clubportal.model.BookingRecord;
 import com.clubportal.model.Club;
+import com.clubportal.model.CheckoutSession;
 import com.clubportal.model.MembershipPlan;
 import com.clubportal.model.TimeSlot;
 import com.clubportal.model.User;
 import com.clubportal.model.UserMembership;
 import com.clubportal.model.Venue;
 import com.clubportal.repository.BookingRecordRepository;
+import com.clubportal.repository.CheckoutSessionRepository;
 import com.clubportal.repository.ClubAdminRepository;
 import com.clubportal.repository.ClubRepository;
 import com.clubportal.repository.MembershipPlanRepository;
@@ -48,9 +50,14 @@ public class BookingController {
     private static final List<String> OCCUPIED_BOOKING_STATUSES = List.of("PENDING", "APPROVED", "CHECKED");
     private static final List<String> USER_CANCELABLE_BOOKING_STATUSES = List.of("PENDING", "APPROVED");
     private static final List<String> CLUB_VISIBLE_BOOKING_STATUSES = List.of("PENDING", "APPROVED", "CHECKED", "CANCELLED");
+    private static final String ATTENDANCE_BOOKED = "BOOKED";
+    private static final String ATTENDANCE_CHECKED_IN = "CHECKED_IN";
+    private static final String ATTENDANCE_NO_SHOW = "NO_SHOW";
+    private static final String ATTENDANCE_CLOSED = "CLOSED";
 
     private final TimeSlotRepository timeSlotRepo;
     private final BookingRecordRepository bookingRepo;
+    private final CheckoutSessionRepository checkoutSessionRepo;
     private final VenueRepository venueRepo;
     private final ClubRepository clubRepo;
     private final UserRepository userRepo;
@@ -63,6 +70,7 @@ public class BookingController {
 
     public BookingController(TimeSlotRepository timeSlotRepo,
                              BookingRecordRepository bookingRepo,
+                             CheckoutSessionRepository checkoutSessionRepo,
                              VenueRepository venueRepo,
                              ClubRepository clubRepo,
                              UserRepository userRepo,
@@ -74,6 +82,7 @@ public class BookingController {
                              CheckoutSessionService checkoutSessionService) {
         this.timeSlotRepo = timeSlotRepo;
         this.bookingRepo = bookingRepo;
+        this.checkoutSessionRepo = checkoutSessionRepo;
         this.venueRepo = venueRepo;
         this.clubRepo = clubRepo;
         this.userRepo = userRepo;
@@ -117,9 +126,19 @@ public class BookingController {
         if (booking == null || !USER_CANCELABLE_BOOKING_STATUSES.contains(normalizeStatus(booking.getStatus()))) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Booking can no longer be cancelled");
         }
+        ResponseEntity<?> creditConflict = syncMembershipCreditForTransition(booking, normalizeStatus(booking.getStatus()), "CANCELLED");
+        if (creditConflict != null) {
+            return creditConflict;
+        }
         booking.setStatus("CANCELLED");
         BookingRecord saved = bookingRepo.save(booking);
-        return ResponseEntity.ok(new BookingResponse(saved.getBookingId(), saved.getTimeslotId(), saved.getStatus()));
+        TimeSlot slot = timeSlotRepo.findById(saved.getTimeslotId()).orElse(null);
+        return ResponseEntity.ok(new BookingResponse(
+                saved.getBookingId(),
+                saved.getTimeslotId(),
+                saved.getStatus(),
+                resolveAttendanceState(saved, slot, LocalDateTime.now())
+        ));
     }
 
     @GetMapping("/my/bookings")
@@ -192,6 +211,19 @@ public class BookingController {
             }
         }
 
+        Set<Integer> bookingIds = records.stream()
+                .map(BookingRecord::getBookingId)
+                .filter(Objects::nonNull)
+                .collect(java.util.stream.Collectors.toSet());
+        Map<Integer, String> orderNoByBookingId = new HashMap<>();
+        if (!bookingIds.isEmpty()) {
+            for (CheckoutSession session : checkoutSessionRepo.findByBookingIdInAndStatusOrderByCreatedAtDesc(bookingIds, CheckoutSessionService.STATUS_PAID)) {
+                if (session.getBookingId() != null) {
+                    orderNoByBookingId.putIfAbsent(session.getBookingId(), safe(session.getOrderNo()));
+                }
+            }
+        }
+
         List<MyBookingResponse> out = new ArrayList<>();
         for (BookingRecord record : records) {
             TimeSlot ts = slotById.get(record.getTimeslotId());
@@ -206,6 +238,7 @@ public class BookingController {
 
             out.add(new MyBookingResponse(
                     record.getBookingId(),
+                    orderNoByBookingId.getOrDefault(record.getBookingId(), ""),
                     record.getTimeslotId(),
                     safe(record.getStatus()),
                     record.getBookingTime(),
@@ -304,6 +337,7 @@ public class BookingController {
         }
 
         Map<Integer, List<ClubTimeslotBookingMemberResponse>> membersBySlot = new HashMap<>();
+        LocalDateTime now = LocalDateTime.now();
         for (BookingRecord record : bookings) {
             User user = userById.get(record.getUserId());
             UserMembership membership = membershipById.get(record.getUserMembershipId());
@@ -318,6 +352,7 @@ public class BookingController {
                     user == null ? "" : safe(user.getUsername()),
                     user == null ? "" : safe(user.getEmail()),
                     safe(record.getStatus()),
+                    resolveAttendanceState(record, memberSlot, now),
                     record.getBookingTime(),
                     pricePaid,
                     plan == null ? "" : safe(plan.getPlanName()),
@@ -403,9 +438,19 @@ public class BookingController {
             }
         }
 
+        ResponseEntity<?> creditConflict = syncMembershipCreditForTransition(booking, currentStatus, nextStatus);
+        if (creditConflict != null) {
+            return creditConflict;
+        }
+
         booking.setStatus(nextStatus);
         BookingRecord saved = bookingRepo.save(booking);
-        return ResponseEntity.ok(new BookingResponse(saved.getBookingId(), saved.getTimeslotId(), saved.getStatus()));
+        return ResponseEntity.ok(new BookingResponse(
+                saved.getBookingId(),
+                saved.getTimeslotId(),
+                saved.getStatus(),
+                resolveAttendanceState(saved, slot, LocalDateTime.now())
+        ));
     }
 
     private ResponseEntity<?> requireClubAdmin(User me, Integer clubId) {
@@ -442,12 +487,70 @@ public class BookingController {
         String next = normalizeStatus(nextStatus);
         if (current.equals(next)) return true;
         return switch (current) {
-            case "PENDING" -> next.equals("APPROVED") || next.equals("CANCELLED");
-            case "APPROVED" -> next.equals("PENDING") || next.equals("CHECKED") || next.equals("CANCELLED");
-            case "CHECKED" -> next.equals("APPROVED") || next.equals("CANCELLED");
-            case "CANCELLED" -> next.equals("PENDING") || next.equals("APPROVED");
+            case "PENDING" -> next.equals("APPROVED") || next.equals("CHECKED") || next.equals("CANCELLED");
+            case "APPROVED" -> next.equals("CHECKED") || next.equals("CANCELLED");
+            case "CHECKED" -> next.equals("CANCELLED");
+            case "CANCELLED" -> next.equals("APPROVED");
             default -> false;
         };
+    }
+
+    private static String resolveAttendanceState(BookingRecord booking, TimeSlot slot, LocalDateTime now) {
+        String normalizedStatus = normalizeStatus(booking == null ? null : booking.getStatus());
+        if ("CANCELLED".equals(normalizedStatus)) {
+            return ATTENDANCE_CLOSED;
+        }
+        if ("CHECKED".equals(normalizedStatus)) {
+            return ATTENDANCE_CHECKED_IN;
+        }
+        if (slot != null
+                && slot.getEndTime() != null
+                && ("APPROVED".equals(normalizedStatus) || "PENDING".equals(normalizedStatus))
+                && !slot.getEndTime().isAfter(now)) {
+            return ATTENDANCE_NO_SHOW;
+        }
+        return ATTENDANCE_BOOKED;
+    }
+
+    private ResponseEntity<?> syncMembershipCreditForTransition(BookingRecord booking, String currentStatus, String nextStatus) {
+        if (booking == null
+                || booking.getUserMembershipId() == null
+                || !Boolean.TRUE.equals(booking.getMembershipCreditUsed())
+                || Objects.equals(currentStatus, nextStatus)) {
+            return null;
+        }
+        boolean restoreCredit = isOccupiedStatus(currentStatus) && "CANCELLED".equals(nextStatus);
+        boolean consumeCredit = "CANCELLED".equals(currentStatus) && isOccupiedStatus(nextStatus);
+        if (!restoreCredit && !consumeCredit) {
+            return null;
+        }
+
+        UserMembership membership = userMembershipRepo.findByIdForUpdate(booking.getUserMembershipId()).orElse(null);
+        if (membership == null) {
+            return null;
+        }
+        MembershipPlan plan = membershipPlanRepo.findById(membership.getPlanId()).orElse(null);
+        if (!membershipService.isBookingPack(plan)) {
+            return null;
+        }
+
+        int totalBookings = membershipService.normalizeIncludedBookings(membership.getIncludedBookingsTotal());
+        int remainingBookings = membershipService.normalizeRemainingBookings(membership.getRemainingBookings());
+        if (restoreCredit) {
+            membership.setRemainingBookings(Math.min(totalBookings, remainingBookings + 1));
+            userMembershipRepo.save(membership);
+            return null;
+        }
+
+        if (!"ACTIVE".equals(membershipService.effectiveStatus(membership, plan, LocalDate.now()))) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Membership booking credits are no longer available for this booking");
+        }
+        if (remainingBookings <= 0) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("No membership booking credits remain for this booking");
+        }
+        membership.setRemainingBookings(remainingBookings - 1);
+        userMembershipRepo.save(membership);
+        return null;
     }
 
     private static BigDecimal normalizePrice(BigDecimal price) {

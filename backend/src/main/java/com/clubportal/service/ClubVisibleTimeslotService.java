@@ -152,12 +152,21 @@ public class ClubVisibleTimeslotService {
                 .map(ctx -> membershipService.effectiveStatus(ctx.membership(), LocalDate.now()))
                 .orElse("INACTIVE");
         String membershipPlanName = activeMembership.map(ctx -> safe(ctx.plan().getPlanName())).orElse("");
+        String membershipBenefitType = activeMembership
+                .map(ctx -> membershipService.normalizeBenefitType(ctx.plan().getBenefitType()))
+                .orElse(MembershipService.BENEFIT_DISCOUNT);
         BigDecimal membershipPlanPrice = activeMembership
                 .map(ctx -> membershipService.normalizePrice(ctx.plan().getPrice()))
                 .orElse(membershipService.normalizePrice(null));
         BigDecimal membershipDiscountPercent = activeMembership
                 .map(ctx -> membershipService.normalizeDiscount(ctx.plan().getDiscountPercent()))
                 .orElse(membershipService.normalizeDiscount(null));
+        Integer membershipIncludedBookings = activeMembership
+                .map(ctx -> membershipService.normalizeIncludedBookings(ctx.plan().getIncludedBookings()))
+                .orElse(0);
+        Integer membershipRemainingBookings = activeMembership
+                .map(ctx -> membershipService.normalizeRemainingBookings(ctx.membership().getRemainingBookings()))
+                .orElse(0);
         boolean membershipApplied = activeMembership.isPresent();
         log.info("[CLUB_CHAT_DEBUG] visible-timeslot pricing context: source={}, clubId={}, userId={}, membershipApplied={}, membershipPlanName={}, membershipDiscountPercent={}",
                 normalizedSource,
@@ -199,7 +208,7 @@ public class ClubVisibleTimeslotService {
                             slot.getPrice(),
                             basePrice);
                     BigDecimal effectivePrice = activeMembership
-                            .map(ctx -> membershipService.calculateDiscountedPrice(basePrice, ctx.plan().getDiscountPercent()))
+                            .map(ctx -> membershipService.calculateBookingPrice(basePrice, ctx))
                             .orElse(basePrice);
                     log.info("[CLUB_CHAT_DEBUG] PRICE_CALC: source={}, clubId={}, userId={}, timeslotId={}, basePrice={}, discountPercent={}, membershipApplied={}, finalPrice={}",
                             normalizedSource,
@@ -239,7 +248,10 @@ public class ClubVisibleTimeslotService {
                             remaining,
                             basePrice,
                             membershipPlanName,
+                            membershipBenefitType,
                             membershipDiscountPercent,
+                            membershipIncludedBookings,
+                            membershipRemainingBookings,
                             membershipApplied
                     );
                 })
@@ -247,7 +259,7 @@ public class ClubVisibleTimeslotService {
 
         for (int i = 0; i < responses.size(); i++) {
             TimeSlotResponse slot = responses.get(i);
-            log.info("[CLUB_CHAT_DEBUG] visible-timeslot computed[{}]: source={}, timeslotId={}, venueName={}, startTime={}, endTime={}, price={}, basePrice={}, bookedCount={}, remaining={}, membershipApplied={}, membershipPlanName={}, membershipDiscountPercent={}",
+            log.info("[CLUB_CHAT_DEBUG] visible-timeslot computed[{}]: source={}, timeslotId={}, venueName={}, startTime={}, endTime={}, price={}, basePrice={}, bookedCount={}, remaining={}, membershipApplied={}, membershipPlanName={}, membershipBenefitType={}, membershipDiscountPercent={}, membershipRemainingBookings={}",
                     i,
                     normalizedSource,
                     slot == null ? null : slot.timeslotId(),
@@ -260,7 +272,9 @@ public class ClubVisibleTimeslotService {
                     slot == null ? null : slot.remaining(),
                     slot == null ? null : slot.membershipApplied(),
                     slot == null ? null : slot.membershipPlanName(),
-                    slot == null ? null : slot.membershipDiscountPercent());
+                    slot == null ? null : slot.membershipBenefitType(),
+                    slot == null ? null : slot.membershipDiscountPercent(),
+                    slot == null ? null : slot.membershipRemainingBookings());
         }
 
         return responses;

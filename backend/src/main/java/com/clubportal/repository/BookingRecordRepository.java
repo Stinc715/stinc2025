@@ -25,6 +25,16 @@ public interface BookingRecordRepository extends JpaRepository<BookingRecord, In
     long countByTimeslotIdAndStatusIn(Integer timeslotId, Collection<String> statuses);
     boolean existsByUserIdAndTimeslotIdAndStatusIn(Integer userId, Integer timeslotId, Collection<String> statuses);
     boolean existsByBookingVerificationCode(String bookingVerificationCode);
+    @Query(value = """
+            select count(*)
+            from booking_record br
+            join timeslot ts on ts.timeslot_id = br.timeslot_id
+            join venue v on v.venue_id = ts.venue_id
+            where br.user_id = :userId
+              and v.club_id = :clubId
+              and br.status in ('PENDING', 'APPROVED', 'CHECKED')
+            """, nativeQuery = true)
+    long countEligibleBookingByUserIdAndClubId(@Param("userId") Integer userId, @Param("clubId") Integer clubId);
     List<BookingRecord> findByTimeslotIdInAndStatusInOrderByBookingTimeAsc(Collection<Integer> timeslotIds, Collection<String> statuses);
     List<BookingRecord> findByTimeslotIdInOrderByBookingTimeAsc(Collection<Integer> timeslotIds);
 

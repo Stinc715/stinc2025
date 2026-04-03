@@ -2,10 +2,14 @@ node_modules/
 dist/
 backend/target/
 .vscode/
+artifacts/
+playwright-report/
+test-results/
 
 *.log
 *.tgz
 *.pem
+*.zip
 
 deploy/*.jar
 deploy/*.jar.original
@@ -21,6 +25,9 @@ backend/.github/
 demo-core-loop.ps1
 
 .DS_Store
+.env
+.env.*
+!.env.example
 
 # Local training / experiment artifacts
 __pycache__/

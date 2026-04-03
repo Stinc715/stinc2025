@@ -9,6 +9,7 @@ public record ClubTimeslotBookingMemberResponse(
         String name,
         String email,
         String status,
+        String attendanceState,
         LocalDateTime bookingTime,
         BigDecimal pricePaid,
         String membershipPlanName,

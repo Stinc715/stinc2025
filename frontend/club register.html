@@ -1,10 +1,12 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Club Registration</title>
-  <link rel="stylesheet" href="theme.css?v=20260324a">
+  
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data: blob: https://maps.gstatic.com https://maps.googleapis.com https://*.googleusercontent.com https://www.google.com https://www.gstatic.com; font-src 'self' data: https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://accounts.google.com https://maps.googleapis.com; connect-src 'self' https://accounts.google.com https://maps.googleapis.com https://api.stripe.com; frame-src 'self' https://accounts.google.com https://js.stripe.com; form-action 'self' https://accounts.google.com">
+<title>Club Registration</title>
+  <link rel="stylesheet" href="theme.css?v=20260402a">
   <style>
     body { margin: 0; }
     .club-register-page {
@@ -368,29 +370,24 @@
       .club-panel { border-left: none; border-top: 1px solid rgba(15, 23, 42, 0.08); }
       .hero-inner { max-width: none; }
     }
-  </style>
+</style>
+<link rel="stylesheet" href="desktop-consistency.css?v=20260403a">
+<script src="auth-session.js?v=20260331b"></script>
 </head>
-<body class="page-with-footer">
+<body class="page-with-footer desktop-consistency desktop-page--club-register">
   <div class="club-register-page">
-    <button id="pageBack" class="link-back page-back" type="button">Back</button>
+    <button id="pageBack" class="link-back desktop-back-link page-back" type="button">Back</button>
     <main class="club-register">
       <section class="club-hero">
         <div class="hero-inner">
           <span class="hero-badge">Club Account</span>
           <h1 class="hero-title">Start your club registration</h1>
-          <p class="hero-lead">Create a club profile to manage schedules, accept bookings, and share updates with members.</p>
-          <ul class="hero-list">
-            <li>Set availability and manage court schedules in minutes.</li>
-            <li>Highlight your club types so members find you faster.</li>
-            <li>Keep bookings organized with one shared dashboard.</li>
-          </ul>
         </div>
       </section>
 
       <section class="club-panel">
-        <div class="form-shell">
+        <div class="form-shell desktop-form-shell">
           <h2 class="form-title">Club registration</h2>
-          <p class="form-lead">Fill in the details below to create your club account.</p>
 
           <div class="mb-3">
             <label for="clubEmail">Email</label>
@@ -443,7 +440,7 @@
     </main>
 
     <footer class="site-footer">
-      <div class="site-footer__wrap">
+      <div class="site-footer__wrap desktop-shell-wrap">
         <span class="site-footer__text">&copy; 2026 Club Booking Portal</span>
         <div class="site-footer__actions">
           <button class="site-footer__btn info-trigger" type="button" data-info="privacy">Privacy</button>
@@ -516,6 +513,33 @@
     };
 
     const normalizeEmail = (value) => String(value || '').trim().toLowerCase();
+    const persistAuthToken = (token) => {
+      const normalized = String(token || '').trim();
+      if (window.AuthSession?.setToken) {
+        window.AuthSession.setToken(normalized);
+        return;
+      }
+      if (normalized) localStorage.setItem('token', normalized);
+      else localStorage.removeItem('token');
+    };
+    const persistStoredUser = (payload) => {
+      const profile = payload && typeof payload === 'object' ? payload : null;
+      if (window.AuthSession?.setStoredUser) {
+        window.AuthSession.setStoredUser(profile);
+        return;
+      }
+      if (!profile) {
+        localStorage.removeItem('user');
+        return;
+      }
+      const sanitized = { ...profile };
+      delete sanitized.token;
+      delete sanitized.accessToken;
+      delete sanitized.refreshToken;
+      delete sanitized.idToken;
+      delete sanitized.jwt;
+      localStorage.setItem('user', JSON.stringify(sanitized));
+    };
     const syncCodeSlots = (value) => {
       const digits = String(value || '').replace(/\D/g, '').slice(0, 6);
       if (clubEmailCodeInput) clubEmailCodeInput.value = digits;
@@ -886,7 +910,7 @@
           const profileToSave = saved || { fullName, email, role: 'club' };
           const userType = resolveUserType(profileToSave.role || profileToSave.type);
           rememberClubEmail(profileToSave.email || email);
-          localStorage.setItem('user', JSON.stringify(profileToSave));
+          persistStoredUser(profileToSave);
           localStorage.setItem('loggedUser', JSON.stringify({
             email: profileToSave.email || email,
             name: profileToSave.fullName || fullName,
@@ -901,8 +925,8 @@
             });
             if (loginRes.ok) {
               const loginData = await loginRes.json();
-              if (loginData && loginData.token) localStorage.setItem('token', loginData.token);
-              localStorage.setItem('user', JSON.stringify(loginData));
+              persistAuthToken(loginData?.token);
+              persistStoredUser(loginData);
               const role = loginData.role || loginData.type || 'club';
               localStorage.setItem('loggedUser', JSON.stringify({
                 email: (loginData.email || email).trim(),
@@ -910,10 +934,10 @@
                 type: resolveUserType(role)
               }));
             } else {
-              localStorage.removeItem('token');
+              persistAuthToken('');
             }
           } catch (e) {
-            localStorage.removeItem('token');
+            persistAuthToken('');
           }
 
           showStatus('Registered successfully! Redirecting to club profile...', false);
@@ -939,7 +963,7 @@
       if (window.history.length > 1) {
         window.history.back();
       } else {
-        window.location.href = 'login.html#login';
+        window.location.replace('home.html');
       }
     });
 
@@ -993,4 +1017,5 @@
   </script>
 </body>
 </html>
+
 

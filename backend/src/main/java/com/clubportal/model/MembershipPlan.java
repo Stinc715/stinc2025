@@ -20,6 +20,9 @@ public class MembershipPlan {
     @Column(name = "plan_code", length = 20)
     private String planCode;
 
+    @Column(name = "benefit_type", nullable = false, length = 30)
+    private String benefitType = "DISCOUNT";
+
     @Column(name = "plan_name", nullable = false, length = 120)
     private String planName;
 
@@ -31,6 +34,9 @@ public class MembershipPlan {
 
     @Column(name = "discount_percent", nullable = false, precision = 5, scale = 2)
     private BigDecimal discountPercent;
+
+    @Column(name = "included_bookings", nullable = false)
+    private Integer includedBookings = 0;
 
     @Column(name = "enabled", nullable = false)
     private Boolean enabled;
@@ -47,6 +53,8 @@ public class MembershipPlan {
     public void setClubId(Integer clubId) { this.clubId = clubId; }
     public String getPlanCode() { return planCode; }
     public void setPlanCode(String planCode) { this.planCode = planCode; }
+    public String getBenefitType() { return benefitType; }
+    public void setBenefitType(String benefitType) { this.benefitType = benefitType; }
     public String getPlanName() { return planName; }
     public void setPlanName(String planName) { this.planName = planName; }
     public BigDecimal getPrice() { return price; }
@@ -55,6 +63,8 @@ public class MembershipPlan {
     public void setDurationDays(Integer durationDays) { this.durationDays = durationDays; }
     public BigDecimal getDiscountPercent() { return discountPercent; }
     public void setDiscountPercent(BigDecimal discountPercent) { this.discountPercent = discountPercent; }
+    public Integer getIncludedBookings() { return includedBookings; }
+    public void setIncludedBookings(Integer includedBookings) { this.includedBookings = includedBookings; }
     public Boolean getEnabled() { return enabled; }
     public void setEnabled(Boolean enabled) { this.enabled = enabled; }
     public String getDescription() { return description; }

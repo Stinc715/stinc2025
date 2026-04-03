@@ -19,6 +19,9 @@ public class CheckoutSession {
     @Column(name = "session_id", nullable = false, unique = true, length = 64)
     private String sessionId;
 
+    @Column(name = "order_no", unique = true, length = 32)
+    private String orderNo;
+
     @Column(name = "user_id", nullable = false)
     private Integer userId;
 
@@ -95,6 +98,14 @@ public class CheckoutSession {
 
     public void setSessionId(String sessionId) {
         this.sessionId = sessionId;
+    }
+
+    public String getOrderNo() {
+        return orderNo;
+    }
+
+    public void setOrderNo(String orderNo) {
+        this.orderNo = orderNo;
     }
 
     public Integer getUserId() {

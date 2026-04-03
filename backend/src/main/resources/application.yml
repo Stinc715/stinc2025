@@ -39,8 +39,14 @@ app:
     base-url: ${APP_PUBLIC_BASE_URL:}
     google-maps-api-key: ${GOOGLE_MAPS_JS_API_KEY:}
   email:
-    from: ${APP_MAIL_FROM:${MAIL_FROM:no-reply@club-portal.xyz}}
+    from: ${APP_MAIL_FROM:${MAIL_FROM:no-reply@example.test}}
   auth:
+    password:
+      min-length: ${APP_AUTH_PASSWORD_MIN_LENGTH:8}
+    login-throttle:
+      max-failures: ${APP_AUTH_LOGIN_THROTTLE_MAX_FAILURES:5}
+      window-seconds: ${APP_AUTH_LOGIN_THROTTLE_WINDOW_SECONDS:900}
+      block-seconds: ${APP_AUTH_LOGIN_THROTTLE_BLOCK_SECONDS:900}
     register:
       code-ttl-seconds: ${REGISTER_CODE_TTL_SECONDS:600}
       resend-cooldown-seconds: ${REGISTER_CODE_RESEND_COOLDOWN_SECONDS:60}
@@ -63,6 +69,8 @@ app:
     model: ${APP_LLM_MODEL:gpt-5-mini}
     embedding-model: ${APP_LLM_EMBEDDING_MODEL:text-embedding-3-small}
   chat:
+    handoff:
+      idle-reset-minutes: ${APP_CHAT_HANDOFF_IDLE_RESET_MINUTES:60}
     kb:
       matcher:
         best-score-threshold: ${APP_CHAT_KB_MATCHER_BEST_SCORE_THRESHOLD:0.75}
@@ -72,4 +80,4 @@ app:
         realtime-keywords: ${APP_CHAT_KB_GUARD_REALTIME_KEYWORDS:今天,现在,目前,当前,此刻,临时,刚刚,还剩,还有位置,名额,空位,现在还能,today,now,currently,available now,remaining,left,available today}
   security:
     cors:
-      allowed-origin-patterns: ${APP_SECURITY_CORS_ALLOWED_ORIGIN_PATTERNS:https://club-portal.xyz,https://www.club-portal.xyz}
+      allowed-origin-patterns: ${APP_SECURITY_CORS_ALLOWED_ORIGIN_PATTERNS:https://example.invalid,https://www.example.invalid}

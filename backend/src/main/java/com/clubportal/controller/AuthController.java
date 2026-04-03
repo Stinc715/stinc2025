@@ -3,8 +3,10 @@ package com.clubportal.controller;
 import com.clubportal.dto.RegisterRequest;
 import com.clubportal.model.User;
 import com.clubportal.repository.UserRepository;
-import com.clubportal.security.StreamAuthCookieService;
 import com.clubportal.security.JwtUtil;
+import com.clubportal.security.StreamAuthCookieService;
+import com.clubportal.service.LoginThrottleService;
+import com.clubportal.service.PasswordPolicyService;
 import com.clubportal.service.RegistrationEmailVerificationService;
 import com.clubportal.util.PasswordEncryptionUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,18 +30,24 @@ public class AuthController {
     private final PasswordEncryptionUtil passwordUtil;
     private final JwtUtil jwtUtil;
     private final RegistrationEmailVerificationService verificationService;
+    private final PasswordPolicyService passwordPolicyService;
     private final StreamAuthCookieService streamAuthCookieService;
+    private final LoginThrottleService loginThrottleService;
 
     public AuthController(UserRepository userRepo,
                           PasswordEncryptionUtil passwordUtil,
                           JwtUtil jwtUtil,
                           RegistrationEmailVerificationService verificationService,
-                          StreamAuthCookieService streamAuthCookieService) {
+                          PasswordPolicyService passwordPolicyService,
+                          StreamAuthCookieService streamAuthCookieService,
+                          LoginThrottleService loginThrottleService) {
         this.userRepo = userRepo;
         this.passwordUtil = passwordUtil;
         this.jwtUtil = jwtUtil;
         this.verificationService = verificationService;
+        this.passwordPolicyService = passwordPolicyService;
         this.streamAuthCookieService = streamAuthCookieService;
+        this.loginThrottleService = loginThrottleService;
     }
 
     private static User.Role resolveRoleForRegistration(String role) {
@@ -68,6 +76,10 @@ public class AuthController {
             if (normalizedEmail.isBlank()) {
                 return ResponseEntity.badRequest().body("Missing email");
             }
+            String passwordValidationMessage = passwordPolicyService.validate(req.getPassword()).orElse(null);
+            if (passwordValidationMessage != null) {
+                return ResponseEntity.badRequest().body(passwordValidationMessage);
+            }
 
             if (!verificationService.isVerifiedForRegistration(normalizedEmail)) {
                 return ResponseEntity.badRequest().body("Email verification required");
@@ -90,14 +102,14 @@ public class AuthController {
             User saved = userRepo.save(u);
             verificationService.consumeVerification(normalizedEmail);
             String role = saved.getRole() == null ? "user" : saved.getRole().toAccountType();
-            String token = jwtUtil.generateToken(saved.getEmail(), role, nextSessionVersion);
-            streamAuthCookieService.writeStreamToken(request, response, token);
-            return ResponseEntity.ok(authPayload(saved, role, token));
+            String token = jwtUtil.generateToken(saved.getEmail(), role, nextSessionVersion, JwtUtil.AUTH_PROVIDER_PASSWORD);
+            streamAuthCookieService.writeAuthCookies(request, response, token);
+            return ResponseEntity.ok(authPayload(saved, role, token, JwtUtil.AUTH_PROVIDER_PASSWORD));
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.status(409).body("Email already exists");
         } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().body("Internal error: " + e.getMessage());
+            log.error("Unexpected registration failure for email={}", normalizeEmail(req.getEmail()), e);
+            return ResponseEntity.internalServerError().body("Registration failed. Please try again later.");
         }
     }
 
@@ -107,6 +119,11 @@ public class AuthController {
                                    HttpServletResponse response) {
         String email = normalizeEmail(body.get("email"));
         String password = body.get("password");
+        String clientIp = resolveClientIp(request);
+        String blockedMessage = loginThrottleService.getBlockMessage(email, clientIp).orElse(null);
+        if (blockedMessage != null) {
+            return ResponseEntity.status(429).body(blockedMessage);
+        }
         if (email.isBlank() || password == null || password.isBlank()) {
             return ResponseEntity.status(401).body("Invalid email or password");
         }
@@ -120,6 +137,7 @@ public class AuthController {
             }
         }
         if (user == null) {
+            loginThrottleService.recordFailure(email, clientIp);
             log.warn("Login failed for email={} candidates={}", email, candidates.size());
             return ResponseEntity.status(401).body("Invalid email or password");
         }
@@ -127,19 +145,28 @@ public class AuthController {
         String role = (user.getRole() == null) ? "user" : user.getRole().toAccountType();
         int nextSessionVersion = user.bumpSessionVersion();
         User savedUser = userRepo.save(user);
-        String token = jwtUtil.generateToken(savedUser.getEmail(), role, nextSessionVersion);
-        streamAuthCookieService.writeStreamToken(request, response, token);
+        loginThrottleService.recordSuccess(email, clientIp);
+        String token = jwtUtil.generateToken(savedUser.getEmail(), role, nextSessionVersion, JwtUtil.AUTH_PROVIDER_PASSWORD);
+        streamAuthCookieService.writeAuthCookies(request, response, token);
 
-        return ResponseEntity.ok(authPayload(savedUser, role, token));
+        return ResponseEntity.ok(authPayload(savedUser, role, token, JwtUtil.AUTH_PROVIDER_PASSWORD));
     }
 
-    private static java.util.Map<String, Object> authPayload(User user, String role, String token) {
+    @PostMapping("/auth/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+        streamAuthCookieService.clearAuthCookies(request, response);
+        return ResponseEntity.ok(java.util.Map.of("logout", true));
+    }
+
+    private static java.util.Map<String, Object> authPayload(User user, String role, String token, String authProvider) {
         return java.util.Map.of(
                 "token", token,
                 "id", user.getUserId(),
                 "fullName", user.getUsername(),
                 "email", user.getEmail(),
-                "role", role
+                "role", role,
+                "authProvider", authProvider,
+                "canChangePassword", JwtUtil.AUTH_PROVIDER_PASSWORD.equalsIgnoreCase(authProvider)
         );
     }
 
@@ -163,6 +190,18 @@ public class AuthController {
 
     private static String normalizeEmail(String email) {
         return email == null ? "" : email.trim().toLowerCase();
+    }
+
+    private static String resolveClientIp(HttpServletRequest request) {
+        if (request == null) {
+            return "";
+        }
+        String forwardedFor = request.getHeader("X-Forwarded-For");
+        if (forwardedFor != null && !forwardedFor.isBlank()) {
+            return forwardedFor.split(",")[0].trim();
+        }
+        String remoteAddr = request.getRemoteAddr();
+        return remoteAddr == null ? "" : remoteAddr.trim();
     }
 
     private static Comparator<User> byRolePriority() {

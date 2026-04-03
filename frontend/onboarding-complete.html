@@ -1,11 +1,14 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Club onboarding - Registration complete</title>
-  <link rel="stylesheet" href="theme.css?v=20260324a">
-  <link rel="stylesheet" href="onboarding.css?v=20260327f">
+  
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data: blob: https://maps.gstatic.com https://maps.googleapis.com https://*.googleusercontent.com https://www.google.com https://www.gstatic.com; font-src 'self' data: https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://accounts.google.com https://maps.googleapis.com; connect-src 'self' https://accounts.google.com https://maps.googleapis.com https://api.stripe.com; frame-src 'self' https://accounts.google.com https://js.stripe.com; form-action 'self' https://accounts.google.com">
+<title>Club onboarding - Registration complete</title>
+  <link rel="stylesheet" href="theme.css?v=20260402a">
+  <link rel="stylesheet" href="onboarding.css?v=20260402a">
+  <link rel="stylesheet" href="desktop-consistency.css?v=20260403a">
   <style>
     html,
     body,
@@ -158,8 +161,9 @@
       }
     }
   </style>
+<script src="auth-session.js?v=20260331b"></script>
 </head>
-<body class="page-with-footer">
+<body class="page-with-footer desktop-consistency desktop-shell--narrow desktop-page--onboarding-complete">
   <main class="wrap success-main">
     <section class="success-card">
       <div class="success-mark" aria-hidden="true"></div>
@@ -173,7 +177,7 @@
   </main>
 
   <footer class="site-footer">
-    <div class="site-footer__wrap">
+    <div class="site-footer__wrap desktop-shell-wrap">
       <span class="site-footer__text">&copy; 2026 Club Booking Portal</span>
       <div class="site-footer__actions">
         <button class="site-footer__btn info-trigger" type="button" data-info="privacy">Privacy</button>
@@ -187,3 +191,4 @@
   <script type="module" src="auth-modal.js?v=20260324a"></script>
 </body>
 </html>
+

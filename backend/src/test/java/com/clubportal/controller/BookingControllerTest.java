@@ -3,11 +3,13 @@ package com.clubportal.controller;
 import com.clubportal.dto.ClubTimeslotBookingResponse;
 import com.clubportal.dto.MyBookingResponse;
 import com.clubportal.model.BookingRecord;
+import com.clubportal.model.CheckoutSession;
 import com.clubportal.model.Club;
 import com.clubportal.model.TimeSlot;
 import com.clubportal.model.User;
 import com.clubportal.model.Venue;
 import com.clubportal.repository.BookingRecordRepository;
+import com.clubportal.repository.CheckoutSessionRepository;
 import com.clubportal.repository.ClubAdminRepository;
 import com.clubportal.repository.ClubRepository;
 import com.clubportal.repository.MembershipPlanRepository;
@@ -38,6 +40,7 @@ class BookingControllerTest {
     void myBookingsIncludesVerificationCode() {
         TimeSlotRepository timeSlotRepo = mock(TimeSlotRepository.class);
         BookingRecordRepository bookingRepo = mock(BookingRecordRepository.class);
+        CheckoutSessionRepository checkoutSessionRepo = mock(CheckoutSessionRepository.class);
         VenueRepository venueRepo = mock(VenueRepository.class);
         ClubRepository clubRepo = mock(ClubRepository.class);
         UserRepository userRepo = mock(UserRepository.class);
@@ -51,6 +54,7 @@ class BookingControllerTest {
         BookingController controller = new BookingController(
                 timeSlotRepo,
                 bookingRepo,
+                checkoutSessionRepo,
                 venueRepo,
                 clubRepo,
                 userRepo,
@@ -96,6 +100,11 @@ class BookingControllerTest {
         when(timeSlotRepo.findAllById(List.of(148))).thenReturn(List.of(slot));
         when(venueRepo.findAllById(java.util.Set.of(9))).thenReturn(List.of(venue));
         when(clubRepo.findAllById(java.util.Set.of(2))).thenReturn(List.of(club));
+        CheckoutSession checkout = new CheckoutSession();
+        checkout.setBookingId(24);
+        checkout.setOrderNo("BK-20260331-101500-A1B2C3");
+        when(checkoutSessionRepo.findByBookingIdInAndStatusOrderByCreatedAtDesc(java.util.Set.of(24), CheckoutSessionService.STATUS_PAID))
+                .thenReturn(List.of(checkout));
 
         ResponseEntity<?> response = controller.myBookings();
 
@@ -105,12 +114,14 @@ class BookingControllerTest {
         List<MyBookingResponse> rows = (List<MyBookingResponse>) response.getBody();
         assertEquals(1, rows.size());
         assertEquals("482905", rows.get(0).bookingVerificationCode());
+        assertEquals("BK-20260331-101500-A1B2C3", rows.get(0).orderNo());
     }
 
     @Test
     void clubTimeslotBookingsIncludesVerificationCode() {
         TimeSlotRepository timeSlotRepo = mock(TimeSlotRepository.class);
         BookingRecordRepository bookingRepo = mock(BookingRecordRepository.class);
+        CheckoutSessionRepository checkoutSessionRepo = mock(CheckoutSessionRepository.class);
         VenueRepository venueRepo = mock(VenueRepository.class);
         ClubRepository clubRepo = mock(ClubRepository.class);
         UserRepository userRepo = mock(UserRepository.class);
@@ -124,6 +135,7 @@ class BookingControllerTest {
         BookingController controller = new BookingController(
                 timeSlotRepo,
                 bookingRepo,
+                checkoutSessionRepo,
                 venueRepo,
                 clubRepo,
                 userRepo,
@@ -189,5 +201,6 @@ class BookingControllerTest {
         List<ClubTimeslotBookingResponse> rows = (List<ClubTimeslotBookingResponse>) response.getBody();
         assertEquals(1, rows.size());
         assertEquals("482905", rows.get(0).members().get(0).bookingVerificationCode());
+        assertEquals("NO_SHOW", rows.get(0).members().get(0).attendanceState());
     }
 }

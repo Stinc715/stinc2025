@@ -6,12 +6,15 @@ DB_PORT="${DB_PORT:-3306}"
 DB_NAME="${DB_NAME:-club_portal}"
 DB_USERNAME_INPUT="${DB_USERNAME:-}"
 DB_PASSWORD_INPUT="${DB_PASSWORD:-}"
+DEPLOY_HOME="${DEPLOY_HOME:-$HOME/deploy}"
+APP_HOME="${APP_HOME:-$HOME/app}"
+SERVICE_USER="${SERVICE_USER:-$USER}"
 
 APP_USER="${DB_USERNAME_INPUT:-club_portal_app}"
 APP_PW="${DB_PASSWORD_INPUT}"
 JWT_SECRET="${JWT_SECRET:-$(openssl rand -hex 32)}"
-APP_PUBLIC_BASE_URL="${APP_PUBLIC_BASE_URL:-https://club-portal.xyz}"
-APP_SECURITY_CORS_ALLOWED_ORIGIN_PATTERNS="${APP_SECURITY_CORS_ALLOWED_ORIGIN_PATTERNS:-https://club-portal.xyz,https://www.club-portal.xyz}"
+APP_PUBLIC_BASE_URL="${APP_PUBLIC_BASE_URL:-https://example.invalid}"
+APP_SECURITY_CORS_ALLOWED_ORIGIN_PATTERNS="${APP_SECURITY_CORS_ALLOWED_ORIGIN_PATTERNS:-https://example.invalid}"
 
 is_local_mysql_target=false
 if [[ "$DB_HOST" == "127.0.0.1" || "$DB_HOST" == "localhost" ]]; then
@@ -25,9 +28,9 @@ if [[ "$is_local_mysql_target" == true ]]; then
 
   echo "[setup] Local MySQL target detected; applying schema..."
   sudo mysql -e "CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-  sudo mysql -D "$DB_NAME" < /home/ec2-user/deploy/mysql_schema.sql
-  if compgen -G "/home/ec2-user/deploy/migrations/*.sql" > /dev/null; then
-    for migration_path in /home/ec2-user/deploy/migrations/*.sql; do
+  sudo mysql -D "$DB_NAME" < "${DEPLOY_HOME}/mysql_schema.sql"
+  if compgen -G "${DEPLOY_HOME}/migrations/*.sql" > /dev/null; then
+    for migration_path in "${DEPLOY_HOME}"/migrations/*.sql; do
       sudo mysql -D "$DB_NAME" < "$migration_path"
     done
   fi
@@ -74,10 +77,10 @@ After=network.target
 
 [Service]
 Type=simple
-User=ec2-user
-WorkingDirectory=/home/ec2-user/app
+User=$SERVICE_USER
+WorkingDirectory=$APP_HOME
 EnvironmentFile=/etc/club-portal.env
-ExecStart=/usr/bin/java -jar /home/ec2-user/app/club-portal-backend-1.0-SNAPSHOT.jar
+ExecStart=/usr/bin/java -jar $APP_HOME/club-portal-backend-1.0-SNAPSHOT.jar
 SuccessExitStatus=143
 Restart=always
 RestartSec=5

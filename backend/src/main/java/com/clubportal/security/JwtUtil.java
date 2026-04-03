@@ -14,6 +14,8 @@ import java.util.Date;
 public class JwtUtil {
 
     private static final long TOKEN_TTL_MS = 86400000L;
+    public static final String AUTH_PROVIDER_PASSWORD = "password";
+    public static final String AUTH_PROVIDER_GOOGLE = "google";
     private final Key key;
 
     public JwtUtil(@Value("${jwt.secret}") String secret) {
@@ -26,15 +28,21 @@ public class JwtUtil {
     }
 
     public String generateToken(String email, String role) {
-        return generateToken(email, role, 1);
+        return generateToken(email, role, 1, AUTH_PROVIDER_PASSWORD);
     }
 
     public String generateToken(String email, String role, Integer sessionVersion) {
+        return generateToken(email, role, sessionVersion, AUTH_PROVIDER_PASSWORD);
+    }
+
+    public String generateToken(String email, String role, Integer sessionVersion, String authProvider) {
         int normalizedSessionVersion = (sessionVersion == null || sessionVersion < 1) ? 1 : sessionVersion;
+        String normalizedAuthProvider = normalizeAuthProvider(authProvider);
         return Jwts.builder()
                 .setSubject(email)
                 .claim("role", role)
                 .claim("sv", normalizedSessionVersion)
+                .claim("authProvider", normalizedAuthProvider)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + TOKEN_TTL_MS))
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -59,6 +67,19 @@ public class JwtUtil {
         } catch (Exception ex) {
             return null;
         }
+    }
+
+    public String extractAuthProvider(String token) {
+        Object raw = extractClaims(token).get("authProvider");
+        return normalizeAuthProvider(raw == null ? null : String.valueOf(raw));
+    }
+
+    private static String normalizeAuthProvider(String authProvider) {
+        String normalized = authProvider == null ? "" : authProvider.trim().toLowerCase();
+        if (AUTH_PROVIDER_GOOGLE.equals(normalized)) {
+            return AUTH_PROVIDER_GOOGLE;
+        }
+        return AUTH_PROVIDER_PASSWORD;
     }
 
     private Claims extractClaims(String token) {

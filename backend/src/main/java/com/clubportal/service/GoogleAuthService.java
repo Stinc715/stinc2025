@@ -127,7 +127,8 @@ public class GoogleAuthService {
                 user.getUserId(),
                 user.getUsername(),
                 user.getEmail(),
-                user.getRole() == null ? "user" : user.getRole().toAccountType()
+                user.getRole() == null ? "user" : user.getRole().toAccountType(),
+                "google"
         );
     }
 

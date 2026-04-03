@@ -24,8 +24,7 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
-    private static final String CHAT_VERSION_PATH = "/api/debug/chat-version";
-    private static final String DEBUG_PING_PATH = "/api/debug/ping";
+    public static final String AUTH_FAILURE_ATTRIBUTE = JwtAuthenticationFilter.class.getName() + ".AUTH_FAILURE";
 
     private final JwtUtil jwtUtil;
     private final UserRepository userRepo;
@@ -33,16 +32,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     public JwtAuthenticationFilter(JwtUtil jwtUtil, UserRepository userRepo) {
         this.jwtUtil = jwtUtil;
         this.userRepo = userRepo;
-    }
-
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        String uri = request == null ? null : request.getRequestURI();
-        if (CHAT_VERSION_PATH.equals(uri) || DEBUG_PING_PATH.equals(uri)) {
-            log.info("[CLUB_CHAT_DEBUG] debug endpoint bypassed at JwtAuthenticationFilter: path={}", uri);
-            return true;
-        }
-        return false;
     }
 
     @Override
@@ -62,7 +51,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (user == null || tokenSessionVersion == null
                         || user.getSessionVersionOrDefault() != tokenSessionVersion) {
                     SecurityContextHolder.clearContext();
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    request.setAttribute(AUTH_FAILURE_ATTRIBUTE, Boolean.TRUE);
+                    filterChain.doFilter(request, response);
                     return;
                 }
 
@@ -88,7 +78,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             } catch (Exception ex) {
                 log.debug("JWT rejected for uri={} reason={}", request.getRequestURI(), ex.getMessage());
                 SecurityContextHolder.clearContext();
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                request.setAttribute(AUTH_FAILURE_ATTRIBUTE, Boolean.TRUE);
+                filterChain.doFilter(request, response);
                 return;
             }
         }
@@ -102,19 +93,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return header.substring(7);
         }
 
+        String authCookieToken = readCookieValue(request, StreamAuthCookieService.AUTH_TOKEN_COOKIE);
+        if (authCookieToken != null) {
+            return authCookieToken;
+        }
+
         if (isChatStreamRequest(request)) {
-            Cookie[] cookies = request.getCookies();
-            if (cookies == null) {
-                return null;
+            String streamCookieToken = readCookieValue(request, StreamAuthCookieService.STREAM_TOKEN_COOKIE);
+            if (streamCookieToken != null) {
+                return streamCookieToken;
             }
-            for (Cookie cookie : cookies) {
-                if (cookie == null) continue;
-                if (StreamAuthCookieService.STREAM_TOKEN_COOKIE.equals(cookie.getName())) {
-                    String value = cookie.getValue();
-                    if (value != null && !value.isBlank()) {
-                        return value.trim();
-                    }
-                }
+        }
+        return null;
+    }
+
+    private static String readCookieValue(HttpServletRequest request, String cookieName) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null || cookieName == null || cookieName.isBlank()) {
+            return null;
+        }
+        for (Cookie cookie : cookies) {
+            if (cookie == null) continue;
+            if (!cookieName.equals(cookie.getName())) continue;
+            String value = cookie.getValue();
+            if (value != null && !value.isBlank()) {
+                return value.trim();
             }
         }
         return null;

@@ -1,353 +1,459 @@
-## API Contract (Baseline)
+# API Contract
 
 Base URL: `/api`
 
-Auth uses `Authorization: Bearer <jwt>` (JWT contains `role` claim: `user` or `club`).
+This document describes the current backend contract as implemented in code. It is intentionally biased toward runtime truth, not historical behavior.
 
-### Auth
+## Authentication
 
-#### POST `/api/register`
+Runtime behavior:
+- The backend writes authenticated cookies for browser flows.
+- Login and registration responses still include a `token` field for backward compatibility with existing frontend code.
+- Protected endpoints accept the existing JWT bearer token model and browser cookie model.
+
+### POST `/api/register`
 
 Request body:
 
 ```json
-{ "fullName": "Alice", "email": "alice@example.com", "password": "...", "role": "user|club" }
+{
+  "fullName": "Alice Example",
+  "email": "alice@example.com",
+  "password": "StrongPass1",
+  "role": "user"
+}
 ```
 
-Response (200):
+Response `200`:
 
 ```json
-{ "id": 1, "fullName": "Alice", "email": "alice@example.com", "role": "user|club" }
+{
+  "token": "jwt-token",
+  "id": 1,
+  "fullName": "Alice Example",
+  "email": "alice@example.com",
+  "role": "user"
+}
 ```
 
 Notes:
-- If the email already exists: `409`.
-- One email can only be used for one account type; registering again with the same email is not allowed.
+- Registration requires prior email verification.
+- Password policy is enforced server-side.
+- Duplicate email returns `409`.
+- Public registration never allows self-assignment to `ADMIN`.
 
-#### POST `/api/login`
-
-Request body:
-
-```json
-{ "email": "alice@example.com", "password": "..." }
-```
-
-Response (200):
-
-```json
-{ "token": "...", "id": 1, "fullName": "Alice", "email": "alice@example.com", "role": "user|club" }
-```
-
-#### POST `/api/auth/google`
+### POST `/api/login`
 
 Request body:
 
 ```json
-{ "credential": "google_id_token" }
+{
+  "email": "alice@example.com",
+  "password": "StrongPass1"
+}
 ```
 
-Response (200): same shape as `/api/login`.
+Response `200`:
 
-### Clubs
+```json
+{
+  "token": "jwt-token",
+  "id": 1,
+  "fullName": "Alice Example",
+  "email": "alice@example.com",
+  "role": "user"
+}
+```
 
-#### GET `/api/clubs`
+Failure response:
+- `401 Invalid email or password`
 
-Response (200):
+### POST `/api/auth/logout`
+
+Response `200`:
+
+```json
+{ "logout": true }
+```
+
+### POST `/api/auth/password-reset/request`
+
+Request body:
+
+```json
+{ "email": "alice@example.com" }
+```
+
+Response `200` for both existent and non-existent accounts:
+
+```json
+{
+  "success": true,
+  "message": "If an account exists for this email, a password reset link will be sent shortly."
+}
+```
+
+Notes:
+- The reset link base URL comes only from `app.public.base-url`.
+- The endpoint is intentionally non-enumerating.
+
+### POST `/api/auth/password-reset/confirm`
+
+Request body:
+
+```json
+{
+  "token": "reset-token",
+  "password": "StrongPass1"
+}
+```
+
+Response `200`:
+
+```json
+{ "reset": true }
+```
+
+## Clubs
+
+### GET `/api/clubs`
+
+Response `200`:
 
 ```json
 [
-  { "id": 1, "clubId": 1, "name": "Basketball Club", "description": "...", "category": "basketball", "tags": ["basketball"] }
+  {
+    "id": 1,
+    "clubId": 1,
+    "name": "Basketball Club",
+    "description": "Public club summary",
+    "category": "basketball",
+    "tags": ["basketball"]
+  }
 ]
 ```
 
-#### GET `/api/clubs/{clubId}`
+### GET `/api/clubs/{clubId}`
 
-Response (200):
+Response `200` includes club profile, location, hours, and public display metadata.
 
-```json
-{
-  "id": 1,
-  "clubId": 1,
-  "name": "Basketball Club",
-  "description": "...",
-  "category": "basketball",
-  "email": "club@example.com",
-  "phone": "1234567890",
-  "location": "Hall A",
-  "openingStart": "08:00",
-  "openingEnd": "17:00",
-  "courtsCount": 2,
-  "tags": ["basketball"]
-}
-```
+### POST `/api/clubs`
 
-#### POST `/api/clubs`
-
-Requires: `role=club`.
-
-Request body (aliases supported):
-
-```json
-{
-  "name": "Basketball Club",
-  "description": "...",
-  "category": "basketball",
-  "email": "club@example.com",
-  "phone": "1234567890",
-  "location": "Hall A",
-  "openingStart": "08:00",
-  "openingEnd": "17:00",
-  "courtsCount": 2,
-  "tags": ["basketball"]
-}
-```
-
-Response (200): same as `GET /api/clubs/{clubId}`.
+Requires:
+- authenticated club or admin user
 
 Behavior:
-- The creator automatically becomes a `club_admin` for the created club.
+- creates a club
+- automatically links the creator as `club_admin`
 
-#### PUT `/api/clubs/{clubId}`
+### PUT `/api/clubs/{clubId}`
 
-Requires: `role=club` and user must be a `club_admin` of this club (or system `ADMIN`).
+Requires:
+- authenticated club or admin user
+- current user must manage that club
 
-Request body: same as POST (partial updates supported for fields present).
+## Venues and Time Slots
 
-Response (200): same as `GET /api/clubs/{clubId}`.
+### GET `/api/clubs/{clubId}/venues`
 
-### Venues (Courts)
-
-#### GET `/api/clubs/{clubId}/venues`
-
-Response (200):
-
-```json
-[
-  { "venueId": 1, "clubId": 1, "name": "Court A", "location": "Hall A", "capacity": 20 }
-]
-```
-
-#### POST `/api/clubs/{clubId}/venues`
-
-Requires: `role=club` and user must be a `club_admin` of this club (or system `ADMIN`).
-
-Request body (aliases supported):
-
-```json
-{ "name": "Court A", "location": "Hall A", "capacity": 20 }
-```
-
-Response (200): same shape as `GET /api/clubs/{clubId}/venues`.
-
-Constraints:
-- One club can only have one venue. Creating a second venue returns `409`.
-
-### Time Slots
-
-#### GET `/api/clubs/{clubId}/timeslots?from=YYYY-MM-DD&to=YYYY-MM-DD`
-
-Response (200):
+Response `200`:
 
 ```json
 [
   {
-    "timeslotId": 10,
     "venueId": 1,
     "clubId": 1,
-    "venueName": "Court A",
-    "startTime": "2026-02-14T10:00:00",
-    "endTime": "2026-02-14T11:00:00",
-    "maxCapacity": 4,
-    "bookedCount": 1,
-    "remaining": 3
+    "name": "Court A",
+    "location": "Hall A",
+    "capacity": 20
   }
 ]
 ```
 
-#### POST `/api/clubs/{clubId}/venues/{venueId}/timeslots`
+### POST `/api/clubs/{clubId}/venues`
 
-Requires: `role=club` and user must be a `club_admin` of this club (or system `ADMIN`).
+Requires club admin.
+
+### GET `/api/clubs/{clubId}/timeslots?from=YYYY-MM-DD&to=YYYY-MM-DD`
+
+Response `200` item shape:
+
+```json
+{
+  "timeslotId": 10,
+  "venueId": 1,
+  "clubId": 1,
+  "venueName": "Court A",
+  "startTime": "2026-04-01T15:00:00",
+  "endTime": "2026-04-01T16:00:00",
+  "maxCapacity": 50,
+  "bookedCount": 1,
+  "remaining": 49,
+  "price": 0.8,
+  "basePrice": 1.0,
+  "membershipApplied": true,
+  "membershipPlanName": "Monthly Pass"
+}
+```
+
+### POST `/api/clubs/{clubId}/venues/{venueId}/timeslots`
+
+Requires club admin.
+
+## Booking
+
+### POST `/api/timeslots/{timeslotId}/bookings`
+
+Current runtime behavior:
+- this endpoint no longer creates a booking directly
+- it intentionally returns `402 Payment Required`
+
+Response `402`:
+
+```json
+"Create a checkout session first via /api/payments/checkout-sessions"
+```
+
+Canonical booking flow:
+1. client calls `POST /api/payments/checkout-sessions`
+2. backend creates a checkout session
+3. client opens `payment.html?sessionId=...`
+4. payment is completed through virtual confirmation or Stripe
+5. backend writes `booking_record`
+
+### DELETE `/api/timeslots/{timeslotId}/bookings/me`
+
+Cancels the caller's active booking for that timeslot when status is cancelable.
+
+### GET `/api/my/bookings`
+
+Response items include:
+
+```json
+{
+  "bookingId": 24,
+  "orderNo": "BK-20260331150315-ABC123",
+  "timeslotId": 10,
+  "status": "PENDING",
+  "clubId": 2,
+  "clubName": "manba basketball",
+  "venueId": 1,
+  "venueName": "A",
+  "startTime": "2026-03-31T15:00:00",
+  "endTime": "2026-03-31T16:00:00",
+  "pricePaid": 0.8,
+  "basePrice": 1.0,
+  "membershipPlanName": "Monthly Pass",
+  "membershipApplied": true,
+  "bookingVerificationCode": "565767"
+}
+```
+
+### GET `/api/clubs/{clubId}/timeslot-bookings`
+
+Requires club admin.
+
+Club-side booking members include:
+- member name and email
+- booking status
+- paid amount
+- membership info
+- `bookingVerificationCode`
+
+## Memberships
+
+### GET `/api/clubs/{clubId}/membership-plans`
+
+Returns enabled public plans only.
+
+### POST `/api/membership-plans/{planId}/purchase`
+
+Current runtime behavior:
+- this endpoint no longer completes a membership purchase directly
+- it intentionally returns `402 Payment Required`
+
+Response `402`:
+
+```json
+"Create a checkout session first via /api/payments/checkout-sessions"
+```
+
+Canonical membership purchase flow:
+1. client calls `POST /api/payments/checkout-sessions`
+2. request type is `MEMBERSHIP`
+3. payment is completed
+4. backend writes `user_membership` and `transaction`
+
+### GET `/api/my/memberships`
+
+Response items include:
+
+```json
+{
+  "userMembershipId": 11,
+  "orderNo": "MB-20260331151042-QWE456",
+  "clubId": 2,
+  "clubName": "manba basketball",
+  "planId": 5,
+  "planCode": "MONTHLY",
+  "planName": "Monthly Pass",
+  "price": 49.0,
+  "discountPercent": 20.0,
+  "status": "ACTIVE"
+}
+```
+
+## Payments and Checkout
+
+### POST `/api/payments/checkout-sessions`
+
+Creates a checkout session for either booking or membership purchase.
+
+Request body examples:
+
+Booking:
+
+```json
+{
+  "type": "BOOKING",
+  "timeslotId": 10
+}
+```
+
+Membership:
+
+```json
+{
+  "type": "MEMBERSHIP",
+  "planId": 5
+}
+```
+
+Response `200`:
+
+```json
+{
+  "sessionId": "chk_xxx",
+  "orderNo": "BK-20260331150315-ABC123",
+  "status": "CREATED",
+  "provider": "VIRTUAL_CHECKOUT",
+  "checkoutUrl": "",
+  "paymentPageUrl": "https://example.invalid/payment.html?sessionId=chk_xxx",
+  "expiresAt": "2026-03-31T15:13:15Z"
+}
+```
+
+### GET `/api/payments/checkout-sessions/{sessionId}`
+
+Response `200`:
+
+```json
+{
+  "sessionId": "chk_xxx",
+  "orderNo": "BK-20260331150315-ABC123",
+  "type": "BOOKING",
+  "status": "CREATED",
+  "provider": "VIRTUAL_CHECKOUT",
+  "amount": 0.8,
+  "currency": "GBP",
+  "checkoutUrl": "",
+  "canContinueCheckout": false,
+  "canCancel": true,
+  "clubId": 2,
+  "clubName": "manba basketball",
+  "timeslotId": 10,
+  "venueName": "A",
+  "title": "Booking at A",
+  "subtitle": "31 Mar 2026, 15:00 - 16:00"
+}
+```
+
+### POST `/api/payments/checkout-sessions/{sessionId}/confirm-virtual`
+
+Only valid when provider is `VIRTUAL_CHECKOUT`.
+
+Result:
+- confirms payment
+- writes booking or membership business records
+- marks checkout session as `PAID`
+
+### POST `/api/payments/checkout-sessions/{sessionId}/cancel`
+
+Cancels an active checkout session.
+
+### POST `/api/payments/webhook/stripe`
+
+Stripe webhook endpoint.
+
+## Chat
+
+### User-side chat
+
+### GET `/api/clubs/{clubId}/chat/messages`
+
+Returns the current user's thread with that club, including session metadata.
+
+### POST `/api/clubs/{clubId}/chat/messages`
 
 Request body:
 
 ```json
-{ "startTime": "2026-02-14T10:00:00", "endTime": "2026-02-14T11:00:00", "maxCapacity": 4 }
+{ "text": "营业时间是什么时候？" }
 ```
 
-Response (200): same as `GET /api/clubs/{clubId}/timeslots` item shape.
+Behavior:
+- respects chat session mode
+- may return club FAQ direct answer
+- may return bot reply
+- may suggest human handoff
 
-### Bookings
+Message records can include:
+- `answerSource`
+- `matchedFaqId`
+- `handoffSuggested`
 
-#### POST `/api/timeslots/{timeslotId}/bookings`
+### POST `/api/chat-sessions/{sessionId}/handoff`
 
-Requires: logged-in `role=user`.
+User requests club staff takeover.
 
-Response (200):
+### Club-side chat
 
-```json
-{ "bookingId": 99, "timeslotId": 10, "status": "PENDING" }
-```
+### GET `/api/my/clubs/{clubId}/chat/conversations`
 
-Validation:
-- Duplicate booking for the same user+timeslot is rejected with `409`.
-- If `bookedCount >= maxCapacity`, booking is rejected with `409`.
+Requires club admin.
 
-### My (Club Admin)
+Conversation items may include:
+- `chatMode`
+- `clubUnreadCount`
+- `memberUnreadCount`
+- `handoffReason`
 
-#### GET `/api/my/clubs`
+### GET `/api/my/clubs/{clubId}/chat/conversations/{userId}/messages`
 
-Requires: logged-in `role=club` (or system `ADMIN`).
+Requires club admin.
 
-Response (200): same shape as `GET /api/clubs` list items.
+### POST `/api/my/clubs/{clubId}/chat/conversations/{userId}/messages`
 
-### Chat
+Requires club admin.
 
-#### User-side chat
+Sends a human club reply into the conversation.
 
-#### GET `/api/clubs/{clubId}/chat/messages`
+## Public Config
 
-Requires: logged-in `role=user`.
+### GET `/api/public/config`
 
-Response (200):
+Response includes:
 
 ```json
 {
-  "clubId": 1,
-  "clubName": "Basketball Club",
-  "userId": 12,
-  "userName": "Alice",
-  "unreadCount": 2,
-  "messages": [
-    {
-      "messageId": 101,
-      "clubId": 1,
-      "userId": 12,
-      "sender": "user",
-      "text": "Hi, is this slot beginner-friendly?",
-      "authorName": "Alice",
-      "readByClub": true,
-      "readByUser": true,
-      "createdAt": "2026-02-22T17:35:00"
-    }
-  ]
+  "googleMapsEnabled": true,
+  "googleOauthEnabled": true,
+  "paymentsEnabled": true,
+  "paymentProvider": "VIRTUAL_CHECKOUT",
+  "paymentCurrency": "GBP"
 }
 ```
 
 Notes:
-- `sender` may be `user`, `club`, `assistant`, or `system`.
-
-#### POST `/api/clubs/{clubId}/chat/messages`
-
-Requires: logged-in `role=user`.
-
-Request body:
-
-```json
-{ "text": "Can I bring my own ball?" }
-```
-
-Response (200): one `ChatMessageResponse` item.
-
-Behavior by `chatMode`:
-- `AI`: saves the user message, saves a generated assistant reply, does not notify club conversations, does not increment `clubUnreadCount`.
-- `HANDOFF_REQUESTED` or `HUMAN`: follows the normal human chat flow.
-- `CLOSED`: rejects the send request.
-
-#### POST `/api/clubs/{clubId}/chat/read`
-
-Requires: logged-in `role=user`.
-
-Response (200):
-
-```json
-{ "updated": 3 }
-```
-
-#### Club-side chat
-
-#### GET `/api/my/clubs/{clubId}/chat/conversations`
-
-Requires: logged-in `role=club` and current user must be admin of the club (or system `ADMIN`).
-
-Response (200):
-
-```json
-[
-  {
-    "clubId": 1,
-    "userId": 12,
-    "userName": "Alice",
-    "userEmail": "alice@example.com",
-    "lastMessageId": 102,
-    "lastSender": "user",
-    "lastMessageText": "Can I bring my own ball?",
-    "lastMessageAt": "2026-02-22T17:36:00",
-    "unreadCount": 1,
-    "totalMessages": 4
-  }
-]
-```
-
-#### GET `/api/my/clubs/{clubId}/chat/conversations/{userId}/messages`
-
-Requires: same as above.
-
-Response (200): same shape as user-side `GET /api/clubs/{clubId}/chat/messages`.
-
-#### POST `/api/my/clubs/{clubId}/chat/conversations/{userId}/messages`
-
-Requires: same as above.
-
-Request body:
-
-```json
-{ "text": "Yes, absolutely. All levels are welcome." }
-```
-
-Response (200): one `ChatMessageResponse` item.
-
-#### POST `/api/my/clubs/{clubId}/chat/conversations/{userId}/read`
-
-Requires: same as above.
-
-Response (200):
-
-```json
-{ "updated": 1 }
-```
-
-#### Chat session mode metadata
-
-Thread and conversation responses may also include:
-
-```json
-{
-  "sessionId": 15,
-  "chatMode": "AI|HANDOFF_REQUESTED|HUMAN|CLOSED",
-  "handoffRequestedAt": "2026-03-23T18:10:00",
-  "handoffReason": "USER_REQUEST|REFUND|PAYMENT_ISSUE|HARASSMENT|POLICY_EXCEPTION|OTHER",
-  "clubUnreadCount": 1
-}
-```
-
-#### POST `/api/chat-sessions/{sessionId}/handoff`
-
-Requires: logged-in `role=user` and current user must own the session.
-
-Request body:
-
-```json
-{ "reason": "USER_REQUEST" }
-```
-
-Response (200):
-
-```json
-{
-  "sessionId": 15,
-  "chatMode": "HANDOFF_REQUESTED",
-  "handoffRequestedAt": "2026-03-23T18:10:00",
-  "handoffReason": "USER_REQUEST",
-  "clubUnreadCount": 1
-}
-```
+- `paymentProvider` is runtime-derived from backend payment mode and Stripe readiness
+- this response is the frontend-safe source of payment capability flags

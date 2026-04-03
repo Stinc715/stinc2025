@@ -1,10 +1,12 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Club Booking Portal - Memberships & Chat Replies</title>
-  <link rel="stylesheet" href="theme.css?v=20260324a" />
+  
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data: blob: https://maps.gstatic.com https://maps.googleapis.com https://*.googleusercontent.com https://www.google.com https://www.gstatic.com; font-src 'self' data: https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://accounts.google.com https://maps.googleapis.com; connect-src 'self' https://accounts.google.com https://maps.googleapis.com https://api.stripe.com; frame-src 'self' https://accounts.google.com https://js.stripe.com; form-action 'self' https://accounts.google.com">
+<title>Club Booking Portal - Memberships & Chat Replies</title>
+  <link rel="stylesheet" href="theme.css?v=20260402a" />
   <style>
     body { margin: 0; background: #fff; }
     header { background: #fff; border-bottom: 1px solid #eef0f4; }
@@ -59,6 +61,14 @@
       border-radius: 20px;
     }
     .card .pad { padding: 20px; }
+    .header-wrap h2,
+    .page-shell h1,
+    .page-shell h2,
+    .page-shell h3 {
+      font-family: "Sora", sans-serif;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
     .section-head {
       display: flex;
       align-items: flex-start;
@@ -69,19 +79,8 @@
     }
     .section-head h2 {
       margin: 0;
-      font-size: 34px;
+      font-size: 24px;
       line-height: 1.05;
-    }
-    .section-head p {
-      margin: 8px 0 0;
-      color: var(--muted);
-      font-size: 14px;
-    }
-    .section-tip {
-      margin-top: 10px;
-      color: #475569;
-      font-size: 13px;
-      line-height: 1.5;
     }
     .section-actions {
       display: inline-flex;
@@ -136,41 +135,11 @@
     .status-box.info {
       display: block;
     }
-    .plan-workflow {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 16px;
-    }
-    .workflow-step {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      border: 1px solid #dbeafe;
-      background: #f8fbff;
-      color: #1e3a8a;
-      border-radius: 999px;
-      padding: 8px 12px;
-      font-size: 12px;
-      font-weight: 700;
-    }
-    .workflow-index {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 20px;
-      height: 20px;
-      border-radius: 999px;
-      background: #dbeafe;
-      color: #1d4ed8;
-      font-size: 11px;
-      font-weight: 800;
-      flex: 0 0 auto;
-    }
     .plan-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
       gap: 16px;
+      align-items: start;
     }
     .plan-card {
       border: 1px solid var(--line);
@@ -179,7 +148,8 @@
       display: grid;
       gap: 14px;
       background: #fff;
-      transition: border-color .2s ease, background-color .2s ease;
+      align-content: start;
+      transition: border-color .2s ease, background-color .2s ease, box-shadow .2s ease;
     }
     .plan-card.disabled {
       background: #f8fafc;
@@ -189,22 +159,61 @@
       border-color: #f59e0b;
       background: #fffdf7;
     }
+    .plan-card.expanded {
+      grid-column: 1 / -1;
+      border-color: #c7d2fe;
+      box-shadow: 0 18px 40px rgba(99, 102, 241, 0.10);
+    }
+    .plan-summary {
+      display: grid;
+      gap: 14px;
+    }
     .plan-top {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
       gap: 12px;
     }
+    .plan-top-meta {
+      display: grid;
+      gap: 6px;
+    }
     .plan-top h3 {
       margin: 0;
       font-size: 18px;
     }
-    .plan-duration {
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: .04em;
+    .plan-summary-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .plan-metric {
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 10px 12px;
+      background: #f8fafc;
+      display: grid;
+      gap: 4px;
+    }
+    .plan-metric-label {
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 700;
       text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    .plan-metric strong {
+      color: #0f172a;
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+    .plan-badges {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
     }
     .plan-badge {
       display: inline-flex;
@@ -220,13 +229,43 @@
       font-weight: 700;
       white-space: nowrap;
     }
+    .plan-badge.secondary {
+      background: #f8fafc;
+      color: #475569;
+      border: 1px solid var(--line);
+    }
+    .plan-badge.custom {
+      background: #ecfeff;
+      color: #0f766e;
+    }
+    .plan-editor {
+      display: grid;
+      gap: 14px;
+      padding-top: 16px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .plan-editor[hidden] {
+      display: none;
+    }
     .field-grid {
       display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
+    }
+    .plan-fields {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .plan-fields .field.name-field {
+      grid-column: span 2;
     }
     .field {
       display: grid;
       gap: 6px;
+    }
+    .field.hidden {
+      display: none;
     }
     .field label {
       font-size: 12px;
@@ -247,8 +286,22 @@
       color: var(--ink);
     }
     .field textarea {
-      min-height: 112px;
+      min-height: 84px;
       resize: vertical;
+    }
+    .field.description-field {
+      grid-column: 1 / -1;
+    }
+    .plan-note-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 12px;
+    }
+    .secondary-btn.compact {
+      min-width: 0;
+      padding: 10px 14px;
+      font-size: 14px;
     }
     .secondary-btn {
       min-width: 118px;
@@ -264,14 +317,132 @@
     .secondary-btn:hover {
       background: #e0e7ff;
     }
+    .secondary-btn.ghost {
+      border-color: var(--line);
+      background: #fff;
+      color: #334155;
+    }
+    .secondary-btn.ghost:hover {
+      background: #f8fafc;
+    }
+    .secondary-btn.active {
+      background: #eef2ff;
+      border-color: #c7d2fe;
+      color: #3730a3;
+    }
+    .secondary-btn[disabled] {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+    .button-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 24px;
+      height: 24px;
+      padding: 0 7px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+      color: inherit;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1;
+    }
     .secondary-btn.danger {
       border-color: #fecaca;
       background: #fff1f2;
       color: #be123c;
     }
+    .secondary-btn.danger:hover {
+      background: #ffe4e6;
+    }
+    .plan-draft-section {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .plan-draft-section[hidden] {
+      display: none;
+    }
+    .plan-list {
+      display: grid;
+      gap: 14px;
+    }
+    .plan-list[hidden] {
+      display: none;
+    }
+    .plan-saved-section {
+      display: grid;
+      gap: 14px;
+    }
+    .plan-saved-section[hidden] {
+      display: none;
+    }
+    .plan-saved-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .plan-saved-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #475569;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .kb-draft-section {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .kb-draft-section[hidden] {
+      display: none;
+    }
+    .kb-view-empty {
+      border: 1px dashed #cbd5e1;
+      border-radius: 16px;
+      padding: 18px;
+      color: #64748b;
+      background: #f8fafc;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .kb-draft-list {
+      display: grid;
+      gap: 14px;
+    }
+    .kb-draft-list[hidden] {
+      display: none;
+    }
     .kb-list {
       display: grid;
       gap: 14px;
+    }
+    .kb-saved-section {
+      display: grid;
+      gap: 14px;
+    }
+    .kb-saved-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .kb-saved-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #475569;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
     }
     .kb-card {
       border: 1px solid var(--line);
@@ -324,10 +495,6 @@
       flex-wrap: wrap;
       margin-left: auto;
     }
-    .plan-note {
-      color: var(--muted);
-      font-size: 12px;
-    }
     .plan-save-state {
       display: inline-flex;
       align-items: center;
@@ -351,7 +518,7 @@
     .plan-toggle-row {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-start;
       gap: 12px;
       flex-wrap: wrap;
     }
@@ -375,11 +542,19 @@
       justify-content: space-between;
       gap: 12px;
       flex-wrap: wrap;
+      padding-top: 14px;
+      border-top: 1px solid #eef2f7;
     }
-    .plan-availability {
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 600;
+    .plan-footer-meta {
+      display: inline-flex;
+      align-items: center;
+    }
+    .plan-footer-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-left: auto;
     }
     .plan-save-btn {
       min-width: 126px;
@@ -493,42 +668,59 @@
       .plan-grid,
       .stats-grid,
       .kb-grid { grid-template-columns: 1fr; }
+      .plan-card.expanded { grid-column: auto; }
+      .plan-summary-metrics,
+      .field-grid,
+      .plan-fields { grid-template-columns: 1fr; }
+      .plan-fields .field.name-field { grid-column: auto; }
       .section-head h2 { font-size: 28px; }
     }
   </style>
+<link rel="stylesheet" href="desktop-consistency.css?v=20260403a" />
+<script src="auth-session.js?v=20260331b"></script>
 </head>
-<body>
+<body class="desktop-consistency desktop-shell--standard desktop-page--club-updates">
   <header>
-    <div class="wrap header-wrap">
+    <div class="wrap header-wrap desktop-shell-header">
       <div style="display:flex;align-items:center;gap:16px;">
-        <button class="back-link" type="button" onclick="window.location.href='club home.html'" aria-label="Back">Back</button>
+        <button class="back-link desktop-back-link" type="button" onclick="window.location.href='club home.html'" aria-label="Back">Back</button>
       </div>
       <h2 style="margin:0;font-size:18px;font-weight:600;justify-self:center;">Memberships &amp; chat replies</h2>
       <div></div>
     </div>
   </header>
 
-  <main class="wrap page-shell">
+  <main class="wrap page-shell desktop-shell-main desktop-form-shell desktop-card-gap">
     <section class="card" data-section-card="plans">
       <div class="pad">
         <div class="section-head">
           <div>
             <h2>Membership plans</h2>
-            <p id="planIntro">Expand to edit these passes. Each card must be saved separately before members can see the change.</p>
-            <div class="section-tip">Turn a plan on or off, edit any fields, then click the save button on that same card to publish it.</div>
           </div>
           <div class="section-actions">
+            <button class="secondary-btn" id="addCustomPlanBtn" type="button">Add membership plan</button>
+            <button class="secondary-btn ghost" id="showSavedPlansBtn" type="button">
+              Added plans
+              <span class="button-count desktop-badge" id="planSavedCount">0</span>
+            </button>
             <button class="toggle-btn" type="button" data-toggle-section="plans" aria-expanded="false">Expand</button>
           </div>
         </div>
         <div class="section-body" data-section-body="plans">
           <div id="statusBox" class="status-box" aria-live="polite"></div>
-          <div class="plan-workflow" aria-hidden="true">
-            <div class="workflow-step"><span class="workflow-index">1</span><span>Toggle a pass on or off</span></div>
-            <div class="workflow-step"><span class="workflow-index">2</span><span>Edit price, discount, or text</span></div>
-            <div class="workflow-step"><span class="workflow-index">3</span><span>Save that card to make it live</span></div>
-          </div>
-          <div id="planGrid" class="plan-grid"></div>
+          <section id="planDraftSection" class="plan-draft-section" aria-label="Add membership plan view">
+            <div id="planDraftEmpty" class="kb-view-empty">No draft plan yet.</div>
+            <div id="planDraftList" class="plan-list" hidden></div>
+          </section>
+          <section id="planSavedSection" class="plan-saved-section" aria-label="Added plans">
+            <div class="plan-saved-head">
+              <span class="plan-saved-label">
+                Added plans
+                <span class="button-count desktop-badge" id="planSavedInlineCount">0</span>
+              </span>
+            </div>
+            <div id="planSavedList" class="plan-grid"></div>
+          </section>
         </div>
       </div>
     </section>
@@ -537,8 +729,7 @@
       <div class="pad">
         <div class="section-head" style="margin-bottom:14px;">
           <div>
-            <h2 style="font-size:28px;">Club members</h2>
-            <p>See who currently holds a pass for this club.</p>
+            <h2>Club members</h2>
           </div>
           <div class="section-actions">
             <button class="toggle-btn" type="button" data-toggle-section="members" aria-expanded="false">Expand</button>
@@ -555,44 +746,80 @@
       <div class="pad">
         <div class="section-head" style="margin-bottom:14px;">
           <div>
-            <h2 style="font-size:28px;">Chat knowledge base</h2>
-            <p>Add the question and the standard reply. Similarity, phrasing, and language matching are handled automatically by the chatbot.</p>
-            <div class="section-tip">This only applies to low-risk questions. Refunds, payment issues, booking actions, and human handoff still stay on the existing safety path.</div>
+            <h2>Chat knowledge base</h2>
           </div>
           <div class="section-actions">
             <button class="secondary-btn" id="addKbEntryBtn" type="button">Add entry</button>
+            <button class="secondary-btn ghost" id="showKbSavedBtn" type="button">
+              Added entries
+              <span class="button-count desktop-badge" id="kbSavedCount">0</span>
+            </button>
             <button class="toggle-btn" type="button" data-toggle-section="chat-kb" aria-expanded="false">Expand</button>
           </div>
         </div>
         <div class="section-body" data-section-body="chat-kb">
           <div id="kbStatusBox" class="status-box" aria-live="polite"></div>
-          <div id="kbList" class="kb-list"></div>
+          <section id="kbDraftSection" class="kb-draft-section" aria-label="Add entry view">
+            <div id="kbDraftEmpty" class="kb-view-empty">No draft entry yet.</div>
+            <div id="kbDraftList" class="kb-draft-list" hidden></div>
+          </section>
+          <section id="kbSavedSection" class="kb-saved-section" aria-label="Added entries">
+            <div class="kb-saved-head">
+              <span class="kb-saved-label">
+                Added entries
+                <span class="button-count desktop-badge" id="kbSavedInlineCount">0</span>
+              </span>
+            </div>
+            <div id="kbList" class="kb-list"></div>
+          </section>
         </div>
       </div>
     </section>
   </main>
 
   <script>
-    const PLAN_TEMPLATES = Object.freeze([
-      { code: 'MONTHLY', name: 'Monthly Pass', durationDays: 30, description: 'Ideal for regular weekly bookings.' },
-      { code: 'QUARTERLY', name: 'Quarterly Pass', durationDays: 90, description: 'Good for players staying for a full season.' },
-      { code: 'HALF_YEAR', name: 'Half-year Pass', durationDays: 180, description: 'Balanced value for members booking through a half-year block.' },
-      { code: 'YEARLY', name: 'Yearly Pass', durationDays: 365, description: 'Best value for long-term members.' }
+    const STANDARD_PLAN_TEMPLATES = Object.freeze([
+      { code: 'MONTHLY', name: 'Monthly Pass', durationDays: 30, price: 49, discountPercent: 20, benefitType: 'DISCOUNT', description: 'Ideal for regular weekly bookings.' },
+      { code: 'QUARTERLY', name: 'Quarterly Pass', durationDays: 90, price: 129, discountPercent: 45, benefitType: 'DISCOUNT', description: 'Good for players staying for a full season.' },
+      { code: 'HALF_YEAR', name: 'Half-year Pass', durationDays: 180, price: 199, discountPercent: 70, benefitType: 'DISCOUNT', description: 'Balanced value for members booking through a half-year block.' },
+      { code: 'YEARLY', name: 'Yearly Pass', durationDays: 365, price: 299, discountPercent: 100, benefitType: 'DISCOUNT', description: 'Best value for long-term members.' }
     ]);
+    const standardPlanTemplateByCode = new Map(STANDARD_PLAN_TEMPLATES.map((row) => [row.code, row]));
 
-    const planGridEl = document.getElementById('planGrid');
     const statusBoxEl = document.getElementById('statusBox');
     const statsGridEl = document.getElementById('statsGrid');
     const memberListEl = document.getElementById('memberList');
+    const addCustomPlanBtnEl = document.getElementById('addCustomPlanBtn');
+    const showSavedPlansBtnEl = document.getElementById('showSavedPlansBtn');
+    const planSavedCountEl = document.getElementById('planSavedCount');
+    const planSavedInlineCountEl = document.getElementById('planSavedInlineCount');
+    const planDraftSectionEl = document.getElementById('planDraftSection');
+    const planDraftEmptyEl = document.getElementById('planDraftEmpty');
+    const planDraftListEl = document.getElementById('planDraftList');
+    const planSavedSectionEl = document.getElementById('planSavedSection');
+    const planSavedListEl = document.getElementById('planSavedList');
     const kbListEl = document.getElementById('kbList');
     const kbStatusBoxEl = document.getElementById('kbStatusBox');
     const addKbEntryBtnEl = document.getElementById('addKbEntryBtn');
-    const planIntroEl = document.getElementById('planIntro');
+    const showKbSavedBtnEl = document.getElementById('showKbSavedBtn');
+    const kbSavedCountEl = document.getElementById('kbSavedCount');
+    const kbSavedInlineCountEl = document.getElementById('kbSavedInlineCount');
+    const kbDraftSectionEl = document.getElementById('kbDraftSection');
+    const kbDraftEmptyEl = document.getElementById('kbDraftEmpty');
+    const kbDraftListEl = document.getElementById('kbDraftList');
+    const kbSavedSectionEl = document.getElementById('kbSavedSection');
     const sectionCards = Array.from(document.querySelectorAll('[data-section-card]'));
 
     let activeClubId = null;
     let activeClubName = '';
+    let membershipPlanRows = [];
+    let membershipPlanDrafts = [];
+    let membershipPlanDraftCounter = 0;
+    let expandedPlanKey = null;
+    const openPlanNoteKeys = new Set();
+    let planViewMode = 'draft';
     let kbDraftCounter = 0;
+    let kbViewMode = 'draft';
 
     const safeParseJSON = (raw) => {
       try { return JSON.parse(raw); } catch { return null; }
@@ -642,11 +869,97 @@
       kbStatusBoxEl.style.display = message ? 'block' : 'none';
     };
 
+    const syncPlanSavedSummary = (count) => {
+      const normalized = Math.max(0, Number(count) || 0);
+      if (planSavedCountEl) planSavedCountEl.textContent = String(normalized);
+      if (planSavedInlineCountEl) planSavedInlineCountEl.textContent = String(normalized);
+      if (showSavedPlansBtnEl) showSavedPlansBtnEl.disabled = normalized === 0;
+    };
+
+    const syncPlanDraftListVisibility = () => {
+      if (!planDraftListEl) return;
+      const hasDraftCards = Boolean(planDraftListEl.querySelector('[data-plan-key]'));
+      planDraftListEl.hidden = !hasDraftCards;
+      if (planDraftEmptyEl) planDraftEmptyEl.hidden = hasDraftCards;
+    };
+
+    const setPlanViewMode = (mode) => {
+      planViewMode = mode === 'saved' ? 'saved' : 'draft';
+      if (planDraftSectionEl) planDraftSectionEl.hidden = planViewMode !== 'draft';
+      if (planSavedSectionEl) planSavedSectionEl.hidden = planViewMode !== 'saved';
+      addCustomPlanBtnEl?.classList.toggle('active', planViewMode === 'draft');
+      addCustomPlanBtnEl?.classList.toggle('ghost', planViewMode !== 'draft');
+      showSavedPlansBtnEl?.classList.toggle('active', planViewMode === 'saved');
+      showSavedPlansBtnEl?.classList.toggle('ghost', planViewMode !== 'saved');
+    };
+
+    const syncKbSavedSummary = (count) => {
+      const normalized = Math.max(0, Number(count) || 0);
+      if (kbSavedCountEl) kbSavedCountEl.textContent = String(normalized);
+      if (kbSavedInlineCountEl) kbSavedInlineCountEl.textContent = String(normalized);
+      if (showKbSavedBtnEl) showKbSavedBtnEl.disabled = normalized === 0;
+    };
+
+    const syncKbDraftListVisibility = () => {
+      if (!kbDraftListEl) return;
+      const hasDraftCards = Boolean(kbDraftListEl.querySelector('[data-kb-id]'));
+      kbDraftListEl.hidden = !hasDraftCards;
+      if (kbDraftEmptyEl) kbDraftEmptyEl.hidden = hasDraftCards;
+    };
+
+    const setKbViewMode = (mode) => {
+      kbViewMode = mode === 'saved' ? 'saved' : 'draft';
+      if (kbDraftSectionEl) kbDraftSectionEl.hidden = kbViewMode !== 'draft';
+      if (kbSavedSectionEl) kbSavedSectionEl.hidden = kbViewMode !== 'saved';
+      addKbEntryBtnEl?.classList.toggle('active', kbViewMode === 'draft');
+      addKbEntryBtnEl?.classList.toggle('ghost', kbViewMode !== 'draft');
+      showKbSavedBtnEl?.classList.toggle('active', kbViewMode === 'saved');
+      showKbSavedBtnEl?.classList.toggle('ghost', kbViewMode !== 'saved');
+    };
+
+    const normalizeBenefitType = (value) => String(value || '').trim().toUpperCase() === 'BOOKING_PACK' ? 'BOOKING_PACK' : 'DISCOUNT';
+
+    const isBookingPackPlan = (plan) => normalizeBenefitType(plan?.benefitType) === 'BOOKING_PACK';
+
+    const formatPlanBadge = (plan) => {
+      const code = String(plan?.planCode || '').toUpperCase();
+      if (standardPlanTemplateByCode.has(code)) {
+        if (code === 'HALF_YEAR') return 'HALF YEAR';
+        return code.replace('LY', '');
+      }
+      return 'CUSTOM';
+    };
+
+    const formatPlanBenefitBadge = (plan) => {
+      if (isBookingPackPlan(plan)) {
+        const credits = Math.max(0, Math.round(Number(plan?.includedBookings || 0)));
+        return `${credits} ${credits === 1 ? 'BOOKING' : 'BOOKINGS'}`;
+      }
+      const discount = Math.max(0, Math.round(Number(plan?.discountPercent || 0)));
+      return discount >= 100 ? 'FREE BOOKING' : `${discount}% OFF`;
+    };
+
+    const formatPlanMetricBenefit = (plan) => {
+      if (isBookingPackPlan(plan)) {
+        const credits = Math.max(0, Math.round(Number(plan?.includedBookings || 0)));
+        return `${credits} booking${credits === 1 ? '' : 's'}`;
+      }
+      const discount = Math.max(0, Math.round(Number(plan?.discountPercent || 0)));
+      return discount >= 100 ? 'Free booking' : `${discount}% off`;
+    };
+
+    const defaultCustomPlanName = (benefitType) => normalizeBenefitType(benefitType) === 'BOOKING_PACK'
+      ? 'Booking Pack'
+      : 'Custom Membership';
+
     const normalizePlanPayload = (payload) => JSON.stringify({
+      planId: payload?.planId ?? null,
       planCode: String(payload?.planCode || '').toUpperCase(),
+      benefitType: normalizeBenefitType(payload?.benefitType),
       planName: String(payload?.planName || '').trim(),
       price: Number(payload?.price || 0).toFixed(2),
-      discountPercent: String(Math.round(Number(payload?.discountPercent || 0))),
+      discountPercent: String(Math.max(0, Math.round(Number(payload?.discountPercent || 0)))),
+      includedBookings: String(Math.max(0, Math.round(Number(payload?.includedBookings || 0)))),
       durationDays: String(Math.round(Number(payload?.durationDays || 0))),
       enabled: Boolean(payload?.enabled),
       description: String(payload?.description || '').trim()
@@ -667,7 +980,9 @@
       }
       const saveBtn = card.querySelector('[data-save-plan]');
       if (saveBtn && !saveBtn.disabled) {
-        saveBtn.textContent = dirty ? 'Save changes' : 'Save this plan';
+        saveBtn.textContent = card.getAttribute('data-plan-draft') === 'true'
+          ? 'Create plan'
+          : (dirty ? 'Save changes' : 'Save plan');
       }
     };
 
@@ -703,7 +1018,7 @@
     const resolveClubId = async () => {
       const loggedUser = safeParseJSON(localStorage.getItem('loggedUser') || 'null');
       if (!loggedUser || String(loggedUser.type || '').toLowerCase() !== 'club') {
-        window.location.href = 'login.html#login';
+        window.location.replace('home.html');
         return null;
       }
 
@@ -726,87 +1041,77 @@
     };
 
     const buildPlanShape = (raw) => {
-      const base = PLAN_TEMPLATES.find((row) => row.code === String(raw?.planCode || '').toUpperCase());
+      const code = String(raw?.planCode || '').toUpperCase();
+      const base = standardPlanTemplateByCode.get(code);
+      const benefitType = normalizeBenefitType(raw?.benefitType ?? base?.benefitType);
       return {
-        code: String(raw?.planCode || base?.code || '').toUpperCase(),
-        name: String(raw?.planName || base?.name || '').trim(),
+        key: String(raw?.key || raw?.draftKey || raw?.planId || code || `draft-${++membershipPlanDraftCounter}`),
+        planId: Number.isFinite(Number(raw?.planId)) ? Number(raw.planId) : null,
+        planCode: code,
+        standardPlan: Boolean(raw?.standardPlan ?? base),
+        draft: Boolean(raw?.draft),
+        planName: String(raw?.planName || base?.name || '').trim(),
+        benefitType,
         durationDays: Number(raw?.durationDays ?? base?.durationDays ?? 0) || 0,
-        price: Number(raw?.price ?? 0) || 0,
-        discountPercent: Number(raw?.discountPercent ?? 0) || 0,
+        price: Number(raw?.price ?? base?.price ?? 0) || 0,
+        discountPercent: Number(raw?.discountPercent ?? base?.discountPercent ?? 0) || 0,
+        includedBookings: Number(raw?.includedBookings ?? 0) || 0,
         enabled: raw?.enabled !== false,
         description: String(raw?.description || base?.description || '').trim()
       };
     };
 
-    const renderPlans = (plans) => {
-      const planMap = new Map((Array.isArray(plans) ? plans : []).map((plan) => [String(plan?.planCode || '').toUpperCase(), buildPlanShape(plan)]));
-      const cards = PLAN_TEMPLATES.map((template) => {
-        const plan = planMap.get(template.code) || buildPlanShape(template);
-        const enabled = plan.enabled !== false;
-        return `
-          <article class="plan-card ${enabled ? '' : 'disabled'}" data-plan-code="${template.code}">
-            <div class="plan-top">
-              <div>
-                <div class="plan-duration">${plan.durationDays} days</div>
-                <h3>${escapeHtml(plan.name || template.name)}</h3>
-              </div>
-              <div class="plan-badge">${escapeHtml(template.code === 'HALF_YEAR' ? 'HALF YEAR' : template.code.replace('LY', ''))}</div>
-            </div>
-            <div class="plan-toggle-row">
-              <label class="plan-toggle">
-                <input type="checkbox" data-field="enabled" ${enabled ? 'checked' : ''} />
-                <span>Offer this plan to members</span>
-              </label>
-              <span class="plan-availability">${enabled ? 'Visible on the club page' : 'Hidden from new purchases'}</span>
-            </div>
-            <div class="field-grid">
-              <div class="field">
-                <label>Plan name</label>
-                <input type="text" data-field="planName" value="${escapeHtml(plan.name || template.name)}" />
-              </div>
-              <div class="field">
-                <label>Price</label>
-                <input type="number" min="0" step="0.01" data-field="price" value="${escapeHtml(Number(plan.price || 0).toFixed(2))}" />
-              </div>
-              <div class="field">
-                <label>Booking discount %</label>
-                <input type="number" min="0" max="100" step="1" data-field="discountPercent" value="${escapeHtml(String(Math.round(Number(plan.discountPercent || 0))))}" />
-              </div>
-              <div class="field">
-                <label>Duration days</label>
-                <input type="number" min="1" step="1" data-field="durationDays" value="${escapeHtml(String(plan.durationDays || template.durationDays))}" />
-              </div>
-              <div class="field">
-                <label>Description</label>
-                <textarea data-field="description">${escapeHtml(plan.description || template.description)}</textarea>
-              </div>
-            </div>
-            <div class="plan-footer">
-              <div style="display:grid;gap:8px;">
-                <div class="plan-note">Members booking with this pass will pay the normal slot price minus this discount.</div>
-                <div class="plan-save-state saved" data-plan-save-state>Saved</div>
-              </div>
-              <button class="plan-save-btn" type="button" data-save-plan="${template.code}">Save this plan</button>
-            </div>
-          </article>
-        `;
-      }).join('');
+    const createDraftPlan = () => buildPlanShape({
+      draft: true,
+      draftKey: `draft-${++membershipPlanDraftCounter}`,
+      planCode: '',
+      standardPlan: false,
+      benefitType: 'DISCOUNT',
+      planName: '',
+      price: 0,
+      discountPercent: 0,
+      includedBookings: 10,
+      durationDays: 30,
+      enabled: false,
+      description: ''
+    });
 
-      planGridEl.innerHTML = cards;
-
-      planGridEl.querySelectorAll('[data-plan-code]').forEach((card) => {
-        const planCode = String(card.getAttribute('data-plan-code') || '').toUpperCase();
+    const bindPlanCards = (rootEl) => {
+      if (!rootEl) return;
+      rootEl.querySelectorAll('[data-plan-key]').forEach((card) => {
         const updateCardState = () => {
-          const enabled = Boolean(card.querySelector('[data-field="enabled"]')?.checked);
+          const payload = readPlanPayload(card);
+          const packPlan = isBookingPackPlan(payload);
+          const enabled = payload?.enabled !== false;
+          const noteToggleBtn = card.querySelector('[data-toggle-plan-note]');
+          const descriptionField = card.querySelector('[data-description-field]');
           card.classList.toggle('disabled', !enabled);
-          const label = card.querySelector('.plan-availability');
-          if (label) label.textContent = enabled ? 'Visible on the club page' : 'Hidden from new purchases';
-          const payload = readPlanPayload(planCode);
+          const code = String(payload?.planCode || card.getAttribute('data-plan-code') || '').toUpperCase();
+          const fallbackTitle = standardPlanTemplateByCode.get(code)?.name || defaultCustomPlanName(payload?.benefitType);
+          const titleEl = card.querySelector('[data-plan-title]');
+          if (titleEl) titleEl.textContent = payload?.planName || fallbackTitle;
+          const priceEl = card.querySelector('[data-plan-price]');
+          if (priceEl) priceEl.textContent = formatPrice(payload?.price);
+          const metricBenefitEl = card.querySelector('[data-plan-summary-benefit]');
+          if (metricBenefitEl) metricBenefitEl.textContent = formatPlanMetricBenefit(payload);
+          const metricDurationEl = card.querySelector('[data-plan-summary-duration]');
+          if (metricDurationEl) metricDurationEl.textContent = `${String(payload?.durationDays || 0)} days`;
+          const discountField = card.querySelector('[data-discount-field]');
+          const includedField = card.querySelector('[data-included-field]');
+          if (discountField) discountField.classList.toggle('hidden', packPlan);
+          if (includedField) includedField.classList.toggle('hidden', !packPlan);
+          const benefitBadgeEl = card.querySelector('[data-plan-benefit-badge]');
+          if (benefitBadgeEl) benefitBadgeEl.textContent = formatPlanBenefitBadge(payload);
+          if (noteToggleBtn) {
+            const hasNote = Boolean(String(payload?.description || '').trim());
+            const noteOpen = descriptionField ? !descriptionField.classList.contains('hidden') : false;
+            noteToggleBtn.textContent = noteOpen || hasNote ? 'Edit note' : 'Add note';
+          }
           const dirty = payload ? normalizePlanPayload(payload) !== String(card.dataset.originalPayload || '') : false;
           syncPlanCardState(card, dirty);
         };
 
-        const payload = readPlanPayload(planCode);
+        const payload = readPlanPayload(card);
         if (payload) card.dataset.originalPayload = normalizePlanPayload(payload);
 
         card.querySelectorAll('[data-field]').forEach((fieldEl) => {
@@ -818,25 +1123,186 @@
         updateCardState();
       });
 
-      planGridEl.querySelectorAll('[data-save-plan]').forEach((btn) => {
-        btn.addEventListener('click', () => saveSinglePlan(btn.getAttribute('data-save-plan') || '', btn));
+      rootEl.querySelectorAll('[data-save-plan]').forEach((btn) => {
+        btn.addEventListener('click', () => saveSinglePlan(btn.closest('[data-plan-key]'), btn));
+      });
+      rootEl.querySelectorAll('[data-toggle-plan-editor]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const key = String(btn.getAttribute('data-toggle-plan-editor') || '');
+          expandedPlanKey = expandedPlanKey === key ? null : key;
+          renderPlans();
+          if (expandedPlanKey) {
+            window.requestAnimationFrame(() => {
+              document.querySelector(`[data-plan-key="${CSS.escape(expandedPlanKey)}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
+          }
+        });
+      });
+      rootEl.querySelectorAll('[data-toggle-plan-note]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const key = String(btn.getAttribute('data-toggle-plan-note') || '');
+          if (!key) return;
+          if (openPlanNoteKeys.has(key)) {
+            openPlanNoteKeys.delete(key);
+          } else {
+            openPlanNoteKeys.add(key);
+          }
+          renderPlans();
+          if (openPlanNoteKeys.has(key)) {
+            window.requestAnimationFrame(() => {
+              document.querySelector(`[data-plan-key="${CSS.escape(key)}"] [data-field="description"]`)?.focus();
+            });
+          }
+        });
+      });
+      rootEl.querySelectorAll('[data-delete-plan]').forEach((btn) => {
+        btn.addEventListener('click', () => deletePlanCard(btn.closest('[data-plan-key]')));
       });
     };
 
-    const readPlanPayload = (planCode) => {
-      const template = PLAN_TEMPLATES.find((row) => row.code === String(planCode || '').toUpperCase());
-      if (!template) return null;
-      const card = planGridEl.querySelector(`[data-plan-code="${template.code}"]`);
+    const renderPlanCards = (targetEl, plans) => {
+      if (!targetEl) return;
+      const list = Array.isArray(plans) ? plans.map(buildPlanShape) : [];
+      if (!list.length) {
+        targetEl.innerHTML = '';
+        return;
+      }
+
+      targetEl.innerHTML = list.map((plan) => {
+        const enabled = plan.enabled !== false;
+        const packPlan = isBookingPackPlan(plan);
+        const planName = plan.planName || (plan.standardPlan
+          ? (standardPlanTemplateByCode.get(plan.planCode)?.name || 'Membership')
+          : defaultCustomPlanName(plan.benefitType));
+        const expanded = String(plan.key) === String(expandedPlanKey);
+        const noteOpen = expanded && openPlanNoteKeys.has(String(plan.key));
+        return `
+          <article class="plan-card ${enabled ? '' : 'disabled'} ${expanded ? 'expanded' : ''}" data-plan-key="${escapeHtml(plan.key)}" data-plan-id="${escapeHtml(plan.planId ?? '')}" data-plan-code="${escapeHtml(plan.planCode || '')}" data-plan-standard="${plan.standardPlan ? 'true' : 'false'}" data-plan-draft="${plan.draft ? 'true' : 'false'}">
+            <div class="plan-summary">
+              <div class="plan-top">
+                <div class="plan-top-meta">
+                  <h3 data-plan-title>${escapeHtml(planName)}</h3>
+                </div>
+                <div class="plan-badges">
+                  <div class="plan-badge ${plan.standardPlan ? '' : 'custom'}">${escapeHtml(formatPlanBadge(plan))}</div>
+                  <div class="plan-badge secondary" data-plan-benefit-badge>${escapeHtml(formatPlanBenefitBadge(plan))}</div>
+                </div>
+              </div>
+              ${plan.draft ? '' : `
+              <div class="plan-toggle-row">
+                <label class="plan-toggle">
+                  <input type="checkbox" data-field="enabled" ${enabled ? 'checked' : ''} />
+                  <span>Enabled for members</span>
+                </label>
+              </div>`}
+              <div class="plan-summary-metrics">
+                <div class="plan-metric">
+                  <span class="plan-metric-label">Price</span>
+                  <strong data-plan-price>${escapeHtml(formatPrice(plan.price))}</strong>
+                </div>
+                <div class="plan-metric">
+                  <span class="plan-metric-label">${packPlan ? 'Credits' : 'Benefit'}</span>
+                  <strong data-plan-summary-benefit>${escapeHtml(formatPlanMetricBenefit(plan))}</strong>
+                </div>
+                <div class="plan-metric">
+                  <span class="plan-metric-label">Duration</span>
+                  <strong data-plan-summary-duration>${escapeHtml(String(plan.durationDays || 0))} days</strong>
+                </div>
+              </div>
+            </div>
+            <div class="plan-editor" ${expanded ? '' : 'hidden'}>
+              <div class="plan-fields">
+                <div class="field name-field">
+                  <label>Plan name</label>
+                  <input type="text" data-field="planName" value="${escapeHtml(planName)}" />
+                </div>
+                <div class="field">
+                  <label>Benefit type</label>
+                  <select data-field="benefitType">
+                    <option value="DISCOUNT" ${packPlan ? '' : 'selected'}>Discount / free booking</option>
+                    <option value="BOOKING_PACK" ${packPlan ? 'selected' : ''}>Booking pack</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Price</label>
+                  <input type="number" min="0" step="0.01" data-field="price" value="${escapeHtml(Number(plan.price || 0).toFixed(2))}" />
+                </div>
+                <div class="field">
+                  <label>Duration days</label>
+                  <input type="number" min="1" step="1" data-field="durationDays" value="${escapeHtml(String(plan.durationDays || 30))}" />
+                </div>
+                <div class="field ${packPlan ? 'hidden' : ''}" data-discount-field>
+                  <label>Discount %</label>
+                  <input type="number" min="0" max="100" step="1" data-field="discountPercent" value="${escapeHtml(String(Math.max(0, Math.round(Number(plan.discountPercent || 0)))))}" />
+                </div>
+                <div class="field ${packPlan ? '' : 'hidden'}" data-included-field>
+                  <label>Included bookings</label>
+                  <input type="number" min="1" step="1" data-field="includedBookings" value="${escapeHtml(String(Math.max(0, Math.round(Number(plan.includedBookings || 0)))))}" />
+                </div>
+              </div>
+              <div class="plan-note-row">
+                <button class="secondary-btn ghost compact" type="button" data-toggle-plan-note="${escapeHtml(plan.key)}">${plan.description ? 'Edit note' : 'Add note'}</button>
+              </div>
+              <div class="field description-field ${noteOpen ? '' : 'hidden'}" data-description-field>
+                <label>Optional note</label>
+                <textarea data-field="description" placeholder="Shown to members on the club page">${escapeHtml(plan.description || '')}</textarea>
+              </div>
+            </div>
+            <div class="plan-footer">
+              <div class="plan-footer-meta">
+                <div class="plan-save-state saved" data-plan-save-state>Saved</div>
+              </div>
+              <div class="plan-footer-actions">
+                <button class="secondary-btn ghost" type="button" data-toggle-plan-editor="${escapeHtml(plan.key)}">${expanded ? 'Hide details' : (plan.draft ? 'Set up plan' : 'Edit details')}</button>
+                ${expanded && !plan.standardPlan ? `<button class="secondary-btn danger" type="button" data-delete-plan="${escapeHtml(plan.key)}">${plan.draft ? 'Remove draft' : 'Delete plan'}</button>` : ''}
+                ${expanded ? `<button class="plan-save-btn" type="button" data-save-plan="${escapeHtml(plan.key)}">${plan.draft ? 'Create plan' : 'Save plan'}</button>` : ''}
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      bindPlanCards(targetEl);
+    };
+
+    const renderPlans = () => {
+      const combined = [...membershipPlanRows, ...membershipPlanDrafts];
+      const knownPlanKeys = new Set(combined.map((plan) => String(buildPlanShape(plan).key)));
+      if (expandedPlanKey && !knownPlanKeys.has(String(expandedPlanKey))) {
+        expandedPlanKey = null;
+      }
+      Array.from(openPlanNoteKeys).forEach((key) => {
+        if (!knownPlanKeys.has(String(key))) openPlanNoteKeys.delete(String(key));
+      });
+
+      renderPlanCards(planDraftListEl, membershipPlanDrafts);
+      renderPlanCards(planSavedListEl, membershipPlanRows);
+      syncPlanDraftListVisibility();
+      syncPlanSavedSummary(membershipPlanRows.length);
+
+      if (!membershipPlanRows.length && planSavedListEl) {
+        planSavedListEl.innerHTML = '<div class="empty">No added plans yet.</div>';
+      }
+    };
+
+    const readPlanPayload = (cardOrKey) => {
+      const card = typeof cardOrKey === 'string'
+        ? document.querySelector(`[data-plan-key="${CSS.escape(String(cardOrKey))}"]`)
+        : cardOrKey;
       if (!card) return null;
       const read = (field) => card.querySelector(`[data-field="${field}"]`);
+      const benefitType = normalizeBenefitType(read('benefitType')?.value);
       return {
-        planCode: template.code,
-        planName: String(read('planName')?.value || template.name).trim(),
+        planId: Number.isFinite(Number(card.getAttribute('data-plan-id'))) ? Number(card.getAttribute('data-plan-id')) : null,
+        planCode: String(card.getAttribute('data-plan-code') || '').toUpperCase(),
+        benefitType,
+        planName: String(read('planName')?.value || '').trim(),
         price: Number(read('price')?.value || 0),
-        discountPercent: Number(read('discountPercent')?.value || 0),
-        durationDays: Number(read('durationDays')?.value || template.durationDays),
-        enabled: Boolean(read('enabled')?.checked),
-        description: String(read('description')?.value || template.description).trim()
+        discountPercent: benefitType === 'BOOKING_PACK' ? 0 : Number(read('discountPercent')?.value || 0),
+        includedBookings: benefitType === 'BOOKING_PACK' ? Number(read('includedBookings')?.value || 0) : 0,
+        durationDays: Number(read('durationDays')?.value || 30),
+        enabled: read('enabled') ? Boolean(read('enabled')?.checked) : false,
+        description: String(read('description')?.value || '').trim()
       };
     };
 
@@ -844,7 +1310,8 @@
       const res = await authFetch(`/api/my/clubs/${encodeURIComponent(String(activeClubId))}/membership-plans`);
       if (!res.ok) throw new Error('Failed to load membership plans.');
       const data = await res.json();
-      renderPlans(Array.isArray(data) ? data : []);
+      membershipPlanRows = Array.isArray(data) ? data : [];
+      renderPlans();
     };
 
     const readKbPayload = (card) => {
@@ -904,7 +1371,6 @@
           <div class="kb-card-head">
             <div style="display:grid;gap:8px;">
               <h3 data-kb-card-title>${escapeHtml(questionTitle || 'New chat reply')}</h3>
-              <div class="field-note">The chatbot handles close phrasings, similarity, and language matching automatically for this club reply.</div>
             </div>
             <span class="plan-save-state saved" data-kb-save-state>Saved</span>
           </div>
@@ -916,11 +1382,9 @@
             <div class="field span-full">
               <label>Standard reply</label>
               <textarea data-kb-field="answerText">${escapeHtml(answerText)}</textarea>
-              <div class="field-note">Write the exact reply members should receive when this club-specific question is matched.</div>
             </div>
           </div>
           <div class="kb-actions">
-            <div class="field-note">Low-risk FAQ only. High-risk requests still stay on the existing safe chat path.</div>
             <div class="kb-actions-main">
               <button class="secondary-btn danger" type="button" data-delete-kb>Delete</button>
               <button class="plan-save-btn" type="button" data-save-kb>Save reply</button>
@@ -932,8 +1396,9 @@
 
     const renderKbEntries = (entries) => {
       const list = Array.isArray(entries) ? entries : [];
+      syncKbSavedSummary(list.length);
       if (!list.length) {
-        kbListEl.innerHTML = '<div class="empty">No chat knowledge base entries yet. Add your first custom FAQ reply for this club.</div>';
+        kbListEl.innerHTML = '<div class="empty">No saved entries yet.</div>';
         return;
       }
 
@@ -951,11 +1416,11 @@
         questionTitle: '',
         answerText: ''
       });
-      if (kbListEl.querySelector('.empty')) {
-        kbListEl.innerHTML = '';
-      }
-      kbListEl.insertAdjacentHTML('afterbegin', cardMarkup);
-      const firstCard = kbListEl.querySelector('[data-kb-id]');
+      if (!kbDraftListEl) return;
+      setKbViewMode('draft');
+      kbDraftListEl.insertAdjacentHTML('afterbegin', cardMarkup);
+      syncKbDraftListVisibility();
+      const firstCard = kbDraftListEl.querySelector('[data-kb-id]');
       if (firstCard) {
         firstCard.dataset.originalPayload = '';
         bindKbCard(firstCard);
@@ -1027,6 +1492,10 @@
         if (!res.ok) {
           throw new Error(await readApiErrorMessage(res, 'Failed to save chat reply.'));
         }
+        if (isDraft) {
+          card.remove();
+          syncKbDraftListVisibility();
+        }
         await loadChatKb();
         showKbStatus(`${payload.questionTitle} saved for ${activeClubName || 'this club'}.`, 'success');
       } catch (err) {
@@ -1045,9 +1514,7 @@
       if (!entryId) return;
       if (entryId.startsWith('draft-')) {
         card.remove();
-        if (!kbListEl.querySelector('[data-kb-id]')) {
-          kbListEl.innerHTML = '<div class="empty">No chat knowledge base entries yet. Add your first custom FAQ reply for this club.</div>';
-        }
+        syncKbDraftListVisibility();
         showKbStatus('Draft chat reply removed.', 'success');
         return;
       }
@@ -1081,7 +1548,7 @@
         total: list.length,
         active: list.filter((row) => String(row?.status || '').toUpperCase() === 'ACTIVE').length,
         scheduled: list.filter((row) => String(row?.status || '').toUpperCase() === 'SCHEDULED').length,
-        expired: list.filter((row) => String(row?.status || '').toUpperCase() === 'EXPIRED').length
+        expired: list.filter((row) => ['EXPIRED', 'EXHAUSTED'].includes(String(row?.status || '').toUpperCase())).length
       };
 
       statsGridEl.innerHTML = `
@@ -1092,11 +1559,16 @@
       `;
 
       if (!list.length) {
-        memberListEl.innerHTML = '<div class="empty">No member has purchased a pass for this club yet.</div>';
+        memberListEl.innerHTML = '<div class="empty">No members yet.</div>';
         return;
       }
 
-      memberListEl.innerHTML = list.map((member) => `
+      memberListEl.innerHTML = list.map((member) => {
+        const packPlan = normalizeBenefitType(member?.benefitType) === 'BOOKING_PACK';
+        const benefitPill = packPlan
+          ? `${Math.max(0, Number(member?.remainingBookings || 0))}/${Math.max(0, Number(member?.includedBookings || 0))} credits left`
+          : `${escapeHtml(String(member?.discountPercent ?? 0))}% off`;
+        return `
         <article class="member-card">
           <div class="member-meta">
             <div class="member-name">${escapeHtml(member?.memberName || member?.email || `User #${member?.userId ?? '--'}`)}</div>
@@ -1105,11 +1577,12 @@
           </div>
           <div class="member-right">
             <span class="pill">${escapeHtml(formatPrice(member?.planPrice))}</span>
-            <span class="pill">${escapeHtml(String(member?.discountPercent ?? 0))}% off</span>
+            <span class="pill">${escapeHtml(benefitPill)}</span>
             <span class="pill ${memberStatusClass(member?.status)}">${escapeHtml(member?.status || 'ACTIVE')}</span>
           </div>
         </article>
-      `).join('');
+      `;
+      }).join('');
     };
 
     const loadMembers = async () => {
@@ -1119,31 +1592,40 @@
       renderMembers(Array.isArray(data) ? data : []);
     };
 
-    const saveSinglePlan = async (planCode, buttonEl) => {
-      const payload = readPlanPayload(planCode);
-      if (!payload || !buttonEl) return;
+    const saveSinglePlan = async (card, buttonEl) => {
+      const payload = readPlanPayload(card);
+      if (!payload || !buttonEl || !card) return;
+      const isDraft = card.getAttribute('data-plan-draft') === 'true';
       showStatus('');
       buttonEl.disabled = true;
       buttonEl.textContent = 'Saving...';
       try {
-        const res = await authFetch(`/api/my/clubs/${encodeURIComponent(String(activeClubId))}/membership-plans`, {
-          method: 'PUT',
+        const res = await authFetch(`/api/my/clubs/${encodeURIComponent(String(activeClubId))}/membership-plans${isDraft ? '' : ''}`, {
+          method: isDraft ? 'POST' : 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify([payload])
+          body: JSON.stringify(isDraft ? payload : [payload])
         });
         if (!res.ok) {
-          const text = await res.text().catch(() => '');
-          throw new Error(text || 'Failed to save membership plans.');
+          throw new Error(await readApiErrorMessage(res, 'Failed to save membership plans.'));
+        }
+        if (isDraft) {
+          const draftKey = String(card.getAttribute('data-plan-key') || '');
+          membershipPlanDrafts = membershipPlanDrafts.filter((item) => String(item?.key || '') !== draftKey);
+          openPlanNoteKeys.delete(draftKey);
         }
         await loadPlans();
-        showStatus(`${payload.planName || 'Membership plan'} saved. ${payload.enabled ? 'It is now live on the club page.' : 'It is now hidden from new purchases.'}`, 'success');
+        if (isDraft) {
+          setPlanViewMode('saved');
+          showStatus(`${payload.planName || 'Membership plan'} created. Manage it from Added plans.`, 'success');
+        } else {
+          showStatus(`${payload.planName || 'Membership plan'} saved.`, 'success');
+        }
       } catch (err) {
         console.error(err);
         showStatus(err?.message || 'Failed to save membership plans.', 'error');
       } finally {
         buttonEl.disabled = false;
-        const card = buttonEl.closest('[data-plan-code]');
-        const payloadAfter = readPlanPayload(planCode);
+        const payloadAfter = readPlanPayload(card);
         const dirtyAfter = card && payloadAfter
           ? normalizePlanPayload(payloadAfter) !== String(card.dataset.originalPayload || '')
           : false;
@@ -1151,26 +1633,96 @@
       }
     };
 
+    const deletePlanCard = async (card) => {
+      if (!card) return;
+      const isDraft = card.getAttribute('data-plan-draft') === 'true';
+      const planKey = String(card.getAttribute('data-plan-key') || '');
+      if (isDraft) {
+        membershipPlanDrafts = membershipPlanDrafts.filter((item) => String(item?.key || '') !== planKey);
+        if (expandedPlanKey === planKey) expandedPlanKey = null;
+        openPlanNoteKeys.delete(planKey);
+        renderPlans();
+        showStatus('Draft plan removed.', 'success');
+        return;
+      }
+
+      const planId = Number(card.getAttribute('data-plan-id'));
+      if (!Number.isFinite(planId)) return;
+      showStatus('');
+      try {
+        const res = await authFetch(`/api/my/clubs/${encodeURIComponent(String(activeClubId))}/membership-plans/${encodeURIComponent(String(planId))}`, {
+          method: 'DELETE'
+        });
+        if (!res.ok) {
+          throw new Error(await readApiErrorMessage(res, 'Failed to delete membership plan.'));
+        }
+        if (expandedPlanKey === planKey) expandedPlanKey = null;
+        openPlanNoteKeys.delete(planKey);
+        await loadPlans();
+        showStatus('Membership plan deleted.', 'success');
+      } catch (err) {
+        console.error(err);
+        showStatus(err?.message || 'Failed to delete membership plan.', 'error');
+      }
+    };
+
+    addCustomPlanBtnEl?.addEventListener('click', () => {
+      showStatus('');
+      setPlanViewMode('draft');
+      const draft = createDraftPlan();
+      membershipPlanDrafts = [draft, ...membershipPlanDrafts];
+      expandedPlanKey = draft.key;
+      openPlanNoteKeys.delete(draft.key);
+      renderPlans();
+      setSectionCollapsed('plans', false);
+      window.requestAnimationFrame(() => {
+        document.querySelector('[data-plan-draft="true"] [data-field="planName"]')?.focus();
+      });
+    });
+
+    showSavedPlansBtnEl?.addEventListener('click', () => {
+      showStatus('');
+      setPlanViewMode('saved');
+      setSectionCollapsed('plans', false);
+      window.requestAnimationFrame(() => {
+        planSavedSectionEl?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
     addKbEntryBtnEl?.addEventListener('click', () => {
       showKbStatus('');
       prependKbDraftCard();
     });
 
+    showKbSavedBtnEl?.addEventListener('click', () => {
+      showKbStatus('');
+      setKbViewMode('saved');
+      setSectionCollapsed('chat-kb', false);
+      window.requestAnimationFrame(() => {
+        kbSavedSectionEl?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
     initSectionToggles();
+    setPlanViewMode('draft');
+    syncPlanDraftListVisibility();
+    setKbViewMode('draft');
+    syncKbDraftListVisibility();
 
     (async () => {
       try {
         activeClubId = await resolveClubId();
         if (!activeClubId) {
           showStatus('No club is available for this account.', 'error');
-          planGridEl.innerHTML = '<div class="empty">No club found.</div>';
+          if (planDraftEmptyEl) {
+            planDraftEmptyEl.textContent = 'No club found.';
+            planDraftEmptyEl.hidden = false;
+          }
+          if (planDraftListEl) planDraftListEl.innerHTML = '';
+          if (planSavedListEl) planSavedListEl.innerHTML = '<div class="empty">No club found.</div>';
           memberListEl.innerHTML = '<div class="empty">No club found.</div>';
           kbListEl.innerHTML = '<div class="empty">No club found.</div>';
           return;
-        }
-
-        if (planIntroEl && activeClubName) {
-          planIntroEl.textContent = `Expand to edit the passes for ${activeClubName}. Each card must be saved separately before members can see the change.`;
         }
 
         await Promise.all([loadPlans(), loadMembers(), loadChatKb()]);
@@ -1178,7 +1730,11 @@
         console.error(err);
         showStatus(err?.message || 'Failed to load memberships.', 'error');
         showKbStatus(err?.message || 'Failed to load chat knowledge base.', 'error');
-        if (!planGridEl.innerHTML) planGridEl.innerHTML = '<div class="empty">Unable to load membership plans.</div>';
+        if (planDraftEmptyEl && !planDraftListEl?.querySelector('[data-plan-key]')) {
+          planDraftEmptyEl.textContent = 'Unable to load membership plans.';
+          planDraftEmptyEl.hidden = false;
+        }
+        if (planSavedListEl && !planSavedListEl.innerHTML) planSavedListEl.innerHTML = '<div class="empty">Unable to load membership plans.</div>';
         if (!memberListEl.innerHTML) memberListEl.innerHTML = '<div class="empty">Unable to load club memberships.</div>';
         if (!kbListEl.innerHTML) kbListEl.innerHTML = '<div class="empty">Unable to load chat knowledge base.</div>';
       }
@@ -1186,3 +1742,4 @@
   </script>
 </body>
 </html>
+

@@ -35,12 +35,14 @@ sudo mkdir -p $BACKEND_DIR
 # 4. 部署前端
 echo ""
 echo "步骤 4: 部署前端静态文件..."
-if [ -d "frontend" ]; then
-    sudo cp -r frontend/* "$FRONTEND_DIR/"
-elif [ -d "dist" ]; then
+if [ -d "dist" ]; then
+    echo "Using built frontend output from dist/"
     sudo cp -r dist/* "$FRONTEND_DIR/"
+elif [ -d "frontend" ]; then
+    echo "Warning: dist/ not found. Falling back to frontend/ source files."
+    sudo cp -r frontend/* "$FRONTEND_DIR/"
 else
-    echo "Error: missing frontend/ (and dist/) to deploy frontend"
+    echo "Error: missing dist/ (preferred) and frontend/ (legacy fallback)"
     exit 1
 fi
 sudo chown -R www-data:www-data $FRONTEND_DIR

@@ -34,6 +34,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
@@ -69,6 +70,8 @@ public class CheckoutSessionService {
     private static final List<String> ACTIVE_BOOKING_STATUSES = List.of("PENDING", "APPROVED", "CHECKED");
     private static final List<String> ACTIVE_SESSION_STATUSES = List.of(STATUS_CREATED, STATUS_PAYING);
     private static final DateTimeFormatter SLOT_FORMATTER = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm", Locale.UK);
+    private static final DateTimeFormatter ORDER_NO_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+            .withZone(ZoneId.systemDefault());
 
     private final CheckoutSessionRepository checkoutSessionRepo;
     private final BookingHoldRepository bookingHoldRepo;
@@ -205,10 +208,21 @@ public class CheckoutSessionService {
         User me = requireEndUser(user);
         cleanupExpiredSessions();
 
-        CheckoutSession session = checkoutSessionRepo.findBySessionId(safe(sessionId))
+        String normalizedSessionId = safe(sessionId);
+        CheckoutSession session = checkoutSessionRepo.findBySessionId(normalizedSessionId)
                 .orElseThrow(() -> new PaymentException(HttpStatus.NOT_FOUND, "Checkout session not found"));
         if (!Objects.equals(session.getUserId(), me.getUserId())) {
             throw new PaymentException(HttpStatus.FORBIDDEN, "You can only view your own checkout sessions");
+        }
+        if (safe(session.getOrderNo()).isBlank()) {
+            session = keyedLockService.withLock(lockSession(normalizedSessionId), () ->
+                    inTransaction(() -> {
+                        CheckoutSession locked = checkoutSessionRepo.findBySessionIdForUpdate(normalizedSessionId)
+                                .orElseThrow(() -> new PaymentException(HttpStatus.NOT_FOUND, "Checkout session not found"));
+                        ensureOrderNo(locked);
+                        return checkoutSessionRepo.save(locked);
+                    })
+            );
         }
         return toDetailResponse(session);
     }
@@ -232,10 +246,12 @@ public class CheckoutSessionService {
                         throw new PaymentException(HttpStatus.CONFLICT, "This checkout session has already been paid");
                     }
                     if (!ACTIVE_SESSION_STATUSES.contains(safe(session.getStatus()).toUpperCase(Locale.ROOT))) {
+                        ensureOrderNo(session);
                         return session;
                     }
 
                     Instant now = Instant.now();
+                    ensureOrderNo(session);
                     session.setStatus(STATUS_CANCELED);
                     session.setCancelledAt(now);
                     session.setFailureReason("Checkout was cancelled");
@@ -272,6 +288,7 @@ public class CheckoutSessionService {
                         throw new PaymentException(HttpStatus.CONFLICT, "This checkout session does not use virtual payment");
                     }
                     if (STATUS_PAID.equals(safe(session.getStatus()).toUpperCase(Locale.ROOT))) {
+                        ensureOrderNo(session);
                         return session;
                     }
                     if (!ACTIVE_SESSION_STATUSES.contains(safe(session.getStatus()).toUpperCase(Locale.ROOT))) {
@@ -284,6 +301,7 @@ public class CheckoutSessionService {
                     if (safe(session.getProviderSessionId()).isBlank()) {
                         session.setProviderSessionId("virtual_" + normalizedSessionId);
                     }
+                    ensureOrderNo(session);
                     fulfillPaidSession(session);
                     return session;
                 })
@@ -371,6 +389,8 @@ public class CheckoutSessionService {
                 .findFirst()
                 .orElse(null);
         if (reusable != null) {
+            ensureOrderNo(reusable);
+            checkoutSessionRepo.save(reusable);
             return PreparedCheckout.reuse(toCreateResponse(reusable));
         }
 
@@ -391,7 +411,7 @@ public class CheckoutSessionService {
                 LocalDate.now()
         );
         BigDecimal amount = activeMembership
-                .map(ctx -> membershipService.calculateDiscountedPrice(slot.getPrice(), ctx.plan().getDiscountPercent()))
+                .map(ctx -> membershipService.calculateBookingPrice(slot.getPrice(), ctx))
                 .orElse(membershipService.normalizePrice(slot.getPrice()));
 
         Instant expiresAt = now.plusSeconds(Math.max(1L, bookingHoldTtlSeconds));
@@ -399,6 +419,7 @@ public class CheckoutSessionService {
 
         CheckoutSession session = new CheckoutSession();
         session.setSessionId(sessionId);
+        session.setOrderNo(newOrderNo(TYPE_BOOKING));
         session.setUserId(me.getUserId());
         session.setClubId(club.getClubId());
         session.setType(TYPE_BOOKING);
@@ -442,7 +463,7 @@ public class CheckoutSessionService {
         Instant now = Instant.now();
         MembershipPlan plan = membershipPlanRepo.findById(planId)
                 .orElseThrow(() -> new PaymentException(HttpStatus.NOT_FOUND, "Membership plan not found"));
-        if (!Boolean.TRUE.equals(plan.getEnabled())) {
+        if (!membershipService.isSellableCatalogPlan(plan)) {
             throw new PaymentException(HttpStatus.CONFLICT, "This membership plan is currently unavailable");
         }
 
@@ -473,12 +494,15 @@ public class CheckoutSessionService {
                         "A membership checkout is already in progress for this club. Cancel it before choosing a different plan."
                 );
             }
+            ensureOrderNo(reusable);
+            checkoutSessionRepo.save(reusable);
             return PreparedCheckout.reuse(toCreateResponse(reusable));
         }
 
         String sessionId = newSessionId();
         CheckoutSession session = new CheckoutSession();
         session.setSessionId(sessionId);
+        session.setOrderNo(newOrderNo(TYPE_MEMBERSHIP));
         session.setUserId(me.getUserId());
         session.setClubId(club.getClubId());
         session.setType(TYPE_MEMBERSHIP);
@@ -507,6 +531,7 @@ public class CheckoutSessionService {
     private CheckoutSessionCreateResponse attachProviderCheckout(String sessionId, StripeCheckoutGateway.CreatedCheckoutSession externalSession) {
         CheckoutSession session = checkoutSessionRepo.findBySessionIdForUpdate(sessionId)
                 .orElseThrow(() -> new PaymentException(HttpStatus.NOT_FOUND, "Checkout session not found"));
+        ensureOrderNo(session);
         session.setProviderSessionId(externalSession.providerSessionId());
         session.setCheckoutUrl(externalSession.checkoutUrl());
         session.setStatus(STATUS_PAYING);
@@ -517,6 +542,7 @@ public class CheckoutSessionService {
     private CheckoutSessionCreateResponse attachVirtualCheckout(String sessionId) {
         CheckoutSession session = checkoutSessionRepo.findBySessionIdForUpdate(sessionId)
                 .orElseThrow(() -> new PaymentException(HttpStatus.NOT_FOUND, "Checkout session not found"));
+        ensureOrderNo(session);
         session.setCheckoutUrl(buildPaymentPageUrl(sessionId));
         session.setStatus(STATUS_PAYING);
         session.setFailureReason(null);
@@ -578,9 +604,32 @@ public class CheckoutSessionService {
                 venue.getClubId(),
                 LocalDate.now()
         );
-        BigDecimal amount = activeMembership
-                .map(ctx -> membershipService.calculateDiscountedPrice(slot.getPrice(), ctx.plan().getDiscountPercent()))
-                .orElse(membershipService.normalizePrice(slot.getPrice()));
+        BigDecimal amount = membershipService.normalizePrice(slot.getPrice());
+        Integer membershipId = null;
+        boolean membershipCreditUsed = false;
+        if (activeMembership.isPresent()) {
+            MembershipService.ActiveMembershipContext ctx = activeMembership.get();
+            if (membershipService.isBookingPack(ctx.plan())) {
+                UserMembership lockedMembership = userMembershipRepo.findByIdForUpdate(ctx.membership().getUserMembershipId()).orElse(null);
+                if (lockedMembership == null || !"ACTIVE".equals(membershipService.effectiveStatus(lockedMembership, ctx.plan(), LocalDate.now()))) {
+                    markExistingSessionFailed(session, "Membership booking credits are no longer available for this plan", true);
+                    return;
+                }
+                int remainingBookings = membershipService.normalizeRemainingBookings(lockedMembership.getRemainingBookings());
+                if (remainingBookings <= 0) {
+                    markExistingSessionFailed(session, "Membership booking credits are no longer available for this plan", true);
+                    return;
+                }
+                lockedMembership.setRemainingBookings(remainingBookings - 1);
+                userMembershipRepo.save(lockedMembership);
+                amount = BigDecimal.ZERO.setScale(2, java.math.RoundingMode.HALF_UP);
+                membershipId = lockedMembership.getUserMembershipId();
+                membershipCreditUsed = true;
+            } else {
+                amount = membershipService.calculateBookingPrice(slot.getPrice(), ctx);
+                membershipId = ctx.membership().getUserMembershipId();
+            }
+        }
 
         BookingRecord booking = bookingRepo.findFirstByUserIdAndTimeslotIdOrderByBookingTimeDesc(
                 session.getUserId(),
@@ -591,9 +640,10 @@ public class CheckoutSessionService {
             booking.setUserId(session.getUserId());
             booking.setTimeslotId(session.getTimeslotId());
         }
-        booking.setStatus("PENDING");
+        booking.setStatus("APPROVED");
         booking.setPricePaid(amount);
-        booking.setUserMembershipId(activeMembership.map(ctx -> ctx.membership().getUserMembershipId()).orElse(null));
+        booking.setUserMembershipId(membershipId);
+        booking.setMembershipCreditUsed(membershipCreditUsed);
         if (booking.getBookingId() == null
                 || safe(booking.getBookingVerificationCode()).isBlank()
                 || !ACTIVE_BOOKING_STATUSES.contains(previousStatus)) {
@@ -639,6 +689,9 @@ public class CheckoutSessionService {
 
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = startDate.plusDays(Math.max(1, Optional.ofNullable(plan.getDurationDays()).orElse(30)) - 1L);
+        int includedBookings = MembershipService.BENEFIT_BOOKING_PACK.equals(membershipService.normalizeBenefitType(plan.getBenefitType()))
+                ? membershipService.normalizeIncludedBookings(plan.getIncludedBookings())
+                : 0;
 
         UserMembership membership = new UserMembership();
         membership.setUserId(session.getUserId());
@@ -646,6 +699,8 @@ public class CheckoutSessionService {
         membership.setStartDate(startDate);
         membership.setEndDate(endDate);
         membership.setStatus("ACTIVE");
+        membership.setIncludedBookingsTotal(includedBookings);
+        membership.setRemainingBookings(includedBookings);
         UserMembership savedMembership = userMembershipRepo.save(membership);
 
         TransactionRecord tx = new TransactionRecord();
@@ -685,6 +740,7 @@ public class CheckoutSessionService {
         if (STATUS_PAID.equals(session.getStatus())) {
             return;
         }
+        ensureOrderNo(session);
         session.setStatus(STATUS_FAILED);
         session.setFailureReason(firstNonBlank(reason, "Checkout failed"));
         if (releaseHold) {
@@ -756,6 +812,8 @@ public class CheckoutSessionService {
         LocalDateTime slotEnd = null;
         String planName = "";
         Integer durationDays = null;
+        String benefitType = MembershipService.BENEFIT_DISCOUNT;
+        Integer includedBookings = null;
 
         if (TYPE_BOOKING.equals(session.getType()) && session.getTimeslotId() != null) {
             TimeSlot slot = timeSlotRepo.findById(session.getTimeslotId()).orElse(null);
@@ -772,6 +830,8 @@ public class CheckoutSessionService {
             if (plan != null) {
                 planName = safe(plan.getPlanName());
                 durationDays = plan.getDurationDays();
+                benefitType = membershipService.normalizeBenefitType(plan.getBenefitType());
+                includedBookings = membershipService.normalizeIncludedBookings(plan.getIncludedBookings());
                 title = firstNonBlank(planName, "Membership");
                 subtitle = firstNonBlank(clubName, "Club membership");
             }
@@ -781,6 +841,7 @@ public class CheckoutSessionService {
         boolean active = ACTIVE_SESSION_STATUSES.contains(status) && session.getExpiresAt() != null && session.getExpiresAt().isAfter(now);
         return new CheckoutSessionDetailResponse(
                 session.getSessionId(),
+                safe(session.getOrderNo()),
                 safe(session.getType()),
                 status,
                 safe(session.getProvider()),
@@ -801,6 +862,8 @@ public class CheckoutSessionService {
                 session.getMembershipPlanId(),
                 planName,
                 durationDays,
+                benefitType,
+                includedBookings,
                 title,
                 subtitle,
                 safe(session.getFailureReason())
@@ -810,6 +873,7 @@ public class CheckoutSessionService {
     private CheckoutSessionCreateResponse toCreateResponse(CheckoutSession session) {
         return new CheckoutSessionCreateResponse(
                 session.getSessionId(),
+                safe(session.getOrderNo()),
                 safe(session.getStatus()).toUpperCase(Locale.ROOT),
                 safe(session.getProvider()),
                 safe(session.getCheckoutUrl()),
@@ -859,6 +923,26 @@ public class CheckoutSessionService {
 
     private static String newSessionId() {
         return "chk_" + UUID.randomUUID().toString().replace("-", "");
+    }
+
+    private void ensureOrderNo(CheckoutSession session) {
+        if (session == null || !safe(session.getOrderNo()).isBlank()) {
+            return;
+        }
+        session.setOrderNo(newOrderNo(session.getType()));
+    }
+
+    private String newOrderNo(String type) {
+        String prefix = TYPE_MEMBERSHIP.equalsIgnoreCase(safe(type)) ? "MB" : "BK";
+        for (int attempt = 0; attempt < 8; attempt++) {
+            String timestamp = ORDER_NO_TIME_FORMATTER.format(Instant.now());
+            String suffix = UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase(Locale.ROOT);
+            String candidate = prefix + "-" + timestamp + "-" + suffix;
+            if (!checkoutSessionRepo.existsByOrderNo(candidate)) {
+                return candidate;
+            }
+        }
+        throw new PaymentException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to generate a unique order number");
     }
 
     private static String formatSlotWindow(LocalDateTime start, LocalDateTime end) {

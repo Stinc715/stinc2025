@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 
 public record MyBookingResponse(
         Integer bookingId,
+        String orderNo,
         Integer timeslotId,
         String status,
         LocalDateTime bookingTime,

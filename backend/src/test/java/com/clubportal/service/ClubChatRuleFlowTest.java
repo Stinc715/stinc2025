@@ -62,6 +62,45 @@ class ClubChatRuleFlowTest {
     }
 
     @Test
+    void membershipPlanInfoExplainsBookingPackBenefits() {
+        ClubChatContextDto context = new ClubChatContextDto(
+                new ClubChatContextDto.ClubInfo(
+                        12,
+                        "Riverside Badminton Club",
+                        "Friendly indoor badminton club for beginner to intermediate players.",
+                        "badminton",
+                        List.of("badminton", "indoor", "beginner-friendly"),
+                        "Sports Hall, Campus West",
+                        "08:00",
+                        "22:00",
+                        "hello@riverside.example",
+                        "01234 567890"
+                ),
+                List.of(),
+                List.of(new ClubChatContextDto.MembershipPlanInfo(
+                        301,
+                        "CUSTOM_PACK_30",
+                        MembershipService.BENEFIT_BOOKING_PACK,
+                        "30-visit pack",
+                        money("45.00"),
+                        180,
+                        money("0.00"),
+                        30,
+                        true,
+                        "Includes 30 prepaid bookings for this club."
+                )),
+                new ClubChatContextDto.ViewerInfo(false, "", null, "", null),
+                new ClubChatContextDto.PolicyInfo("GBP", TEST_ZONE.getId(), 500)
+        );
+
+        ChatIntentRoute route = router.route("Tell me about the 30-visit pack plan", context);
+        String reply = responseBuilder.buildReply(route, context, "Tell me about the 30-visit pack plan");
+
+        assertEquals(ChatIntentType.MEMBERSHIP_PLAN_INFO, route.intentType());
+        assertEquals("The 30-visit pack is listed at GBP 45.00 and includes 30 prepaid bookings valid for 180 days. Includes 30 prepaid bookings for this club.", reply);
+    }
+
+    @Test
     void bookingInChatMatchesVenueAndStartHourInsteadOfFirstSlot() {
         ClubChatContextDto context = context(
                 true,
@@ -323,9 +362,12 @@ class ClubChatRuleFlowTest {
                         "Riverside Badminton Club",
                         101,
                         "MONTHLY",
+                        MembershipService.BENEFIT_DISCOUNT,
                         "Monthly Pass",
                         money("49.00"),
                         money("20.00"),
+                        0,
+                        0,
                         today.minusDays(5),
                         today.plusDays(25),
                         "ACTIVE"
@@ -350,10 +392,12 @@ class ClubChatRuleFlowTest {
                 List.of(new ClubChatContextDto.MembershipPlanInfo(
                         101,
                         "MONTHLY",
+                        MembershipService.BENEFIT_DISCOUNT,
                         "Monthly Pass",
                         money("49.00"),
                         30,
                         money("20.00"),
+                        0,
                         true,
                         "Save 20% on eligible bookings during this month."
                 )),
@@ -382,7 +426,10 @@ class ClubChatRuleFlowTest {
                 nullableMoney(price),
                 nullableMoney(basePrice),
                 membershipApplied ? "Monthly Pass" : "",
+                membershipApplied ? MembershipService.BENEFIT_DISCOUNT : "",
                 membershipApplied ? money("20.00") : money("0.00"),
+                0,
+                0,
                 membershipApplied
         );
     }

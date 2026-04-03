@@ -222,6 +222,10 @@
         const normalized = String(token || '').trim();
         if (!normalized) return;
         try {
+          if (window.AuthSession?.setToken) {
+            window.AuthSession.setToken(normalized);
+            return;
+          }
           localStorage.setItem('token', normalized);
         } catch (err) {
           console.error(err);
@@ -234,6 +238,7 @@
         const email = String(profilePayload.email || '').trim();
         const avatarUrl = String(profilePayload.avatarUrl || profilePayload.avatar || '').trim();
         const role = String(profilePayload.role || '').trim().toLowerCase() || 'user';
+        const authProvider = String(profilePayload.authProvider || '').trim().toLowerCase();
 
         const profile = safeParse('profile') || {};
         const loggedUser = safeParse('loggedUser') || {};
@@ -251,6 +256,16 @@
           profile.email = email;
           loggedUser.email = email;
           userObj.email = email;
+        }
+        if (authProvider) {
+          profile.authProvider = authProvider;
+          loggedUser.authProvider = authProvider;
+          userObj.authProvider = authProvider;
+        }
+        if (typeof profilePayload.canChangePassword === 'boolean') {
+          profile.canChangePassword = profilePayload.canChangePassword;
+          loggedUser.canChangePassword = profilePayload.canChangePassword;
+          userObj.canChangePassword = profilePayload.canChangePassword;
         }
         if (avatarUrl) {
           profile.avatarUrl = avatarUrl;
@@ -436,7 +451,7 @@
         if (!activeList.length) {
           bookingListEl.innerHTML = bookingViewMode === 'expired'
             ? '<div class="booking-empty">No expired bookings yet.</div>'
-            : '<div class="booking-empty">No upcoming bookings yet. Go to Home and pick a club slot.</div>';
+            : '<div class="booking-empty">No upcoming bookings yet.</div>';
           return;
         }
 
@@ -446,6 +461,7 @@
           const startLabel = formatDateTime(item?.startTime);
           const endLabel = formatDateTime(item?.endTime);
           const verificationCode = String(item?.bookingVerificationCode || '').trim();
+          const orderNo = String(item?.orderNo || '').trim();
           const statusRaw = String(item?.status || 'PENDING').trim();
           const statusLabel = escapeHtml(statusRaw || 'PENDING');
           const statusClass = bookingStatusClass(statusRaw);
@@ -457,6 +473,9 @@
                   <span class="booking-code-value">${escapeHtml(verificationCode)}</span>
                 </div>
               `
+            : '';
+          const orderNoHtml = orderNo
+            ? `<div class="booking-sub">Order number: ${escapeHtml(orderNo)}</div>`
             : '';
           const clubId = Number(item?.clubId);
           const detailBtn = Number.isFinite(clubId)
@@ -471,9 +490,10 @@
                 <div class="booking-title">${clubName}</div>
                 <div class="booking-sub">${venueName}</div>
                 <div class="booking-meta-row">
-                  <span class="booking-pill ${timeClass}">${timeLabel}</span>
-                  <span class="booking-pill ${escapeHtml(statusClass)}">${statusLabel}</span>
+                  <span class="booking-pill desktop-badge ${timeClass}">${timeLabel}</span>
+                  <span class="booking-pill desktop-badge ${escapeHtml(statusClass)}">${statusLabel}</span>
                 </div>
+                ${orderNoHtml}
                 <div class="booking-sub">${escapeHtml(startLabel)} - ${escapeHtml(endLabel)}</div>
                 <div class="booking-sub">Price: ${priceLabel}</div>
                 ${verificationHtml}
@@ -545,7 +565,7 @@
         });
 
         if (!rows.length) {
-          membershipListEl.innerHTML = '<div class="booking-empty">You have not purchased any club memberships yet.</div>';
+          membershipListEl.innerHTML = '<div class="booking-empty">No memberships yet.</div>';
           return;
         }
 
@@ -555,7 +575,11 @@
           const statusLabel = escapeHtml(String(item?.status || 'ACTIVE'));
           const statusClass = membershipStatusClass(item?.status);
           const priceLabel = escapeHtml(formatPrice(item?.planPrice));
-          const discountLabel = `${escapeHtml(String(item?.discountPercent ?? 0))}% off`;
+          const packPlan = String(item?.benefitType || '').toUpperCase() === 'BOOKING_PACK';
+          const discountLabel = packPlan
+            ? `${escapeHtml(String(item?.remainingBookings ?? 0))}/${escapeHtml(String(item?.includedBookings ?? 0))} credits left`
+            : `${escapeHtml(String(item?.discountPercent ?? 0))}% off`;
+          const orderNo = String(item?.orderNo || '').trim();
           const startLabel = escapeHtml(String(item?.startDate || '--'));
           const endLabel = escapeHtml(String(item?.endDate || '--'));
           const clubId = Number(item?.clubId);
@@ -569,9 +593,10 @@
                 <div class="booking-title">${clubName}</div>
                 <div class="booking-sub">${planName}</div>
                 <div class="booking-meta-row">
-                  <span class="booking-pill ${statusClass}">${statusLabel}</span>
-                  <span class="booking-pill">${discountLabel}</span>
+                  <span class="booking-pill desktop-badge ${statusClass}">${statusLabel}</span>
+                  <span class="booking-pill desktop-badge">${discountLabel}</span>
                 </div>
+                ${orderNo ? `<div class="booking-sub">Order number: ${escapeHtml(orderNo)}</div>` : ''}
                 <div class="booking-sub">${startLabel} - ${endLabel}</div>
                 <div class="booking-sub">Membership price: ${priceLabel}</div>
               </div>
@@ -660,12 +685,19 @@
       const currentPassErr = document.getElementById('currentPassErr');
       const newPassErr = document.getElementById('newPassErr');
       const confirmPassErr = document.getElementById('confirmPassErr');
+      const securityFormEl = document.getElementById('securityForm');
+      const securityGridEl = securityFormEl?.querySelector('.security-grid');
+      const securityFootEl = securityFormEl?.querySelector('.security-foot');
+      const passwordProviderCardEl = document.getElementById('passwordProviderCard');
+      const passwordProviderCopyEl = document.getElementById('passwordProviderCopy');
+      const updatePassBtn = document.getElementById('updatePassBtn');
 
       let currentName = '';
       let currentEmail = '';
       let codeTimer = null;
       let codeRemaining = 0;
       let emailVerifyInFlight = false;
+      let passwordChangeAllowed = true;
 
       const setEmailVerifyMessage = (text, type = '') => {
         if (!emailUpdateErr) return;
@@ -828,6 +860,7 @@
         currentEmail = email || '';
         setEditing(false);
         applyAvatarPreview(avatarUrl);
+        applyPasswordChangeAvailability(profile, localProfile, loggedUser, userObj);
       };
 
       const switchInfoTab = (tab) => {
@@ -836,6 +869,52 @@
         securityTab.classList.toggle('active', !showProfile);
         tabProfile.classList.toggle('active', showProfile);
         tabSecurity.classList.toggle('active', !showProfile);
+      };
+
+      const applyPasswordChangeAvailability = (...sources) => {
+        let authProvider = '';
+        let canChangePassword = null;
+
+        sources.forEach((source) => {
+          if (!source || typeof source !== 'object') return;
+          if (!authProvider) {
+            const nextProvider = String(source.authProvider || '').trim().toLowerCase();
+            if (nextProvider) authProvider = nextProvider;
+          }
+          if (canChangePassword === null && typeof source.canChangePassword === 'boolean') {
+            canChangePassword = source.canChangePassword;
+          }
+        });
+
+        if (!authProvider) authProvider = 'password';
+        if (canChangePassword === null) {
+          canChangePassword = authProvider !== 'google';
+        }
+
+        passwordChangeAllowed = Boolean(canChangePassword);
+        securityFormEl?.classList.toggle('password-disabled', !passwordChangeAllowed);
+        securityGridEl?.toggleAttribute('hidden', !passwordChangeAllowed);
+        securityFootEl?.toggleAttribute('hidden', !passwordChangeAllowed);
+        passwordProviderCardEl?.toggleAttribute('hidden', passwordChangeAllowed);
+
+        if (passwordProviderCopyEl) {
+          passwordProviderCopyEl.textContent = authProvider === 'google'
+            ? 'You signed in with Google. Password changes are managed in your Google account.'
+            : '';
+        }
+
+        [currentPassInput, newPassInput, confirmPassInput, updatePassBtn].forEach((el) => {
+          if (el) el.disabled = !passwordChangeAllowed;
+        });
+
+        if (!passwordChangeAllowed) {
+          if (currentPassInput) currentPassInput.value = '';
+          if (newPassInput) newPassInput.value = '';
+          if (confirmPassInput) confirmPassInput.value = '';
+          if (currentPassErr) currentPassErr.style.display = 'none';
+          if (newPassErr) newPassErr.style.display = 'none';
+          if (confirmPassErr) confirmPassErr.style.display = 'none';
+        }
       };
 
       const resetSecurity = () => {
@@ -1038,7 +1117,8 @@
         }
       });
 
-      document.getElementById('updatePassBtn')?.addEventListener('click', async () => {
+      updatePassBtn?.addEventListener('click', async () => {
+        if (!passwordChangeAllowed) return;
         currentPassErr.style.display = 'none';
         newPassErr.style.display = 'none';
         confirmPassErr.style.display = 'none';
@@ -1067,7 +1147,7 @@
 
         if (!valid) return;
 
-        const updateBtn = document.getElementById('updatePassBtn');
+        const updateBtn = updatePassBtn;
         if (updateBtn) {
           updateBtn.disabled = true;
           updateBtn.textContent = 'Updating...';

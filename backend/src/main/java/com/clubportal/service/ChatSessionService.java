@@ -1,5 +1,6 @@
 package com.clubportal.service;
 
+import com.clubportal.config.ChatHandoffProperties;
 import com.clubportal.model.ChatMode;
 import com.clubportal.model.ChatSession;
 import com.clubportal.model.HandoffReason;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashMap;
@@ -20,15 +22,19 @@ import java.util.Objects;
 public class ChatSessionService {
 
     private final ChatSessionRepository chatSessionRepository;
+    private final ChatHandoffProperties chatHandoffProperties;
 
-    public ChatSessionService(ChatSessionRepository chatSessionRepository) {
+    public ChatSessionService(ChatSessionRepository chatSessionRepository,
+                              ChatHandoffProperties chatHandoffProperties) {
         this.chatSessionRepository = chatSessionRepository;
+        this.chatHandoffProperties = chatHandoffProperties;
     }
 
     @Transactional
     public ChatSession getOrCreateSession(Integer clubId, Integer userId) {
         validateIds(clubId, userId);
         return chatSessionRepository.findByClubIdAndUserId(clubId, userId)
+                .map(this::resetExpiredHumanModeIfNeeded)
                 .orElseGet(() -> {
                     ChatSession session = new ChatSession();
                     session.setClubId(clubId);
@@ -57,7 +63,7 @@ public class ChatSessionService {
         Map<Integer, ChatSession> existingByUserId = new HashMap<>();
         for (ChatSession session : chatSessionRepository.findByClubIdAndUserIdIn(clubId, normalizedUserIds)) {
             if (session.getUserId() != null) {
-                existingByUserId.put(session.getUserId(), session);
+                existingByUserId.put(session.getUserId(), resetExpiredHumanModeIfNeeded(session));
             }
         }
 
@@ -117,8 +123,9 @@ public class ChatSessionService {
         if (sessionId == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Chat session id is required");
         }
-        return chatSessionRepository.findById(sessionId)
+        ChatSession session = chatSessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Chat session not found"));
+        return resetExpiredHumanModeIfNeeded(session);
     }
 
     private static void validateIds(Integer clubId, Integer userId) {
@@ -129,5 +136,32 @@ public class ChatSessionService {
 
     private static int normalizeUnreadCount(Integer unreadCount) {
         return unreadCount == null ? 0 : Math.max(0, unreadCount);
+    }
+
+    private ChatSession resetExpiredHumanModeIfNeeded(ChatSession session) {
+        if (session == null || !isHumanManagedMode(session.getChatMode())) {
+            return session;
+        }
+        LocalDateTime updatedAt = session.getUpdatedAt();
+        if (updatedAt == null) {
+            return resetSessionToAi(session);
+        }
+        Duration idleTimeout = Duration.ofMinutes(chatHandoffProperties.getIdleResetMinutes());
+        if (!updatedAt.isAfter(LocalDateTime.now().minus(idleTimeout))) {
+            return resetSessionToAi(session);
+        }
+        return session;
+    }
+
+    private ChatSession resetSessionToAi(ChatSession session) {
+        session.setChatMode(ChatMode.AI);
+        session.setHandoffRequestedAt(null);
+        session.setHandoffReason(null);
+        session.setClubUnreadCount(0);
+        return chatSessionRepository.save(session);
+    }
+
+    private static boolean isHumanManagedMode(ChatMode mode) {
+        return mode == ChatMode.HANDOFF_REQUESTED || mode == ChatMode.HUMAN;
     }
 }

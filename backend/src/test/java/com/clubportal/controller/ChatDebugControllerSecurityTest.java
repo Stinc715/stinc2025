@@ -1,6 +1,5 @@
 package com.clubportal.controller;
 
-import com.clubportal.config.ChatDebugVersion;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -8,8 +7,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(properties = {
@@ -32,22 +29,15 @@ class ChatDebugControllerSecurityTest {
     private MockMvc mockMvc;
 
     @Test
-    void pingEndpointIsPublic() throws Exception {
+    void pingEndpointIsBlocked() throws Exception {
         mockMvc.perform(get("/api/debug/ping"))
-                .andExpect(status().isOk())
-                .andExpect(header().string(ChatDebugVersion.VERSION_HEADER, ChatDebugVersion.VERSION_MARKER))
-                .andExpect(jsonPath("$.ok").value(true))
-                .andExpect(jsonPath("$.path").value("/api/debug/ping"));
+                .andExpect(status().isForbidden());
     }
 
     @Test
-    void chatVersionEndpointIsPublic() throws Exception {
+    void chatVersionEndpointIsBlocked() throws Exception {
         mockMvc.perform(get("/api/debug/chat-version"))
-                .andExpect(status().isOk())
-                .andExpect(header().string(ChatDebugVersion.VERSION_HEADER, ChatDebugVersion.VERSION_MARKER))
-                .andExpect(jsonPath("$.versionMarker").value(ChatDebugVersion.VERSION_MARKER))
-                .andExpect(jsonPath("$.llmEnabled").value(true))
-                .andExpect(jsonPath("$.llmModel").value("gpt-5-mini"));
+                .andExpect(status().isForbidden());
     }
 
     @Test

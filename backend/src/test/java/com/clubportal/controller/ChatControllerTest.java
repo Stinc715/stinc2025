@@ -1,7 +1,7 @@
 package com.clubportal.controller;
 
 import com.clubportal.dto.ChatMessageCreateRequest;
-import com.clubportal.dto.ChatThreadResponse;
+import com.clubportal.dto.ChatSendResponse;
 import com.clubportal.model.ChatMessage;
 import com.clubportal.model.ChatMode;
 import com.clubportal.model.ChatSession;
@@ -31,7 +31,7 @@ import static org.mockito.Mockito.when;
 class ChatControllerTest {
 
     @Test
-    void sendUserMessageReturnsFullThreadIncludingAssistantReply() {
+    void sendUserMessageReturnsLightweightPayloadIncludingAssistantReply() {
         CurrentUserService currentUserService = mock(CurrentUserService.class);
         ClubRepository clubRepository = mock(ClubRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
@@ -97,16 +97,15 @@ class ChatControllerTest {
         when(currentUserService.requireUser()).thenReturn(me);
         when(chatMessageService.sendUserMessage(12, 45, "Is tomorrow's 7pm slot still available?")).thenReturn(sendResult);
         when(chatSessionService.getOrCreateSession(12, 45)).thenReturn(session);
-        when(chatMessageRepository.findByClubIdAndUserIdOrderByCreatedAtAscMessageIdAsc(12, 45))
-                .thenReturn(List.of(userMessage, assistantMessage));
         when(chatMessageRepository.countByClubIdAndUserIdAndSenderAndReadByUserFalse(12, 45, "CLUB")).thenReturn(0L);
         doNothing().when(chatRealtimeService).afterCommit(any());
 
         ResponseEntity<?> response = controller.sendUserMessage(12, new ChatMessageCreateRequest("Is tomorrow's 7pm slot still available?"));
 
         assertEquals(200, response.getStatusCode().value());
-        ChatThreadResponse body = assertInstanceOf(ChatThreadResponse.class, response.getBody());
+        ChatSendResponse body = assertInstanceOf(ChatSendResponse.class, response.getBody());
         assertEquals(2, body.messages().size());
+        assertEquals(false, body.fullThread());
         assertEquals("user", body.messages().get(0).sender());
         assertEquals("assistant", body.messages().get(1).sender());
         assertEquals("CLUB_FAQ", body.messages().get(1).answerSource());

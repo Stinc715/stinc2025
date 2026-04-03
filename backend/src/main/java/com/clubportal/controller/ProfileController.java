@@ -5,6 +5,7 @@ import com.clubportal.repository.UserRepository;
 import com.clubportal.security.StreamAuthCookieService;
 import com.clubportal.security.JwtUtil;
 import com.clubportal.service.CurrentUserService;
+import com.clubportal.service.PasswordPolicyService;
 import com.clubportal.service.ProfileEmailVerificationService;
 import com.clubportal.service.UserAvatarService;
 import com.clubportal.service.VerificationEmailSenderService;
@@ -33,12 +34,12 @@ import java.util.regex.Pattern;
 public class ProfileController {
 
     private static final Pattern EMAIL_RE = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
-    private static final Pattern PASSWORD_RE = Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$");
 
     private final CurrentUserService currentUserService;
     private final UserRepository userRepo;
     private final JwtUtil jwtUtil;
     private final PasswordEncryptionUtil passwordUtil;
+    private final PasswordPolicyService passwordPolicyService;
     private final ProfileEmailVerificationService profileEmailVerificationService;
     private final VerificationEmailSenderService emailSenderService;
     private final UserAvatarService userAvatarService;
@@ -48,6 +49,7 @@ public class ProfileController {
                              UserRepository userRepo,
                              JwtUtil jwtUtil,
                              PasswordEncryptionUtil passwordUtil,
+                             PasswordPolicyService passwordPolicyService,
                              ProfileEmailVerificationService profileEmailVerificationService,
                              VerificationEmailSenderService emailSenderService,
                              UserAvatarService userAvatarService,
@@ -56,6 +58,7 @@ public class ProfileController {
         this.userRepo = userRepo;
         this.jwtUtil = jwtUtil;
         this.passwordUtil = passwordUtil;
+        this.passwordPolicyService = passwordPolicyService;
         this.profileEmailVerificationService = profileEmailVerificationService;
         this.emailSenderService = emailSenderService;
         this.userAvatarService = userAvatarService;
@@ -66,9 +69,10 @@ public class ProfileController {
     public ResponseEntity<?> getProfile(HttpServletRequest request,
                                         HttpServletResponse response) {
         User me = currentUserService.requireUser();
-        String token = jwtUtil.generateToken(me.getEmail(), roleValue(me), me.getSessionVersionOrDefault());
-        streamAuthCookieService.writeStreamToken(request, response, token);
-        return ResponseEntity.ok(toProfilePayload(me, null));
+        String authProvider = resolveAuthProvider(request);
+        String token = jwtUtil.generateToken(me.getEmail(), roleValue(me), me.getSessionVersionOrDefault(), authProvider);
+        streamAuthCookieService.writeAuthCookies(request, response, token);
+        return ResponseEntity.ok(toProfilePayload(me, null, authProvider));
     }
 
     @PatchMapping
@@ -89,9 +93,10 @@ public class ProfileController {
 
         me.setUsername(nextName);
         User saved = userRepo.save(me);
-        String token = jwtUtil.generateToken(saved.getEmail(), roleValue(saved), saved.getSessionVersionOrDefault());
-        streamAuthCookieService.writeStreamToken(request, response, token);
-        return ResponseEntity.ok(toProfilePayload(saved, null));
+        String authProvider = resolveAuthProvider(request);
+        String token = jwtUtil.generateToken(saved.getEmail(), roleValue(saved), saved.getSessionVersionOrDefault(), authProvider);
+        streamAuthCookieService.writeAuthCookies(request, response, token);
+        return ResponseEntity.ok(toProfilePayload(saved, null, authProvider));
     }
 
     @PostMapping("/email/code")
@@ -177,9 +182,10 @@ public class ProfileController {
         me.setEmail(nextEmail);
         int nextSessionVersion = me.bumpSessionVersion();
         User saved = userRepo.save(me);
-        String token = jwtUtil.generateToken(saved.getEmail(), roleValue(saved), nextSessionVersion);
-        streamAuthCookieService.writeStreamToken(request, response, token);
-        return ResponseEntity.ok(toProfilePayload(saved, token));
+        String authProvider = resolveAuthProvider(request);
+        String token = jwtUtil.generateToken(saved.getEmail(), roleValue(saved), nextSessionVersion, authProvider);
+        streamAuthCookieService.writeAuthCookies(request, response, token);
+        return ResponseEntity.ok(toProfilePayload(saved, token, authProvider));
     }
 
     @PatchMapping("/email")
@@ -201,9 +207,10 @@ public class ProfileController {
         }
 
         if (nextEmail.equalsIgnoreCase(safe(me.getEmail()))) {
-            String token = jwtUtil.generateToken(me.getEmail(), roleValue(me), me.getSessionVersionOrDefault());
-            streamAuthCookieService.writeStreamToken(request, response, token);
-            return ResponseEntity.ok(toProfilePayload(me, token));
+            String authProvider = resolveAuthProvider(request);
+            String token = jwtUtil.generateToken(me.getEmail(), roleValue(me), me.getSessionVersionOrDefault(), authProvider);
+            streamAuthCookieService.writeAuthCookies(request, response, token);
+            return ResponseEntity.ok(toProfilePayload(me, token, authProvider));
         }
 
         boolean hasOther = userRepo.findAllByEmailIgnoreCase(nextEmail).stream()
@@ -215,10 +222,11 @@ public class ProfileController {
         me.setEmail(nextEmail);
         int nextSessionVersion = me.bumpSessionVersion();
         User saved = userRepo.save(me);
-        String token = jwtUtil.generateToken(saved.getEmail(), roleValue(saved), nextSessionVersion);
+        String authProvider = resolveAuthProvider(request);
+        String token = jwtUtil.generateToken(saved.getEmail(), roleValue(saved), nextSessionVersion, authProvider);
         profileEmailVerificationService.clearForUser(me.getUserId());
-        streamAuthCookieService.writeStreamToken(request, response, token);
-        return ResponseEntity.ok(toProfilePayload(saved, token));
+        streamAuthCookieService.writeAuthCookies(request, response, token);
+        return ResponseEntity.ok(toProfilePayload(saved, token, authProvider));
     }
 
     @PatchMapping("/password")
@@ -226,9 +234,15 @@ public class ProfileController {
                                             HttpServletRequest request,
                                             HttpServletResponse response) {
         User me = currentUserService.requireUser();
+        String authProvider = resolveAuthProvider(request);
 
-        String currentPassword = safe(body.get("currentPassword"));
-        String newPassword = safe(body.get("newPassword"));
+        if (!canChangePassword(authProvider)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Google sign-in accounts cannot change password here");
+        }
+
+        String currentPassword = raw(body.get("currentPassword"));
+        String newPassword = raw(body.get("newPassword"));
 
         if (currentPassword.isBlank()) {
             return ResponseEntity.badRequest().body("Current password is required");
@@ -236,8 +250,9 @@ public class ProfileController {
         if (newPassword.isBlank()) {
             return ResponseEntity.badRequest().body("New password is required");
         }
-        if (!PASSWORD_RE.matcher(newPassword).matches()) {
-            return ResponseEntity.badRequest().body("Password must include uppercase, lowercase, and a number");
+        String passwordValidationMessage = passwordPolicyService.validate(newPassword).orElse(null);
+        if (passwordValidationMessage != null) {
+            return ResponseEntity.badRequest().body(passwordValidationMessage);
         }
         if (!safePasswordMatch(currentPassword, safe(me.getPasswordHash()))) {
             return ResponseEntity.badRequest().body("Current password is incorrect");
@@ -246,8 +261,8 @@ public class ProfileController {
         me.setPasswordHash(passwordUtil.encodePassword(newPassword));
         int nextSessionVersion = me.bumpSessionVersion();
         User saved = userRepo.save(me);
-        String token = jwtUtil.generateToken(saved.getEmail(), roleValue(saved), nextSessionVersion);
-        streamAuthCookieService.writeStreamToken(request, response, token);
+        String token = jwtUtil.generateToken(saved.getEmail(), roleValue(saved), nextSessionVersion, authProvider);
+        streamAuthCookieService.writeAuthCookies(request, response, token);
         return ResponseEntity.ok(Map.of(
                 "updated", true,
                 "token", token
@@ -267,7 +282,7 @@ public class ProfileController {
         ));
     }
 
-    private Map<String, Object> toProfilePayload(User user, String token) {
+    private Map<String, Object> toProfilePayload(User user, String token, String authProvider) {
         java.util.Map<String, Object> out = new java.util.HashMap<>();
         out.put("id", user.getUserId());
         out.put("displayName", safe(user.getUsername()));
@@ -275,7 +290,9 @@ public class ProfileController {
         out.put("fullName", safe(user.getUsername()));
         out.put("email", safe(user.getEmail()));
         out.put("role", user.getRole() == null ? "user" : user.getRole().toAccountType());
-        String avatarUrl = userAvatarService.publicAvatarUrl(user);
+        out.put("authProvider", authProvider);
+        out.put("canChangePassword", canChangePassword(authProvider));
+        String avatarUrl = safe(userAvatarService.publicAvatarUrl(user));
         if (!avatarUrl.isBlank()) {
             out.put("avatarUrl", avatarUrl);
             out.put("avatar", avatarUrl);
@@ -290,6 +307,45 @@ public class ProfileController {
         return user.getRole() == null ? "user" : user.getRole().toAccountType();
     }
 
+    private String resolveAuthProvider(HttpServletRequest request) {
+        String token = resolveToken(request);
+        if (token.isBlank()) {
+            return JwtUtil.AUTH_PROVIDER_PASSWORD;
+        }
+        try {
+            return jwtUtil.extractAuthProvider(token);
+        } catch (Exception ignored) {
+            return JwtUtil.AUTH_PROVIDER_PASSWORD;
+        }
+    }
+
+    private static String resolveToken(HttpServletRequest request) {
+        if (request == null) return "";
+        String header = safe(request.getHeader("Authorization"));
+        if (header.startsWith("Bearer ")) {
+            return header.substring(7).trim();
+        }
+        jakarta.servlet.http.Cookie[] cookies = request.getCookies();
+        if (cookies == null) return "";
+        for (jakarta.servlet.http.Cookie cookie : cookies) {
+            if (cookie == null) continue;
+            String name = safe(cookie.getName());
+            if (!StreamAuthCookieService.AUTH_TOKEN_COOKIE.equals(name)
+                    && !StreamAuthCookieService.STREAM_TOKEN_COOKIE.equals(name)) {
+                continue;
+            }
+            String value = safe(cookie.getValue());
+            if (!value.isBlank()) {
+                return value;
+            }
+        }
+        return "";
+    }
+
+    private static boolean canChangePassword(String authProvider) {
+        return !JwtUtil.AUTH_PROVIDER_GOOGLE.equalsIgnoreCase(safe(authProvider));
+    }
+
     private boolean safePasswordMatch(String rawPassword, String encodedPassword) {
         try {
             return passwordUtil.matches(rawPassword, encodedPassword);
@@ -300,6 +356,10 @@ public class ProfileController {
 
     private static String safe(Object o) {
         return o == null ? "" : String.valueOf(o).trim();
+    }
+
+    private static String raw(Object o) {
+        return o == null ? "" : String.valueOf(o);
     }
 
     private static String normalizeEmail(Object o) {

@@ -1,11 +1,13 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Club onboarding - Set up your club profile</title>
-  <link rel="stylesheet" href="theme.css?v=20260324a">
-  <link rel="stylesheet" href="onboarding.css?v=20260327f">
+  
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data: blob: https://maps.gstatic.com https://maps.googleapis.com https://*.googleusercontent.com https://www.google.com https://www.gstatic.com; font-src 'self' data: https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://accounts.google.com https://maps.googleapis.com; connect-src 'self' https://accounts.google.com https://maps.googleapis.com https://api.stripe.com; frame-src 'self' https://accounts.google.com https://js.stripe.com; form-action 'self' https://accounts.google.com">
+<title>Club onboarding - Set up your club profile</title>
+  <link rel="stylesheet" href="theme.css?v=20260402a">
+  <link rel="stylesheet" href="onboarding.css?v=20260402a">
   <script>
     (function() {
       const query = new URLSearchParams(window.location.search);
@@ -49,35 +51,11 @@
       gap: 16px;
       min-height: 40px;
     }
-    .back-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 14px;
-      font-weight: 600;
-      color: #64748b;
-      text-decoration: none;
-      border: 1px solid rgba(148, 163, 184, 0.24);
-      background: rgba(255, 255, 255, 0.9);
-      cursor: pointer;
-      padding: 8px 12px;
-      border-radius: 999px;
-      box-shadow: 0 8px 18px rgba(29, 29, 31, 0.08);
-      transition: color .2s ease, border-color .2s ease, background .2s ease, transform .2s ease, box-shadow .2s ease;
-    }
-    .back-link::before {
-      content: '<';
-    }
-    .back-link:hover {
-      color: #111827;
-      background: rgba(255, 255, 255, 0.96);
-      border-color: rgba(100, 116, 139, 0.28);
-      box-shadow: 0 12px 22px rgba(29, 29, 31, 0.12);
-      transform: translateY(-1px);
-    }
-  </style>
+</style>
+<link rel="stylesheet" href="desktop-consistency.css?v=20260403a">
+<script src="auth-session.js?v=20260331b"></script>
 </head>
-<body class="page-with-footer">
+<body class="page-with-footer desktop-consistency desktop-page--onboarding">
   <header style="position: sticky; top: 0; z-index: 10; border-bottom: 1px solid #e5e7eb; background: white; padding: 12px 0;">
     <div class="wrap" style="width: min(1760px, calc(100vw - 56px)); max-width: none; margin: 0 auto; padding: 0 32px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px;">
       <div class="header-side" aria-hidden="true"></div>
@@ -85,18 +63,16 @@
       <div></div>
     </div>
   </header>
-  <main class="wrap">
+  <main class="wrap desktop-shell-main">
     <header class="hero">
       <span class="hero-kicker">Club setup</span>
       <h1>Set up your club profile</h1>
-      <p class="lead">Add your club name and choose the sports your club offers so members can find you.</p>
     </header>
 
-    <section class="panel">
+    <section class="panel desktop-form-shell">
       <div class="panel-header">
         <div>
           <h2>Profile details</h2>
-          <p>Finish in under a minute.</p>
         </div>
         <span class="panel-badge">Step 1 of 3</span>
       </div>
@@ -104,12 +80,10 @@
       <div class="form-block">
         <label for="displayName" class="label">Club name</label>
         <input id="displayName" type="text" placeholder="The name members will see" autocomplete="name">
-        <div class="field-hint">This appears on your public club page.</div>
       </div>
 
       <div class="form-block">
         <div class="label">Club type</div>
-        <div class="field-hint">Pick any sports your club offers.</div>
         <div id="sportsGrid" class="sports-grid" aria-label="Choose sports your club offers" role="list">
           <!-- chips injected by onboarding.js -->
         </div>
@@ -129,7 +103,7 @@
   </main>
 
   <footer class="site-footer">
-    <div class="site-footer__wrap">
+    <div class="site-footer__wrap desktop-shell-wrap">
       <span class="site-footer__text">&copy; 2026 Club Booking Portal</span>
       <div class="site-footer__actions">
         <button class="site-footer__btn info-trigger" type="button" data-info="privacy">Privacy</button>
@@ -143,3 +117,4 @@
   <script type="module" src="auth-modal.js?v=20260324a"></script>
 </body>
 </html>
+

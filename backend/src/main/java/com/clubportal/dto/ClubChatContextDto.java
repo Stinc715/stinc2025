@@ -57,27 +57,34 @@ public record ClubChatContextDto(
             BigDecimal price,
             BigDecimal basePrice,
             String membershipPlanName,
+            String membershipBenefitType,
             BigDecimal membershipDiscountPercent,
+            Integer membershipIncludedBookings,
+            Integer membershipRemainingBookings,
             boolean membershipApplied
     ) {
         public VisibleTimeslot {
             venueName = safe(venueName);
             membershipPlanName = safe(membershipPlanName);
+            membershipBenefitType = safe(membershipBenefitType);
         }
     }
 
     public record MembershipPlanInfo(
             Integer planId,
             String planCode,
+            String benefitType,
             String planName,
             BigDecimal price,
             Integer durationDays,
             BigDecimal discountPercent,
+            Integer includedBookings,
             boolean enabled,
             String description
     ) {
         public MembershipPlanInfo {
             planCode = safe(planCode);
+            benefitType = safe(benefitType);
             planName = safe(planName);
             description = safe(description);
         }
@@ -106,9 +113,12 @@ public record ClubChatContextDto(
             String clubName,
             Integer planId,
             String planCode,
+            String benefitType,
             String planName,
             BigDecimal planPrice,
             BigDecimal discountPercent,
+            Integer includedBookings,
+            Integer remainingBookings,
             LocalDate startDate,
             LocalDate endDate,
             String status
@@ -116,6 +126,7 @@ public record ClubChatContextDto(
         public ActiveMembershipInfo {
             clubName = safe(clubName);
             planCode = safe(planCode);
+            benefitType = safe(benefitType);
             planName = safe(planName);
             status = safe(status);
         }

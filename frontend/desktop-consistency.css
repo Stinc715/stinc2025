@@ -1,0 +1,534 @@
+:root {
+  --page-max-wide: 1600px;
+  --page-max-standard: 1180px;
+  --page-max-narrow: 920px;
+  --page-side-padding: 24px;
+  --card-gap: 24px;
+  --rail-width: 320px;
+  --header-height: 84px;
+  --control-height: 44px;
+  --radius-md: 14px;
+  --radius-lg: 24px;
+}
+
+body.desktop-consistency {
+  --desktop-shell-max: var(--page-max-standard);
+  --desktop-shell-inline-padding: var(--page-side-padding);
+}
+
+body.desktop-shell--wide {
+  --desktop-shell-max: var(--page-max-wide);
+}
+
+body.desktop-shell--standard {
+  --desktop-shell-max: var(--page-max-standard);
+}
+
+body.desktop-shell--narrow {
+  --desktop-shell-max: var(--page-max-narrow);
+}
+
+body.desktop-consistency .desktop-shell-header,
+body.desktop-consistency .desktop-shell-main,
+body.desktop-consistency .desktop-shell-wrap {
+  width: min(var(--desktop-shell-max), calc(100vw - (var(--desktop-shell-inline-padding) * 2)));
+  max-width: none;
+  margin-inline: auto;
+}
+
+body.desktop-consistency .desktop-shell-header,
+body.desktop-consistency .desktop-shell-main {
+  padding-inline: var(--desktop-shell-inline-padding);
+}
+
+body.desktop-consistency .desktop-shell-header {
+  min-height: var(--header-height);
+}
+
+body.desktop-consistency .desktop-back-link,
+body.desktop-consistency .back-link,
+body.desktop-consistency .link-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  text-decoration: none;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(29, 29, 31, 0.08);
+  transition: color .2s ease, border-color .2s ease, background .2s ease, transform .2s ease, box-shadow .2s ease;
+  min-height: var(--control-height);
+  border-radius: 999px;
+}
+
+body.desktop-consistency .desktop-back-link::before,
+body.desktop-consistency .back-link::before,
+body.desktop-consistency .link-back::before {
+  content: '<';
+}
+
+body.desktop-consistency .desktop-back-link:hover,
+body.desktop-consistency .back-link:hover,
+body.desktop-consistency .link-back:hover {
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(100, 116, 139, 0.28);
+  box-shadow: 0 12px 22px rgba(29, 29, 31, 0.12);
+  transform: translateY(-1px);
+}
+
+body.desktop-consistency .desktop-form-shell input:not([type='checkbox']):not([type='radio']):not([type='file']),
+body.desktop-consistency .desktop-form-shell select,
+body.desktop-consistency .desktop-form-shell .btn,
+body.desktop-consistency .desktop-form-shell .form-btn,
+body.desktop-consistency .desktop-form-shell .toggle-btn,
+body.desktop-consistency .desktop-form-shell .secondary-btn,
+body.desktop-consistency .desktop-form-shell .back-link,
+body.desktop-consistency .desktop-form-shell .link-back {
+  min-height: var(--control-height);
+  border-radius: var(--radius-md);
+}
+
+body.desktop-consistency .desktop-form-shell textarea {
+  border-radius: var(--radius-md);
+}
+
+body.desktop-consistency .desktop-badge {
+  border-radius: 999px;
+}
+
+body.desktop-consistency .desktop-card-gap {
+  gap: var(--card-gap);
+}
+
+body.desktop-page--club {
+  --desktop-shell-max: 1240px;
+  --club-primary-max: 1100px;
+  --club-rail-gap: 18px;
+  --club-rail-collapsed-width: 56px;
+  --club-rail-open-width: 320px;
+}
+
+body.desktop-page--club .wrap {
+  max-width: var(--club-primary-max);
+  margin-inline: auto;
+  padding: 16px;
+}
+
+body.desktop-page--club .page-main {
+  width: min(
+    calc(var(--club-primary-max) + var(--club-rail-collapsed-width) + var(--club-rail-gap)),
+    calc(100vw - 112px)
+  );
+  padding-inline: 0;
+  transition: width 0.24s ease;
+}
+
+body.desktop-page--club.page-with-footer {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  padding-bottom: 0;
+}
+
+body.desktop-page--club.page-with-footer > .site-footer {
+  position: static;
+  left: auto;
+  right: auto;
+  bottom: auto;
+}
+
+body.desktop-page--club .page-main.rail-open {
+  width: min(
+    calc(var(--club-primary-max) + var(--club-rail-open-width) + var(--club-rail-gap)),
+    calc(100vw - 112px)
+  );
+}
+
+body.desktop-page--club .page-main.chat-focus {
+  width: min(
+    calc(var(--club-primary-max) + var(--club-rail-collapsed-width) + var(--club-rail-gap)),
+    calc(100vw - 112px)
+  );
+}
+
+body.desktop-page--club .club-page-grid,
+body.desktop-page--club .club-primary-column {
+  gap: var(--card-gap);
+}
+
+body.desktop-page--club .booking-side-rail {
+  --booking-side-rail-stack-width: var(--rail-width);
+}
+
+body.desktop-page--club-chat .page-main {
+  width: min(var(--desktop-shell-max), calc(100vw - (var(--desktop-shell-inline-padding) * 2)));
+}
+
+body.desktop-page--club-chat.page-with-footer {
+  min-height: 100dvh;
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  padding-bottom: 0 !important;
+  overflow: hidden;
+}
+
+body.desktop-page--club-chat.page-with-footer > .site-footer {
+  position: static;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  z-index: auto;
+}
+
+body.desktop-page--club-chat .wrap {
+  width: min(var(--desktop-shell-max), calc(100vw - (var(--desktop-shell-inline-padding) * 2)));
+  max-width: none;
+  margin-inline: auto;
+  padding: 14px 16px;
+}
+
+body.desktop-page--club-home {
+  --desktop-shell-max: 1680px;
+  --desktop-shell-inline-padding: 12px;
+}
+
+body.desktop-page--club-home.page-with-footer {
+  padding-bottom: 0 !important;
+  overflow: hidden;
+}
+
+body.desktop-page--club-home .wrap {
+  width: min(var(--desktop-shell-max), calc(100vw - 24px));
+  max-width: none;
+  margin-inline: auto;
+  padding: 14px 10px;
+}
+
+body.desktop-page--club-home main.wrap {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  padding-top: 20px;
+  padding-bottom: 96px;
+}
+
+body.desktop-page--club-home .btn {
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body.desktop-page--club-home .workspace-main {
+  gap: calc(var(--card-gap) / 2);
+}
+
+body.desktop-page--club-home .workspace-shell-gap,
+body.desktop-page--club-home .workspace {
+  gap: var(--card-gap);
+}
+
+body.desktop-page--club-updates {
+  --desktop-shell-max: 1120px;
+}
+
+body.desktop-page--club-updates .page-shell {
+  gap: var(--card-gap);
+}
+
+body.desktop-page--payment .wrap {
+  padding-block: 16px;
+}
+
+body.desktop-page--user {
+  --desktop-shell-max: 1600px;
+}
+
+body.desktop-page--user .wrap {
+  width: min(var(--desktop-shell-max), calc(100vw - 64px));
+  max-width: var(--desktop-shell-max);
+  margin-inline: auto;
+  padding: 20px 24px;
+}
+
+body.desktop-page--user .btn {
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 13px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+}
+
+body.desktop-page--user .btn:hover {
+  box-shadow: none;
+}
+
+body.desktop-page--user .btn.small {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+body.desktop-page--user .profile-shell {
+  gap: calc(var(--card-gap) + 10px);
+}
+
+body.desktop-page--login {
+  --desktop-shell-max: 420px;
+}
+
+body.desktop-page--login .auth-wrap {
+  width: min(var(--page-max-narrow), calc(100vw - (var(--page-side-padding) * 2)));
+  margin-inline: auto;
+  padding-inline: var(--page-side-padding);
+}
+
+body.desktop-page--login .btn {
+  flex: 1;
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid #000;
+  background: #111;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-shadow: none !important;
+  transition: transform 0.15s ease;
+  outline: none;
+}
+
+body.desktop-page--login .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: none !important;
+}
+
+body.desktop-page--login .btn:active {
+  transform: translateY(0);
+  box-shadow: none !important;
+}
+
+body.desktop-page--login .btn:focus,
+body.desktop-page--login .btn:focus-visible {
+  outline: none;
+  box-shadow: none !important;
+}
+
+body.desktop-page--login .btn[disabled] {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+body.desktop-page--login .btn.light {
+  background: #fff;
+  color: #000;
+}
+
+body.desktop-page--login .card {
+  width: min(420px, 100%);
+}
+
+body.desktop-page--club-register {
+  --desktop-shell-max: 1360px;
+}
+
+body.desktop-page--club-register .club-register {
+  width: min(var(--desktop-shell-max), calc(100vw - (var(--page-side-padding) * 2)));
+  margin-inline: auto;
+}
+
+body.desktop-page--payment {
+  --desktop-shell-max: var(--page-max-narrow);
+}
+
+body.desktop-page--onboarding {
+  --desktop-shell-max: 1760px;
+  --desktop-shell-inline-padding: 28px;
+}
+
+body.desktop-page--onboarding .desktop-shell-main {
+  width: min(var(--desktop-shell-max), calc(100vw - (var(--desktop-shell-inline-padding) * 2)));
+}
+
+body.desktop-page--club-bookings {
+  --desktop-shell-max: 1100px;
+}
+
+body.desktop-page--club-bookings .wrap {
+  width: min(var(--desktop-shell-max), calc(100vw - 32px));
+  max-width: none;
+  margin-inline: auto;
+  padding: 16px;
+}
+
+body.desktop-page--club-bookings.page-with-footer {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  padding-bottom: 0 !important;
+}
+
+body.desktop-page--club-bookings.page-with-footer > .site-footer {
+  position: static;
+  left: auto;
+  right: auto;
+  bottom: auto;
+}
+
+body.desktop-page--club-admin {
+  --desktop-shell-max: 1160px;
+}
+
+body.desktop-page--club-admin .wrap {
+  width: min(var(--desktop-shell-max), calc(100vw - 36px));
+  max-width: none;
+  margin-inline: auto;
+  padding: 16px 18px;
+}
+
+body.desktop-page--club-info {
+  --desktop-shell-max: 1100px;
+}
+
+body.desktop-page--club-info .wrap {
+  width: min(var(--desktop-shell-max), calc(100vw - 32px));
+  max-width: none;
+  margin-inline: auto;
+  padding: 16px;
+}
+
+body.desktop-page--clubs {
+  --desktop-shell-max: 1120px;
+}
+
+body.desktop-page--clubs .wrap {
+  width: min(var(--desktop-shell-max), calc(100vw - 36px));
+  max-width: none;
+  margin-inline: auto;
+  padding: 18px;
+}
+
+body.desktop-page--clubs .btn,
+body.desktop-page--join .btn,
+body.desktop-page--venue-overview .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #111827;
+  color: #fff;
+  text-decoration: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+body.desktop-page--clubs .btn {
+  min-height: 38px;
+}
+
+body.desktop-page--join .btn,
+body.desktop-page--venue-overview .btn {
+  min-height: 40px;
+}
+
+body.desktop-page--clubs .btn.ghost,
+body.desktop-page--join .btn.ghost,
+body.desktop-page--venue-overview .btn.ghost {
+  background: #fff;
+  color: #111827;
+}
+
+body.desktop-page--home {
+  --desktop-shell-max: 1100px;
+}
+
+body.desktop-page--home .wrap {
+  width: min(var(--desktop-shell-max), calc(100vw - 32px));
+  max-width: none;
+  margin-inline: auto;
+  padding: 16px;
+}
+
+body.desktop-page--home.page-with-footer {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  padding-bottom: 0 !important;
+}
+
+body.desktop-page--home.page-with-footer > .site-footer {
+  position: static;
+  left: auto;
+  right: auto;
+  bottom: auto;
+}
+
+body.desktop-page--join {
+  --desktop-shell-max: 1140px;
+}
+
+body.desktop-page--join .wrap {
+  width: min(var(--desktop-shell-max), calc(100vw - 40px));
+  max-width: none;
+  margin-inline: auto;
+  padding: 20px;
+}
+
+body.desktop-page--onboarding-complete {
+  --desktop-shell-max: 980px;
+}
+
+body.desktop-page--onboarding-complete.page-with-footer {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  padding-bottom: 0 !important;
+}
+
+body.desktop-page--onboarding-complete.page-with-footer > .site-footer {
+  position: static;
+  left: auto;
+  right: auto;
+  bottom: auto;
+}
+
+body.desktop-page--venue-overview {
+  --desktop-shell-max: 1160px;
+}
+
+body.desktop-page--venue-overview .wrap {
+  width: min(var(--desktop-shell-max), calc(100vw - 40px));
+  max-width: none;
+  margin-inline: auto;
+  padding: 20px;
+}
+
+@media (max-width: 1279px) {
+  body.desktop-consistency {
+    --desktop-shell-inline-padding: 20px;
+  }
+
+  body.desktop-page--club-register .club-register {
+    width: min(100%, calc(100vw - (var(--desktop-shell-inline-padding) * 2)));
+  }
+}

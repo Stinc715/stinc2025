@@ -1,10 +1,12 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Venue Overview</title>
-  <link rel="stylesheet" href="theme.css?v=20260324a">
+  
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data: blob: https://maps.gstatic.com https://maps.googleapis.com https://*.googleusercontent.com https://www.google.com https://www.gstatic.com; font-src 'self' data: https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://accounts.google.com https://maps.googleapis.com; connect-src 'self' https://accounts.google.com https://maps.googleapis.com https://api.stripe.com; frame-src 'self' https://accounts.google.com https://js.stripe.com; form-action 'self' https://accounts.google.com">
+<title>Venue Overview</title>
+  <link rel="stylesheet" href="theme.css?v=20260402a">
   <style>
     :root {
       --bg: #f5f7fb;
@@ -26,11 +28,6 @@
       font: 14px/1.55 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
     }
     a { color: inherit; }
-    .wrap {
-      max-width: 1160px;
-      margin: 0 auto;
-      padding: 20px;
-    }
     header {
       position: sticky;
       top: 0;
@@ -65,26 +62,6 @@
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
-    }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 40px;
-      padding: 0 14px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: #111827;
-      color: #fff;
-      text-decoration: none;
-      font: inherit;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .btn.ghost {
-      background: #fff;
-      color: #111827;
     }
     .btn.soft {
       background: var(--accent-soft);
@@ -285,13 +262,14 @@
       }
     }
   </style>
+<link rel="stylesheet" href="desktop-consistency.css?v=20260403a">
+<script src="auth-session.js?v=20260331b"></script>
 </head>
-<body>
+<body class="desktop-consistency desktop-shell--standard desktop-page--venue-overview">
   <header>
-    <div class="wrap header-row">
+    <div class="wrap header-row desktop-shell-header">
       <div class="brand">
         <a href="home.html">Club Booking Portal</a>
-        <p>Independent venue overview page for public slot visibility and club-side handoff.</p>
       </div>
       <div class="actions">
         <a class="btn ghost" href="clubs.html">Club Directory</a>
@@ -301,7 +279,7 @@
     </div>
   </header>
 
-  <main class="wrap">
+  <main class="wrap desktop-shell-main">
     <div id="loadingState" class="loading">Loading venue overview...</div>
     <div id="emptyState" class="empty" style="display:none;">
       Pick a club from <a href="clubs.html">the directory</a> first to inspect its venues and upcoming schedule.
@@ -313,7 +291,7 @@
         <article class="panel hero-copy">
           <span class="eyebrow" id="clubCategory">Venue Overview</span>
           <h1 id="clubName">Club</h1>
-          <p id="clubDescription">Venue inventory, published capacities, and the next visible slots for this club.</p>
+          <p id="clubDescription" hidden></p>
           <div class="hero-links">
             <a class="btn" id="joinLink" href="join.html">Join / Book</a>
             <a class="btn ghost" id="clubLink" href="club.html">Open Public Club Page</a>
@@ -355,7 +333,6 @@
               <span>distinct locations</span>
             </div>
           </div>
-          <p class="muted">This page is public-facing. Club accounts get a direct handoff into the management view, while users can continue into booking from here.</p>
         </aside>
       </section>
 
@@ -364,11 +341,10 @@
           <div class="section-head">
             <div>
               <h2>Venue List</h2>
-              <p>Each card shows venue metadata plus the next few scheduled slots in the next seven days.</p>
             </div>
           </div>
           <div id="venueGrid" class="venue-grid"></div>
-          <div id="venueEmpty" class="empty" style="display:none; min-height: 140px;">This club has not published any venues yet.</div>
+          <div id="venueEmpty" class="empty" style="display:none; min-height: 140px;">No venues yet.</div>
         </article>
       </section>
     </div>
@@ -575,7 +551,8 @@
 
         clubCategoryEl.textContent = safe(club.category || 'Venue Overview');
         clubNameEl.textContent = safe(club.name || `Club ${clubId}`);
-        clubDescriptionEl.textContent = safe(club.description || 'Venue inventory, capacities, and next visible slots.');
+        clubDescriptionEl.textContent = safe(club.description || '');
+        clubDescriptionEl.hidden = true;
         clubLocationEl.textContent = safe(club.location || 'Not listed');
         clubHoursEl.textContent = formatHours(club);
         clubContactEl.textContent = [safe(club.phone), safe(club.email)].filter(Boolean).join(' | ') || 'Not listed';
@@ -603,3 +580,4 @@
   </script>
 </body>
 </html>
+

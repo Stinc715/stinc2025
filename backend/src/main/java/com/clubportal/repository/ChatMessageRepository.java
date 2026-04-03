@@ -12,6 +12,7 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Intege
     List<ChatMessage> findByClubIdAndUserIdOrderByCreatedAtAscMessageIdAsc(Integer clubId, Integer userId);
     List<ChatMessage> findByClubIdOrderByCreatedAtDescMessageIdDesc(Integer clubId);
     ChatMessage findTopByClubIdAndUserIdAndSenderOrderByCreatedAtDescMessageIdDesc(Integer clubId, Integer userId, String sender);
+    List<ChatMessage> findByClubIdAndUserIdAndMessageIdGreaterThanEqualOrderByMessageIdAsc(Integer clubId, Integer userId, Integer messageId);
     long countByClubIdAndUserIdAndSenderAndReadByUserFalse(Integer clubId, Integer userId, String sender);
     long countByClubIdAndUserIdAndSenderAndReadByClubFalse(Integer clubId, Integer userId, String sender);
 

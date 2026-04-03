@@ -17,6 +17,7 @@ class JwtUtilTest {
         assertEquals("member@example.com", jwtUtil.extractEmail(token));
         assertEquals("user", jwtUtil.extractRole(token));
         assertEquals(3, jwtUtil.extractSessionVersion(token));
+        assertEquals("password", jwtUtil.extractAuthProvider(token));
     }
 
     @Test
@@ -26,5 +27,14 @@ class JwtUtilTest {
         String token = jwtUtil.generateToken("member@example.com", "user", 0);
 
         assertEquals(1, jwtUtil.extractSessionVersion(token));
+    }
+
+    @Test
+    void preservesExplicitGoogleAuthProviderClaim() {
+        JwtUtil jwtUtil = new JwtUtil(SECRET);
+
+        String token = jwtUtil.generateToken("member@example.com", "user", 2, JwtUtil.AUTH_PROVIDER_GOOGLE);
+
+        assertEquals("google", jwtUtil.extractAuthProvider(token));
     }
 }

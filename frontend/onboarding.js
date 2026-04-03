@@ -190,7 +190,7 @@
 
     backBtn = document.createElement('button');
     backBtn.type = 'button';
-    backBtn.className = 'back-link';
+    backBtn.className = 'back-link desktop-back-link';
     backBtn.setAttribute('aria-label', 'Back');
     backBtn.textContent = '\u2190 Back';
     headerSideEl.appendChild(backBtn);
@@ -315,7 +315,7 @@
 
   const saveCategorySelection = async (profile) => {
     if (!requireClubLogin()) {
-      window.location.href = 'login.html#login';
+      window.location.replace('home.html');
       return null;
     }
 
@@ -356,7 +356,7 @@
 
   const saveNameSelection = async (profile) => {
     if (!requireClubLogin()) {
-      window.location.href = 'login.html#login';
+      window.location.replace('home.html');
       return null;
     }
 

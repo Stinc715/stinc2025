@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 public record CheckoutSessionDetailResponse(
         String sessionId,
+        String orderNo,
         String type,
         String status,
         String provider,
@@ -26,6 +27,8 @@ public record CheckoutSessionDetailResponse(
         Integer membershipPlanId,
         String planName,
         Integer durationDays,
+        String benefitType,
+        Integer includedBookings,
         String title,
         String subtitle,
         String failureReason

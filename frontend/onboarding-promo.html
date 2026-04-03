@@ -1,26 +1,28 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Club onboarding - Promotion</title>
-  <link rel="stylesheet" href="theme.css?v=20260324a">
-  <link rel="stylesheet" href="onboarding.css?v=20260327f">
+  
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data: blob: https://maps.gstatic.com https://maps.googleapis.com https://*.googleusercontent.com https://www.google.com https://www.gstatic.com; font-src 'self' data: https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://accounts.google.com https://maps.googleapis.com; connect-src 'self' https://accounts.google.com https://maps.googleapis.com https://api.stripe.com; frame-src 'self' https://accounts.google.com https://js.stripe.com; form-action 'self' https://accounts.google.com">
+<title>Club onboarding - Promotion</title>
+  <link rel="stylesheet" href="theme.css?v=20260402a">
+  <link rel="stylesheet" href="onboarding.css?v=20260402a">
+  <link rel="stylesheet" href="desktop-consistency.css?v=20260403a">
+<script src="auth-session.js?v=20260331b"></script>
 </head>
-<body class="page-with-footer">
-  <main class="wrap">
-    <a class="link-back back-pill" href="onboarding-location.html">Back</a>
+<body class="page-with-footer desktop-consistency desktop-page--onboarding">
+  <main class="wrap desktop-shell-main">
+    <a class="link-back desktop-back-link back-pill" href="onboarding-location.html">Back</a>
     <header class="hero">
       <span class="hero-kicker">Club setup</span>
       <h1>Club promotion</h1>
-      <p class="lead">Add a cover photo and a short description to showcase your club.</p>
     </header>
 
-    <section class="panel">
+    <section class="panel desktop-form-shell">
       <div class="panel-header">
         <div>
           <h2>Club media</h2>
-          <p>Share a photo and a short story.</p>
         </div>
         <span class="panel-badge">Step 3 of 3</span>
       </div>
@@ -30,17 +32,13 @@
         <div class="promo-upload">
           <input id="promoImageFile" class="file-input" type="file" accept="image/*" multiple>
           <label class="file-button" for="promoImageFile">Upload photos</label>
-          <span class="file-help">JPG, PNG, or WEBP; multiple files supported.</span>
         </div>
         <div id="promoGallery" class="promo-gallery" aria-live="polite"></div>
-        <div class="field-hint">Add multiple images for your club gallery.</div>
-        <div class="field-hint">Tip: Drag cards to reorder. The first image is the cover.</div>
       </div>
 
       <div class="form-block">
         <label for="promoText" class="label">Promo text</label>
         <textarea id="promoText" placeholder="Tell members why your club is great..."></textarea>
-        <div class="field-hint">Keep it short (1-2 sentences).</div>
       </div>
 
       <div class="actions">
@@ -51,7 +49,7 @@
   </main>
 
   <footer class="site-footer">
-    <div class="site-footer__wrap">
+    <div class="site-footer__wrap desktop-shell-wrap">
       <span class="site-footer__text">&copy; 2026 Club Booking Portal</span>
       <div class="site-footer__actions">
         <button class="site-footer__btn info-trigger" type="button" data-info="privacy">Privacy</button>
@@ -65,3 +63,4 @@
   <script type="module" src="auth-modal.js?v=20260324a"></script>
 </body>
 </html>
+

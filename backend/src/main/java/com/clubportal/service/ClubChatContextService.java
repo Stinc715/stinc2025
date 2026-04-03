@@ -122,7 +122,10 @@ public class ClubChatContextService {
                             slot.price(),
                             slot.basePrice(),
                             safe(slot.membershipPlanName()),
+                            safe(slot.membershipBenefitType()),
                             membershipService.normalizeDiscount(slot.membershipDiscountPercent()),
+                            membershipService.normalizeIncludedBookings(slot.membershipIncludedBookings()),
+                            membershipService.normalizeRemainingBookings(slot.membershipRemainingBookings()),
                             slot.membershipApplied()
                     );
                 })
@@ -133,7 +136,7 @@ public class ClubChatContextService {
         if (clubId == null) {
             return List.of();
         }
-        return membershipPlanRepository.findByClubIdAndEnabledTrueOrderByDurationDaysAsc(clubId).stream()
+        return membershipService.catalogPlans(membershipPlanRepository.findByClubIdAndEnabledTrueOrderByDurationDaysAsc(clubId)).stream()
                 .map(this::toMembershipPlanInfo)
                 .toList();
     }
@@ -164,10 +167,12 @@ public class ClubChatContextService {
         return new ClubChatContextDto.MembershipPlanInfo(
                 plan.getPlanId(),
                 safe(plan.getPlanCode()),
+                membershipService.normalizeBenefitType(plan.getBenefitType()),
                 safe(plan.getPlanName()),
                 membershipService.normalizePrice(plan.getPrice()),
                 plan.getDurationDays() == null ? 0 : plan.getDurationDays(),
                 membershipService.normalizeDiscount(plan.getDiscountPercent()),
+                membershipService.normalizeIncludedBookings(plan.getIncludedBookings()),
                 membershipService.normalizeEnabled(plan.getEnabled(), false),
                 safe(plan.getDescription())
         );
@@ -183,12 +188,15 @@ public class ClubChatContextService {
                 club == null ? "" : safe(club.getClubName()),
                 plan.getPlanId(),
                 safe(plan.getPlanCode()),
+                membershipService.normalizeBenefitType(plan.getBenefitType()),
                 safe(plan.getPlanName()),
                 membershipService.normalizePrice(plan.getPrice()),
                 membershipService.normalizeDiscount(plan.getDiscountPercent()),
+                membershipService.normalizeIncludedBookings(plan.getIncludedBookings()),
+                membershipService.normalizeRemainingBookings(membership.getRemainingBookings()),
                 membership.getStartDate(),
                 membership.getEndDate(),
-                membershipService.effectiveStatus(membership, today)
+                membershipService.effectiveStatus(membership, plan, today)
         );
     }
 

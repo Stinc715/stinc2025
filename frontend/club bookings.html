@@ -1,10 +1,12 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Club Booking Portal - Member Bookings</title>
-  <link rel="stylesheet" href="theme.css?v=20260324a">
+  
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data: blob: https://maps.gstatic.com https://maps.googleapis.com https://*.googleusercontent.com https://www.google.com https://www.gstatic.com; font-src 'self' data: https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://accounts.google.com https://maps.googleapis.com; connect-src 'self' https://accounts.google.com https://maps.googleapis.com https://api.stripe.com; frame-src 'self' https://accounts.google.com https://js.stripe.com; form-action 'self' https://accounts.google.com">
+<title>Club Booking Portal - Member Bookings</title>
+  <link rel="stylesheet" href="theme.css?v=20260402a">
   <style>
     body { margin: 0; background: var(--bg); }
     header { 
@@ -14,7 +16,6 @@
       border-bottom: 1px solid rgba(15, 23, 42, 0.06); 
       background: #fff;
     }
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; }
     .header-wrap { 
       display: flex; 
       align-items: center; 
@@ -25,32 +26,6 @@
       display: flex; 
       align-items: center; 
       gap: 8px; 
-    }
-    .back-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 14px;
-      font-weight: 600;
-      color: #64748b;
-      text-decoration: none;
-      border: 1px solid rgba(148, 163, 184, 0.24);
-      background: rgba(255, 255, 255, 0.9);
-      cursor: pointer;
-      padding: 8px 12px;
-      border-radius: 999px;
-      box-shadow: 0 8px 18px rgba(29, 29, 31, 0.08);
-      transition: color .2s ease, border-color .2s ease, background .2s ease, transform .2s ease, box-shadow .2s ease;
-    }
-    .back-link::before {
-      content: '<';
-    }
-    .back-link:hover {
-      color: var(--ink);
-      background: rgba(255, 255, 255, 0.96);
-      border-color: rgba(100, 116, 139, 0.28);
-      box-shadow: 0 12px 22px rgba(29, 29, 31, 0.12);
-      transform: translateY(-1px);
     }
     .card .pad { padding: 16px; }
     .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
@@ -170,7 +145,9 @@
       background: #eef2ff;
       color: #3730a3;
       letter-spacing: 0.12em;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-family: inherit;
+      font-variant-numeric: tabular-nums lining-nums;
+      font-feature-settings: "tnum" 1, "lnum" 1;
     }
     .member-pill.expired {
       border-color: #e2e8f0;
@@ -314,12 +291,14 @@
       .header-actions { flex-wrap: wrap; }
     }
   </style>
+<link rel="stylesheet" href="desktop-consistency.css?v=20260403a">
+<script src="auth-session.js?v=20260331b"></script>
 </head>
-<body class="page-with-footer">
+<body class="page-with-footer desktop-consistency desktop-shell--standard desktop-page--club-bookings">
   <header>
-    <div class="wrap header-wrap" style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px;">
+    <div class="wrap header-wrap desktop-shell-header" style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px;">
       <div style="display: flex; align-items: center; gap: 16px;">
-        <button class="back-link" onclick="window.location.href = 'club home.html'" type="button" aria-label="Back">Back</button>
+        <button class="back-link desktop-back-link" onclick="window.location.href = 'club home.html'" type="button" aria-label="Back">Back</button>
       </div>
       <h2 style="margin: 0; font-size: 18px; font-weight: 600; justify-self: center;">Member bookings</h2>
       <div class="header-actions" style="justify-self: end;">
@@ -328,25 +307,25 @@
     </div>
   </header>
 
-  <main class="wrap">
+  <main class="wrap desktop-shell-main">
     <section class="card">
       <div class="pad">
         <div class="stat-grid" id="stats">
           <div class="stat-card">
-            <span class="stat-label">Pending</span>
-            <span class="stat-value" data-stat="pending">0</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">Approved</span>
-            <span class="stat-value" data-stat="approved">0</span>
+            <span class="stat-label">Booked</span>
+            <span class="stat-value" data-stat="booked">0</span>
           </div>
           <div class="stat-card">
             <span class="stat-label">Checked-in</span>
             <span class="stat-value" data-stat="checked">0</span>
           </div>
           <div class="stat-card">
-            <span class="stat-label">Cancelled</span>
-            <span class="stat-value" data-stat="cancelled">0</span>
+            <span class="stat-label">No-show</span>
+            <span class="stat-value" data-stat="no_show">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Closed</span>
+            <span class="stat-value" data-stat="closed">0</span>
           </div>
         </div>
 
@@ -358,7 +337,7 @@
   </main>
 
   <footer class="site-footer">
-    <div class="site-footer__wrap">
+    <div class="site-footer__wrap desktop-shell-wrap">
       <span class="site-footer__text">&copy; 2026 Club Booking Portal</span>
       <div class="site-footer__actions">
         <button class="site-footer__btn info-trigger" type="button" data-info="privacy">Privacy</button>
@@ -449,7 +428,7 @@
       return `GBP ${n.toFixed(2)}`;
     };
 
-    const statusKey = (status) => {
+    const bookingStatusKey = (status) => {
       const s = String(status || '').trim().toLowerCase();
       if (s === 'approved') return 'approved';
       if (s === 'checked' || s === 'checked-in' || s === 'checkin') return 'checked';
@@ -457,32 +436,43 @@
       return 'pending';
     };
 
-    const statusLabel = (status) => ({
-      pending: 'Pending',
-      approved: 'Approved',
-      checked: 'Checked-in',
-      cancelled: 'Cancelled'
-    }[status] || 'Pending');
+    const attendanceKey = (member, slot) => {
+      const raw = String(member?.attendanceState || '').trim().toLowerCase();
+      if (raw === 'checked_in' || raw === 'checked-in' || raw === 'checkedin') return 'checked';
+      if (raw === 'no_show' || raw === 'no-show' || raw === 'noshow') return 'no_show';
+      if (raw === 'closed') return 'closed';
+      if (raw === 'booked') return 'booked';
 
-    const memberActionsHtml = (member) => {
-      const status = statusKey(member?.status);
+      const status = bookingStatusKey(member?.status);
+      if (status === 'checked') return 'checked';
+      if (status === 'cancelled') return 'closed';
+
+      const end = slot?.endTime ? new Date(slot.endTime) : null;
+      if (end && !Number.isNaN(end.getTime()) && end.getTime() <= Date.now()) {
+        return 'no_show';
+      }
+      return 'booked';
+    };
+
+    const statusLabel = (status) => ({
+      booked: 'Booked',
+      checked: 'Checked-in',
+      no_show: 'No-show',
+      closed: 'Closed'
+    }[status] || 'Booked');
+
+    const memberActionsHtml = (member, slot) => {
+      const status = bookingStatusKey(member?.status);
+      const attendance = attendanceKey(member, slot);
       const bookingId = Number(member?.bookingId);
       if (!Number.isFinite(bookingId)) return '';
 
       const actions = [];
-      if (status === 'pending') {
-        actions.push({ status: 'APPROVED', label: 'Approve', className: 'approve' });
-        actions.push({ status: 'CANCELLED', label: 'Cancel', className: 'cancel' });
-      } else if (status === 'approved') {
-        actions.push({ status: 'CHECKED', label: 'Check-in', className: 'checkin' });
-        actions.push({ status: 'PENDING', label: 'Revert', className: 'ghost' });
-        actions.push({ status: 'CANCELLED', label: 'Cancel', className: 'cancel' });
-      } else if (status === 'checked') {
-        actions.push({ status: 'APPROVED', label: 'Mark approved', className: 'ghost' });
-        actions.push({ status: 'CANCELLED', label: 'Cancel', className: 'cancel' });
-      } else if (status === 'cancelled') {
-        actions.push({ status: 'PENDING', label: 'Reopen', className: 'ghost' });
-        actions.push({ status: 'APPROVED', label: 'Approve', className: 'approve' });
+      if (status !== 'cancelled' && status !== 'checked' && attendance !== 'no_show') {
+        actions.push({ status: 'CHECKED', label: 'Check in', className: 'checkin' });
+      }
+      if (attendance === 'booked') {
+        actions.push({ status: 'CANCELLED', label: 'Close', className: 'cancel' });
       }
 
       if (!actions.length) return '';
@@ -498,7 +488,7 @@
     const resolveClubId = async () => {
       const loggedUser = safeParseJSON(localStorage.getItem('loggedUser') || 'null');
       if (!loggedUser || String(loggedUser.type || '').toLowerCase() !== 'club') {
-        window.location.href = 'login.html#login';
+        window.location.replace('home.html');
         return null;
       }
 
@@ -541,10 +531,10 @@
     };
 
     const renderStats = (slots) => {
-      const counts = { pending: 0, approved: 0, checked: 0, cancelled: 0 };
+      const counts = { booked: 0, checked: 0, no_show: 0, closed: 0 };
       slots.forEach((slot) => {
         (slot.members || []).forEach((m) => {
-          const key = statusKey(m?.status);
+          const key = attendanceKey(m, slot);
           if (counts[key] !== undefined) counts[key] += 1;
         });
       });
@@ -567,11 +557,14 @@
       return String(status || '').trim().toUpperCase() === 'ACTIVE' ? 'active' : 'expired';
     };
 
-    const renderSlotCard = (slot) => {
+    const renderSlotCard = (slot, openSlotIds = new Set()) => {
       const venue = escapeHtml(slot?.venueName || 'Venue');
       const start = formatDateTime(slot?.startTime);
       const end = formatDateTime(slot?.endTime);
       const timeLabel = `${escapeHtml(start)} - ${escapeHtml(end.split(' ')[1] || '')}`.trim();
+      const slotId = Number(slot?.timeslotId);
+      const slotKey = Number.isFinite(slotId) ? String(slotId) : '';
+      const openAttr = slotKey && openSlotIds.has(slotKey) ? ' open' : '';
       const booked = Number(slot?.bookedCount);
       const cap = Number(slot?.maxCapacity);
       const capLabel = Number.isFinite(booked) && Number.isFinite(cap) ? `${booked}/${cap}` : '--';
@@ -583,22 +576,23 @@
             const membershipStatus = String(m?.membershipStatus || '').trim();
             const verificationCode = String(m?.bookingVerificationCode || '').trim();
             const pricePaid = escapeHtml(formatPrice(m?.pricePaid));
+            const attendance = attendanceKey(m, slot);
             return `
               <div class="member-line">
                 <div class="member-line-main">
                   <div class="member-line-name">${escapeHtml(memberText(m))}</div>
-                  <div>${escapeHtml(statusLabel(statusKey(m?.status)))}</div>
+                  <div>${escapeHtml(statusLabel(attendance))}</div>
                 </div>
                 <div class="member-line-pills">
                   <span class="member-pill">${pricePaid}</span>
                   ${verificationCode ? `<span class="member-pill code" title="Member check-in verification code">Code ${escapeHtml(verificationCode)}</span>` : ''}
                   ${membershipPlan ? `<span class="member-pill ${membershipStatusClass(membershipStatus)}">${escapeHtml(membershipPlan)}</span>` : ''}
                 </div>
-                ${memberActionsHtml(m)}
+                ${memberActionsHtml(m, slot)}
               </div>
             `;
           }).join('')
-        : '<div class="member-line">No members booked yet.</div>';
+        : '<div class="member-line">No members yet.</div>';
 
       return `
         <div class="card booking-card">
@@ -612,7 +606,7 @@
               <span class="status approved">Occupied ${escapeHtml(capLabel)}</span>
             </div>
           </div>
-          <details class="members-menu">
+          <details class="members-menu" data-slot-id="${escapeHtml(slotKey)}"${openAttr}>
             <summary>Booking records (${members.length})</summary>
             <div class="members-list">${membersHtml}</div>
           </details>
@@ -622,6 +616,11 @@
 
     const renderGroupedView = (slots) => {
       if (!groupedView || !emptyEl) return;
+      const openSlotIds = new Set(
+        Array.from(groupedView.querySelectorAll('.members-menu[open][data-slot-id]'))
+          .map((el) => String(el.getAttribute('data-slot-id') || '').trim())
+          .filter(Boolean)
+      );
       groupedView.innerHTML = '';
       if (!Array.isArray(slots) || slots.length === 0) {
         emptyEl.style.display = 'block';
@@ -645,7 +644,7 @@
         section.appendChild(header);
         const list = document.createElement('div');
         list.className = 'group-list';
-        list.innerHTML = groups.get(key).map((slot) => renderSlotCard(slot)).join('');
+        list.innerHTML = groups.get(key).map((slot) => renderSlotCard(slot, openSlotIds)).join('');
         section.appendChild(list);
         groupedView.appendChild(section);
       });
@@ -690,7 +689,21 @@
         if (!res.ok) {
           throw new Error((await readTextSafe(res)) || 'Failed to update booking status.');
         }
-        await refreshData();
+        const payload = await res.json().catch(() => ({}));
+        slotBookings = slotBookings.map((slot) => ({
+          ...slot,
+          members: (slot.members || []).map((member) => (
+            Number(member?.bookingId) === bookingId
+              ? {
+                  ...member,
+                  status: String(payload?.status || nextStatus || member?.status || '').trim(),
+                  attendanceState: String(payload?.attendanceState || '').trim()
+                }
+              : member
+          ))
+        }));
+        renderStats(slotBookings);
+        renderGroupedView(slotBookings);
       } catch (err) {
         console.error(err);
         window.alert((err && err.message) ? err.message : 'Failed to update booking status.');
@@ -781,4 +794,5 @@
   </script>
 </body>
 </html>
+
 

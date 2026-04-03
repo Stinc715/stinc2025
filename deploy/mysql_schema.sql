@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   `avatar_file_name` VARCHAR(255) DEFAULT NULL,
   `avatar_mime_type` VARCHAR(120) DEFAULT NULL,
   `avatar_updated_at` DATETIME DEFAULT NULL,
-  `role` VARCHAR(20) NOT NULL DEFAULT 'USER',
+  `role` ENUM('USER','CLUB','ADMIN') NOT NULL DEFAULT 'USER',
   `session_version` INT NOT NULL DEFAULT 1,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`user_id`),
@@ -86,6 +86,27 @@ PREPARE user_session_version_stmt FROM @user_session_version_sql;
 EXECUTE user_session_version_stmt;
 DEALLOCATE PREPARE user_session_version_stmt;
 
+SET @user_role_column_type := (
+  SELECT COLUMN_TYPE
+  FROM information_schema.columns
+  WHERE table_schema = DATABASE()
+    AND table_name = 'user'
+    AND column_name = 'role'
+  LIMIT 1
+);
+SET @user_role_sql := IF(
+  @user_role_column_type IS NULL,
+  'SELECT 1',
+  IF(
+    @user_role_column_type <> 'enum(''USER'',''CLUB'',''ADMIN'')',
+    'ALTER TABLE `user` MODIFY COLUMN `role` ENUM(''USER'',''CLUB'',''ADMIN'') NOT NULL DEFAULT ''USER''',
+    'SELECT 1'
+  )
+);
+PREPARE user_role_stmt FROM @user_role_sql;
+EXECUTE user_role_stmt;
+DEALLOCATE PREPARE user_role_stmt;
+
 -- 2) Club
 CREATE TABLE IF NOT EXISTS `club` (
   `club_id` INT NOT NULL AUTO_INCREMENT,
@@ -96,6 +117,9 @@ CREATE TABLE IF NOT EXISTS `club` (
   `email` VARCHAR(120),
   `phone` VARCHAR(40),
   `display_location` VARCHAR(255),
+  `google_place_id` VARCHAR(255),
+  `location_lat` DOUBLE,
+  `location_lng` DOUBLE,
   `opening_start` VARCHAR(5),
   `opening_end` VARCHAR(5),
   `display_courts` INT,
@@ -179,6 +203,54 @@ SET @club_display_location_sql := IF(
 PREPARE club_display_location_stmt FROM @club_display_location_sql;
 EXECUTE club_display_location_stmt;
 DEALLOCATE PREPARE club_display_location_stmt;
+
+SET @club_google_place_id_col_exists := (
+  SELECT COUNT(*)
+  FROM information_schema.columns
+  WHERE table_schema = DATABASE()
+    AND table_name = 'club'
+    AND column_name = 'google_place_id'
+);
+SET @club_google_place_id_sql := IF(
+  @club_google_place_id_col_exists = 0,
+  'ALTER TABLE `club` ADD COLUMN `google_place_id` VARCHAR(255) NULL AFTER `display_location`',
+  'SELECT 1'
+);
+PREPARE club_google_place_id_stmt FROM @club_google_place_id_sql;
+EXECUTE club_google_place_id_stmt;
+DEALLOCATE PREPARE club_google_place_id_stmt;
+
+SET @club_location_lat_col_exists := (
+  SELECT COUNT(*)
+  FROM information_schema.columns
+  WHERE table_schema = DATABASE()
+    AND table_name = 'club'
+    AND column_name = 'location_lat'
+);
+SET @club_location_lat_sql := IF(
+  @club_location_lat_col_exists = 0,
+  'ALTER TABLE `club` ADD COLUMN `location_lat` DOUBLE NULL AFTER `google_place_id`',
+  'SELECT 1'
+);
+PREPARE club_location_lat_stmt FROM @club_location_lat_sql;
+EXECUTE club_location_lat_stmt;
+DEALLOCATE PREPARE club_location_lat_stmt;
+
+SET @club_location_lng_col_exists := (
+  SELECT COUNT(*)
+  FROM information_schema.columns
+  WHERE table_schema = DATABASE()
+    AND table_name = 'club'
+    AND column_name = 'location_lng'
+);
+SET @club_location_lng_sql := IF(
+  @club_location_lng_col_exists = 0,
+  'ALTER TABLE `club` ADD COLUMN `location_lng` DOUBLE NULL AFTER `location_lat`',
+  'SELECT 1'
+);
+PREPARE club_location_lng_stmt FROM @club_location_lng_sql;
+EXECUTE club_location_lng_stmt;
+DEALLOCATE PREPARE club_location_lng_stmt;
 
 SET @club_opening_start_col_exists := (
   SELECT COUNT(*)
@@ -266,10 +338,12 @@ CREATE TABLE IF NOT EXISTS `membership_plan` (
   `plan_id` INT NOT NULL AUTO_INCREMENT,
   `club_id` INT NOT NULL,
   `plan_code` VARCHAR(20) DEFAULT NULL,
+  `benefit_type` VARCHAR(30) NOT NULL DEFAULT 'DISCOUNT',
   `plan_name` VARCHAR(120) NOT NULL,
   `price` DECIMAL(10,2) NOT NULL,
   `duration_days` INT NOT NULL,
   `discount_percent` DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+  `included_bookings` INT NOT NULL DEFAULT 0,
   `enabled` TINYINT(1) NOT NULL DEFAULT 1,
   `description` TEXT,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -294,6 +368,22 @@ PREPARE membership_plan_code_stmt FROM @membership_plan_code_sql;
 EXECUTE membership_plan_code_stmt;
 DEALLOCATE PREPARE membership_plan_code_stmt;
 
+SET @membership_benefit_type_col_exists := (
+  SELECT COUNT(*)
+  FROM information_schema.columns
+  WHERE table_schema = DATABASE()
+    AND table_name = 'membership_plan'
+    AND column_name = 'benefit_type'
+);
+SET @membership_benefit_type_sql := IF(
+  @membership_benefit_type_col_exists = 0,
+  'ALTER TABLE `membership_plan` ADD COLUMN `benefit_type` VARCHAR(30) NOT NULL DEFAULT ''DISCOUNT'' AFTER `plan_code`',
+  'SELECT 1'
+);
+PREPARE membership_benefit_type_stmt FROM @membership_benefit_type_sql;
+EXECUTE membership_benefit_type_stmt;
+DEALLOCATE PREPARE membership_benefit_type_stmt;
+
 SET @membership_discount_percent_col_exists := (
   SELECT COUNT(*)
   FROM information_schema.columns
@@ -309,6 +399,22 @@ SET @membership_discount_percent_sql := IF(
 PREPARE membership_discount_percent_stmt FROM @membership_discount_percent_sql;
 EXECUTE membership_discount_percent_stmt;
 DEALLOCATE PREPARE membership_discount_percent_stmt;
+
+SET @membership_included_bookings_col_exists := (
+  SELECT COUNT(*)
+  FROM information_schema.columns
+  WHERE table_schema = DATABASE()
+    AND table_name = 'membership_plan'
+    AND column_name = 'included_bookings'
+);
+SET @membership_included_bookings_sql := IF(
+  @membership_included_bookings_col_exists = 0,
+  'ALTER TABLE `membership_plan` ADD COLUMN `included_bookings` INT NOT NULL DEFAULT 0 AFTER `discount_percent`',
+  'SELECT 1'
+);
+PREPARE membership_included_bookings_stmt FROM @membership_included_bookings_sql;
+EXECUTE membership_included_bookings_stmt;
+DEALLOCATE PREPARE membership_included_bookings_stmt;
 
 SET @membership_enabled_col_exists := (
   SELECT COUNT(*)
@@ -334,6 +440,8 @@ CREATE TABLE IF NOT EXISTS `user_membership` (
   `start_date` DATE NOT NULL,
   `end_date` DATE NOT NULL,
   `status` VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+  `included_bookings_total` INT DEFAULT NULL,
+  `remaining_bookings` INT DEFAULT NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`user_membership_id`),
   KEY `idx_user_membership_user_id` (`user_id`),
@@ -341,6 +449,38 @@ CREATE TABLE IF NOT EXISTS `user_membership` (
   FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE,
   FOREIGN KEY (`plan_id`) REFERENCES `membership_plan` (`plan_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+SET @user_membership_total_col_exists := (
+  SELECT COUNT(*)
+  FROM information_schema.columns
+  WHERE table_schema = DATABASE()
+    AND table_name = 'user_membership'
+    AND column_name = 'included_bookings_total'
+);
+SET @user_membership_total_sql := IF(
+  @user_membership_total_col_exists = 0,
+  'ALTER TABLE `user_membership` ADD COLUMN `included_bookings_total` INT NULL AFTER `status`',
+  'SELECT 1'
+);
+PREPARE user_membership_total_stmt FROM @user_membership_total_sql;
+EXECUTE user_membership_total_stmt;
+DEALLOCATE PREPARE user_membership_total_stmt;
+
+SET @user_membership_remaining_col_exists := (
+  SELECT COUNT(*)
+  FROM information_schema.columns
+  WHERE table_schema = DATABASE()
+    AND table_name = 'user_membership'
+    AND column_name = 'remaining_bookings'
+);
+SET @user_membership_remaining_sql := IF(
+  @user_membership_remaining_col_exists = 0,
+  'ALTER TABLE `user_membership` ADD COLUMN `remaining_bookings` INT NULL AFTER `included_bookings_total`',
+  'SELECT 1'
+);
+PREPARE user_membership_remaining_stmt FROM @user_membership_remaining_sql;
+EXECUTE user_membership_remaining_stmt;
+DEALLOCATE PREPARE user_membership_remaining_stmt;
 
 -- 7) BookingRecord
 CREATE TABLE IF NOT EXISTS `booking_record` (
@@ -351,6 +491,7 @@ CREATE TABLE IF NOT EXISTS `booking_record` (
   `status` VARCHAR(20) NOT NULL DEFAULT 'PENDING',
   `price_paid` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   `user_membership_id` INT NULL,
+  `membership_credit_used` TINYINT(1) NOT NULL DEFAULT 0,
   `booking_verification_code` VARCHAR(6) DEFAULT NULL,
   PRIMARY KEY (`booking_id`),
   UNIQUE KEY `uk_booking_user_timeslot` (`user_id`, `timeslot_id`),
@@ -359,6 +500,22 @@ CREATE TABLE IF NOT EXISTS `booking_record` (
   FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE,
   FOREIGN KEY (`timeslot_id`) REFERENCES `timeslot` (`timeslot_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+SET @booking_credit_used_col_exists := (
+  SELECT COUNT(*)
+  FROM information_schema.columns
+  WHERE table_schema = DATABASE()
+    AND table_name = 'booking_record'
+    AND column_name = 'membership_credit_used'
+);
+SET @booking_credit_used_sql := IF(
+  @booking_credit_used_col_exists = 0,
+  'ALTER TABLE `booking_record` ADD COLUMN `membership_credit_used` TINYINT(1) NOT NULL DEFAULT 0 AFTER `user_membership_id`',
+  'SELECT 1'
+);
+PREPARE booking_credit_used_stmt FROM @booking_credit_used_sql;
+EXECUTE booking_credit_used_stmt;
+DEALLOCATE PREPARE booking_credit_used_stmt;
 
 SET @booking_price_paid_col_exists := (
   SELECT COUNT(*)
@@ -456,6 +613,7 @@ CREATE TABLE IF NOT EXISTS `transaction` (
 CREATE TABLE IF NOT EXISTS `checkout_session` (
   `checkout_session_pk` INT NOT NULL AUTO_INCREMENT,
   `session_id` VARCHAR(64) NOT NULL,
+  `order_no` VARCHAR(32) DEFAULT NULL,
   `user_id` INT NOT NULL,
   `club_id` INT NOT NULL,
   `type` VARCHAR(20) NOT NULL,
@@ -478,6 +636,7 @@ CREATE TABLE IF NOT EXISTS `checkout_session` (
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`checkout_session_pk`),
   UNIQUE KEY `uk_checkout_session_session_id` (`session_id`),
+  UNIQUE KEY `uk_checkout_session_order_no` (`order_no`),
   UNIQUE KEY `uk_checkout_session_provider_session_id` (`provider_session_id`),
   KEY `idx_checkout_session_user_status` (`user_id`, `status`, `expires_at`),
   KEY `idx_checkout_session_type_club` (`type`, `club_id`, `status`, `expires_at`),
@@ -490,6 +649,38 @@ CREATE TABLE IF NOT EXISTS `checkout_session` (
   CONSTRAINT `fk_checkout_session_user_membership` FOREIGN KEY (`user_membership_id`) REFERENCES `user_membership` (`user_membership_id`) ON DELETE SET NULL,
   CONSTRAINT `fk_checkout_session_transaction` FOREIGN KEY (`transaction_id`) REFERENCES `transaction` (`transaction_id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+SET @checkout_order_no_col_exists := (
+  SELECT COUNT(*)
+  FROM information_schema.columns
+  WHERE table_schema = DATABASE()
+    AND table_name = 'checkout_session'
+    AND column_name = 'order_no'
+);
+SET @checkout_order_no_sql := IF(
+  @checkout_order_no_col_exists = 0,
+  'ALTER TABLE `checkout_session` ADD COLUMN `order_no` VARCHAR(32) DEFAULT NULL AFTER `session_id`',
+  'SELECT 1'
+);
+PREPARE checkout_order_no_stmt FROM @checkout_order_no_sql;
+EXECUTE checkout_order_no_stmt;
+DEALLOCATE PREPARE checkout_order_no_stmt;
+
+SET @checkout_order_no_idx_exists := (
+  SELECT COUNT(*)
+  FROM information_schema.statistics
+  WHERE table_schema = DATABASE()
+    AND table_name = 'checkout_session'
+    AND index_name = 'uk_checkout_session_order_no'
+);
+SET @checkout_order_no_idx_sql := IF(
+  @checkout_order_no_idx_exists = 0,
+  'ALTER TABLE `checkout_session` ADD UNIQUE KEY `uk_checkout_session_order_no` (`order_no`)',
+  'SELECT 1'
+);
+PREPARE checkout_order_no_idx_stmt FROM @checkout_order_no_idx_sql;
+EXECUTE checkout_order_no_idx_stmt;
+DEALLOCATE PREPARE checkout_order_no_idx_stmt;
 
 CREATE TABLE IF NOT EXISTS `booking_hold` (
   `booking_hold_id` INT NOT NULL AUTO_INCREMENT,
@@ -569,6 +760,83 @@ CREATE TABLE IF NOT EXISTS `club_chat_kb_entry` (
   KEY `idx_club_chat_kb_entry_language` (`club_id`, `language`, `enabled`),
   CONSTRAINT `fk_club_chat_kb_entry_club` FOREIGN KEY (`club_id`) REFERENCES `club` (`club_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `club_community_question` (
+  `question_id` INT NOT NULL AUTO_INCREMENT,
+  `club_id` INT NOT NULL,
+  `user_id` INT NOT NULL,
+  `question_text` TEXT NOT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`question_id`),
+  KEY `idx_club_community_question_club_updated` (`club_id`, `updated_at`, `question_id`),
+  CONSTRAINT `fk_club_community_question_club` FOREIGN KEY (`club_id`) REFERENCES `club` (`club_id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_club_community_question_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `club_community_answer` (
+  `answer_id` INT NOT NULL AUTO_INCREMENT,
+  `question_id` INT NOT NULL,
+  `club_id` INT NOT NULL,
+  `user_id` INT DEFAULT NULL,
+  `responder_type` ENUM('USER', 'CLUB') NOT NULL,
+  `answer_text` TEXT NOT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`answer_id`),
+  KEY `idx_club_community_answer_question_created` (`question_id`, `created_at`, `answer_id`),
+  CONSTRAINT `fk_club_community_answer_question` FOREIGN KEY (`question_id`) REFERENCES `club_community_question` (`question_id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_club_community_answer_club` FOREIGN KEY (`club_id`) REFERENCES `club` (`club_id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_club_community_answer_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+SET @club_community_answer_user_fk_exists := (
+  SELECT COUNT(*)
+  FROM information_schema.referential_constraints
+  WHERE constraint_schema = DATABASE()
+    AND table_name = 'club_community_answer'
+    AND constraint_name = 'fk_club_community_answer_user'
+);
+SET @club_community_answer_drop_fk_sql := IF(
+  @club_community_answer_user_fk_exists > 0,
+  'ALTER TABLE `club_community_answer` DROP FOREIGN KEY `fk_club_community_answer_user`',
+  'SELECT 1'
+);
+PREPARE club_community_answer_drop_fk_stmt FROM @club_community_answer_drop_fk_sql;
+EXECUTE club_community_answer_drop_fk_stmt;
+DEALLOCATE PREPARE club_community_answer_drop_fk_stmt;
+
+SET @club_community_answer_user_nullable := (
+  SELECT IS_NULLABLE
+  FROM information_schema.columns
+  WHERE table_schema = DATABASE()
+    AND table_name = 'club_community_answer'
+    AND column_name = 'user_id'
+  LIMIT 1
+);
+SET @club_community_answer_user_nullable_sql := IF(
+  @club_community_answer_user_nullable = 'NO',
+  'ALTER TABLE `club_community_answer` MODIFY COLUMN `user_id` INT NULL',
+  'SELECT 1'
+);
+PREPARE club_community_answer_user_nullable_stmt FROM @club_community_answer_user_nullable_sql;
+EXECUTE club_community_answer_user_nullable_stmt;
+DEALLOCATE PREPARE club_community_answer_user_nullable_stmt;
+
+SET @club_community_answer_user_fk_exists := (
+  SELECT COUNT(*)
+  FROM information_schema.referential_constraints
+  WHERE constraint_schema = DATABASE()
+    AND table_name = 'club_community_answer'
+    AND constraint_name = 'fk_club_community_answer_user'
+);
+SET @club_community_answer_add_fk_sql := IF(
+  @club_community_answer_user_fk_exists = 0,
+  'ALTER TABLE `club_community_answer` ADD CONSTRAINT `fk_club_community_answer_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE SET NULL',
+  'SELECT 1'
+);
+PREPARE club_community_answer_add_fk_stmt FROM @club_community_answer_add_fk_sql;
+EXECUTE club_community_answer_add_fk_stmt;
+DEALLOCATE PREPARE club_community_answer_add_fk_stmt;
 
 CREATE TABLE IF NOT EXISTS `registration_email_verification` (
   `verification_id` INT NOT NULL AUTO_INCREMENT,

@@ -4,13 +4,24 @@ import java.math.BigDecimal;
 
 public class MembershipPlanUpsertRequest {
 
+    private Integer planId;
     private String planCode;
+    private String benefitType;
     private String planName;
     private BigDecimal price;
     private Integer durationDays;
     private BigDecimal discountPercent;
+    private Integer includedBookings;
     private Boolean enabled;
     private String description;
+
+    public Integer getPlanId() {
+        return planId;
+    }
+
+    public void setPlanId(Integer planId) {
+        this.planId = planId;
+    }
 
     public String getPlanCode() {
         return planCode;
@@ -18,6 +29,14 @@ public class MembershipPlanUpsertRequest {
 
     public void setPlanCode(String planCode) {
         this.planCode = planCode;
+    }
+
+    public String getBenefitType() {
+        return benefitType;
+    }
+
+    public void setBenefitType(String benefitType) {
+        this.benefitType = benefitType;
     }
 
     public String getPlanName() {
@@ -50,6 +69,14 @@ public class MembershipPlanUpsertRequest {
 
     public void setDiscountPercent(BigDecimal discountPercent) {
         this.discountPercent = discountPercent;
+    }
+
+    public Integer getIncludedBookings() {
+        return includedBookings;
+    }
+
+    public void setIncludedBookings(Integer includedBookings) {
+        this.includedBookings = includedBookings;
     }
 
     public Boolean getEnabled() {

@@ -98,7 +98,7 @@ public class TimeSlotController {
                 out.size());
         for (int i = 0; i < out.size(); i++) {
             TimeSlotResponse slot = out.get(i);
-            log.info("[CLUB_CHAT_DEBUG] PAGE_VISIBLE_SLOTS[{}]: venueName={}, startTime={}, endTime={}, remaining={}, price={}, basePrice={}, membershipApplied={}, membershipPlanName={}, membershipDiscountPercent={}",
+            log.info("[CLUB_CHAT_DEBUG] PAGE_VISIBLE_SLOTS[{}]: venueName={}, startTime={}, endTime={}, remaining={}, price={}, basePrice={}, membershipApplied={}, membershipPlanName={}, membershipBenefitType={}, membershipDiscountPercent={}, membershipRemainingBookings={}",
                     i,
                     slot == null ? null : slot.venueName(),
                     slot == null ? null : slot.startTime(),
@@ -108,7 +108,9 @@ public class TimeSlotController {
                     slot == null ? null : slot.basePrice(),
                     slot == null ? null : slot.membershipApplied(),
                     slot == null ? null : slot.membershipPlanName(),
-                    slot == null ? null : slot.membershipDiscountPercent());
+                    slot == null ? null : slot.membershipBenefitType(),
+                    slot == null ? null : slot.membershipDiscountPercent(),
+                    slot == null ? null : slot.membershipRemainingBookings());
         }
 
         return ResponseEntity.ok(out);
@@ -170,7 +172,10 @@ public class TimeSlotController {
                 saved.getMaxCapacity(),
                 normalizePrice(saved.getPrice()),
                 "",
+                MembershipService.BENEFIT_DISCOUNT,
                 membershipService.normalizeDiscount(null),
+                0,
+                0,
                 false
         ));
     }
@@ -238,7 +243,10 @@ public class TimeSlotController {
                 remaining,
                 normalizePrice(saved.getPrice()),
                 "",
+                MembershipService.BENEFIT_DISCOUNT,
                 membershipService.normalizeDiscount(null),
+                0,
+                0,
                 false
         ));
     }

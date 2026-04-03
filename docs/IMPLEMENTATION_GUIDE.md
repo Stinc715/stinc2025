@@ -1,896 +1,327 @@
 # Club Portal Implementation Guide
 
-## 1. Purpose
+This guide describes the current implementation, not the original design intent. It is meant to answer the question: "What actually happens in the running system today?"
 
-This document explains how the current Club Portal system is built, how each major feature works end to end, and how the features depend on each other.
+## 1. Runtime shape
 
-It is written for future maintenance, debugging, and handoff. It focuses on:
+The project currently runs as:
 
-- what each feature does
-- which frontend pages implement it
-- which backend controllers/services/models support it
-- what data is stored
-- how one feature affects another
-- what is fully implemented vs what is still only partially wired
+- `frontend/`: static multi-page HTML app built by Vite
+- `backend/`: Spring Boot API
+- `deploy/`: database schema, migrations, and deployment scripts
+- `dist/`: build output for the frontend
 
-## 2. System Overview
+Important implementation characteristic:
+- the frontend is still page-based
+- `frontend/club home.html` is still the club workspace shell and still loads sub-pages through `iframe`
+- club workspace sub-pages remain:
+  - `club-info.html`
+  - `club-admin.html`
+  - `club bookings.html`
+  - `club updates.html`
+  - `club chat.html`
 
-The project is split into two runtime parts:
+## 2. Auth and session model
 
-- `frontend/`: the deployed web UI
-- `backend/`: the Spring Boot API and business logic
+### Implemented
 
-There is also:
+- JWT-based authentication exists in the backend
+- browser flows also receive HttpOnly auth cookies
+- login and registration responses still include `token` for compatibility with existing frontend code
+- password policy is enforced server-side through:
+  - [PasswordPolicyService.java](../backend/src/main/java/com/clubportal/service/PasswordPolicyService.java)
+  - [PasswordPolicyProperties.java](../backend/src/main/java/com/clubportal/config/PasswordPolicyProperties.java)
 
-- `deploy/`: release scripts and MySQL schema
-- `dist/`: built frontend output from Vite
-- `server/server.js`: a local static server with `/api` proxy support
+### Default behavior
 
-## 3. Actual Runtime Architecture
+- minimum password length defaults to `8`
+- passwords must include uppercase, lowercase, and a number
+- password reset links only use `app.public.base-url`
+- password reset request is non-enumerating
 
-### 3.1 Frontend
+### Reserved / still improving
 
-The live product is mostly a multi-page static HTML application, not a SPA.
+- the frontend still carries some transitional auth compatibility logic
+- the project is not yet fully cookie-only everywhere
 
-Important detail:
+## 3. Registration and password flows
 
-- `frontend/` is the actual app root used by the current Vite build
-- each page contains its own inline JavaScript and directly calls `/api/...`
-- Vite is used mainly as a build pipeline that copies/bundles assets into `dist/`
+### Implemented
 
-Main user-facing pages:
+- registration requires prior email verification
+- registration now performs backend password validation
+- password reset request uses a generic success response for existent and non-existent emails
+- password reset confirmation uses the same backend password policy as registration and profile password change
+- internal exception details are no longer returned directly to the frontend
 
-- `frontend/home.html`: public discovery page
-- `frontend/login.html`: login/register/reset-password modal content page
-- `frontend/club.html`: public club detail page, booking, memberships, chat
-- `frontend/payment.html`: simulated payment confirmation page
-- `frontend/user.html`: user account center
-- `frontend/club home.html`: club-side workspace shell
+### Files
 
-Club workspace sub-pages loaded inside `club home.html` iframes:
+- [AuthController.java](../backend/src/main/java/com/clubportal/controller/AuthController.java)
+- [PasswordResetController.java](../backend/src/main/java/com/clubportal/controller/PasswordResetController.java)
+- [ProfileController.java](../backend/src/main/java/com/clubportal/controller/ProfileController.java)
 
-- `frontend/club-info.html`
-- `frontend/club-admin.html`
-- `frontend/club bookings.html`
-- `frontend/club updates.html`
-- `frontend/club chat.html`
+## 4. Club discovery and public club page
 
-Onboarding flow:
+### Implemented
 
-- `frontend/onboarding.html`
-- `frontend/onboarding-location.html`
-- `frontend/onboarding-promo.html`
+- `home.html` lists public clubs
+- `club.html` is the public club detail page
+- the club page combines:
+  - gallery
+  - profile and address
+  - booking schedule
+  - membership area
+  - right-side interaction rail for chat, Q&A, and member pricing
 
-### 3.2 Backend
+### Important current behavior
 
-The backend is a Spring Boot 3.2.5 application using:
+- the right-side booking rail can contain:
+  - member pricing summary
+  - chat launcher / unread widget
+  - community Q&A entry
+- on wide screens this rail is a dedicated collapsible side column beside the main content
 
-- Spring Web
-- Spring Security
-- Spring Data JPA
-- MySQL
-- JavaMail
-- JWT auth
+## 5. Booking flow
 
-Core backend entry:
+## Implemented
 
-- `backend/src/main/java/com/clubportal/ClubPortalApplication.java`
+Current booking flow is checkout-first. It is no longer direct booking.
 
-## 4. Authentication and Authorization
+Actual runtime flow:
+1. user selects a slot on `club.html`
+2. frontend calls `POST /api/payments/checkout-sessions`
+3. backend creates a checkout session
+4. frontend opens `payment.html?sessionId=...`
+5. payment is confirmed
+6. backend writes `booking_record`
+7. backend writes a 6-digit `booking_verification_code`
 
-### 4.1 Identity model
+### Important current behavior
 
-Users are stored in `backend/src/main/java/com/clubportal/model/User.java`.
-
-The system distinguishes at least:
-
-- `USER`
-- `CLUB`
-- `ADMIN`
-
-JWT handling:
-
-- `backend/src/main/java/com/clubportal/security/JwtUtil.java`
-- `backend/src/main/java/com/clubportal/security/JwtAuthenticationFilter.java`
-- `backend/src/main/java/com/clubportal/service/CurrentUserService.java`
-
-How it works:
-
-1. login or Google auth returns a JWT
-2. JWT carries:
-   - email as subject
-   - `role`
-   - `sv` session version
-3. `JwtAuthenticationFilter` resolves the token on each request
-4. `CurrentUserService` maps the authenticated email back to the correct `User`
-
-Why session version exists:
-
-- every login bumps a per-user session version
-- new tokens use the latest `sv`
-- this lets the server invalidate older tokens logically
-
-### 4.2 Security rules
-
-Defined in:
-
-- `backend/src/main/java/com/clubportal/config/SecurityConfig.java`
-
-Important behavior:
-
-- `/api/auth/**` is public
-- `/api/login` and `/api/register` are public
-- `/api/public/config` is public
-- public `GET /api/clubs/**` is allowed
-- club management routes require `ROLE_CLUB` or `ROLE_ADMIN`
-- chat routes are split between user-side and club-side permissions
-
-### 4.3 Login and registration UI
-
-Implemented in:
-
-- `frontend/auth-modal.js`
-- `frontend/login.html`
-
-Important behavior:
-
-- login and register open in modal overlays, not page redirects
-- the modal iframe loads `login.html#login` or `login.html#register`
-- login and register are route-locked by hash, so each entry shows only its own form
-
-### 4.4 Registration email verification
-
-Backend:
-
-- `backend/src/main/java/com/clubportal/controller/RegistrationVerificationController.java`
-- `backend/src/main/java/com/clubportal/service/RegistrationEmailVerificationService.java`
-- `backend/src/main/java/com/clubportal/service/VerificationEmailSenderService.java`
-
-How it works:
-
-1. frontend requests a verification code
-2. backend stores the pending code in the `registration_email_verification` table
-3. email is sent through `MailService`
-4. verification marks the email as temporarily approved for registration
-5. `AuthController.register` refuses registration unless the email has been verified
-
-Current note:
-
-- verification state is persisted
-- expired rows are cleaned lazily during verification-related requests, not by a separate scheduler
-
-### 4.5 Password reset
-
-Backend:
-
-- `backend/src/main/java/com/clubportal/controller/PasswordResetController.java`
-- `backend/src/main/java/com/clubportal/service/PasswordResetService.java`
-- `backend/src/main/java/com/clubportal/service/VerificationEmailSenderService.java`
-
-Frontend:
-
-- `frontend/login.html`
-- `frontend/reset-password.html`
-
-How it works:
-
-1. user requests reset link from login modal
-2. `PasswordResetService` generates a token row in `password_reset_token`
-3. email is sent with a reset URL
-4. reset page validates token
-5. confirm endpoint consumes token and updates the password
-
-Current note:
-
-- reset tokens are persisted
-- expired rows are cleaned lazily during password-reset requests, not by a separate scheduler
-
-### 4.6 Google login
-
-Backend:
-
-- `backend/src/main/java/com/clubportal/controller/GoogleAuthController.java`
-- `backend/src/main/java/com/clubportal/service/GoogleAuthService.java`
-
-Frontend:
-
-- `frontend/login.html`
-
-Config source:
-
-- `backend/src/main/java/com/clubportal/controller/PublicConfigController.java`
-
-The frontend asks `/api/public/config` for the Google OAuth client ID, then renders the Google button.
-
-## 5. Club Discovery and Public Club Page
-
-### 5.1 Public club list
-
-Backend:
-
-- `backend/src/main/java/com/clubportal/controller/ClubController.java`
-
-Frontend:
-
-- `frontend/home.html`
-
-How it works:
-
-- `GET /api/clubs` returns public club summaries
-- placeholder records are filtered out in `ClubController.listClubs()`
-- category tags are returned through `ClubTagCodec`
-
-### 5.2 Club detail page
-
-Frontend:
-
-- `frontend/club.html`
-
-Backend data sources:
-
-- `GET /api/clubs/{clubId}`
-- `GET /api/clubs/{clubId}/images`
-- `GET /api/clubs/{clubId}/venues`
-- `GET /api/clubs/{clubId}/timeslots`
-- `GET /api/clubs/{clubId}/membership-plans`
-- user chat endpoints
-
-This page combines several modules:
-
-- club profile and images
-- address / Google Maps jump link
-- 7-day schedule and slot booking
-- memberships
-- club chat
-
-This page is one of the strongest examples of feature composition in the system.
-
-## 6. Club Profile and Onboarding
-
-### 6.1 Club creation
-
-Backend:
-
-- `backend/src/main/java/com/clubportal/controller/ClubController.java`
-
-Important behavior:
-
-- `POST /api/clubs` creates a club
-- creator is automatically inserted into `club_admin`
-- placeholder clubs are no longer intentionally published from onboarding drafts
-
-### 6.2 Onboarding flow
-
-Frontend:
-
-- `frontend/onboarding.html`
-- `frontend/onboarding.js`
-- `frontend/onboarding-location.html`
-- `frontend/onboarding-location.js`
-- `frontend/onboarding-promo.html`
-- `frontend/onboarding-promo.js`
-
-How it works now:
-
-1. profile step collects club name and category tags
-2. location step collects real address and optional Google place metadata
-3. promo step handles media / final submission
-4. final submission creates or updates the real club record
-
-Important improvement already made:
-
-- earlier onboarding created public clubs too early
-- now the early steps behave more like draft capture and the real club write happens at the end
-
-### 6.3 Club account information page
-
-Frontend:
-
-- `frontend/club-info.html`
-
-What it manages:
-
-- club name
-- categories
-- email
-- phone
-- description
-- opening hours
-- display address
-- Google Maps place metadata
-- images
-
-Special behavior:
-
-- club name and categories are read-only on this page
-- editing them redirects to onboarding-style secondary flows
-- categories are multi-select and persist to both `category` and `category_tags`
-
-Backend support:
-
-- `ClubController`
-- `ClubTagCodec`
-- image upload endpoints in `ClubController`
-
-### 6.4 Google Maps integration
-
-Frontend:
-
-- `frontend/club-info.html`
-- `frontend/onboarding-location.js`
-
-Backend:
-
-- `backend/src/main/java/com/clubportal/controller/PublicConfigController.java`
-- club model fields in `backend/src/main/java/com/clubportal/model/Club.java`
-
-How it works:
-
-1. frontend requests `/api/public/config`
-2. if `googleMapsEnabled=true`, the page loads Google Maps JS dynamically
-3. selected address writes:
-   - `display_location`
-   - `google_place_id`
-   - `location_lat`
-   - `location_lng`
-4. public club page uses those fields to build a more precise Google Maps jump link
-
-## 7. Venue and Time Slot Management
-
-### 7.1 Venue model
-
-Backend model:
-
-- `backend/src/main/java/com/clubportal/model/Venue.java`
-
-Backend API:
-
-- `backend/src/main/java/com/clubportal/controller/VenueController.java`
-
-Frontend management page:
-
-- `frontend/club-admin.html`
-
-What is implemented:
-
-- create venue
-- edit venue
-- delete venue
-- modal-based venue management from the venue list
-
-### 7.2 Time slot model
-
-Backend model:
-
-- `backend/src/main/java/com/clubportal/model/TimeSlot.java`
-
-Backend controller:
-
-- `backend/src/main/java/com/clubportal/controller/TimeSlotController.java`
-
-What a time slot stores:
-
-- venue
-- start/end time
-- max capacity
-- base price
-
-### 7.3 Time slot admin workflow
-
-Frontend:
-
-- `frontend/club-admin.html`
-
-What club admins can do:
-
-- add one slot for the selected day
-- apply weekly recurrence
-- apply daily recurrence across the visible week range
-- edit slot
-- delete slot
-- inspect per-day counts in week tabs
-
-Important validation:
-
-- end time must be later than start time
-- max capacity cannot be below existing bookings on update
-
-### 7.4 Time slot user-facing workflow
-
-Frontend:
-
-- `frontend/club.html`
-
-Backend:
-
-- `TimeSlotController.listClubTimeslots()`
-
-How it works:
-
-- user selects a day from the next 7 days
-- backend returns slots plus computed booking counts
-- if the viewer has an active membership, backend also returns:
-  - discounted `price`
-  - original `basePrice`
-  - membership plan name
-  - membership discount percent
-  - `membershipApplied=true`
-
-This means the pricing logic is not only cosmetic. It is computed server-side.
-
-## 8. Booking System
-
-### 8.1 Booking creation
-
-Backend:
-
-- `backend/src/main/java/com/clubportal/controller/BookingController.java`
-
-Frontend:
-
-- `frontend/club.html`
-- `frontend/payment.html`
-
-How booking works:
-
-1. user chooses a slot
-2. `club.html` requests `POST /api/payments/checkout-sessions`
-3. backend creates a checkout session and returns the payment page / Stripe checkout URL
-4. `payment.html` reads `sessionId` from the URL and polls backend checkout state
-5. Stripe webhook confirmation finalises the booking
-
-Important business rules:
-
-- only `USER` accounts can book
-- duplicate active booking for same user + timeslot is blocked
-- full slots are blocked
-- if the user has an active membership, discounted price is stored in `booking_record.price_paid`
-- related membership is stored in `booking_record.user_membership_id`
-
-### 8.2 Booking cancellation
-
-Backend:
-
-- `DELETE /api/timeslots/{timeslotId}/bookings/me`
-
-Used by:
-
-- `frontend/club.html`
-- `frontend/user.html`
-
-### 8.3 Booking views
-
-User-side:
-
-- `GET /api/my/bookings`
-- shown in `frontend/user.html`
-
-Club-side:
-
-- `GET /api/clubs/{clubId}/timeslot-bookings`
-- shown in `frontend/club bookings.html`
+- `POST /api/timeslots/{timeslotId}/bookings` does **not** create bookings directly anymore
+- it intentionally returns `402` and tells the client to create a checkout session first
+- the booking record now has:
+  - `price_paid`
+  - `user_membership_id`
+  - `booking_verification_code`
+- the booking checkout also creates a readable order number through `checkout_session.order_no`
+
+### Club-side visibility
 
 Club admins can see:
-
-- booked members
 - booking status
-- paid amount
-- membership plan name
-- membership status
+- member info
+- membership linkage
+- booking verification code
 
-## 9. Membership System
+### User-side visibility
 
-This is now a first-class feature and touches many modules.
+Users can see:
+- booking status
+- order number
+- verification code
 
-### 9.1 Membership data model
+## 6. Payment flow
 
-Backend models:
+This section has drifted the most historically, so the current state is spelled out explicitly.
 
-- `backend/src/main/java/com/clubportal/model/MembershipPlan.java`
-- `backend/src/main/java/com/clubportal/model/UserMembership.java`
-- `backend/src/main/java/com/clubportal/model/TransactionRecord.java`
+### Implemented
 
-Plan types currently standardized in `MembershipService`:
+There are now two backend payment paths in [CheckoutSessionService.java](../backend/src/main/java/com/clubportal/service/CheckoutSessionService.java):
 
-- `MONTHLY`
-- `QUARTERLY`
-- `HALF_YEAR`
-- `YEARLY`
+- `VIRTUAL`
+- `STRIPE`
 
-### 9.2 Membership plan defaults and normalization
+The controller entry point is:
+- [PaymentController.java](../backend/src/main/java/com/clubportal/controller/PaymentController.java)
 
-Backend service:
+The payment page is:
+- [payment.html](../frontend/payment.html)
 
-- `backend/src/main/java/com/clubportal/service/MembershipService.java`
+### Default mode
 
-Responsibilities:
+Current default mode is:
 
-- creates standard plans for a club if missing
-- normalizes price and discount values
-- normalizes plan codes
-- provides default names, durations, descriptions, prices, and discounts
-- determines active membership
-- calculates discounted booking price
+- `app.payments.mode = VIRTUAL`
 
-This service is the shared business layer that links:
-
-- public membership display
-- club membership admin
-- booking pricing
-- user membership display
-
-### 9.3 Club-side membership management
-
-Frontend:
-
-- `frontend/club updates.html`
-- loaded inside `frontend/club home.html`
-
-Backend:
-
-- `GET /api/my/clubs/{clubId}/membership-plans`
-- `PUT /api/my/clubs/{clubId}/membership-plans`
-- `GET /api/my/clubs/{clubId}/memberships`
-
-Current UX:
-
-- plans section can be collapsed
-- members section can be collapsed
-- each plan is edited and saved separately
-- each plan has an enable/disable switch
-- changes are not live until that individual plan card is saved
-- cards now show `Saved` vs `Unsaved changes`
-
-Important business rule:
-
-- disabling a plan hides it from new purchases
-- existing purchased memberships stay valid
-
-### 9.4 Public membership purchase
-
-Frontend:
-
-- `frontend/club.html`
-- `frontend/payment.html`
-
-Backend:
-
-- `GET /api/clubs/{clubId}/membership-plans`
-- `POST /api/membership-plans/{planId}/purchase`
-
-Current purchase flow:
-
-1. club page loads enabled plans only
-2. user chooses a plan
-3. plan purchase is routed through `payment.html`
-4. payment page is still a mock payment page
-5. backend creates:
-   - `user_membership`
-   - `transaction` with `MOCK_CARD`
-
-Important limitation:
-
-- no real payment gateway is connected yet
-
-### 9.5 User-side membership visibility
-
-Frontend:
-
-- `frontend/user.html`
-
-Backend:
-
-- `GET /api/my/memberships`
-- `GET /api/my/clubs/{clubId}/membership`
-
-The user center shows:
-
-- which club the user is a member of
-- which pass was purchased
-- validity dates
-- price
-- discount
-- status (`ACTIVE`, `SCHEDULED`, `EXPIRED`)
-
-### 9.6 Membership and booking coupling
-
-This is the most important functional dependency in the system.
-
-When listing slots:
-
-- `TimeSlotController` asks `MembershipService` for the viewer's active membership
-- returned slot price is the effective member price
-
-When creating a booking:
-
-- `BookingController` again checks the active membership
-- it calculates the real discounted price server-side
-- it stores the actual paid amount and the membership reference in `booking_record`
+Source:
+- [application.yml](../backend/src/main/resources/application.yml)
 
 This means:
+- on a default environment, checkout provider is `VIRTUAL_CHECKOUT`
+- users can complete booking and membership checkout without real card charging
+- the backend still writes real business records and checkout session rows
 
-- club page price display
-- booking confirmation
-- my bookings history
-- club admin booking reports
+### Stripe status
 
-all stay consistent because they all derive from the same membership relationship.
+Stripe is **implemented but not default**.
 
-## 10. Chat System
+What is implemented:
+- Stripe checkout session creation
+- Stripe webhook verification
+- Stripe webhook fulfillment path
 
-### 10.1 Data model
+What is required before Stripe becomes active:
+- `APP_PAYMENTS_MODE=STRIPE`
+- valid Stripe secret key
+- valid Stripe webhook secret
+- valid `APP_PUBLIC_BASE_URL`
 
-- `backend/src/main/java/com/clubportal/model/ChatMessage.java`
+So the accurate implementation statement is:
+- **Virtual checkout is implemented and enabled by default**
+- **Stripe checkout is implemented but disabled by default unless explicitly configured**
 
-Each message stores:
+### Not accurate anymore
 
-- club id
-- user id
-- sender (`USER` or `CLUB`)
-- text
-- `read_by_club`
-- `read_by_user`
+It is no longer correct to describe `payment.html` as only a "simulated/mock payment page".
 
-### 10.2 User-side chat
+Accurate wording:
+- `payment.html` is the checkout status and confirmation page
+- in virtual mode it confirms payment locally through the backend
+- in Stripe mode it continues to Stripe and waits for webhook confirmation
 
-Frontend:
+## 7. Memberships
 
-- embedded on `frontend/club.html`
+### Implemented
 
-Backend:
+- public membership plans are exposed from `/api/clubs/{clubId}/membership-plans`
+- club admins manage plans from `club updates.html`
+- purchases now also use checkout sessions instead of immediate completion
+- memberships receive readable order numbers through `checkout_session.order_no`
 
-- `GET /api/clubs/{clubId}/chat/messages`
-- `POST /api/clubs/{clubId}/chat/messages`
-- `POST /api/clubs/{clubId}/chat/read`
+### Important current behavior
 
-### 10.3 Club-side chat
+- `POST /api/membership-plans/{planId}/purchase` no longer directly completes purchase
+- it intentionally returns `402` and points the client to `/api/payments/checkout-sessions`
 
-Frontend:
+## 8. Chat system
 
-- `frontend/club chat.html`
-- loaded in `frontend/club home.html`
+### Implemented
 
-Backend:
+The club chat system currently supports:
+- AI mode
+- handoff requested mode
+- human mode
+- closed mode
 
-- `GET /api/my/clubs/{clubId}/chat/conversations`
-- `GET /api/my/clubs/{clubId}/chat/conversations/{userId}/messages`
-- `POST /api/my/clubs/{clubId}/chat/conversations/{userId}/messages`
-- `POST /api/my/clubs/{clubId}/chat/conversations/{userId}/read`
+Core backend chain:
+- [ChatMessageService.java](../backend/src/main/java/com/clubportal/service/ChatMessageService.java)
+- [ClubChatAiService.java](../backend/src/main/java/com/clubportal/service/ClubChatAiService.java)
+- [ChatIntentRouter.java](../backend/src/main/java/com/clubportal/service/ChatIntentRouter.java)
+- [ChatResponseBuilder.java](../backend/src/main/java/com/clubportal/service/ChatResponseBuilder.java)
 
-How it works:
+### Club FAQ layer
 
-- left list groups messages into conversations per user
-- unread counts are computed from read flags
-- opening a conversation marks club-side unread messages as read
-- each message now shows its own read/unread state in the UI
+Implemented:
+- club-level FAQ CRUD
+- FAQ question embedding generation
+- FAQ semantic matching
+- FAQ backfill
+- third-layer guard before FAQ direct answer
 
-## 11. User Account Center
+Current runtime order:
+1. safe-path / sensitive routing
+2. FAQ semantic match
+3. FAQ guard
+4. normal bot reply / fallback
+5. human handoff when applicable
 
-Frontend:
+### Default / active behavior
 
-- `frontend/user.html`
+- FAQ direct answer is active
+- booking/refund/payment/account-change still remain protected and do not execute in chat
+- FAQ answers can be labeled as verified club replies in the UI
+- bot answers and human handoff prompts are visibly distinguished in the UI
 
-Current implemented backed sections:
+### Reserved / extensible
 
-- `My Bookings`
-- `Memberships`
-- `Information`
+- the structure allows stronger semantic scoring later
+- no vector database is used now
+- matching is still in-process and per-club
 
-Backed endpoints that definitely exist:
+## 9. Club FAQ knowledge base
 
-- `GET /api/my/bookings`
-- `GET /api/my/memberships`
-- `GET /api/profile`
-- `PATCH /api/profile/email`
-
-Important honesty note:
-
-- `frontend/user.html` now has backend support for avatar upload and email-code verification
-- the relevant endpoints are handled by `ProfileController` and `PublicUserController`
-- this area should now be treated as implemented, subject to normal integration testing
-
-## 12. Club Workspace Shell
-
-Frontend:
-
-- `frontend/club home.html`
-
-This page is the club-side container, not the business logic itself.
-
-What it does:
-
-- verifies club login
-- loads the current club selection
-- renders a left navigation
-- loads section pages into iframes
-- manages active section switching and reloads
-
-Current iframe sections:
-
-- `club-info.html`
-- `club-admin.html`
-- `club bookings.html`
-- `club updates.html`
-- `club chat.html`
-
-This structure keeps each club feature page isolated, which reduces cross-page JS coupling.
-
-## 13. Payment Flow
-
-Frontend:
-
-- `frontend/payment.html`
-
-What it currently does:
-
-- reads `sessionId` from the URL
-- loads checkout state from `/api/payments/checkout-sessions/{sessionId}`
-- can continue to Stripe, cancel checkout, or wait for webhook confirmation
-
-Booking endpoint:
-
-- `/api/payments/checkout-sessions`
-
-Membership endpoint:
-
-- `/api/payments/checkout-sessions`
-
-Important limitation:
-
-- this is a mock payment layer, not Stripe/PayPal/Apple Pay/Google Pay
-
-## 14. Images and Media
+### Implemented
 
 Backend:
+- FAQ entries stored in `club_chat_kb_entry`
+- question embedding stored in:
+  - `question_embedding`
+  - `embedding_model`
+  - `embedding_dim`
+- enabled flag controls runtime eligibility
 
-- image upload/list/primary/delete in `ClubController`
+Matching:
+- current production matching path is [ClubChatKbMatcherService.java](../backend/src/main/java/com/clubportal/service/ClubChatKbMatcherService.java)
+- FAQ answers are isolated by `clubId`
 
-Frontend:
+Backfill:
+- historical FAQ embedding rebuild is implemented
+- club-level and admin-level backfill endpoints exist
 
-- `frontend/club-info.html`
-- `frontend/onboarding-promo.html`
-- `frontend/club.html`
+## 10. User account center
 
-Stored data:
+### Implemented
 
-- metadata in `club_image` table
-- actual files in the configured image directory on disk
+`user.html` now supports:
+- bookings
+- memberships
+- profile information
+- email change flow with 6-digit verification
+- password change with backend-enforced password policy
 
-Important behavior:
+## 11. Deployment model
 
-- one image can be primary
-- public image content is served through `/api/clubs/{clubId}/images/{imageId}/content`
+### Current actual release behavior
 
-## 15. Public Configuration and Environment-driven Features
+Current intended release model is:
+- build frontend into `dist/`
+- deploy built frontend output
+- package backend jar
+- apply schema and migrations on server
 
-Backend:
+Supported release path today:
+- [deploy/upload.ps1](../deploy/upload.ps1) builds the frontend first
+- the frontend release artifact is packaged from `dist/`
+- remote release scripts then publish the packaged build output and backend JAR
 
-- `backend/src/main/java/com/clubportal/controller/PublicConfigController.java`
+Legacy manual scripts still exist in `deploy/`, but they are not the primary handoff path for this repo.
 
-This endpoint exposes frontend-safe config only:
+## 12. Implemented vs default-off vs reserved summary
 
-- Google Maps API key
-- Google OAuth client ID
+### Implemented and active by default
 
-Current environment variables commonly used:
+- email verification for registration
+- password reset with trusted base URL
+- server-side password policy
+- virtual checkout
+- booking verification code
+- club FAQ semantic matching
+- chat handoff flow
+- order numbers for checkout-backed flows
 
-- `SPRING_DATASOURCE_URL`
-- `SPRING_DATASOURCE_USERNAME`
-- `SPRING_DATASOURCE_PASSWORD`
-- `JWT_SECRET`
-- `GOOGLE_OAUTH_CLIENT_ID`
-- `GOOGLE_MAPS_JS_API_KEY`
-- `APP_PUBLIC_BASE_URL`
-- `SPRING_MAIL_*`
-- `APP_MAIL_FROM`
+### Implemented but disabled by default
 
-## 16. Data Relationships
+- Stripe checkout path
+  - code path exists
+  - not active unless payment mode and Stripe secrets are configured
 
-Core business relationships:
+### Reserved / future extension points
 
-- `user` -> can own bookings, memberships, chat messages
-- `club` -> owns venues, images, membership plans
-- `club_admin` -> links a club account user to manageable clubs
-- `venue` -> belongs to a club
-- `timeslot` -> belongs to a venue
-- `booking_record` -> links user to timeslot
-- `membership_plan` -> belongs to a club
-- `user_membership` -> links user to membership plan
-- `transaction` -> records membership purchase payment
-- `chat_message` -> links club and user conversation threads
+- stronger semantic FAQ scoring beyond the current in-process matcher
+- full replacement of iframe-based club workspace shell
+- tighter cookie-only auth model across all pages
+- stricter CSP after more inline scripts are removed
 
-Feature dependency map:
+## 13. What teachers should be told if they ask
 
-- club profile feeds public discovery and club page
-- venues feed time slots
-- time slots feed bookings
-- memberships feed slot pricing and booking payment amount
-- bookings feed both user history and club booking reports
-- chat links public club page and club workspace
+Use these statements, because they are aligned with the current code:
 
-## 17. Deployment and Release Flow
+- Registration returns both browser auth cookies and a token field for compatibility.
+- Direct booking endpoints no longer create bookings. Checkout sessions are mandatory first.
+- Direct membership purchase endpoints no longer complete purchase. Checkout sessions are mandatory first.
+- Default payment mode is virtual checkout.
+- Stripe is implemented, but not enabled by default.
+- FAQ semantic matching is implemented per club and guarded by low-risk checks before direct answer.
 
-Relevant files:
-
-- `deploy/remote_release_frontend_only.sh`
-- `deploy/remote_release_full.sh`
-- `deploy/remote_apply_schema_from_env.sh`
-- `deploy/mysql_schema.sql`
-
-How releases work:
-
-1. frontend is built into `dist/`
-2. a tar archive is created
-3. archive is copied to the server
-4. release script extracts it into a timestamped release folder
-5. files are `rsync`'d into `/var/www/club-portal`
-
-Database updates:
-
-- `deploy/mysql_schema.sql` is written to be rerunnable
-- many schema changes are guarded with `IF NOT EXISTS` or information_schema checks
-- `remote_apply_schema_from_env.sh` reads DB credentials from `/etc/club-portal.env`
-
-## 18. Known Design Characteristics
-
-These are important to understand before making large changes:
-
-### 18.1 Frontend state is heavily localStorage-based
-
-Examples:
-
-- `selectedClub`
-- `loggedUser`
-- `token`
-
-This keeps the pages loosely coupled, but it also means:
-
-- cross-page flows depend on client-side state
-- stale localStorage can affect behavior
-
-### 18.2 The system mixes public pages and role-specific pages
-
-Public pages:
-
-- home
-- club
-- login
-- payment
-
-User-only pages:
-
-- user center
-
-Club-only pages:
-
-- club home and its sub-pages
-
-### 18.3 The deployed app is page-based, not component-driven
-
-The current production feature set is maintained mostly through standalone HTML files with inline scripts.
-
-## 19. Known Gaps and Technical Debt
-
-The most important current gaps are:
-
-1. `payment.html` is still a simulated payment flow.
-2. local H2 is now limited to the explicit `dev` profile; the default runtime path uses the `prod` profile and MySQL validation.
-3. some deployment and generated artifacts are mixed into the working tree, so operational and source concerns are not fully separated.
-
-## 20. Suggested Reading Order for New Developers
-
-If someone new joins this project, the fastest useful reading order is:
-
-1. `frontend/club home.html`
-2. `frontend/club.html`
-3. `frontend/club-admin.html`
-4. `frontend/club-info.html`
-5. `frontend/club updates.html`
-6. `backend/src/main/java/com/clubportal/controller/ClubController.java`
-7. `backend/src/main/java/com/clubportal/controller/TimeSlotController.java`
-8. `backend/src/main/java/com/clubportal/controller/BookingController.java`
-9. `backend/src/main/java/com/clubportal/controller/MembershipController.java`
-10. `backend/src/main/java/com/clubportal/service/MembershipService.java`
-11. `deploy/mysql_schema.sql`
-
-That sequence gives the clearest view of the real product behavior.
+Those statements match the current implementation and avoid the older documentation drift.

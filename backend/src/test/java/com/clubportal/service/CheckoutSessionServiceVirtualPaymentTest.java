@@ -7,8 +7,10 @@ import com.clubportal.model.BookingHold;
 import com.clubportal.model.BookingRecord;
 import com.clubportal.model.CheckoutSession;
 import com.clubportal.model.Club;
+import com.clubportal.model.MembershipPlan;
 import com.clubportal.model.TimeSlot;
 import com.clubportal.model.User;
+import com.clubportal.model.UserMembership;
 import com.clubportal.model.Venue;
 import com.clubportal.repository.BookingHoldRepository;
 import com.clubportal.repository.BookingRecordRepository;
@@ -139,6 +141,8 @@ class CheckoutSessionServiceVirtualPaymentTest {
         assertEquals("VIRTUAL_CHECKOUT", response.provider());
         assertTrue(response.checkoutUrl().contains("/payment.html?sessionId="));
         assertEquals(response.checkoutUrl(), response.paymentPageUrl());
+        assertNotNull(response.orderNo());
+        assertTrue(response.orderNo().startsWith("BK-"));
     }
 
     @Test
@@ -193,9 +197,14 @@ class CheckoutSessionServiceVirtualPaymentTest {
         assertEquals("PAID", detail.status());
         assertEquals("VIRTUAL_CHECKOUT", detail.provider());
         assertEquals("BOOKING", detail.type());
+        assertEquals(session.getOrderNo(), detail.orderNo());
+        assertTrue(detail.orderNo().startsWith("BK-"));
         assertNotNull(session.getCompletedAt());
         assertEquals(Integer.valueOf(77), session.getBookingId());
-        verify(bookingRepo).save(argThat(row -> "482905".equals(row.getBookingVerificationCode())));
+        verify(bookingRepo).save(argThat(row ->
+                "482905".equals(row.getBookingVerificationCode())
+                        && "APPROVED".equals(row.getStatus())
+        ));
         verify(bookingVerificationCodeService).generateUniqueCode();
     }
 
@@ -251,12 +260,97 @@ class CheckoutSessionServiceVirtualPaymentTest {
         CheckoutSessionDetailResponse detail = service.confirmVirtualCheckout(user, "chk_virtual_2");
 
         assertEquals("PAID", detail.status());
+        assertEquals(session.getOrderNo(), detail.orderNo());
+        assertTrue(detail.orderNo().startsWith("BK-"));
         verify(bookingRepo).save(argThat(row ->
                 Integer.valueOf(91).equals(row.getBookingId())
                         && "904211".equals(row.getBookingVerificationCode())
-                        && "PENDING".equals(row.getStatus())
+                        && "APPROVED".equals(row.getStatus())
         ));
         verify(bookingVerificationCodeService).generateUniqueCode();
+    }
+
+    @Test
+    void confirmVirtualCheckout_consumesBookingPackCreditAndMakesBookingFree() {
+        User user = endUser(6);
+        CheckoutSession session = new CheckoutSession();
+        session.setSessionId("chk_virtual_pack");
+        session.setUserId(6);
+        session.setClubId(2);
+        session.setType(CheckoutSessionService.TYPE_BOOKING);
+        session.setTimeslotId(11);
+        session.setAmount(new BigDecimal("12.50"));
+        session.setCurrency("GBP");
+        session.setStatus(CheckoutSessionService.STATUS_PAYING);
+        session.setProvider(CheckoutSessionService.PROVIDER_VIRTUAL_CHECKOUT);
+        session.setExpiresAt(Instant.now().plusSeconds(600));
+
+        TimeSlot slot = timeSlot(11, 15, new BigDecimal("12.50"));
+        Venue venue = venue(15, 2, "Main Hall");
+        Club club = club(2, "Demo Club");
+
+        MembershipPlan plan = new MembershipPlan();
+        plan.setPlanId(301);
+        plan.setClubId(2);
+        plan.setBenefitType(MembershipService.BENEFIT_BOOKING_PACK);
+        plan.setIncludedBookings(30);
+
+        UserMembership membership = new UserMembership();
+        membership.setUserMembershipId(501);
+        membership.setUserId(6);
+        membership.setPlanId(301);
+        membership.setStatus("ACTIVE");
+        membership.setRemainingBookings(3);
+
+        BookingHold hold = new BookingHold();
+        hold.setCheckoutSessionId("chk_virtual_pack");
+        hold.setStatus(CheckoutSessionService.HOLD_ACTIVE);
+        hold.setExpiresAt(Instant.now().plusSeconds(600));
+
+        when(checkoutSessionRepo.findByStatusInAndExpiresAtBefore(anyList(), any())).thenReturn(List.of());
+        when(checkoutSessionRepo.findBySessionIdForUpdate("chk_virtual_pack")).thenReturn(Optional.of(session));
+        when(timeSlotRepo.findByIdForUpdate(11)).thenReturn(Optional.of(slot));
+        when(timeSlotRepo.findById(11)).thenReturn(Optional.of(slot));
+        when(venueRepo.findById(15)).thenReturn(Optional.of(venue));
+        when(clubRepo.findById(2)).thenReturn(Optional.of(club));
+        when(bookingHoldRepo.findByCheckoutSessionIdForUpdate("chk_virtual_pack")).thenReturn(Optional.of(hold));
+        when(bookingRepo.findFirstByUserIdAndTimeslotIdAndStatusInOrderByBookingTimeDesc(eq(6), eq(11), anyList())).thenReturn(Optional.empty());
+        when(bookingRepo.countByTimeslotIdAndStatusIn(eq(11), anyList())).thenReturn(0L);
+        when(membershipService.findActiveMembership(eq(6), eq(2), any())).thenReturn(Optional.of(new MembershipService.ActiveMembershipContext(membership, plan)));
+        when(membershipService.normalizePrice(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(membershipService.isBookingPack(plan)).thenReturn(true);
+        when(userMembershipRepo.findByIdForUpdate(501)).thenReturn(Optional.of(membership));
+        when(membershipService.effectiveStatus(eq(membership), eq(plan), any())).thenReturn("ACTIVE");
+        when(membershipService.normalizeRemainingBookings(3)).thenReturn(3);
+        when(bookingRepo.findFirstByUserIdAndTimeslotIdOrderByBookingTimeDesc(6, 11)).thenReturn(Optional.empty());
+        when(bookingVerificationCodeService.generateUniqueCode()).thenReturn("482905");
+        when(userMembershipRepo.save(any(UserMembership.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(bookingRepo.save(any(BookingRecord.class))).thenAnswer(invocation -> {
+            BookingRecord row = invocation.getArgument(0);
+            if (row.getBookingId() == null) {
+                row.setBookingId(88);
+            }
+            return row;
+        });
+        when(checkoutSessionRepo.save(any(CheckoutSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(bookingHoldRepo.save(any(BookingHold.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        CheckoutSessionDetailResponse detail = service.confirmVirtualCheckout(user, "chk_virtual_pack");
+
+        assertEquals("PAID", detail.status());
+        assertEquals(new BigDecimal("0.00"), detail.amount());
+        assertEquals(new BigDecimal("0.00"), session.getAmount());
+        assertEquals(2, membership.getRemainingBookings());
+        verify(userMembershipRepo).save(argThat(row ->
+                Integer.valueOf(501).equals(row.getUserMembershipId())
+                        && Integer.valueOf(2).equals(row.getRemainingBookings())
+        ));
+        verify(bookingRepo).save(argThat(row ->
+                Boolean.TRUE.equals(row.getMembershipCreditUsed())
+                        && Integer.valueOf(501).equals(row.getUserMembershipId())
+                        && "APPROVED".equals(row.getStatus())
+                        && new BigDecimal("0.00").compareTo(row.getPricePaid()) == 0
+        ));
     }
 
     private static User endUser(int userId) {

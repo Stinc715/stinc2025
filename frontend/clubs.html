@@ -1,10 +1,12 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Club Directory</title>
-  <link rel="stylesheet" href="theme.css?v=20260324a">
+  
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data: blob: https://maps.gstatic.com https://maps.googleapis.com https://*.googleusercontent.com https://www.google.com https://www.gstatic.com; font-src 'self' data: https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://accounts.google.com https://maps.googleapis.com; connect-src 'self' https://accounts.google.com https://maps.googleapis.com https://api.stripe.com; frame-src 'self' https://accounts.google.com https://js.stripe.com; form-action 'self' https://accounts.google.com">
+<title>Club Directory</title>
+  <link rel="stylesheet" href="theme.css?v=20260402a">
   <style>
     :root {
       --bg: #f7f8fb;
@@ -30,11 +32,6 @@
       background: rgba(255, 255, 255, .92);
       backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--line);
-    }
-    .wrap {
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 18px;
     }
     .header-wrap {
       display: flex;
@@ -64,26 +61,6 @@
       gap: 8px;
       flex-wrap: wrap;
       align-items: center;
-    }
-    .btn {
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      min-height: 38px;
-      padding: 0 14px;
-      background: #111827;
-      color: #fff;
-      font: inherit;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .btn.ghost {
-      background: #fff;
-      color: #111827;
     }
     .hero {
       display: grid;
@@ -293,10 +270,12 @@
       }
     }
   </style>
+<link rel="stylesheet" href="desktop-consistency.css?v=20260403a">
+<script src="auth-session.js?v=20260331b"></script>
 </head>
-<body>
+<body class="desktop-consistency desktop-shell--standard desktop-page--clubs">
   <header>
-    <div class="wrap header-wrap">
+    <div class="wrap header-wrap desktop-shell-header">
       <div class="brand">
         <a href="home.html">Club Booking Portal</a>
         <p>Browse clubs, compare categories, and jump straight into join or booking flows.</p>
@@ -308,7 +287,7 @@
     </div>
   </header>
 
-  <main class="wrap">
+  <main class="wrap desktop-shell-main">
     <section class="hero">
       <article class="panel hero-copy">
         <h1>Club directory with direct paths to view, join, and book.</h1>
@@ -535,3 +514,4 @@
   </script>
 </body>
 </html>
+

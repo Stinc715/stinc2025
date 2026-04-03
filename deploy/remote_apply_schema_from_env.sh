@@ -1,22 +1,27 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Apply /home/ec2-user/deploy/mysql_schema.sql to the DB configured in /etc/club-portal.env
+# Apply the staged schema to the DB configured in the backend environment file.
 # Works for both local MySQL and AWS RDS.
 # NOTE: /etc/club-portal.env is a systemd EnvironmentFile, not a shell script.
 # It may contain characters like '&' in values (e.g. JDBC query params), so we MUST NOT `source` it.
 
-env_file="/etc/club-portal.env"
+env_file="${ENV_FILE:-/etc/club-portal.env}"
+deploy_home="${DEPLOY_HOME:-$HOME/deploy}"
 
 if [[ ! -f "$env_file" ]]; then
-  echo "[schema] Missing /etc/club-portal.env"
+  echo "[schema] Missing environment file: $env_file"
   exit 1
 fi
 
 read_env_kv() {
   local key="$1"
   local line
-  line="$(grep -m1 "^${key}=" "$env_file" 2>/dev/null || true)"
+  if [[ -r "$env_file" ]]; then
+    line="$(grep -m1 "^${key}=" "$env_file" 2>/dev/null || true)"
+  else
+    line="$(sudo grep -m1 "^${key}=" "$env_file" 2>/dev/null || true)"
+  fi
   if [[ -z "$line" ]]; then
     return 1
   fi
@@ -39,17 +44,17 @@ if [[ -z "${DB_PASSWORD}" ]]; then
 fi
 
 if [[ -z "${DB_URL}" || -z "${DB_USERNAME}" || -z "${DB_PASSWORD}" ]]; then
-  echo "[schema] Missing DB_URL/DB_USERNAME/DB_PASSWORD or SPRING_DATASOURCE_* in /etc/club-portal.env"
+  echo "[schema] Missing DB_URL/DB_USERNAME/DB_PASSWORD or SPRING_DATASOURCE_* in $env_file"
   exit 1
 fi
 
-schema_path="/home/ec2-user/deploy/mysql_schema.sql"
+schema_path="$deploy_home/mysql_schema.sql"
 if [[ ! -f "$schema_path" ]]; then
   echo "[schema] Missing schema file: $schema_path"
   exit 1
 fi
 
-migration_dir="/home/ec2-user/deploy/migrations"
+migration_dir="$deploy_home/migrations"
 
 # Parse: jdbc:mysql://HOST:PORT/DB?params
 url="${DB_URL#jdbc:mysql://}"

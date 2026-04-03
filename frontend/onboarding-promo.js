@@ -198,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const upsertClubFromDraft = async () => {
     if (!requireClubLogin()) {
-      window.location.href = 'login.html#login';
+      window.location.replace('home.html');
       return null;
     }
 
