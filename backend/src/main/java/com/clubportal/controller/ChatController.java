@@ -50,6 +50,7 @@ public class ChatController {
 
     private static final String SENDER_USER = "USER";
     private static final String SENDER_CLUB = "CLUB";
+    private static final String SENDER_SYSTEM = "system";
     private static final int MAX_MESSAGE_LENGTH = 500;
 
     private final CurrentUserService currentUserService;
@@ -191,13 +192,10 @@ public class ChatController {
             ConversationAccumulator acc = grouped.get(userId);
             if (acc == null) {
                 acc = new ConversationAccumulator();
-                acc.lastMessageId = row.getMessageId();
-                acc.lastSender = normalizeSender(row.getSender());
-                acc.lastMessageText = safe(row.getMessageText());
-                acc.lastMessageAt = row.getCreatedAt();
                 grouped.put(userId, acc);
             }
 
+            applyConversationPreview(acc, row);
             acc.totalMessages++;
             if (SENDER_USER.equalsIgnoreCase(row.getSender()) && !row.isReadByClub()) {
                 acc.unreadCount++;
@@ -500,6 +498,32 @@ public class ChatController {
         return unreadCount == null ? 0 : Math.max(0, unreadCount);
     }
 
+    private static void applyConversationPreview(ConversationAccumulator acc, ChatMessage row) {
+        String normalizedSender = normalizeSender(row.getSender());
+        if (acc.latestSender == null) {
+            acc.latestSender = normalizedSender;
+        }
+
+        int candidatePriority = conversationPreviewPriority(normalizedSender);
+        if (acc.lastMessageId == null || (SENDER_SYSTEM.equals(acc.latestSender) && candidatePriority > acc.previewPriority)) {
+            acc.lastMessageId = row.getMessageId();
+            acc.lastSender = normalizedSender;
+            acc.lastMessageText = safe(row.getMessageText());
+            acc.lastMessageAt = row.getCreatedAt();
+            acc.previewPriority = candidatePriority;
+        }
+    }
+
+    private static int conversationPreviewPriority(String sender) {
+        if ("user".equals(sender)) {
+            return 3;
+        }
+        if (SENDER_SYSTEM.equals(sender)) {
+            return 1;
+        }
+        return 2;
+    }
+
     private static String normalizeMessageText(String raw) {
         String text = String.valueOf(raw == null ? "" : raw)
                 .replace("\r\n", "\n")
@@ -515,6 +539,8 @@ public class ChatController {
     }
 
     private static class ConversationAccumulator {
+        String latestSender;
+        int previewPriority;
         Integer lastMessageId;
         String lastSender;
         String lastMessageText;

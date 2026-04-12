@@ -132,6 +132,10 @@
       background: rgba(15, 23, 42, 0.08);
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
     }
+    .workspace-tab.has-unread:not(.active) {
+      border-color: rgba(220, 38, 38, 0.16);
+      background: rgba(254, 242, 242, 0.92);
+    }
     .workspace-tab-icon {
       width: 30px;
       height: 30px;
@@ -153,14 +157,37 @@
       color: #0f172a;
     }
     .workspace-tab-copy {
-      display: block;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
       min-width: 0;
     }
     .workspace-tab-title {
+      display: block;
       font-size: 15px;
       font-weight: 700;
       letter-spacing: -0.01em;
       line-height: 1.2;
+    }
+    .workspace-tab-badge {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 7px;
+      border-radius: 999px;
+      background: #dc2626;
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1;
+      box-shadow: 0 6px 14px rgba(220, 38, 38, 0.18);
+      flex: 0 0 auto;
+    }
+    .workspace-tab-badge.is-visible {
+      display: inline-flex;
     }
     .workspace-main {
       display: grid;
@@ -591,6 +618,7 @@
             <span class="workspace-tab-icon" aria-hidden="true">C</span>
             <span class="workspace-tab-copy">
               <span class="workspace-tab-title">Member chats</span>
+              <span id="workspaceChatsUnreadBadge" class="workspace-tab-badge" hidden aria-live="polite"></span>
             </span>
           </button>
         </nav>
@@ -670,6 +698,9 @@
     });
     const DASHBOARD_GUIDE_PENDING_KEY = 'clubPortal.pendingDashboardGuide';
     const DASHBOARD_GUIDE_SEEN_PREFIX = 'clubPortal.dashboardGuideSeen.';
+    const CHAT_UNREAD_SYNC_EVENT = 'club-workspace-chat-unread';
+    const CHAT_UNREAD_POLL_VISIBLE_MS = 12000;
+    const CHAT_UNREAD_POLL_HIDDEN_MS = 30000;
 
     const SECTION_CONFIG = Object.freeze({
       info: {
@@ -690,7 +721,7 @@
       },
       chats: {
         title: 'Member chats',
-        src: 'club chat.html?v=20260309e'
+        src: 'club chat.html?v=20260411b'
       }
     });
 
@@ -821,6 +852,8 @@
     const frameLoadingEl = document.getElementById('frameLoading');
     const frameLoadingTextEl = document.getElementById('frameLoadingText');
     const menuButtons = Array.from(document.querySelectorAll('.workspace-tab'));
+    const chatsMenuButton = document.querySelector('.workspace-tab[data-section="chats"]');
+    const chatsUnreadBadgeEl = document.getElementById('workspaceChatsUnreadBadge');
     const framesBySection = new Map(
       Array.from(document.querySelectorAll('.section-frame')).map((frame) => [frame.dataset.section, frame])
     );
@@ -861,6 +894,9 @@
     let sessionCheckInFlight = false;
     let currentTokenSessionVersion = getTokenSessionVersion(getAuthToken());
     let dashboardGuideClubId = '';
+    let selectedClubMeta = { id: '', name: '' };
+    let chatUnreadPollTimer = null;
+    let chatUnreadPollInFlight = false;
 
     const normalizeSection = (raw) => {
       const key = String(raw || '').trim().toLowerCase();
@@ -1070,11 +1106,13 @@
       if (event.key === 'token') {
         const liveToken = getAuthToken();
         if (!liveToken) {
+          renderChatsUnreadBadge(0);
           forceLogout(PUBLIC_HOME_TARGET);
           return;
         }
         const newSessionVersion = getTokenSessionVersion(liveToken);
         if (currentTokenSessionVersion && newSessionVersion && newSessionVersion !== currentTokenSessionVersion) {
+          renderChatsUnreadBadge(0);
           forceLogout(PUBLIC_HOME_TARGET);
           return;
         }
@@ -1083,11 +1121,33 @@
       if (event.key === 'loggedUser') {
         const user = parseJsonSafe(localStorage.getItem('loggedUser') || 'null');
         if (!user || user.type !== 'club') {
+          renderChatsUnreadBadge(0);
           forceLogout(PUBLIC_HOME_TARGET);
           return;
         }
       }
+      if (event.key === 'selectedClub') {
+        syncSelectedClubMeta();
+        refreshChatsUnreadBadge();
+      }
+      if (event.key === 'token' || event.key === 'loggedUser') {
+        startChatUnreadPolling();
+        refreshChatsUnreadBadge();
+      }
       scheduleFrameHeightSync(framesBySection.get(activeSection));
+    });
+
+    window.addEventListener('message', (event) => {
+      if (event.origin !== window.location.origin) return;
+      const chatsFrame = framesBySection.get('chats');
+      if (chatsFrame?.contentWindow && event.source !== chatsFrame.contentWindow) return;
+      const payload = event.data;
+      if (!payload || payload.type !== CHAT_UNREAD_SYNC_EVENT) return;
+      const payloadClubId = String(payload.clubId || '').trim();
+      if (payloadClubId) {
+        selectedClubMeta = { ...selectedClubMeta, id: payloadClubId };
+      }
+      renderChatsUnreadBadge(Math.max(0, Number(payload.unreadCount) || 0));
     });
 
     window.addEventListener('pageshow', () => {
@@ -1097,6 +1157,19 @@
       if (!srcAttr || srcAttr === 'about:blank' || activeFrame.dataset.loaded !== '1') {
         activateSection(activeSection, { updateUrl: false, forceReload: true });
       }
+      refreshChatsUnreadBadge();
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      startChatUnreadPolling();
+      if (!document.hidden) {
+        refreshChatsUnreadBadge();
+      }
+    });
+
+    window.addEventListener('focus', () => {
+      startChatUnreadPolling();
+      refreshChatsUnreadBadge();
     });
 
     window.setInterval(() => {
@@ -1150,6 +1223,93 @@
         id: String(first.id ?? first.clubId ?? ''),
         name: String(first.name || first.clubName || '').trim()
       };
+    };
+
+    const getStoredSelectedClub = () => {
+      const stored = parseJsonSafe(localStorage.getItem('selectedClub') || 'null') || {};
+      const clubId = String(stored.id ?? stored.clubId ?? '').trim();
+      return {
+        id: /^[0-9]+$/.test(clubId) ? clubId : '',
+        name: String(stored.name || stored.clubName || '').trim()
+      };
+    };
+
+    const syncSelectedClubMeta = (clubs = []) => {
+      const next = Array.isArray(clubs) && clubs.length ? resolveSelectedClub(clubs) : getStoredSelectedClub();
+      const clubId = String(next?.id ?? next?.clubId ?? '').trim();
+      selectedClubMeta = {
+        id: /^[0-9]+$/.test(clubId) ? clubId : '',
+        name: String(next?.name || next?.clubName || '').trim()
+      };
+      return selectedClubMeta;
+    };
+
+    const conversationNeedsAttention = (item) => {
+      if (!item || typeof item !== 'object') return false;
+      if (String(item.chatMode || '').trim() !== 'HANDOFF_REQUESTED') return false;
+      return String(item.lastSender || '').trim().toLowerCase() !== 'club';
+    };
+
+    const getConversationUnreadWeight = (item) => {
+      const unreadValue = item?.unreadCount;
+      const unreadCount = Math.max(0, Number(unreadValue) || 0);
+      return Math.max(unreadCount, conversationNeedsAttention(item) ? 1 : 0);
+    };
+
+    const getConversationUnreadTotal = (items = []) => {
+      if (!Array.isArray(items) || !items.length) return 0;
+      return items.reduce((sum, item) => sum + getConversationUnreadWeight(item), 0);
+    };
+
+    const formatUnreadBadgeCount = (count) => (count > 99 ? '99+' : String(count));
+
+    const renderChatsUnreadBadge = (count) => {
+      const unreadCount = Math.max(0, Number(count) || 0);
+      chatsMenuButton?.classList.toggle('has-unread', unreadCount > 0);
+      if (!chatsUnreadBadgeEl) return;
+      chatsUnreadBadgeEl.hidden = unreadCount <= 0;
+      chatsUnreadBadgeEl.classList.toggle('is-visible', unreadCount > 0);
+      chatsUnreadBadgeEl.textContent = unreadCount > 0 ? formatUnreadBadgeCount(unreadCount) : '';
+      chatsUnreadBadgeEl.setAttribute(
+        'aria-label',
+        unreadCount > 0 ? `${unreadCount} member chats need attention` : 'No member chats need attention'
+      );
+    };
+
+    const refreshChatsUnreadBadge = async () => {
+      if (chatUnreadPollInFlight) return;
+      const clubId = String(selectedClubMeta.id || getStoredSelectedClub().id || '').trim();
+      if (!/^[0-9]+$/.test(clubId)) {
+        renderChatsUnreadBadge(0);
+        return;
+      }
+      chatUnreadPollInFlight = true;
+      try {
+        const res = await authFetch(`/api/my/clubs/${encodeURIComponent(clubId)}/chat/conversations`, { cache: 'no-store' });
+        if (res.status === 401 || res.status === 403) {
+          renderChatsUnreadBadge(0);
+          return;
+        }
+        if (!res.ok) return;
+        const raw = await res.json().catch(() => []);
+        renderChatsUnreadBadge(getConversationUnreadTotal(raw));
+      } catch (err) {
+        console.warn('Failed to refresh club chat unread badge:', err);
+      } finally {
+        chatUnreadPollInFlight = false;
+      }
+    };
+
+    const stopChatUnreadPolling = () => {
+      if (!chatUnreadPollTimer) return;
+      window.clearInterval(chatUnreadPollTimer);
+      chatUnreadPollTimer = null;
+    };
+
+    const startChatUnreadPolling = () => {
+      stopChatUnreadPolling();
+      const interval = document.hidden ? CHAT_UNREAD_POLL_HIDDEN_MS : CHAT_UNREAD_POLL_VISIBLE_MS;
+      chatUnreadPollTimer = window.setInterval(refreshChatsUnreadBadge, interval);
     };
 
     const markDashboardGuideHandled = (clubId = dashboardGuideClubId) => {
@@ -1221,9 +1381,9 @@
       privacy: {
         title: 'Privacy',
         body: `
-          <p>We only store the information needed to manage bookings and memberships.</p>
-          <p>Your account data is kept locally in this demo and is not shared with third parties.</p>
-          <p>You can request deletion at any time by contacting the admin.</p>
+          <p>We store the information needed to run Club Portal features such as sign-in, club setup, bookings, memberships, payments, chat, and community Q&amp;A.</p>
+          <p>Depending on how this project is deployed, data may be stored in your browser and on the backend server. Some features can also use configured third-party services such as Google sign-in or Maps, Stripe payments, and AI-assisted chat.</p>
+          <p>If you need your account or club data corrected or removed, please contact the platform admin.</p>
         `
       },
       terms: {
@@ -1281,8 +1441,11 @@
       } catch (err) {
         console.error('Failed to initialize club workspace:', err);
       } finally {
+        syncSelectedClubMeta(clubs);
         activateSection(getInitialSection(), { updateUrl: true });
         maybeOpenDashboardGuide(clubs);
+        startChatUnreadPolling();
+        refreshChatsUnreadBadge();
         startSessionGuard();
         checkSessionAlive();
       }

@@ -43,13 +43,13 @@ class ChatSessionServiceTest {
     }
 
     @Test
-    void requestHandoffMarksSessionAndBumpsClubUnreadCount() {
+    void requestHandoffMarksSessionWithoutInflatingClubUnreadCount() {
         ChatSession existing = new ChatSession();
         existing.setSessionId(7);
         existing.setClubId(12);
         existing.setUserId(45);
         existing.setChatMode(ChatMode.AI);
-        existing.setClubUnreadCount(0);
+        existing.setClubUnreadCount(2);
 
         ChatSessionRepository repository = mock(ChatSessionRepository.class);
         when(repository.findById(7)).thenReturn(Optional.of(existing));
@@ -60,7 +60,7 @@ class ChatSessionServiceTest {
 
         assertEquals(ChatMode.HANDOFF_REQUESTED, updated.getChatMode());
         assertEquals(HandoffReason.USER_REQUEST, updated.getHandoffReason());
-        assertEquals(1, updated.getClubUnreadCount());
+        assertEquals(2, updated.getClubUnreadCount());
         assertNotNull(updated.getHandoffRequestedAt());
     }
 

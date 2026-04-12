@@ -5,6 +5,7 @@ import com.clubportal.model.Club;
 import com.clubportal.model.ClubAdmin;
 import com.clubportal.model.User;
 import com.clubportal.repository.ClubAdminRepository;
+import com.clubportal.repository.ClubImageRepository;
 import com.clubportal.repository.ClubRepository;
 import com.clubportal.service.CurrentUserService;
 import com.clubportal.util.ClubTagCodec;
@@ -23,13 +24,16 @@ public class MyClubController {
     private final CurrentUserService currentUserService;
     private final ClubAdminRepository clubAdminRepo;
     private final ClubRepository clubRepo;
+    private final ClubImageRepository clubImageRepo;
 
     public MyClubController(CurrentUserService currentUserService,
                             ClubAdminRepository clubAdminRepo,
-                            ClubRepository clubRepo) {
+                            ClubRepository clubRepo,
+                            ClubImageRepository clubImageRepo) {
         this.currentUserService = currentUserService;
         this.clubAdminRepo = clubAdminRepo;
         this.clubRepo = clubRepo;
+        this.clubImageRepo = clubImageRepo;
     }
 
     @GetMapping("/clubs")
@@ -59,13 +63,19 @@ public class MyClubController {
         Integer id = c.getClubId();
         List<String> tags = ClubTagCodec.decode(c.getCategoryTags(), c.getCategory());
         String category = ClubTagCodec.primary(tags, c.getCategory());
+        String coverImageUrl = clubImageRepo.findByClubIdOrderBySortOrderAscImageIdAsc(id).stream()
+                .sorted((left, right) -> Boolean.compare(Boolean.TRUE.equals(right.getPrimaryImage()), Boolean.TRUE.equals(left.getPrimaryImage())))
+                .findFirst()
+                .map(img -> "/api/clubs/" + id + "/images/" + img.getImageId() + "/content")
+                .orElse("");
         return new ClubSummaryResponse(
                 id,
                 id,
                 c.getClubName(),
                 c.getDescription(),
                 category.isBlank() ? null : category,
-                tags
+                tags,
+                coverImageUrl.isBlank() ? null : coverImageUrl
         );
     }
 }

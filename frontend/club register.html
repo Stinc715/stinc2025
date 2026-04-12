@@ -908,37 +908,44 @@
           let saved = null;
           try { saved = await res.json(); } catch (e) { saved = null; }
           const profileToSave = saved || { fullName, email, role: 'club' };
-          const userType = resolveUserType(profileToSave.role || profileToSave.type);
-          rememberClubEmail(profileToSave.email || email);
-          persistStoredUser(profileToSave);
-          localStorage.setItem('loggedUser', JSON.stringify({
-            email: profileToSave.email || email,
-            name: profileToSave.fullName || fullName,
-            type: userType
-          }));
-          // Auto-login to get JWT (register endpoint does not return token).
-          try {
-            const loginRes = await fetch(CLUB_LOGIN_ENDPOINT, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email, password: pass })
-            });
-            if (loginRes.ok) {
-              const loginData = await loginRes.json();
-              persistAuthToken(loginData?.token);
-              persistStoredUser(loginData);
-              const role = loginData.role || loginData.type || 'club';
-              localStorage.setItem('loggedUser', JSON.stringify({
-                email: (loginData.email || email).trim(),
-                name: loginData.fullName || profileToSave.fullName || fullName,
-                type: resolveUserType(role)
-              }));
-            } else {
+          let authenticatedProfile = profileToSave;
+          let authenticatedToken = String(profileToSave?.token || '').trim();
+
+          if (!authenticatedToken) {
+            try {
+              const loginRes = await fetch(CLUB_LOGIN_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password: pass })
+              });
+              if (!loginRes.ok) {
+                const loginText = await loginRes.text().catch(() => '');
+                throw new Error(loginText || 'Automatic sign-in failed.');
+              }
+              const loginData = await loginRes.json().catch(() => null);
+              authenticatedToken = String(loginData?.token || '').trim();
+              if (!authenticatedToken) {
+                throw new Error('Automatic sign-in did not return an auth token.');
+              }
+              authenticatedProfile = loginData;
+            } catch (e) {
               persistAuthToken('');
+              showStatus(e?.message || 'Club account created, but automatic sign-in failed. Please log in and continue setup.', true);
+              return;
             }
-          } catch (e) {
-            persistAuthToken('');
           }
+
+          const finalEmail = String(authenticatedProfile?.email || profileToSave?.email || email).trim();
+          const finalName = authenticatedProfile?.fullName || profileToSave?.fullName || fullName;
+          const finalRole = authenticatedProfile?.role || authenticatedProfile?.type || profileToSave?.role || profileToSave?.type || 'club';
+          rememberClubEmail(finalEmail);
+          persistAuthToken(authenticatedToken);
+          persistStoredUser(authenticatedProfile);
+          localStorage.setItem('loggedUser', JSON.stringify({
+            email: finalEmail,
+            name: finalName,
+            type: resolveUserType(finalRole)
+          }));
 
           showStatus('Registered successfully! Redirecting to club profile...', false);
           try { sessionStorage.removeItem('clubPortal.onboardingDraft'); } catch (e) {}
@@ -971,9 +978,9 @@
       privacy: {
         title: 'Privacy',
         body: `
-          <p>We only store the information needed to manage bookings and memberships.</p>
-          <p>Your account data is kept locally in this demo and is not shared with third parties.</p>
-          <p>You can request deletion at any time by contacting the admin.</p>
+          <p>We store the information needed to run Club Portal features such as sign-in, club setup, bookings, memberships, payments, chat, and community Q&amp;A.</p>
+          <p>Depending on how this project is deployed, data may be stored in your browser and on the backend server. Some features can also use configured third-party services such as Google sign-in or Maps, Stripe payments, and AI-assisted chat.</p>
+          <p>If you need your account or club data corrected or removed, please contact the platform admin.</p>
         `
       },
       terms: {

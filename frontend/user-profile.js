@@ -6,9 +6,9 @@
         privacy: {
           title: 'Privacy',
           body: `
-            <p>We only store the information needed to manage bookings and memberships.</p>
-            <p>Your account data is kept locally in this demo and is not shared with third parties.</p>
-            <p>You can request deletion at any time by contacting the admin.</p>
+            <p>We store the information needed to run Club Portal features such as sign-in, club setup, bookings, memberships, payments, chat, and community Q&amp;A.</p>
+            <p>Depending on how this project is deployed, data may be stored in your browser and on the backend server. Some features can also use configured third-party services such as Google sign-in or Maps, Stripe payments, and AI-assisted chat.</p>
+            <p>If you need your account or club data corrected or removed, please contact the platform admin.</p>
           `
         },
         terms: {

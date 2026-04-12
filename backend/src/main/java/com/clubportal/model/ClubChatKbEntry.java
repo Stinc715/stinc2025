@@ -21,10 +21,12 @@ public class ClubChatKbEntry {
     @Column(name = "question_title", nullable = false, length = 255)
     private String questionTitle;
 
-    @Column(name = "answer_text", nullable = false, columnDefinition = "TEXT")
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
+    @Column(name = "answer_text", nullable = false)
     private String answerText;
 
-    @Column(name = "question_embedding", columnDefinition = "LONGTEXT")
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
+    @Column(name = "question_embedding")
     private String questionEmbedding;
 
     @Column(name = "embedding_model", length = 120)
@@ -33,10 +35,12 @@ public class ClubChatKbEntry {
     @Column(name = "embedding_dim")
     private Integer embeddingDim;
 
-    @Column(name = "trigger_keywords", columnDefinition = "TEXT")
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
+    @Column(name = "trigger_keywords")
     private String triggerKeywords;
 
-    @Column(name = "example_questions", columnDefinition = "TEXT")
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
+    @Column(name = "example_questions")
     private String exampleQuestions;
 
     @Enumerated(EnumType.STRING)

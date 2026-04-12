@@ -1,6 +1,8 @@
 package com.clubportal.model;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
@@ -19,7 +21,8 @@ public class ClubCommunityQuestion {
     @Column(name = "user_id", nullable = false)
     private Integer userId;
 
-    @Column(name = "question_text", nullable = false, columnDefinition = "TEXT")
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
+    @Column(name = "question_text", nullable = false)
     private String questionText;
 
     @Column(name = "created_at", nullable = false)

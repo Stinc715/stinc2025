@@ -811,6 +811,7 @@
   <script>
   const CHAT_POLL_VISIBLE_MS = 2500;
   const CHAT_POLL_HIDDEN_MS = 9000;
+  const CLUB_WORKSPACE_UNREAD_EVENT = 'club-workspace-chat-unread';
 
   const threadListEl = document.getElementById('threadList');
   const activeTitleEl = document.getElementById('activeTitle');
@@ -833,6 +834,8 @@
   let conversations = [];
   let activeUserId = null;
   let activeThread = null;
+  let hasExplicitActiveThreadSelection = false;
+  let pendingExplicitReadUserId = null;
   let myClubs = [];
   let loadingConversations = false;
   let loadingThread = false;
@@ -930,6 +933,12 @@
       selectedClubId = '';
       selectedClubName = '';
       hasTriedClubFallback = false;
+      conversations = [];
+      try {
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ type: CLUB_WORKSPACE_UNREAD_EVENT, clubId: '', unreadCount: 0 }, window.location.origin);
+        }
+      } catch {}
       return;
     }
 
@@ -1006,6 +1015,37 @@
   const buildClubChatStreamUrl = () => {
     if (!selectedClubId) return '';
     return `/api/my/clubs/${encodeURIComponent(selectedClubId)}/chat/stream`;
+  };
+
+  const conversationNeedsAttention = (item) => {
+    if (!item || typeof item !== 'object') return false;
+    if (String(item.chatMode || '').trim() !== 'HANDOFF_REQUESTED') return false;
+    return normalizeSender(item.lastSender || '') !== 'club';
+  };
+
+  const getConversationUnreadWeight = (item) => {
+    const unreadValue = item?.unreadCount;
+    const unreadCount = Math.max(0, Number(unreadValue) || 0);
+    return Math.max(unreadCount, conversationNeedsAttention(item) ? 1 : 0);
+  };
+
+  const getConversationUnreadTotal = (items = conversations) => {
+    if (!Array.isArray(items) || !items.length) return 0;
+    return items.reduce((sum, item) => sum + getConversationUnreadWeight(item), 0);
+  };
+
+  const notifyWorkspaceUnreadCount = (count = getConversationUnreadTotal()) => {
+    if (!window.parent || window.parent === window) return;
+    try {
+      window.parent.postMessage(
+        {
+          type: CLUB_WORKSPACE_UNREAD_EVENT,
+          clubId: String(selectedClubId || '').trim(),
+          unreadCount: Math.max(0, Number(count) || 0)
+        },
+        window.location.origin
+      );
+    } catch {}
   };
 
   const showModalAlert = (message, title = 'Notice') => {
@@ -1090,6 +1130,25 @@
       handoffReason: String(raw.handoffReason || '').trim(),
       clubUnreadCount: Math.max(0, Number(raw.clubUnreadCount) || 0)
     };
+  };
+
+  const setActiveUserThread = (userId, { explicit = false } = {}) => {
+    const normalizedUserId = Number(userId);
+    if (!Number.isFinite(normalizedUserId)) {
+      activeUserId = null;
+      hasExplicitActiveThreadSelection = false;
+      pendingExplicitReadUserId = null;
+      return;
+    }
+    const changed = Number(activeUserId) !== normalizedUserId;
+    activeUserId = normalizedUserId;
+    if (explicit) {
+      hasExplicitActiveThreadSelection = true;
+      pendingExplicitReadUserId = normalizedUserId;
+    } else if (changed) {
+      hasExplicitActiveThreadSelection = false;
+      pendingExplicitReadUserId = null;
+    }
   };
 
   const normalizeMessage = (raw) => {
@@ -1772,7 +1831,7 @@
         const userId = Number(btn.getAttribute('data-user-id'));
         if (!Number.isFinite(userId)) return;
         activeThreadPane = 'chat';
-        activeUserId = userId;
+        setActiveUserThread(userId, { explicit: true });
         renderThreadList();
         syncThreadViewMode();
         await loadActiveThread({ markRead: true, scrollBottom: true, quiet: false });
@@ -1846,6 +1905,9 @@
 
   const applyActiveThreadReadState = () => {
     if (!activeThread) return;
+    if (Number(pendingExplicitReadUserId) === Number(activeThread.userId)) {
+      pendingExplicitReadUserId = null;
+    }
     activeThread.unreadCount = 0;
     activeThread.clubUnreadCount = 0;
     activeThread.messages = Array.isArray(activeThread.messages)
@@ -1857,20 +1919,23 @@
       if (Number(item.userId) !== Number(activeThread.userId)) return item;
       return { ...item, unreadCount: 0, clubUnreadCount: 0 };
     });
+    notifyWorkspaceUnreadCount();
     renderThreadList();
     renderChatLog();
   };
 
   const markActiveThreadRead = async () => {
-    if (!activeUserId || !selectedClubId) return;
+    if (!activeUserId || !selectedClubId) return false;
     try {
       const res = await authFetch(`/api/my/clubs/${encodeURIComponent(selectedClubId)}/chat/conversations/${encodeURIComponent(String(activeUserId))}/read`, {
         method: 'POST'
       });
-      if (!res.ok) return;
+      if (!res.ok) return false;
       applyActiveThreadReadState();
+      return true;
     } catch (err) {
       console.warn('[club chat] mark read error', err);
+      return false;
     }
   };
 
@@ -1885,8 +1950,9 @@
         const msg = await readErrorText(res);
         if (!quiet) {
           conversations = [];
-          activeUserId = null;
+          setActiveUserThread(null);
           activeThread = null;
+          notifyWorkspaceUnreadCount(0);
           threadListEl.innerHTML = `<div class="thread-empty">${escapeHtml(msg)}</div>`;
           renderChatLog();
         }
@@ -1922,9 +1988,10 @@
       }
 
       conversations = list;
+      notifyWorkspaceUnreadCount();
 
       if (!keepActive || !conversations.some((item) => Number(item.userId) === Number(activeUserId))) {
-        activeUserId = conversations[0]?.userId ?? null;
+        setActiveUserThread(conversations[0]?.userId ?? null);
       }
 
       renderThreadList();
@@ -1932,8 +1999,9 @@
       console.warn('[club chat] load conversations error', err);
       if (!quiet) {
         conversations = [];
-        activeUserId = null;
+        setActiveUserThread(null);
         activeThread = null;
+        notifyWorkspaceUnreadCount(0);
         threadListEl.innerHTML = '<div class="thread-empty">Failed to load conversations.</div>';
         renderChatLog();
       }
@@ -1945,6 +2013,9 @@
 
   const loadActiveThread = async ({ markRead = true, scrollBottom = false, quiet = false } = {}) => {
     if (loadingThread || !selectedClubId || !activeUserId) {
+      if (loadingThread && markRead && hasExplicitActiveThreadSelection && Number.isFinite(Number(activeUserId))) {
+        pendingExplicitReadUserId = Number(activeUserId);
+      }
       if (!activeUserId) {
         activeThread = null;
         renderChatLog();
@@ -1986,8 +2057,12 @@
       };
       renderChatLog(scrollBottom);
 
-      if (markRead && activeThread.unreadCount > 0) {
+      const pendingReadMatchesActiveThread = Number(pendingExplicitReadUserId) === Number(activeThread.userId);
+      const shouldMarkRead = hasExplicitActiveThreadSelection && (Boolean(markRead) || pendingReadMatchesActiveThread);
+      if (shouldMarkRead && activeThread.unreadCount > 0) {
         await markActiveThreadRead();
+      } else if (pendingReadMatchesActiveThread) {
+        pendingExplicitReadUserId = null;
       }
     } catch (err) {
       console.warn('[club chat] load messages error', err);
@@ -2051,7 +2126,9 @@
       chatStreamConnected = true;
       stopChatPolling();
       const payload = parseStreamEvent(event);
-      const shouldMarkRead = !document.hidden && Number(payload?.userId) === Number(activeUserId);
+      const shouldMarkRead = hasExplicitActiveThreadSelection
+        && !document.hidden
+        && Number(payload?.userId) === Number(activeUserId);
       await runClubChatSync({ markRead: shouldMarkRead, scrollBottom: shouldMarkRead });
     };
 
@@ -2244,6 +2321,11 @@
       return;
     }
 
+    hasExplicitActiveThreadSelection = true;
+    if (activeThread?.unreadCount > 0) {
+      await markActiveThreadRead();
+    }
+
     const text = String(replyInputEl?.value || '').replace(/\r\n/g, '\n').trim();
     if (!text) return;
 
@@ -2313,14 +2395,15 @@
       const next = resolvePreferredClub(getSelectedClubMeta());
       applySelectedClub(next, { persist: false });
       conversations = [];
-      activeUserId = null;
+      setActiveUserThread(null);
       activeThread = null;
       clubQaBoard = { canAsk: false, canAnswer: false, canReplyAsClub: false, questionCount: 0, questions: [] };
       activeClubQaQuestionId = null;
       clubQaExpanded = false;
       activeThreadPane = 'chat';
+      notifyWorkspaceUnreadCount(0);
       await loadConversations({ keepActive: false, quiet: false });
-      await loadActiveThread({ markRead: true, scrollBottom: false, quiet: false });
+      await loadActiveThread({ markRead: hasExplicitActiveThreadSelection, scrollBottom: false, quiet: false });
       await loadClubQaBoard({ preserveSelection: false, quiet: true });
       startChatPolling();
     }
@@ -2331,9 +2414,10 @@
         stopChatStream();
         stopChatPolling();
         conversations = [];
-        activeUserId = null;
+        setActiveUserThread(null);
         activeThread = null;
         activeThreadPane = 'chat';
+        notifyWorkspaceUnreadCount(0);
         renderThreadList();
         syncThreadViewMode();
         return;
@@ -2342,7 +2426,7 @@
       const next = resolvePreferredClub(getSelectedClubMeta());
       applySelectedClub(next, { persist: true });
       await loadConversations({ keepActive: true, quiet: false });
-      await loadActiveThread({ markRead: true, scrollBottom: false, quiet: false });
+      await loadActiveThread({ markRead: hasExplicitActiveThreadSelection, scrollBottom: false, quiet: false });
       await loadClubQaBoard({ preserveSelection: true, quiet: true });
       startChatPolling();
     }
@@ -2358,7 +2442,7 @@
     applySelectedClub(preferred, { persist: true });
 
     await loadConversations({ keepActive: true, quiet: false });
-    await loadActiveThread({ markRead: true, scrollBottom: false, quiet: false });
+    await loadActiveThread({ markRead: hasExplicitActiveThreadSelection, scrollBottom: false, quiet: false });
     await loadClubQaBoard({ preserveSelection: false, quiet: true });
     startChatPolling();
     resizeReplyInput();

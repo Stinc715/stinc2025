@@ -172,6 +172,8 @@ function writeReports(report) {
     '',
     '- The report uses repo-relative paths only and does not include machine-specific absolute paths.',
     '- `npm run test:acceptance` reruns the frontend/backend/build chain inside the submission tree by design.',
+    '- A PASS result assumes first-run network access was available for Playwright Chromium and the Maven distribution used by the Maven Wrapper, or that those caches already existed.',
+    '- After those first-run downloads complete, later runs can reuse the local Playwright and Maven caches.',
     '- The `auth-session.js` classic-script build warning remains a known non-blocking warning during build and visual verification.',
     '',
   ].join('\n');

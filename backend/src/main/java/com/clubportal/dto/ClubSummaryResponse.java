@@ -8,6 +8,7 @@ public record ClubSummaryResponse(
         String name,
         String description,
         String category,
-        List<String> tags
+        List<String> tags,
+        String coverImageUrl
 ) {
 }

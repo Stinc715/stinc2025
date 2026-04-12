@@ -55,7 +55,7 @@ class ChatSessionControllerTest {
         updated.setUserId(6);
         updated.setChatMode(ChatMode.HANDOFF_REQUESTED);
         updated.setHandoffReason(HandoffReason.USER_REQUEST);
-        updated.setClubUnreadCount(1);
+        updated.setClubUnreadCount(0);
 
         ChatMessage systemMessage = new ChatMessage();
         systemMessage.setMessageId(99);

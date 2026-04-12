@@ -13,8 +13,8 @@ SERVICE_USER="${SERVICE_USER:-$USER}"
 APP_USER="${DB_USERNAME_INPUT:-club_portal_app}"
 APP_PW="${DB_PASSWORD_INPUT}"
 JWT_SECRET="${JWT_SECRET:-$(openssl rand -hex 32)}"
-APP_PUBLIC_BASE_URL="${APP_PUBLIC_BASE_URL:-https://example.invalid}"
-APP_SECURITY_CORS_ALLOWED_ORIGIN_PATTERNS="${APP_SECURITY_CORS_ALLOWED_ORIGIN_PATTERNS:-https://example.invalid}"
+APP_PUBLIC_BASE_URL="${APP_PUBLIC_BASE_URL:-https://club-portal.xyz}"
+APP_SECURITY_CORS_ALLOWED_ORIGIN_PATTERNS="${APP_SECURITY_CORS_ALLOWED_ORIGIN_PATTERNS:-https://club-portal.xyz,https://www.club-portal.xyz}"
 
 is_local_mysql_target=false
 if [[ "$DB_HOST" == "127.0.0.1" || "$DB_HOST" == "localhost" ]]; then

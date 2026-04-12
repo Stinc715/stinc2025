@@ -1,6 +1,8 @@
 package com.clubportal.model;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
@@ -16,13 +18,15 @@ public class Club {
     @Column(name = "club_name", nullable = false, length = 120)
     private String clubName;
 
-    @Column(name = "description", columnDefinition = "TEXT")
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
+    @Column(name = "description")
     private String description;
 
     @Column(name = "category", length = 60)
     private String category;
 
-    @Column(name = "category_tags", columnDefinition = "TEXT")
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
+    @Column(name = "category_tags")
     private String categoryTags;
 
     @Column(name = "email", length = 120)

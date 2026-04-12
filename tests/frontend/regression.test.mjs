@@ -283,6 +283,9 @@ test('delivery scripts stay parameterized and the repo can stage a clean submiss
   assert.doesNotMatch(uploadScript, /C:\\Users\\/);
   assert.doesNotMatch(uploadScript, /club-portal\.xyz/);
   assert.doesNotMatch(uploadScript, /ec2-user/);
+  assert.match(nginxTemplate, /location ~ \^\/api\/\(clubs\/\[\^\/\]\+\/chat\/stream\|my\/clubs\/\[\^\/\]\+\/chat\/stream\)\$/);
+  assert.match(nginxTemplate, /proxy_buffering off;/);
+  assert.doesNotMatch(nginxTemplate, /proxy_set_header Connection 'upgrade';/);
   assert.doesNotMatch(nginxTemplate, /club-portal\.xyz/);
   assert.match(nginxTemplate, /example\.invalid/);
   assert.doesNotMatch(apiContract, /club-portal\.xyz/);
@@ -466,8 +469,9 @@ test('auth session strips token-bearing user payloads from localStorage persiste
   assert.match(loginHtml, /persistStoredUser\(data\);/);
   assert.match(loginHtml, /persistStoredUser\(user\);/);
   assert.match(loginHtml, /persistStoredUser\(profileToSave\);/);
-  assert.match(clubRegisterHtml, /persistStoredUser\(profileToSave\);/);
-  assert.match(clubRegisterHtml, /persistStoredUser\(loginData\);/);
+  assert.match(clubRegisterHtml, /persistStoredUser\(authenticatedProfile\);/);
+  assert.match(clubRegisterHtml, /let authenticatedToken = String\(profileToSave\?\.token \|\| ''\)\.trim\(\);/);
+  assert.match(clubRegisterHtml, /persistAuthToken\(authenticatedToken\);/);
   assert.doesNotMatch(loginHtml, /localStorage\.setItem\('user', JSON\.stringify\(data\)\)/);
   assert.doesNotMatch(loginHtml, /localStorage\.setItem\('user', JSON\.stringify\(user\)\)/);
   assert.doesNotMatch(loginHtml, /localStorage\.setItem\('user', JSON\.stringify\(profileToSave\)\)/);
@@ -550,6 +554,9 @@ test('chat pages are wired for realtime EventSource updates', () => {
   assert.doesNotMatch(clubChatHtml, /No member conversations yet\. New chats will appear here automatically\./);
   assert.doesNotMatch(clubChatHtml, /Conversation is empty\. Start by sending a reply\./);
   assert.match(clubHtml, /let chatSendInFlight = false;/);
+  assert.match(clubHtml, /const runUserChatSync = async \(\{ scrollBottom = false, markRead = false \} = \{\}\) => \{\s*if \(chatPollInFlight \|\| chatSendInFlight\) return;/);
+  assert.match(clubHtml, /const resumeRealtimeSyncAfterSend = shouldMaintainChatSync\(\);\s*stopChatStream\(\);\s*stopChatPolling\(\);\s*const previousInput = text;/);
+  assert.match(clubHtml, /\} finally \{\s*if \(resumeRealtimeSyncAfterSend && chatWidgetOpen\) \{\s*startChatPolling\(\);\s*\}\s*\}\s*\}\);/);
   assert.match(clubHtml, /const createPendingUserChatMessage = \(text\) => \(\{/);
   assert.match(clubChatHtml, /\.thread-view\s*\{[\s\S]*overflow:\s*hidden;/);
   assert.match(clubChatHtml, /\.page-main\s*\{[\s\S]*padding-bottom:\s*24px;/);
@@ -562,6 +569,7 @@ test('chat pages are wired for realtime EventSource updates', () => {
 test('chat UIs label FAQ answers, robot answers, and human handoff prompts', () => {
   const clubChatHtml = read('frontend/club chat.html');
   const clubHtml = read('frontend/club.html');
+  const clubHomeHtml = read('frontend/club home.html');
 
   assert.match(clubHtml, /Verified club reply/);
   assert.match(clubHtml, /Bot/);
@@ -576,7 +584,7 @@ test('chat UIs label FAQ answers, robot answers, and human handoff prompts', () 
   assert.doesNotMatch(clubHtml, /\.club-page-grid\.chat-focus\s*\{/);
   assert.doesNotMatch(clubHtml, /\.booking-side-rail\.chat-focus\s*\{[\s\S]*width:\s*0;/);
   assert.match(clubHtml, /\.booking-side-rail\.chat-focus\s+\.club-chat-launcher,[\s\S]*\.booking-side-rail\.chat-focus\s+\.community-rail\s*\{[\s\S]*display:\s*none;/);
-  assert.match(clubHtml, /\.booking-side-rail\.chat-focus\s+\.booking-chat-rail\s*\{[\s\S]*position:\s*relative;[\s\S]*display:\s*block;/);
+  assert.match(clubHtml, /\.booking-side-rail\.chat-focus\s+\.booking-chat-rail\s*\{[\s\S]*position:\s*sticky;[\s\S]*top:\s*96px;[\s\S]*display:\s*block;/);
   assert.match(clubHtml, /\.booking-side-rail\.chat-focus\s+\.club-chat-panel\s*\{[\s\S]*position:\s*relative;[\s\S]*height:\s*min\(760px,\s*calc\(100dvh - 168px\)\);[\s\S]*box-shadow:\s*none;/);
   assert.match(clubHtml, /\.club-chat-toast\s*\{[\s\S]*position:\s*absolute;[\s\S]*bottom:\s*calc\(100% \+ 14px\);/);
   assert.match(clubHtml, /\.club-chat-panel\s*\{[\s\S]*position:\s*fixed;[\s\S]*right:\s*34px;[\s\S]*bottom:\s*30px;/);
@@ -614,6 +622,16 @@ test('chat UIs label FAQ answers, robot answers, and human handoff prompts', () 
   assert.match(clubChatHtml, /人工待接入/);
   assert.match(clubChatHtml, /answerSource/);
   assert.match(clubChatHtml, /clubUnreadCount/);
+  assert.match(clubChatHtml, /const conversationNeedsAttention = \(item\) => \{/);
+  assert.match(clubChatHtml, /return Math\.max\(unreadCount, conversationNeedsAttention\(item\) \? 1 : 0\);/);
+  assert.match(clubHomeHtml, /const conversationNeedsAttention = \(item\) => \{/);
+  assert.match(clubHomeHtml, /return Math\.max\(unreadCount, conversationNeedsAttention\(item\) \? 1 : 0\);/);
+  assert.match(clubChatHtml, /let hasExplicitActiveThreadSelection = false;/);
+  assert.match(clubChatHtml, /let pendingExplicitReadUserId = null;/);
+  assert.match(clubChatHtml, /if \(loadingThread && markRead && hasExplicitActiveThreadSelection && Number\.isFinite\(Number\(activeUserId\)\)\) \{\s*pendingExplicitReadUserId = Number\(activeUserId\);\s*\}/);
+  assert.match(clubChatHtml, /const pendingReadMatchesActiveThread = Number\(pendingExplicitReadUserId\) === Number\(activeThread\.userId\);/);
+  assert.match(clubChatHtml, /const shouldMarkRead = hasExplicitActiveThreadSelection && \(Boolean\(markRead\) \|\| pendingReadMatchesActiveThread\);/);
+  assert.match(clubChatHtml, /const shouldMarkRead = hasExplicitActiveThreadSelection[\s\S]*Number\(payload\?\.userId\) === Number\(activeUserId\);/);
 });
 
 test('club community q&a is exposed on member and club views', () => {
@@ -736,8 +754,8 @@ test('membership plans open in a floating submenu from the right rail', () => {
   assert.match(clubHtml, /bookingSideRailEl\?\.classList\.toggle\('membership-focus', railOverlay\);/);
   assert.match(clubHtml, /clubMembershipToggleEl\?\.addEventListener\('click', \(\) => \{/);
   assert.match(clubHtml, /closeMembershipPlansBtnEl\?\.addEventListener\('click', \(\) => \{/);
-  assert.match(clubHtml, /syncMembershipPlansMode\(\);/);
-  assert.match(clubHtml, /window\.setTimeout\(\(\) => bookingSideRailToggleEl\?\.focus\(\), 60\);/);
+  assert.match(clubHtml, /updateBookingSideRail\(\);/);
+  assert.match(clubHtml, /window\.setTimeout\(\(\) => closeMembershipPlansBtnEl\?\.focus\(\), 60\);/);
   assert.match(clubHtml, /if \(evt\.target\.closest\('#clubMembershipSection'\)\) return;/);
   assert.match(clubHtml, /buildClubPageHref\('membershipPlansPopover'\)/);
   assert.match(clubHtml, /membership-status-card/);
@@ -805,9 +823,13 @@ test('club registration keeps password fields editable while still enforcing ema
   assert.match(clubRegisterHtml, /clearCodeEntry\(true\);/);
   assert.match(clubRegisterHtml, /sessionStorage\.removeItem\('clubPortal\.onboardingDraft'\)/);
   assert.match(clubRegisterHtml, /window\.location\.replace\('onboarding\.html'\)/);
+  assert.match(clubRegisterHtml, /let authenticatedToken = String\(profileToSave\?\.token \|\| ''\)\.trim\(\);/);
+  assert.match(clubRegisterHtml, /if \(!authenticatedToken\) \{/);
+  assert.match(clubRegisterHtml, /showStatus\(e\?\.message \|\| 'Club account created, but automatic sign-in failed\. Please log in and continue setup\.', true\);/);
   assert.doesNotMatch(clubRegisterHtml, /clubPass\.disabled\s*=/);
   assert.doesNotMatch(clubRegisterHtml, /clubPass2\.disabled\s*=/);
   assert.doesNotMatch(clubRegisterHtml, /clubRegisterBtn\.disabled\s*=\s*!unlock/);
+  assert.doesNotMatch(clubRegisterHtml, /register endpoint does not return token/i);
 });
 
 test('user registration uses six verification slots with automatic submit just like club registration', () => {
@@ -923,7 +945,7 @@ test('club onboarding draft is session-scoped instead of localStorage-backed', (
 
   assert.match(onboardingPromoHtml, /onboarding\.css\?v=20260402a/);
   assert.match(onboardingPromoHtml, /Step 3 of 3/);
-  assert.match(onboardingPromoHtml, /onboarding-promo\.js\?v=20260327d/);
+  assert.match(onboardingPromoHtml, /onboarding-promo\.js\?v=20260412b/);
   assert.doesNotMatch(onboardingPromoHtml, /promoImageUrl/);
   assert.doesNotMatch(onboardingPromoHtml, /Paste image URLs/);
   assert.doesNotMatch(onboardingPromoHtml, /Add a cover photo and a short description to showcase your club\./);
@@ -936,6 +958,12 @@ test('club onboarding draft is session-scoped instead of localStorage-backed', (
   assert.match(onboardingPromoJs, /sessionStorage\.getItem\(ONBOARDING_DRAFT_STORAGE_KEY\)/);
   assert.match(onboardingPromoJs, /sessionStorage\.setItem\(ONBOARDING_DRAFT_STORAGE_KEY/);
   assert.match(onboardingPromoJs, /sessionStorage\.removeItem\(ONBOARDING_DRAFT_STORAGE_KEY\)/);
+  assert.match(onboardingPromoJs, /const listClubImages = async \(clubId\) => \{/);
+  assert.match(onboardingPromoJs, /const uploadSingleDraftImageToClub = async \(clubId, item, index, knownImageIds\) => \{/);
+  assert.match(onboardingPromoJs, /throw new Error\('Failed to confirm club photo upload\.'\);/);
+  assert.match(onboardingPromoJs, /const getAuthToken = \(\) => \{/);
+  assert.match(onboardingPromoJs, /const authFetchImpl = window\.AuthSession\?\.authFetch;/);
+  assert.match(onboardingPromoJs, /if \(!club\) return;/);
   assert.match(onboardingPromoJs, /const updateFinishState = \(\) => \{/);
   assert.match(onboardingPromoJs, /btnFinish\) btnFinish\.disabled = !\(hasImages && hasPromoText\);/);
   assert.match(onboardingPromoJs, /Please upload at least one club photo before finishing setup\./);
@@ -1062,6 +1090,9 @@ test('membership plans support custom cards and booking-pack benefits across adm
 
   assert.match(clubUpdatesHtml, /id="addCustomPlanBtn"/);
   assert.match(clubUpdatesHtml, /Add membership plan/);
+  assert.match(clubUpdatesHtml, /const planOriginalPayloadByKey = new Map\(\);/);
+  assert.match(clubUpdatesHtml, /const persistPlanCardState = \(cardOrKey\) => \{/);
+  assert.match(clubUpdatesHtml, /persistPlanCardState\(btn\.closest\('\[data-plan-key\]'\)\);/);
   assert.match(clubUpdatesHtml, /id="showSavedPlansBtn"/);
   assert.match(clubUpdatesHtml, /Added plans/);
   assert.match(clubUpdatesHtml, /id="planSavedCount"/);
@@ -1128,7 +1159,8 @@ test('public club page shows the booking schedule before optional membership car
   assert.match(clubHtml, /\.booking-side-rail-toggle-label\s*\{[\s\S]*font-size:\s*13px;[\s\S]*white-space:\s*nowrap;/);
   assert.match(clubHtml, /bookingSideRailToggleIconEl\.textContent = collapsed \? '→' : '←';/);
   assert.match(clubHtml, /bookingSideRailToggleLabelEl\.textContent = collapsed \? 'Open club chat, Q&A & plans' : 'Back to booking';/);
-  assert.match(clubHtml, /bookingSideRailToggleEl\?\.toggleAttribute\('hidden', !collapsible\);/);
+  assert.match(clubHtml, /const overlayPanelOpen = collapsible[\s\S]*chatWidgetOpen \|\| clubMembershipExpanded \|\| communityDialogOpen\);/);
+  assert.match(clubHtml, /bookingSideRailToggleEl\?\.toggleAttribute\('hidden', !collapsible \|\| overlayPanelOpen\);/);
   assert.match(clubHtml, /const pageMainEl = document\.querySelector\('\.page-main'\);/);
   assert.match(clubHtml, /let bookingSideRailCollapsed = true;/);
   assert.match(clubHtml, /updateBookingSideRail\(\);/);
@@ -1291,6 +1323,7 @@ test('booking pages expose the six-digit verification code to both members and c
   assert.match(clubBookingsHtml, /const attendanceKey = \(member, slot\) => \{/);
   assert.match(clubBookingsHtml, /label: 'Check in'/);
   assert.match(clubBookingsHtml, /label: 'Close'/);
+  assert.match(clubBookingsHtml, /attendance === 'booked' \|\| attendance === 'checked'/);
   assert.doesNotMatch(clubBookingsHtml, /label: 'Approve'/);
   assert.doesNotMatch(clubBookingsHtml, /label: 'Revert'/);
   assert.doesNotMatch(clubBookingsHtml, /label: 'Reopen'/);

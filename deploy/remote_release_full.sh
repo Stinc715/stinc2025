@@ -38,7 +38,7 @@ if [[ -n "$PUBLIC_BASE_URL" ]]; then
   fi
 fi
 
-sudo "${DEPLOY_HOME}/remote_apply_schema_from_env.sh"
+sudo DEPLOY_HOME="${DEPLOY_HOME}" ENV_FILE="${ENV_FILE}" "${DEPLOY_HOME}/remote_apply_schema_from_env.sh"
 "${DEPLOY_HOME}/remote_deploy_backend.sh"
 
 echo '---frontend-check---'

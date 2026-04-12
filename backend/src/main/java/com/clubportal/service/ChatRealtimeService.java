@@ -1,5 +1,6 @@
 package com.clubportal.service;
 
+import jakarta.annotation.PreDestroy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -10,6 +11,10 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class ChatRealtimeService {
@@ -17,6 +22,15 @@ public class ChatRealtimeService {
     private static final long SSE_TIMEOUT_MILLIS = 0L;
 
     private final ConcurrentHashMap<String, CopyOnWriteArrayList<SseEmitter>> emitters = new ConcurrentHashMap<>();
+    private final AtomicInteger workerCounter = new AtomicInteger(1);
+    private final ExecutorService notificationExecutor = Executors.newCachedThreadPool(new ThreadFactory() {
+        @Override
+        public Thread newThread(Runnable runnable) {
+            Thread thread = new Thread(runnable, "chat-realtime-" + workerCounter.getAndIncrement());
+            thread.setDaemon(true);
+            return thread;
+        }
+    });
 
     public SseEmitter subscribeUserThread(Integer clubId, Integer userId) {
         return subscribe(userKey(clubId, userId), "connected", payload("connected", clubId, userId, null));
@@ -35,17 +49,23 @@ public class ChatRealtimeService {
     }
 
     public void afterCommit(Runnable action) {
+        Runnable asyncAction = () -> dispatchAsync(action);
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-            action.run();
+            asyncAction.run();
             return;
         }
 
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                action.run();
+                asyncAction.run();
             }
         });
+    }
+
+    @PreDestroy
+    void shutdown() {
+        notificationExecutor.shutdownNow();
     }
 
     private SseEmitter subscribe(String key, String eventName, Map<String, Object> data) {
@@ -83,6 +103,19 @@ public class ChatRealtimeService {
                 emitter.completeWithError(ex);
             }
         }
+    }
+
+    private void dispatchAsync(Runnable action) {
+        if (action == null) {
+            return;
+        }
+        notificationExecutor.execute(() -> {
+            try {
+                action.run();
+            } catch (RuntimeException ex) {
+                // Swallow async SSE errors so chat responses are never blocked by a dead emitter.
+            }
+        });
     }
 
     private void removeEmitter(String key, SseEmitter emitter) {

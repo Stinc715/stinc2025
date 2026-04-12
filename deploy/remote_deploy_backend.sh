@@ -28,7 +28,7 @@ echo "[deploy] Restarting systemd service..."
 sudo systemctl restart "$SERVICE_NAME"
 
 echo "[deploy] Waiting for backend..."
-for i in {1..30}; do
+for i in {1..120}; do
   if curl -fsS "$BACKEND_HEALTHCHECK_URL" >/dev/null 2>&1; then
     echo "[deploy] Backend healthy."
     exit 0

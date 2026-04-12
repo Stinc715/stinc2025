@@ -349,6 +349,7 @@
     const params = new URLSearchParams(window.location.search);
     let clubs = [];
     let selectedTag = '';
+    const CLUB_LIST_RETURN_STATE_KEY = 'clubPortal.publicClubListReturn';
 
     const safeParseJSON = (raw) => {
       try { return JSON.parse(raw); } catch { return null; }
@@ -356,6 +357,72 @@
 
     const safe = (value) => String(value ?? '').trim();
     const normalizeId = (value) => safe(value);
+    const normalizePageName = (value, fallback = 'clubs.html') => {
+      const raw = safe(value);
+      if (!raw) return fallback;
+      const clean = raw.split('#')[0].split('?')[0].replace(/\\/g, '/');
+      const page = clean.slice(clean.lastIndexOf('/') + 1).trim();
+      return page || fallback;
+    };
+    const buildCurrentPageHref = (fallback = 'clubs.html') => {
+      const page = normalizePageName(window.location.pathname, fallback);
+      return `${page}${window.location.search || ''}${window.location.hash || ''}`;
+    };
+    const escapeSelectorValue = (value) => {
+      const raw = safe(value);
+      if (window.CSS && typeof window.CSS.escape === 'function') {
+        return window.CSS.escape(raw);
+      }
+      return raw.replace(/["\\]/g, '\\$&');
+    };
+    let pendingClubListReturnState = null;
+
+    const readClubListReturnState = () => {
+      try { return JSON.parse(sessionStorage.getItem(CLUB_LIST_RETURN_STATE_KEY) || 'null'); } catch { return null; }
+    };
+
+    const clearClubListReturnState = () => {
+      pendingClubListReturnState = null;
+      try { sessionStorage.removeItem(CLUB_LIST_RETURN_STATE_KEY); } catch {}
+    };
+
+    const rememberClubListReturnState = (clubId) => {
+      const normalizedId = normalizeId(clubId);
+      if (!normalizedId) return;
+      const state = {
+        page: 'clubs.html',
+        href: buildCurrentPageHref('clubs.html'),
+        clubId: normalizedId,
+        scrollY: Math.max(window.scrollY || window.pageYOffset || 0, 0),
+        ts: Date.now()
+      };
+      pendingClubListReturnState = state;
+      try { sessionStorage.setItem(CLUB_LIST_RETURN_STATE_KEY, JSON.stringify(state)); } catch {}
+    };
+
+    const restoreClubListReturnState = () => {
+      if (!pendingClubListReturnState) pendingClubListReturnState = readClubListReturnState();
+      if (!pendingClubListReturnState) return;
+      if (normalizePageName(pendingClubListReturnState.page, 'clubs.html') !== 'clubs.html') return;
+
+      const clubId = normalizeId(pendingClubListReturnState.clubId);
+      const targetEl = clubId
+        ? cardsEl?.querySelector(`.club-card[data-club-id="${escapeSelectorValue(clubId)}"]`)
+        : null;
+      const fallbackTop = Number(pendingClubListReturnState.scrollY);
+      const targetTop = targetEl
+        ? Math.max(targetEl.getBoundingClientRect().top + window.scrollY - 120, 0)
+        : (Number.isFinite(fallbackTop) ? Math.max(fallbackTop, 0) : null);
+      if (targetTop === null) return;
+
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          window.scrollTo({ top: targetTop, behavior: 'auto' });
+        });
+      });
+      clearClubListReturnState();
+    };
+
     const authFetch = (url, options = {}) => {
       const token = localStorage.getItem('token') || '';
       const headers = { ...(options.headers || {}) };
@@ -454,7 +521,7 @@
         const clubId = normalizeId(club.clubId ?? club.id);
         const tags = Array.isArray(club.tags) ? club.tags.filter(Boolean).slice(0, 4) : [];
         return `
-          <article class="club-card">
+          <article class="club-card" data-club-id="${escapeHtml(clubId)}">
             <div class="club-meta">
               <span class="chip">${escapeHtml(club.category || 'Club')}</span>
               ${tags.map((tag) => `<span class="tag-chip">${escapeHtml(tag)}</span>`).join('')}
@@ -476,11 +543,13 @@
         const clubId = safe(link.getAttribute('data-club-link') || link.getAttribute('data-join-link') || link.getAttribute('data-overview-link'));
         const club = clubs.find((item) => normalizeId(item.clubId ?? item.id) === clubId);
         link.addEventListener('click', () => {
+          rememberClubListReturnState(clubId);
           if (club) storeSelectedClub(club);
         });
       });
 
       emptyStateEl.style.display = visible.length ? 'none' : 'block';
+      restoreClubListReturnState();
     };
 
     const loadClubs = async () => {

@@ -146,6 +146,43 @@
   body.embedded .btn-row{ margin-top:14px; }
   .link-btn{ background:none;border:none;color:#2563eb;font-size:13px;cursor:pointer;padding:0; }
   .error{ font-size:12px;color:#dc2626;margin-top:4px;display:none; }
+  .strength-wrap{
+    display:none;
+    align-items:center;
+    gap:8px;
+    margin-top:6px;
+  }
+  .strength-wrap.is-visible{
+    display:flex;
+  }
+  .strength-label{
+    font-size:12px;
+    color:#64748b;
+  }
+  .strength-pill{
+    padding:2px 10px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:600;
+    border:1px solid transparent;
+    background:#f1f5f9;
+    color:#64748b;
+  }
+  .strength-pill.low{
+    background:#fee2e2;
+    color:#b91c1c;
+    border-color:#fecaca;
+  }
+  .strength-pill.medium{
+    background:#fef9c3;
+    color:#a16207;
+    border-color:#fde68a;
+  }
+  .strength-pill.high{
+    background:#dcfce7;
+    color:#15803d;
+    border-color:#bbf7d0;
+  }
   .success{
     display:none; position:relative; padding:10px 12px; border-radius:12px;
     border:1px solid rgba(59,130,246,.25); background:rgba(59,130,246,.08);
@@ -357,6 +394,10 @@
       <div class="mb-3">
         <label for="reg-pass">Password</label>
         <input id="reg-pass" type="password" autocomplete="new-password" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+" title="Must include uppercase, lowercase, and a number." disabled />
+        <div id="reg-strength-wrap" class="strength-wrap" aria-live="polite">
+          <span class="strength-label">Strength:</span>
+          <span id="reg-pass-strength" class="strength-pill">Low</span>
+        </div>
         <div id="reg-pass-err" class="error">Password must include uppercase, lowercase, and a number.</div>
       </div>
       <div class="mb-3">
@@ -506,6 +547,8 @@
   const regEmailInput = document.getElementById('reg-email');
   const regPassInput = document.getElementById('reg-pass');
   const regPass2Input = document.getElementById('reg-pass2');
+  const regStrengthWrap = document.getElementById('reg-strength-wrap');
+  const regPassStrength = document.getElementById('reg-pass-strength');
   const regSendCodeBtn = document.getElementById('reg-send-code-btn');
   const regEmailCodeInput = document.getElementById('reg-email-code');
   const regCodeSlots = Array.from(document.querySelectorAll('#panel-register .code-slot'));
@@ -705,6 +748,32 @@
     }, 1000);
   }
 
+  function getRegisterPasswordStrength(value) {
+    const v = String(value || '');
+    if (!v) return 'low';
+    const hasLower = /[a-z]/.test(v);
+    const hasUpper = /[A-Z]/.test(v);
+    const hasNumber = /\d/.test(v);
+    const longEnough = v.length >= 10;
+    const score = [hasLower, hasUpper, hasNumber, longEnough].filter(Boolean).length;
+    if (score >= 4) return 'high';
+    if (score >= 3) return 'medium';
+    return 'low';
+  }
+
+  function updateRegisterPasswordStrength() {
+    if (!regPassStrength) return;
+    const value = String(regPassInput?.value || '');
+    const level = getRegisterPasswordStrength(value);
+    if (regStrengthWrap) {
+      regStrengthWrap.classList.toggle('is-visible', value.length > 0);
+    }
+    regPassStrength.textContent = level === 'high' ? 'High' : level === 'medium' ? 'Medium' : 'Low';
+    regPassStrength.classList.remove('low', 'medium', 'high');
+    regPassStrength.classList.add(level);
+    requestResize();
+  }
+
   function setRegisterVerificationState(email, verified){
     registerVerifiedEmail = verified ? normalizeEmail(email) : '';
     const unlock = !!registerVerifiedEmail;
@@ -721,6 +790,7 @@
       document.getElementById('reg-pass-err').style.display = 'none';
       document.getElementById('reg-pass2-err').style.display = 'none';
     }
+    updateRegisterPasswordStrength();
   }
 
   function resetRegisterVerification(message){
@@ -813,6 +883,13 @@
       document.getElementById('reg-email-err').style.display = 'none';
       if (!registerVerifiedEmail) setRegVerifyMessage('', '');
     }
+  });
+  regPassInput?.addEventListener('input', () => {
+    document.getElementById('reg-pass-err').style.display = 'none';
+    updateRegisterPasswordStrength();
+  });
+  regPass2Input?.addEventListener('input', () => {
+    document.getElementById('reg-pass2-err').style.display = 'none';
   });
   regCodeSlots.forEach((slot, index) => {
     slot.addEventListener('focus', () => {
@@ -1346,6 +1423,7 @@
   document.getElementById('loginBtn')?.addEventListener('click', handleLogin);
   document.getElementById('btnRegisterDo')?.addEventListener('click', handleRegister);
   resetRegisterVerification('');
+  updateRegisterPasswordStrength();
 
   window.addEventListener('hashchange', () => {
     if (location.hash === '#register-club') {

@@ -17,6 +17,7 @@ public record ClubDetailResponse(
         String openingStart,
         String openingEnd,
         Integer courtsCount,
-        List<String> tags
+        List<String> tags,
+        String coverImageUrl
 ) {
 }

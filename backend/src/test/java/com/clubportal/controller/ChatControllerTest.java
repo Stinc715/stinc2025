@@ -1,5 +1,6 @@
 package com.clubportal.controller;
 
+import com.clubportal.dto.ChatConversationSummaryResponse;
 import com.clubportal.dto.ChatMessageCreateRequest;
 import com.clubportal.dto.ChatSendResponse;
 import com.clubportal.model.ChatMessage;
@@ -20,6 +21,8 @@ import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -29,6 +32,91 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class ChatControllerTest {
+
+    @Test
+    void listClubConversationsPrefersLatestMemberMessageOverSystemHandoffPreview() {
+        CurrentUserService currentUserService = mock(CurrentUserService.class);
+        ClubRepository clubRepository = mock(ClubRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        ClubAdminRepository clubAdminRepository = mock(ClubAdminRepository.class);
+        ChatMessageRepository chatMessageRepository = mock(ChatMessageRepository.class);
+        ChatMessageService chatMessageService = mock(ChatMessageService.class);
+        ChatRealtimeService chatRealtimeService = mock(ChatRealtimeService.class);
+        ChatSessionService chatSessionService = mock(ChatSessionService.class);
+
+        ChatController controller = new ChatController(
+                currentUserService,
+                clubRepository,
+                userRepository,
+                clubAdminRepository,
+                chatMessageRepository,
+                chatMessageService,
+                chatRealtimeService,
+                chatSessionService
+        );
+
+        Club club = new Club();
+        club.setClubId(12);
+        club.setClubName("Riverside Badminton Club");
+
+        User me = new User();
+        me.setUserId(7);
+        me.setRole(User.Role.ADMIN);
+
+        User member = new User();
+        member.setUserId(45);
+        member.setUsername("Alice");
+        member.setEmail("alice@example.com");
+
+        ChatSession session = new ChatSession();
+        session.setSessionId(5);
+        session.setClubId(12);
+        session.setUserId(45);
+        session.setChatMode(ChatMode.HANDOFF_REQUESTED);
+
+        ChatMessage systemMessage = new ChatMessage();
+        systemMessage.setMessageId(103);
+        systemMessage.setClubId(12);
+        systemMessage.setUserId(45);
+        systemMessage.setSender("SYSTEM");
+        systemMessage.setMessageText("Member requested human support.");
+        systemMessage.setCreatedAt(LocalDateTime.of(2026, 3, 24, 16, 0, 2));
+
+        ChatMessage assistantMessage = new ChatMessage();
+        assistantMessage.setMessageId(102);
+        assistantMessage.setClubId(12);
+        assistantMessage.setUserId(45);
+        assistantMessage.setSender("ASSISTANT");
+        assistantMessage.setMessageText("I can help with published slots and club details.");
+        assistantMessage.setCreatedAt(LocalDateTime.of(2026, 3, 24, 16, 0, 1));
+
+        ChatMessage userMessage = new ChatMessage();
+        userMessage.setMessageId(101);
+        userMessage.setClubId(12);
+        userMessage.setUserId(45);
+        userMessage.setSender("USER");
+        userMessage.setMessageText("I need a human to review my booking.");
+        userMessage.setCreatedAt(LocalDateTime.of(2026, 3, 24, 16, 0));
+        userMessage.setReadByClub(false);
+
+        when(clubRepository.findById(12)).thenReturn(Optional.of(club));
+        when(currentUserService.requireUser()).thenReturn(me);
+        when(chatMessageRepository.findByClubIdOrderByCreatedAtDescMessageIdDesc(12))
+                .thenReturn(List.of(systemMessage, assistantMessage, userMessage));
+        when(chatSessionService.getOrCreateSessions(12, java.util.Set.of(45))).thenReturn(Map.of(45, session));
+        when(userRepository.findAllById(java.util.Set.of(45))).thenReturn(List.of(member));
+
+        ResponseEntity<?> response = controller.listClubConversations(12);
+
+        assertEquals(200, response.getStatusCode().value());
+        @SuppressWarnings("unchecked")
+        List<ChatConversationSummaryResponse> body = assertInstanceOf(List.class, response.getBody());
+        assertEquals(1, body.size());
+        assertEquals("user", body.get(0).lastSender());
+        assertEquals("I need a human to review my booking.", body.get(0).lastMessageText());
+        assertEquals(LocalDateTime.of(2026, 3, 24, 16, 0), body.get(0).lastMessageAt());
+        assertEquals(1, body.get(0).unreadCount());
+    }
 
     @Test
     void sendUserMessageReturnsLightweightPayloadIncludingAssistantReply() {

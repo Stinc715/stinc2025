@@ -234,17 +234,36 @@
 
   .search-card {
     position: sticky;
-    top: calc(var(--header-height) + 12px);
+    top: var(--search-card-top, calc(var(--header-height) - 1px));
     z-index: 9;
-    border: none;
+    border: 1px solid rgba(221, 227, 238, .9);
     background: rgba(255, 255, 255, .92);
     backdrop-filter: blur(12px);
-    box-shadow: 0 18px 36px rgba(15, 23, 42, .12);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, .08);
     animation: floatCard 1.2s var(--anim-base) both;
+    transition:
+      border-color .22s var(--anim-base),
+      background .22s var(--anim-base),
+      box-shadow .22s var(--anim-base),
+      transform .22s var(--anim-base);
   }
 
   .search-card .pad {
     padding: 18px 20px;
+    transition: padding .22s var(--anim-base);
+  }
+
+  .search-card.search-card--docked {
+    background: #fff;
+    border-color: rgba(206, 214, 228, .96);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, .10);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    backdrop-filter: none;
+  }
+
+  .search-card.search-card--docked .pad {
+    padding: 10px 14px;
   }
 
   .search-row {
@@ -269,7 +288,10 @@
     transition:
       border-color .25s var(--anim-base),
       box-shadow .25s var(--anim-base),
-      transform .25s var(--anim-base);
+      transform .25s var(--anim-base),
+      min-height .22s var(--anim-base),
+      padding .22s var(--anim-base),
+      gap .22s var(--anim-base);
   }
 
   .search-controls:focus-within {
@@ -307,6 +329,28 @@
     transform: rotate(45deg);
   }
 
+  .search-card.search-card--docked .search-row {
+    gap: 10px;
+  }
+
+  .search-card.search-card--docked .search-controls {
+    min-height: 46px;
+    padding: 10px 14px;
+    gap: 10px;
+    box-shadow: none;
+    background: rgba(255, 255, 255, .92);
+  }
+
+  .search-card.search-card--docked .search-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .search-card.search-card--docked .search-icon::after {
+    width: 7px;
+    right: -5px;
+  }
+
   .search-controls .input {
     flex: 1;
     height: auto;
@@ -335,7 +379,12 @@
     font-weight: 600;
     transition:
       background .2s ease,
-      color .2s ease;
+      color .2s ease,
+      padding .22s var(--anim-base);
+  }
+
+  .search-card.search-card--docked .search-controls .btn {
+    padding: 6px 14px;
   }
 
   .search-controls .btn:hover {
@@ -362,7 +411,15 @@
     transition:
       transform .2s var(--anim-base),
       box-shadow .2s var(--anim-base),
-      background .2s var(--anim-base);
+      background .2s var(--anim-base),
+      min-width .22s var(--anim-base),
+      height .22s var(--anim-base);
+  }
+
+  .search-card.search-card--docked .filter-toggle {
+    min-width: 108px;
+    height: 46px;
+    box-shadow: none;
   }
 
   .filter-toggle:hover {
@@ -398,6 +455,10 @@
     border-radius: 18px;
     padding: 12px 14px;
     box-shadow: 0 12px 30px rgba(15, 23, 42, .08);
+  }
+
+  .search-card.search-card--docked .filter-surface {
+    margin-top: 10px;
   }
 
   .filter-surface.open {
@@ -631,6 +692,28 @@
 
     .filter-toggle {
       width: 100%;
+    }
+
+    .search-card.search-card--docked .search-row {
+      flex-direction: row;
+      align-items: center;
+    }
+
+    .search-card.search-card--docked .search-controls {
+      flex-direction: row;
+      align-items: center;
+      max-width: none;
+      padding: 10px 12px;
+    }
+
+    .search-card.search-card--docked .search-icon {
+      display: block;
+    }
+
+    .search-card.search-card--docked .search-controls .btn,
+    .search-card.search-card--docked .filter-toggle {
+      width: auto;
+      flex: 0 0 auto;
     }
 
   }
@@ -961,36 +1044,16 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 3. 数据源定�?
-  // 本地模拟的俱乐部数据列表。在实际生产环境中，这些数据通常通过 API 从后端获取�?
-  const LOCAL_CLUBS = [
-    { id:'badminton', name:'Club 1', tags:['badminton'], desc:'Suitable for all levels, regular evening training and friendlies.' },
-    { id:'basketball', name:'Club 2', tags:['basketball'], desc:'Varsity training + amateur matches, new members welcome.' },
-    { id:'football', name:'Club 3', tags:['football'], desc:'Weekly matches and local tournaments, join our squad!' },
-    { id:'yoga', name:'Club 4', tags:['yoga'], desc:'Relax and strengthen your body and mind, small group sessions.' },
-    { id:'tennis', name:'Club 5', tags:['tennis'], desc:'Book your court and join tournaments or casual games.' },
-    { id:'volleyball', name:'Club 6', tags:['volleyball'], desc:'Indoor and beach volleyball activities for all skill levels.' },
-    { id:'cycling', name:'Club 7', tags:['cycling'], desc:'Weekend city rides and countryside cycling challenges.' },
-    { id:'swimming', name:'Club 8', tags:['swimming'], desc:'Morning and evening sessions available, professional coach guidance.' },
-    { id:'running', name:'Club 9', tags:['running'], desc:'Morning jogs, half marathons, and social running events.' },
-    { id:'fitness', name:'Club 10', tags:['fitness'], desc:'State-of-the-art gym equipment and personalized workout plans.' },
-    { id:'dance', name:'Club 11', tags:['dance'], desc:'Learn hip-hop, jazz, and modern dance from experienced instructors.' },
-    { id:'badminton-east', name:'Club 12', tags:['badminton'], desc:'East campus sessions, beginner friendly with spare rackets.' },
-    { id:'badminton-social', name:'Club 13', tags:['badminton'], desc:'Casual games, social mix-ins on Fridays.' },
-    { id:'yoga-ii', name:'Club 14', tags:['yoga'], desc:'Intermediate vinyasa and power yoga classes.' },
-    { id:'yoga-sunrise', name:'Club 15', tags:['yoga'], desc:'Sunrise outdoor yoga, mats provided.' },
-    { id:'football-evening', name:'Club 16', tags:['football'], desc:'Evening league matches, 7-a-side format.' },
-    { id:'football-academy', name:'Club 17', tags:['football'], desc:'Skill drills and coaching for developing players.' },
-    { id:'tabletennis', name:'Club 18', tags:['table tennis'], desc:'Weekend open training, tables and equipment provided.' },
-    { id:'tennis-advanced', name:'Club 19', tags:['tennis'], desc:'Advanced ladder matches and coaching clinics.' },
-    { id:'tennis-social', name:'Club 20', tags:['tennis'], desc:'Casual doubles and weekend socials.' }
-  ];
-  let CLUBS = LOCAL_CLUBS; 
+  // 首页俱乐部列表只从后端 /api/clubs 读取，不再在前端写死兜底数据。
+  const LOCAL_CLUBS = [];
+  let CLUBS = [];
 
   // 4. ҳ���߼�����Ⱦ
   const cardsEl = document.getElementById('cards');
   const loadingEl = document.getElementById('loading');
   const emptyEl = document.getElementById('empty');
   const kwEl = document.getElementById('kw');
+  const searchCard = document.querySelector('.search-card');
   const filterToggle = document.getElementById('filterToggle');
   const filterSurface = document.getElementById('filterSurface');
   const filterPanel = document.getElementById('filterPanel');
@@ -1005,9 +1068,9 @@ document.addEventListener('DOMContentLoaded', () => {
     privacy: {
       title: 'Privacy',
       body: `
-        <p>We only store the information needed to manage bookings and memberships.</p>
-        <p>Your account data is kept locally in this demo and is not shared with third parties.</p>
-        <p>You can request deletion at any time by contacting the admin.</p>
+        <p>We store the information needed to run Club Portal features such as sign-in, club setup, bookings, memberships, payments, chat, and community Q&amp;A.</p>
+        <p>Depending on how this project is deployed, data may be stored in your browser and on the backend server. Some features can also use configured third-party services such as Google sign-in or Maps, Stripe payments, and AI-assisted chat.</p>
+        <p>If you need your account or club data corrected or removed, please contact the platform admin.</p>
       `
     },
     terms: {
@@ -1033,6 +1096,136 @@ document.addEventListener('DOMContentLoaded', () => {
   const normalizeClubId = (value) => {
     if (value === undefined || value === null) return '';
     return String(value);
+  };
+
+  let searchCardDockThreshold = 0;
+  let searchCardDockRaf = 0;
+  let searchCardDocked = false;
+  const SEARCH_CARD_DOCK_HYSTERESIS = 20;
+
+  const getSearchCardTopOffset = () => {
+    const headerHeight = headerEl ? headerEl.offsetHeight : 72;
+    return Math.max(0, headerHeight - 1);
+  };
+
+  const getScrollTop = () => Math.max(window.scrollY || window.pageYOffset || 0, 0);
+
+  const applySearchCardDocked = (docked) => {
+    searchCardDocked = Boolean(docked);
+    searchCard?.classList.toggle('search-card--docked', searchCardDocked);
+  };
+
+  const syncSearchCardDocked = () => {
+    searchCardDockRaf = 0;
+    if (!searchCard) return;
+    rootEl.style.setProperty('--search-card-top', `${getSearchCardTopOffset()}px`);
+    const scrollTop = getScrollTop();
+    const shouldDock = searchCardDocked
+      ? scrollTop >= Math.max(0, searchCardDockThreshold - SEARCH_CARD_DOCK_HYSTERESIS)
+      : scrollTop > searchCardDockThreshold + SEARCH_CARD_DOCK_HYSTERESIS;
+    if (shouldDock !== searchCardDocked) {
+      applySearchCardDocked(shouldDock);
+    }
+  };
+
+  const queueSearchCardDockSync = () => {
+    if (!searchCard || searchCardDockRaf) return;
+    searchCardDockRaf = window.requestAnimationFrame(syncSearchCardDocked);
+  };
+
+  const recalcSearchCardDockThreshold = () => {
+    if (!searchCard) return;
+    const wasDocked = searchCardDocked;
+    applySearchCardDocked(false);
+    rootEl.style.setProperty('--search-card-top', `${getSearchCardTopOffset()}px`);
+    const rect = searchCard.getBoundingClientRect();
+    searchCardDockThreshold = Math.max(0, getScrollTop() + rect.top - getSearchCardTopOffset());
+    applySearchCardDocked(wasDocked);
+    syncSearchCardDocked();
+  };
+
+  window.addEventListener('resize', recalcSearchCardDockThreshold);
+  window.addEventListener('scroll', queueSearchCardDockSync, { passive: true });
+
+  const CLUB_LIST_RETURN_STATE_KEY = 'clubPortal.publicClubListReturn';
+  const normalizePageName = (value, fallback = 'home.html') => {
+    const raw = String(value || '').trim();
+    if (!raw) return fallback;
+    const clean = raw.split('#')[0].split('?')[0].replace(/\\/g, '/');
+    const page = clean.slice(clean.lastIndexOf('/') + 1).trim();
+    return page || fallback;
+  };
+  const buildCurrentPageHref = (fallback = 'home.html') => {
+    const page = normalizePageName(window.location.pathname, fallback);
+    return `${page}${window.location.search || ''}${window.location.hash || ''}`;
+  };
+  const escapeSelectorValue = (value) => {
+    const raw = String(value ?? '');
+    if (window.CSS && typeof window.CSS.escape === 'function') {
+      return window.CSS.escape(raw);
+    }
+    return raw.replace(/["\\]/g, '\\$&');
+  };
+  let pendingClubListReturnState = null;
+
+  const readClubListReturnState = () => {
+    try {
+      return JSON.parse(sessionStorage.getItem(CLUB_LIST_RETURN_STATE_KEY) || 'null');
+    } catch {
+      return null;
+    }
+  };
+
+  const clearClubListReturnState = () => {
+    pendingClubListReturnState = null;
+    try {
+      sessionStorage.removeItem(CLUB_LIST_RETURN_STATE_KEY);
+    } catch {
+      // Ignore storage cleanup failures.
+    }
+  };
+
+  const rememberClubListReturnState = (clubId) => {
+    const key = normalizeClubId(clubId);
+    if (!key) return;
+    const state = {
+      page: 'home.html',
+      href: buildCurrentPageHref('home.html'),
+      clubId: key,
+      scrollY: Math.max(window.scrollY || window.pageYOffset || 0, 0),
+      ts: Date.now()
+    };
+    pendingClubListReturnState = state;
+    try {
+      sessionStorage.setItem(CLUB_LIST_RETURN_STATE_KEY, JSON.stringify(state));
+    } catch {
+      // Ignore storage quota issues.
+    }
+  };
+
+  const restoreClubListReturnState = () => {
+    if (!pendingClubListReturnState) {
+      pendingClubListReturnState = readClubListReturnState();
+    }
+    if (!pendingClubListReturnState) return;
+    if (normalizePageName(pendingClubListReturnState.page, 'home.html') !== 'home.html') return;
+
+    const clubId = normalizeClubId(pendingClubListReturnState.clubId);
+    const targetEl = clubId
+      ? cardsEl?.querySelector(`.card.club[data-id="${escapeSelectorValue(clubId)}"]`)
+      : null;
+    const fallbackTop = Number(pendingClubListReturnState.scrollY);
+    const targetTop = targetEl
+      ? Math.max(targetEl.getBoundingClientRect().top + window.scrollY - 120, 0)
+      : (Number.isFinite(fallbackTop) ? Math.max(fallbackTop, 0) : null);
+    if (targetTop === null) return;
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        window.scrollTo({ top: targetTop, behavior: 'auto' });
+      });
+    });
+    clearClubListReturnState();
   };
 
   const firstNonEmpty = (...values) => {
@@ -1152,6 +1345,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch {
       // 忽略存储配额问题
     }
+    rememberClubListReturnState(clubId);
     window.location.href = `club.html?club=${encodeURIComponent(clubId)}`;
   };
 
@@ -1167,6 +1361,7 @@ document.addEventListener('DOMContentLoaded', () => {
       emptyEl.style.display = 'none';
       cardsEl.innerHTML = list.map((club, idx) => clubCard(club, idx)).join('');
     }
+    restoreClubListReturnState();
   };
 
   // 弹窗控制：打开信息弹窗
@@ -1309,8 +1504,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
     } catch (err) {
-      // fallback to local
-      CLUBS = LOCAL_CLUBS;
+      CLUBS = [];
       return;
     } finally {
       if (loadingEl) loadingEl.style.display = 'none';
@@ -1346,6 +1540,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 页面加载完成后执行一次初始筛选渲�?
   initData();
+  recalcSearchCardDockThreshold();
 });
   </script>
 

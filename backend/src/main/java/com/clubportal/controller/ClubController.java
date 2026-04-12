@@ -343,13 +343,15 @@ public class ClubController {
         Integer id = c.getClubId();
         List<String> tags = ClubTagCodec.decode(c.getCategoryTags(), c.getCategory());
         String category = ClubTagCodec.primary(tags, c.getCategory());
+        String coverImageUrl = resolvePrimaryClubImageUrl(id);
         return new ClubSummaryResponse(
                 id,
                 id,
                 c.getClubName(),
                 c.getDescription(),
                 category.isBlank() ? null : category,
-                tags
+                tags,
+                coverImageUrl.isBlank() ? null : coverImageUrl
         );
     }
 
@@ -365,6 +367,7 @@ public class ClubController {
         Double locationLng = c.getLocationLng();
         String openingStart = safe(c.getOpeningStart());
         String openingEnd = safe(c.getOpeningEnd());
+        String coverImageUrl = resolvePrimaryClubImageUrl(id);
         return new ClubDetailResponse(
                 id,
                 id,
@@ -380,7 +383,8 @@ public class ClubController {
                 openingStart.isBlank() ? null : openingStart,
                 openingEnd.isBlank() ? null : openingEnd,
                 c.getDisplayCourts(),
-                tags
+                tags,
+                coverImageUrl.isBlank() ? null : coverImageUrl
         );
     }
 
@@ -536,6 +540,14 @@ public class ClubController {
                 img.getSortOrder(),
                 Boolean.TRUE.equals(img.getPrimaryImage())
         );
+    }
+
+    private String resolvePrimaryClubImageUrl(Integer clubId) {
+        if (clubId == null) return "";
+        return sortClubImages(clubImageRepo.findByClubId(clubId)).stream()
+                .findFirst()
+                .map(img -> "/api/clubs/" + clubId + "/images/" + img.getImageId() + "/content")
+                .orElse("");
     }
 
     private List<ClubImage> sortClubImages(List<ClubImage> images) {

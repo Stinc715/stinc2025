@@ -137,6 +137,8 @@
   }
 
   .hero-carousel {
+    --hero-slide-base-height: 220px;
+    --hero-slide-height: var(--hero-slide-base-height);
     position: relative;
     border-radius: 12px;
     overflow: hidden;
@@ -157,8 +159,9 @@
   }
 
   .hero-slide {
+    position: relative;
     min-width: 100%;
-    height: 220px;
+    height: var(--hero-slide-height);
     scroll-snap-align: start;
     user-select: none;
     -webkit-user-drag: none;
@@ -167,13 +170,69 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: height .24s ease, background-color .24s ease;
+  }
+
+  .hero-slide-media {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    isolation: isolate;
+  }
+
+  .hero-slide-backdrop {
+    position: absolute;
+    inset: 0;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    filter: blur(30px) saturate(1.08);
+    transform: scale(1.08);
+    opacity: 0;
+    transition: opacity .24s ease;
+    pointer-events: none;
+  }
+
+  .hero-slide-backdrop::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgba(248, 250, 252, .08), rgba(248, 250, 252, .32)),
+      radial-gradient(circle at center, rgba(255, 255, 255, .08), rgba(255, 255, 255, 0));
   }
 
   .hero-slide img {
+    position: relative;
+    z-index: 1;
     width: 100%;
     height: 100%;
+    box-sizing: border-box;
     object-fit: cover;
+    object-position: center;
     display: block;
+  }
+
+  .hero-slide.hero-slide--contain .hero-slide-backdrop {
+    opacity: 0;
+  }
+
+  .hero-slide.hero-slide--contain img {
+    object-fit: contain;
+    padding: clamp(20px, 3vw, 36px);
+  }
+
+  .hero-carousel.hero-carousel--adaptive .hero-slide.hero-slide--contain {
+    background:
+      linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  }
+
+  .hero-carousel.hero-carousel--adaptive .hero-slide.hero-slide--contain img {
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12);
   }
 
   .hero-nav {
@@ -831,6 +890,10 @@
   }
 
   @media (max-width: 760px) {
+    .hero-carousel {
+      --hero-slide-base-height: 200px;
+    }
+
     .top-back-wrap {
       padding-left: 2px;
     }
@@ -1009,9 +1072,11 @@
     }
 
     .booking-side-rail.chat-focus .booking-chat-rail {
-      position: relative;
+      position: sticky;
+      top: 96px;
       inset: auto;
       display: block;
+      align-self: start;
       z-index: 6;
     }
 
@@ -1623,6 +1688,12 @@
     gap: 10px;
   }
 
+  .membership-plan-heading {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+  }
+
   .membership-plan-name {
     font-size: 15px;
     font-weight: 700;
@@ -1637,18 +1708,34 @@
     letter-spacing: .04em;
   }
 
+  .membership-plan-supplement {
+    color: #4f46e5;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
   .membership-plan-discount {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 64px;
-    padding: 0 10px;
-    height: 30px;
+    min-width: fit-content;
+    max-width: 132px;
+    padding: 0 12px;
+    min-height: 30px;
     border-radius: 999px;
     background: #eef2ff;
     color: #3730a3;
     font-size: 11px;
     font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .membership-plan-discount.membership-plan-discount--pack {
+    background: #f3f4f6;
+    color: #374151;
   }
 
   .membership-plan-price {
@@ -2466,6 +2553,21 @@
     // 璐熻矗妫€鏌ユ湰鍦板瓨鍌ㄤ腑鐨勭櫥褰曠姸鎬侊紝骞舵牴鎹敤鎴风被鍨嬶紙鏅€氱敤鎴锋垨淇变箰閮ㄧ鐞嗗憳锛夋覆鏌撻《閮ㄥ鑸爮鐨勭敤鎴峰尯鍩熴€?
     // 濡傛灉宸茬櫥褰曪紝鏄剧ず涓嬫媺鑿滃崟锛涘鏋滄湭鐧诲綍锛屾樉绀虹櫥褰?娉ㄥ唽鎸夐挳銆?
     // Back always returns to the proper home page (not browser history).
+    const CLUB_LIST_RETURN_STATE_KEY = 'clubPortal.publicClubListReturn';
+    const normalizePageName = (value, fallback = 'home.html') => {
+      const raw = String(value || '').trim();
+      if (!raw) return fallback;
+      const clean = raw.split('#')[0].split('?')[0].replace(/\\/g, '/');
+      const page = clean.slice(clean.lastIndexOf('/') + 1).trim();
+      return page || fallback;
+    };
+    const readClubListReturnState = () => {
+      try {
+        return JSON.parse(sessionStorage.getItem(CLUB_LIST_RETURN_STATE_KEY) || 'null');
+      } catch {
+        return null;
+      }
+    };
     const resolveBackHomeHref = () => {
       try {
         const logged = JSON.parse(localStorage.getItem('loggedUser') || 'null');
@@ -2477,8 +2579,28 @@
       return 'home.html';
     };
 
+    const resolveBackHref = () => {
+      const defaultHref = resolveBackHomeHref();
+      if (defaultHref !== 'home.html') {
+        return defaultHref;
+      }
+      const state = readClubListReturnState();
+      const currentClubId = String(new URLSearchParams(window.location.search).get('club') || '').trim();
+      const stateClubId = String(state?.clubId || '').trim();
+      if (!state || !currentClubId || stateClubId !== currentClubId) {
+        return defaultHref;
+      }
+      const savedHref = String(state?.href || '').trim();
+      if (savedHref) return savedHref;
+      const savedPage = normalizePageName(state?.page, 'home.html');
+      if (savedPage === 'clubs.html' || savedPage === 'home.html') {
+        return savedPage;
+      }
+      return defaultHref;
+    };
+
     document.getElementById('btnBack')?.addEventListener('click', () => {
-      window.location.href = resolveBackHomeHref();
+      window.location.href = resolveBackHref();
     });
 
         const categoryIcon = (category) => {
@@ -2701,6 +2823,7 @@
     const clubCommunityAskInputEl = document.getElementById('clubCommunityAskInput');
     const clubCommunityAskBtnEl = document.getElementById('clubCommunityAskBtn');
     const clubCommunityListEl = document.getElementById('clubCommunityList');
+    const clubHeroEl = document.getElementById('clubHero');
     const clubHeroScrollEl = document.getElementById('clubHeroScroll');
     const clubHeroDotsEl = document.getElementById('clubHeroDots');
     const clubHeroPrevEl = document.getElementById('clubHeroPrev');
@@ -2723,6 +2846,7 @@
     let heroImageUrls = [];
     let heroActiveIndex = 0;
     let heroAutoTimer = null;
+    let heroLayoutFrame = null;
 
     let weekDays = [];
     let weekFrom = null;
@@ -2810,6 +2934,50 @@
       }, 4500);
     };
 
+    const getHeroBaseHeight = () => {
+      if (!clubHeroEl) return 220;
+      const raw = Number.parseFloat(getComputedStyle(clubHeroEl).getPropertyValue('--hero-slide-base-height'));
+      return Number.isFinite(raw) && raw > 0 ? raw : 220;
+    };
+
+    const getHeroAdaptiveMaxHeight = () => {
+      const isCompact = window.innerWidth <= 760;
+      const viewportLimit = Math.round(window.innerHeight * (isCompact ? 0.42 : 0.5));
+      return Math.min(isCompact ? 340 : 460, Math.max(getHeroBaseHeight(), viewportLimit));
+    };
+
+    const refreshHeroSlideFitModes = () => {
+      heroLayoutFrame = null;
+      if (!clubHeroScrollEl) return;
+      const baseHeight = getHeroBaseHeight();
+      const maxAdaptiveHeight = getHeroAdaptiveMaxHeight();
+      let nextHeroHeight = baseHeight;
+      clubHeroScrollEl.querySelectorAll('.hero-slide').forEach((slide) => {
+        const img = slide.querySelector('img');
+        if (!img || !img.naturalWidth || !img.naturalHeight) return;
+        const frame = slide.querySelector('.hero-slide-media') || slide;
+        const frameWidth = frame.clientWidth || slide.clientWidth || 1;
+        const imageRatio = img.naturalWidth / img.naturalHeight;
+        const frameRatio = frameWidth / baseHeight;
+        const shouldContain = imageRatio < (frameRatio * 0.78);
+        slide.classList.toggle('hero-slide--contain', shouldContain);
+        if (shouldContain) {
+          const preferredHeight = Math.round(frameWidth / imageRatio);
+          const adaptiveHeight = Math.min(maxAdaptiveHeight, Math.max(baseHeight, Math.round(preferredHeight * 0.82)));
+          nextHeroHeight = Math.max(nextHeroHeight, adaptiveHeight);
+        }
+      });
+      clubHeroEl?.style.setProperty('--hero-slide-height', `${nextHeroHeight}px`);
+      clubHeroEl?.classList.toggle('hero-carousel--adaptive', nextHeroHeight > baseHeight);
+    };
+
+    const scheduleHeroSlideFitRefresh = () => {
+      if (heroLayoutFrame != null) {
+        window.cancelAnimationFrame(heroLayoutFrame);
+      }
+      heroLayoutFrame = window.requestAnimationFrame(refreshHeroSlideFitModes);
+    };
+
     const renderHeroCarousel = (urls) => {
       if (!clubHeroScrollEl || !clubHeroDotsEl) return;
       stopHeroAutoPlay();
@@ -2822,6 +2990,8 @@
       clubHeroDotsEl.innerHTML = '';
 
       if (!heroImageUrls.length) {
+        clubHeroEl?.style.setProperty('--hero-slide-height', `${getHeroBaseHeight()}px`);
+        clubHeroEl?.classList.remove('hero-carousel--adaptive');
         const placeholder = document.createElement('div');
         placeholder.className = 'hero-slide';
         placeholder.textContent = 'Club cover / banner';
@@ -2834,11 +3004,22 @@
       heroImageUrls.forEach((url, idx) => {
         const slide = document.createElement('div');
         slide.className = 'hero-slide';
+        const media = document.createElement('div');
+        media.className = 'hero-slide-media';
+        const backdrop = document.createElement('div');
+        backdrop.className = 'hero-slide-backdrop';
+        backdrop.setAttribute('aria-hidden', 'true');
         const img = document.createElement('img');
         img.alt = `Club image ${idx + 1}`;
         img.loading = idx === 0 ? 'eager' : 'lazy';
+        img.addEventListener('load', () => {
+          backdrop.style.backgroundImage = `url("${img.currentSrc || img.src}")`;
+          scheduleHeroSlideFitRefresh();
+        });
         img.src = `${url}${url.includes('?') ? '&' : '?'}v=${Date.now()}-${idx}`;
-        slide.appendChild(img);
+        media.appendChild(backdrop);
+        media.appendChild(img);
+        slide.appendChild(media);
         clubHeroScrollEl.appendChild(slide);
 
         const dot = document.createElement('button');
@@ -2853,6 +3034,7 @@
       if (clubHeroPrevEl) clubHeroPrevEl.hidden = !hasMany;
       if (clubHeroNextEl) clubHeroNextEl.hidden = !hasMany;
       scrollHeroToIndex(0, false);
+      scheduleHeroSlideFitRefresh();
       startHeroAutoPlay();
     };
 
@@ -2896,6 +3078,7 @@
     clubHeroScrollEl?.addEventListener('pointerup', startHeroAutoPlay);
     clubHeroScrollEl?.addEventListener('pointercancel', startHeroAutoPlay);
     clubHeroScrollEl?.addEventListener('mouseleave', startHeroAutoPlay);
+    window.addEventListener('resize', scheduleHeroSlideFitRefresh);
 
     const showPageToast = (message, type = 'info') => {
       const text = String(message || '').trim();
@@ -3103,11 +3286,16 @@
 
     const membershipBenefitBadge = (row) => {
       if (isBookingPackMembership(row)) {
-        const included = Math.max(0, Number(row?.includedBookings || 0));
-        return `${included} ${included === 1 ? 'booking' : 'bookings'}`;
+        return 'Booking pack';
       }
       const discount = Math.max(0, Number(row?.discountPercent || 0));
       return discount >= 100 ? 'Free booking' : `${discount}% off`;
+    };
+
+    const membershipBenefitSupplement = (row) => {
+      if (!isBookingPackMembership(row)) return '';
+      const included = Math.max(0, Number(row?.includedBookings || 0));
+      return `${included} session credit${included === 1 ? '' : 's'}`;
     };
 
     const hasMembershipPlans = () => Array.isArray(clubMembershipPlans) && clubMembershipPlans.length > 0;
@@ -3122,9 +3310,9 @@
       if (clubMembershipToggleEl) {
         clubMembershipToggleEl.setAttribute('aria-expanded', next ? 'true' : 'false');
       }
-      syncMembershipPlansMode();
+      updateBookingSideRail();
       if (next) {
-        window.setTimeout(() => bookingSideRailToggleEl?.focus(), 60);
+        window.setTimeout(() => closeMembershipPlansBtnEl?.focus(), 60);
       }
     };
 
@@ -3145,22 +3333,24 @@
             : '--';
           const activePackPlan = isBookingPackMembership(myClubMembership || activePlan);
           const activeBenefitBadge = membershipBenefitBadge(myClubMembership || activePlan);
+          const activeBenefitSupplement = membershipBenefitSupplement(myClubMembership || activePlan);
           const activePriceLabel = formatPrice(activePlan?.price);
           const activeUntilLabel = formatDateLabel(myClubMembership.endDate);
           const remainingBookings = Math.max(0, Number(myClubMembership?.remainingBookings || 0));
           const includedBookings = Math.max(0, Number(myClubMembership?.includedBookings || activePlan?.includedBookings || 0));
           const activeCopy = activePackPlan
-            ? `Valid until ${activeUntilLabel}. ${remainingBookings} of ${includedBookings} booking credits remain.`
+            ? `Valid until ${activeUntilLabel}. ${remainingBookings} of ${includedBookings} session credits remain.`
             : `Active until ${activeUntilLabel}. Member pricing is already applied to eligible bookings.`;
           clubMembershipStatusEl.style.display = 'block';
           clubMembershipStatusEl.innerHTML = `
             <div class="membership-status-card">
               <div class="membership-plan-top">
-                <div>
+                <div class="membership-plan-heading">
                   <div class="membership-plan-duration">${escapeHtml(activeDurationLabel)}</div>
+                  ${activeBenefitSupplement ? `<div class="membership-plan-supplement">${escapeHtml(activeBenefitSupplement)}</div>` : ''}
                   <div class="membership-plan-name">${escapeHtml(activePlanName)}</div>
                 </div>
-                <div class="membership-plan-discount">${escapeHtml(activeBenefitBadge)}</div>
+                <div class="membership-plan-discount ${activePackPlan ? 'membership-plan-discount--pack' : ''}">${escapeHtml(activeBenefitBadge)}</div>
               </div>
               ${activePriceLabel ? `<div class="membership-plan-price">${escapeHtml(activePriceLabel)}</div>` : ''}
               <div class="membership-plan-copy">${escapeHtml(activeCopy)}</div>
@@ -3229,19 +3419,22 @@
         const priceLabel = formatPrice(plan?.price) || 'GBP 0.00';
         const durationLabel = Number.isFinite(Number(plan?.durationDays)) ? `${plan.durationDays} days` : '--';
         const planName = String(plan?.planName || 'Membership').trim() || 'Membership';
+        const packPlan = isBookingPackMembership(plan);
+        const benefitSupplement = membershipBenefitSupplement(plan);
         const description = String(plan?.description || '').trim() || (isBookingPackMembership(plan)
-          ? `Includes ${Math.max(0, Number(plan?.includedBookings || 0))} prepaid bookings.`
+          ? `Includes ${Math.max(0, Number(plan?.includedBookings || 0))} prepaid session credits.`
           : `Save ${Math.max(0, Number(plan?.discountPercent || 0))}% on eligible bookings.`);
         const buttonLabel = isCurrentPlan ? 'Current plan' : (hasActiveMembership ? 'Already active' : 'Buy membership');
         const buttonDisabled = isCurrentPlan || hasActiveMembership;
         return `
           <article class="membership-plan-card ${isCurrentPlan ? 'active' : ''}">
             <div class="membership-plan-top">
-              <div>
+              <div class="membership-plan-heading">
                 <div class="membership-plan-duration">${escapeHtml(durationLabel)}</div>
+                ${benefitSupplement ? `<div class="membership-plan-supplement">${escapeHtml(benefitSupplement)}</div>` : ''}
                 <div class="membership-plan-name">${escapeHtml(planName)}</div>
               </div>
-              <div class="membership-plan-discount">${escapeHtml(membershipBenefitBadge(plan))}</div>
+              <div class="membership-plan-discount ${packPlan ? 'membership-plan-discount--pack' : ''}">${escapeHtml(membershipBenefitBadge(plan))}</div>
             </div>
             <div class="membership-plan-price">${escapeHtml(priceLabel)}</div>
             <div class="membership-plan-copy">${escapeHtml(description)}</div>
@@ -3424,7 +3617,7 @@
         resetCommunityEditors();
       }
       clubCommunityOpenBtnEl?.setAttribute('aria-expanded', communityDialogOpen ? 'true' : 'false');
-      syncCommunityDialogMode();
+      updateBookingSideRail();
       if (communityDialogOpen) {
         window.setTimeout(() => clubCommunityAskInputEl?.focus(), 60);
       }
@@ -4978,7 +5171,7 @@
     };
 
     const runUserChatSync = async ({ scrollBottom = false, markRead = false } = {}) => {
-      if (chatPollInFlight) return;
+      if (chatPollInFlight || chatSendInFlight) return;
       if (!shouldMaintainChatSync()) return;
       chatPollInFlight = true;
       try {
@@ -5034,7 +5227,7 @@
 
     const startChatPolling = () => {
       if (!shouldMaintainChatSync()) return;
-      startChatStream();
+      stopChatStream();
       scheduleChatPolling();
       runUserChatSync({ scrollBottom: false, markRead: chatWidgetOpen });
     };
@@ -5043,7 +5236,7 @@
       chatWidgetOpen = Boolean(open);
       clubChatPanelEl?.classList.toggle('open', chatWidgetOpen);
       clubChatPanelEl?.setAttribute('aria-hidden', chatWidgetOpen ? 'false' : 'true');
-      syncClubChatMode();
+      updateBookingSideRail();
       updateChatLauncher();
       if (chatWidgetOpen) {
         setMembershipPlansOpen(false);
@@ -5061,10 +5254,16 @@
     const updateBookingSideRail = () => {
       const collapsible = window.matchMedia('(min-width: 1321px)').matches;
       const collapsed = collapsible ? bookingSideRailCollapsed : false;
+      const overlayPanelOpen = collapsible
+        && !collapsed
+        && (chatWidgetOpen || clubMembershipExpanded || communityDialogOpen);
       bookingSideRailEl?.classList.toggle('is-collapsed', collapsed);
       clubPageGridEl?.classList.toggle('rail-collapsed', collapsed);
       pageMainEl?.classList.toggle('rail-open', !collapsed);
-      bookingSideRailToggleEl?.toggleAttribute('hidden', !collapsible);
+      bookingSideRailToggleEl?.toggleAttribute('hidden', !collapsible || overlayPanelOpen);
+      if (bookingSideRailToggleEl) {
+        bookingSideRailToggleEl.disabled = overlayPanelOpen;
+      }
       bookingSideRailToggleEl?.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
       bookingSideRailToggleEl?.setAttribute('aria-label', collapsed ? 'Open chat, Q&A, and member pricing' : 'Back to booking details');
       if (bookingSideRailToggleIconEl) {
@@ -5208,6 +5407,9 @@
         return;
       }
 
+      const resumeRealtimeSyncAfterSend = shouldMaintainChatSync();
+      stopChatStream();
+      stopChatPolling();
       const previousInput = text;
       lastChatSubmitFingerprint = submitFingerprint;
       lastChatSubmitAt = now;
@@ -5306,6 +5508,10 @@
         }
         renderClubChatThread(false);
         showPageToast('Failed to send message. Please try again.', 'error');
+      } finally {
+        if (resumeRealtimeSyncAfterSend && chatWidgetOpen) {
+          startChatPolling();
+        }
       }
     });
 
@@ -5465,9 +5671,9 @@
       privacy: {
         title: 'Privacy',
         body: `
-          <p>We only store the information needed to manage bookings and memberships.</p>
-          <p>Your account data is kept locally in this demo and is not shared with third parties.</p>
-          <p>You can request deletion at any time by contacting the admin.</p>
+          <p>We store the information needed to run Club Portal features such as sign-in, club setup, bookings, memberships, payments, chat, and community Q&amp;A.</p>
+          <p>Depending on how this project is deployed, data may be stored in your browser and on the backend server. Some features can also use configured third-party services such as Google sign-in or Maps, Stripe payments, and AI-assisted chat.</p>
+          <p>If you need your account or club data corrected or removed, please contact the platform admin.</p>
         `
       },
       terms: {

@@ -1,6 +1,8 @@
 package com.clubportal.model;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -41,7 +43,8 @@ public class MembershipPlan {
     @Column(name = "enabled", nullable = false)
     private Boolean enabled;
 
-    @Column(name = "description", columnDefinition = "TEXT")
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
+    @Column(name = "description")
     private String description;
 
     @Column(name = "created_at", insertable = false, updatable = false)

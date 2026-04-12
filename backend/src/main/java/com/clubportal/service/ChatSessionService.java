@@ -83,7 +83,6 @@ public class ChatSessionService {
         session.setChatMode(ChatMode.HANDOFF_REQUESTED);
         session.setHandoffRequestedAt(LocalDateTime.now());
         session.setHandoffReason(reason == null ? HandoffReason.OTHER : reason);
-        session.setClubUnreadCount(normalizeUnreadCount(session.getClubUnreadCount()) + 1);
         return chatSessionRepository.save(session);
     }
 

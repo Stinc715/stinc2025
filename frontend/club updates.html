@@ -814,6 +814,7 @@
     let activeClubName = '';
     let membershipPlanRows = [];
     let membershipPlanDrafts = [];
+    const planOriginalPayloadByKey = new Map();
     let membershipPlanDraftCounter = 0;
     let expandedPlanKey = null;
     const openPlanNoteKeys = new Set();
@@ -1076,11 +1077,80 @@
       description: ''
     });
 
+    const refreshSavedPlanOriginalPayloads = (plans = []) => {
+      const savedPlans = Array.isArray(plans) ? plans.map(buildPlanShape) : [];
+      const savedKeys = new Set(savedPlans.map((plan) => String(plan.key || '')));
+      const draftKeys = new Set(membershipPlanDrafts.map((plan) => String(buildPlanShape(plan).key || '')));
+      Array.from(planOriginalPayloadByKey.keys()).forEach((key) => {
+        if (!savedKeys.has(key) && !draftKeys.has(key)) {
+          planOriginalPayloadByKey.delete(key);
+        }
+      });
+      savedPlans.forEach((plan) => {
+        const key = String(plan.key || '');
+        if (!key) return;
+        planOriginalPayloadByKey.set(key, normalizePlanPayload(plan));
+      });
+    };
+
+    const resolvePlanOriginalPayload = (card, payload) => {
+      const planKey = String(card?.getAttribute('data-plan-key') || payload?.planId || '');
+      if (!planKey) return '';
+      const existing = planOriginalPayloadByKey.get(planKey);
+      if (typeof existing === 'string') return existing;
+      const baseline = buildPlanShape({
+        ...payload,
+        key: planKey,
+        draft: card?.getAttribute('data-plan-draft') === 'true',
+        standardPlan: card?.getAttribute('data-plan-standard') === 'true'
+      });
+      const normalized = normalizePlanPayload(baseline);
+      planOriginalPayloadByKey.set(planKey, normalized);
+      return normalized;
+    };
+
+    const persistPlanCardState = (cardOrKey) => {
+      const card = typeof cardOrKey === 'string'
+        ? document.querySelector(`[data-plan-key="${CSS.escape(String(cardOrKey))}"]`)
+        : cardOrKey;
+      if (!card) return null;
+      const payload = readPlanPayload(card);
+      if (!payload) return null;
+      const planKey = String(card.getAttribute('data-plan-key') || '');
+      if (!planKey) return payload;
+      const nextPlan = buildPlanShape({
+        ...payload,
+        key: planKey,
+        draft: card.getAttribute('data-plan-draft') === 'true',
+        standardPlan: card.getAttribute('data-plan-standard') === 'true'
+      });
+      const replacePlan = (list) => {
+        let matched = false;
+        const nextList = list.map((item) => {
+          if (String(buildPlanShape(item).key || '') !== planKey) return item;
+          matched = true;
+          return nextPlan;
+        });
+        return matched ? nextList : [nextPlan, ...list];
+      };
+      if (nextPlan.draft) {
+        membershipPlanDrafts = replacePlan(membershipPlanDrafts);
+      } else {
+        membershipPlanRows = replacePlan(membershipPlanRows);
+      }
+      if (!planOriginalPayloadByKey.has(planKey)) {
+        planOriginalPayloadByKey.set(planKey, normalizePlanPayload(nextPlan));
+      }
+      return nextPlan;
+    };
+
     const bindPlanCards = (rootEl) => {
       if (!rootEl) return;
       rootEl.querySelectorAll('[data-plan-key]').forEach((card) => {
         const updateCardState = () => {
           const payload = readPlanPayload(card);
+          if (!payload) return;
+          persistPlanCardState(card);
           const packPlan = isBookingPackPlan(payload);
           const enabled = payload?.enabled !== false;
           const noteToggleBtn = card.querySelector('[data-toggle-plan-note]');
@@ -1112,7 +1182,7 @@
         };
 
         const payload = readPlanPayload(card);
-        if (payload) card.dataset.originalPayload = normalizePlanPayload(payload);
+        if (payload) card.dataset.originalPayload = resolvePlanOriginalPayload(card, payload);
 
         card.querySelectorAll('[data-field]').forEach((fieldEl) => {
           const isCheckbox = fieldEl.matches('input[type="checkbox"]');
@@ -1129,6 +1199,7 @@
       rootEl.querySelectorAll('[data-toggle-plan-editor]').forEach((btn) => {
         btn.addEventListener('click', () => {
           const key = String(btn.getAttribute('data-toggle-plan-editor') || '');
+          persistPlanCardState(btn.closest('[data-plan-key]'));
           expandedPlanKey = expandedPlanKey === key ? null : key;
           renderPlans();
           if (expandedPlanKey) {
@@ -1142,6 +1213,7 @@
         btn.addEventListener('click', () => {
           const key = String(btn.getAttribute('data-toggle-plan-note') || '');
           if (!key) return;
+          persistPlanCardState(btn.closest('[data-plan-key]'));
           if (openPlanNoteKeys.has(key)) {
             openPlanNoteKeys.delete(key);
           } else {
@@ -1311,6 +1383,7 @@
       if (!res.ok) throw new Error('Failed to load membership plans.');
       const data = await res.json();
       membershipPlanRows = Array.isArray(data) ? data : [];
+      refreshSavedPlanOriginalPayloads(membershipPlanRows);
       renderPlans();
     };
 
@@ -1612,6 +1685,7 @@
           const draftKey = String(card.getAttribute('data-plan-key') || '');
           membershipPlanDrafts = membershipPlanDrafts.filter((item) => String(item?.key || '') !== draftKey);
           openPlanNoteKeys.delete(draftKey);
+          planOriginalPayloadByKey.delete(draftKey);
         }
         await loadPlans();
         if (isDraft) {
@@ -1641,6 +1715,7 @@
         membershipPlanDrafts = membershipPlanDrafts.filter((item) => String(item?.key || '') !== planKey);
         if (expandedPlanKey === planKey) expandedPlanKey = null;
         openPlanNoteKeys.delete(planKey);
+        planOriginalPayloadByKey.delete(planKey);
         renderPlans();
         showStatus('Draft plan removed.', 'success');
         return;
@@ -1658,6 +1733,7 @@
         }
         if (expandedPlanKey === planKey) expandedPlanKey = null;
         openPlanNoteKeys.delete(planKey);
+        planOriginalPayloadByKey.delete(planKey);
         await loadPlans();
         showStatus('Membership plan deleted.', 'success');
       } catch (err) {
@@ -1671,6 +1747,7 @@
       setPlanViewMode('draft');
       const draft = createDraftPlan();
       membershipPlanDrafts = [draft, ...membershipPlanDrafts];
+      planOriginalPayloadByKey.set(String(draft.key || ''), normalizePlanPayload(draft));
       expandedPlanKey = draft.key;
       openPlanNoteKeys.delete(draft.key);
       renderPlans();

@@ -21,7 +21,8 @@ $migrationDir = Join-Path $deployDir "migrations"
 $backendJar = Join-Path $backendDir "target\club-portal-backend-1.0-SNAPSHOT.jar"
 $archiveName = "dist-deploy-{0}.tgz" -f (Get-Date -Format "yyyyMMddHHmmss")
 $archivePath = Join-Path $artifactsDir $archiveName
-$npmExecutable = if ($IsWindows -or $env:OS -eq "Windows_NT") { "npm.cmd" } else { "npm" }
+$isWindowsPlatform = ($env:OS -eq "Windows_NT") -or ($PSVersionTable.PSVersion.Major -lt 6) -or ($PSVersionTable.Platform -eq "Win32NT")
+$npmExecutable = if ($isWindowsPlatform) { "npm.cmd" } else { "npm" }
 $nodeExecutable = if (Get-Command node -ErrorAction SilentlyContinue) { "node" } else { "node.exe" }
 
 function Assert-RequiredValue {

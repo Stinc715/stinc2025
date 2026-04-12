@@ -37,8 +37,8 @@ This repo currently optimizes for the following acceptance environment:
 
 - Node.js `20+`
 - npm `10+`
-- JDK `17`
-- Maven is bundled through the repo wrapper: [mvnw](./mvnw) and [mvnw.cmd](./mvnw.cmd)
+- JDK `17` must already be installed on the target machine
+- Maven is provided through the repo wrapper: [mvnw](./mvnw) and [mvnw.cmd](./mvnw.cmd)
 - Playwright Chromium for screenshot regression
 
 First-time setup:
@@ -48,13 +48,21 @@ npm ci
 npx playwright install chromium
 ```
 
+First full acceptance / delivery verification on a new machine is not fully offline:
+
+- internet is required once to download Playwright Chromium and the Maven distribution used by the Maven Wrapper
+- this affects `npm run test:frontend:visual`, `npm run test:backend`, `npm run test:acceptance`, and `npm run verify:submission` when the local caches are empty
+- the Maven Wrapper does not replace Java itself; reviewers still need a working local JDK 17 before backend commands can run
+- later runs can reuse the local Playwright and Maven caches
+
 Portable zip handoff behavior:
 
 - `npm run build`, `npm run dev`, and `npm run test:frontend:visual` now self-check `node_modules`
 - if a zip was created on another OS and bundled a mismatched `node_modules`, the command reruns `npm ci` against `package-lock.json` before continuing
 - frontend npm scripts invoke local Node entry files directly, so Unix execute bits on `node_modules/.bin/vite` and `node_modules/.bin/playwright` are not required
 - backend npm entrypoints call `mvnw` through `sh` on Unix, so a missing execute bit on `mvnw` does not block the npm workflow
-- `npm run test:frontend:visual` installs Playwright Chromium automatically if it is missing
+- `npm run test:frontend:visual` installs Playwright Chromium automatically if it is missing, so the first run needs internet unless the browser is already cached
+- `npm run test:backend` and backend steps inside acceptance / submission verification may download the Maven distribution through the Maven Wrapper on first run, so they also need internet unless Maven is already cached
 
 Recommended handoff rule:
 
@@ -225,6 +233,7 @@ Use this rule in practice:
 - `npm run test:acceptance` before commit, release, review handoff, or demo
 - `npm run verify:submission` before final packaging or delivery handoff
 - if the repo was handed over as a raw zip from another machine, let the first `npm run build` or `npm run test:frontend:visual` complete its dependency self-repair before judging the package
+- first full acceptance on a clean machine must be allowed to access the network once for Playwright Chromium and Maven Wrapper dependency downloads, or those caches must already exist
 
 ## Clean submission package
 
@@ -261,6 +270,7 @@ That command:
 - regenerates the submission tree
 - checks required and forbidden assets
 - reruns the full fresh submission command chain
+- is reproducible on a fresh machine when first-run network access is allowed for Playwright Chromium and the Maven distribution used by the Maven Wrapper, or when those caches already exist
 - writes `artifacts/submission/verification-report.md` and `artifacts/submission/verification-report.json`
 - copies the verification report into the staged submission tree for standalone handoff
 - restores a clean submission tree after verification

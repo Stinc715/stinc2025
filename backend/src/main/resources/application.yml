@@ -80,4 +80,4 @@ app:
         realtime-keywords: ${APP_CHAT_KB_GUARD_REALTIME_KEYWORDS:今天,现在,目前,当前,此刻,临时,刚刚,还剩,还有位置,名额,空位,现在还能,today,now,currently,available now,remaining,left,available today}
   security:
     cors:
-      allowed-origin-patterns: ${APP_SECURITY_CORS_ALLOWED_ORIGIN_PATTERNS:https://example.invalid,https://www.example.invalid}
+      allowed-origin-patterns: ${APP_SECURITY_CORS_ALLOWED_ORIGIN_PATTERNS:https://club-portal.xyz,https://www.club-portal.xyz}

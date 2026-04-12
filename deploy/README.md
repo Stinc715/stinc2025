@@ -84,9 +84,11 @@ Optional flags:
 ## Typical release workflow
 
 1. Run tests locally.
-2. Run `deploy/upload.ps1` with the correct SSH key.
-3. Confirm the remote service is healthy.
-4. Confirm the target health endpoint returns `200`.
+2. If you intentionally want to replace the online club dataset with the prepared 20 clubs, set `APP_SEED_PRODUCTION_CLUBS_ENABLED=true` in the remote env file together with the expected guard values before release.
+3. If the 20 clubs already exist online and you only want fresher prices, timeslots, plans, and Q&A, set `APP_SEED_PRODUCTION_CLUB_CONTENT_REFRESH_ENABLED=true` for one release instead.
+4. Run `deploy/upload.ps1` with the correct SSH key.
+5. Confirm the remote service is healthy.
+6. Confirm the target health endpoint returns `200`.
 
 ## Related docs
 
