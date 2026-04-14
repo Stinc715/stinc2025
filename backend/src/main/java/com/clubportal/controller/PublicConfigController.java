@@ -1,5 +1,6 @@
 package com.clubportal.controller;
 
+import com.clubportal.security.StreamAuthCookieService;
 import com.clubportal.service.CheckoutSessionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,25 +23,46 @@ public class PublicConfigController {
     @Value("${app.payments.currency:GBP}")
     private String paymentCurrency;
 
+    @Value("${app.public.privacy-contact-email:}")
+    private String privacyContactEmail;
+
+    @Value("${app.public.data-controller-name:}")
+    private String dataControllerName;
+
+    @Value("${app.public.retention-summary:}")
+    private String retentionSummary;
+
+    @Value("${app.public.processors-summary:}")
+    private String processorsSummary;
+
     private final CheckoutSessionService checkoutSessionService;
+    private final StreamAuthCookieService streamAuthCookieService;
 
     @Autowired
-    public PublicConfigController(CheckoutSessionService checkoutSessionService) {
+    public PublicConfigController(CheckoutSessionService checkoutSessionService,
+                                  StreamAuthCookieService streamAuthCookieService) {
         this.checkoutSessionService = checkoutSessionService;
+        this.streamAuthCookieService = streamAuthCookieService;
     }
 
     @GetMapping("/config")
     public Map<String, Object> getPublicConfig() {
         String key = safe(googleMapsApiKey);
         String oauthClientId = firstClientId(googleOauthClientId);
-        return Map.of(
-                "googleMapsApiKey", key,
-                "googleMapsEnabled", !key.isBlank(),
-                "googleOauthClientId", oauthClientId,
-                "googleOauthEnabled", !oauthClientId.isBlank(),
-                "paymentsEnabled", checkoutSessionService.paymentsEnabled(),
-                "paymentProvider", checkoutSessionService.paymentProvider(),
-                "paymentCurrency", safe(paymentCurrency).isBlank() ? "GBP" : safe(paymentCurrency).toUpperCase()
+        return Map.ofEntries(
+                Map.entry("googleMapsApiKey", key),
+                Map.entry("googleMapsEnabled", !key.isBlank()),
+                Map.entry("googleOauthClientId", oauthClientId),
+                Map.entry("googleOauthEnabled", !oauthClientId.isBlank()),
+                Map.entry("paymentsEnabled", checkoutSessionService.paymentsEnabled()),
+                Map.entry("paymentProvider", checkoutSessionService.paymentProvider()),
+                Map.entry("paymentCurrency", safe(paymentCurrency).isBlank() ? "GBP" : safe(paymentCurrency).toUpperCase()),
+                Map.entry("privacyContactEmail", safe(privacyContactEmail)),
+                Map.entry("dataControllerName", safe(dataControllerName)),
+                Map.entry("retentionSummary", safe(retentionSummary)),
+                Map.entry("processorsSummary", safe(processorsSummary)),
+                Map.entry("authSessionTtlSeconds", streamAuthCookieService.getAuthTokenTtlSeconds()),
+                Map.entry("streamSessionTtlSeconds", streamAuthCookieService.getStreamTokenTtlSeconds())
         );
     }
 

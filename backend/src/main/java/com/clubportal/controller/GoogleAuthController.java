@@ -8,6 +8,7 @@ import com.clubportal.security.StreamAuthCookieService;
 import com.clubportal.security.JwtUtil;
 import com.clubportal.service.GoogleAuthService;
 import com.clubportal.service.GoogleLoginPolicyException;
+import com.clubportal.service.SecurityEventService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -27,15 +28,18 @@ public class GoogleAuthController {
     private final UserRepository userRepo;
     private final JwtUtil jwtUtil;
     private final StreamAuthCookieService streamAuthCookieService;
+    private final SecurityEventService securityEventService;
 
     public GoogleAuthController(GoogleAuthService googleAuthService,
                                 UserRepository userRepo,
                                 JwtUtil jwtUtil,
-                                StreamAuthCookieService streamAuthCookieService) {
+                                StreamAuthCookieService streamAuthCookieService,
+                                SecurityEventService securityEventService) {
         this.googleAuthService = googleAuthService;
         this.userRepo = userRepo;
         this.jwtUtil = jwtUtil;
         this.streamAuthCookieService = streamAuthCookieService;
+        this.securityEventService = securityEventService;
     }
 
     /**
@@ -66,6 +70,10 @@ public class GoogleAuthController {
             User savedUser = userRepo.save(user);
             String token = jwtUtil.generateToken(savedUser.getEmail(), auth.getRole(), nextSessionVersion, auth.getAuthProvider());
             streamAuthCookieService.writeAuthCookies(request, response, token);
+            securityEventService.record(request, "GOOGLE_LOGIN_SUCCESS", "INFO", savedUser, Map.of(
+                    "role", auth.getRole(),
+                    "authProvider", auth.getAuthProvider()
+            ));
             return ResponseEntity.ok(Map.of(
                     "token", token,
                     "id", savedUser.getUserId(),
@@ -76,15 +84,24 @@ public class GoogleAuthController {
                     "canChangePassword", false
             ));
         } catch (GoogleLoginPolicyException ex) {
+            securityEventService.recordForEmail(request, "GOOGLE_LOGIN_POLICY_BLOCKED", "WARN", "", Map.of(
+                    "reason", ex.getMessage()
+            ));
             return ResponseEntity.status(403).body(ex.getMessage());
         } catch (IllegalArgumentException ex) {
             String message = ex.getMessage() == null || ex.getMessage().isBlank()
                     ? "Google authentication failed"
                     : ex.getMessage();
             log.warn("Google login validation failed: {}", message);
+            securityEventService.recordForEmail(request, "GOOGLE_LOGIN_FAILED", "WARN", "", Map.of(
+                    "reason", message
+            ));
             return ResponseEntity.status(401).body(message);
         } catch (Exception e) {
             log.error("Google login error: {} - {}", e.getClass().getName(), e.getMessage(), e);
+            securityEventService.recordForEmail(request, "GOOGLE_LOGIN_ERROR", "HIGH", "", Map.of(
+                    "reason", e.getClass().getSimpleName()
+            ));
             return ResponseEntity.internalServerError().body("Authentication service temporarily unavailable");
         }
     }

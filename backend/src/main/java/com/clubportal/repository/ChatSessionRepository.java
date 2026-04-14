@@ -10,6 +10,7 @@ import java.util.Optional;
 
 public interface ChatSessionRepository extends JpaRepository<ChatSession, Integer> {
     Optional<ChatSession> findByClubIdAndUserId(Integer clubId, Integer userId);
+    List<ChatSession> findByUserIdOrderByUpdatedAtDesc(Integer userId);
     List<ChatSession> findByClubIdAndChatModeInOrderByUpdatedAtDesc(Integer clubId, List<ChatMode> chatModes);
     List<ChatSession> findByClubIdAndUserIdIn(Integer clubId, Collection<Integer> userIds);
 }

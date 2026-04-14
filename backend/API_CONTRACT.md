@@ -114,6 +114,95 @@ Response `200`:
 { "reset": true }
 ```
 
+## Profile
+
+### GET `/api/profile`
+
+Returns the caller's current profile payload, including `displayName`, `email`, `role`, `authProvider`, `canChangePassword`, and `avatarUrl` when present.
+
+### PATCH `/api/profile`
+
+Updates the caller's display name.
+
+### GET `/api/profile/export`
+
+Returns a JSON export of the caller's current user-linked data as stored by this deployment.
+
+Response `200` includes:
+
+```json
+{
+  "generatedAt": "2026-04-13T21:00:00Z",
+  "profile": {
+    "id": 11,
+    "displayName": "Alice Example",
+    "email": "alice@example.com",
+    "role": "USER"
+  },
+  "memberships": [],
+  "bookings": [],
+  "checkoutSessions": [],
+  "transactions": [],
+  "chatSessions": [],
+  "deletionRequests": []
+}
+```
+
+Notes:
+- this is a runtime-truth export of data directly linked to the authenticated account
+- it currently returns JSON, not a file attachment
+
+### POST `/api/profile/session/rotate`
+
+Rotates the authenticated session version and invalidates previously issued tokens for the same account on other devices.
+
+Response `200`:
+
+```json
+{
+  "rotated": true,
+  "token": "jwt-token",
+  "authTokenTtlSeconds": 604800,
+  "streamTokenTtlSeconds": 86400
+}
+```
+
+Notes:
+- the current browser receives a fresh token and stays signed in
+- older auth/stream cookies for the same account become invalid after rotation
+
+### POST `/api/profile/deletion-request`
+
+Creates a deletion request record for manual review. This does **not** directly delete the account.
+
+Request body:
+
+```json
+{
+  "reason": "Please delete my account and associated personal data."
+}
+```
+
+Response `202`:
+
+```json
+{
+  "submitted": true,
+  "created": true,
+  "message": "Your deletion request has been recorded for manual review.",
+  "deletionRequest": {
+    "requestId": 7,
+    "status": "PENDING",
+    "reason": "Please delete my account and associated personal data.",
+    "requestedAt": "2026-04-13T21:05:00"
+  }
+}
+```
+
+Notes:
+- repeated calls do not create duplicate pending requests for the same account
+- deletion-request records are operational markers for later handling, not proof that data has already been erased
+
 ## Clubs
 
 ### GET `/api/clubs`
@@ -450,10 +539,18 @@ Response includes:
   "googleOauthEnabled": true,
   "paymentsEnabled": true,
   "paymentProvider": "VIRTUAL_CHECKOUT",
-  "paymentCurrency": "GBP"
+  "paymentCurrency": "GBP",
+  "privacyContactEmail": "privacy@example.test",
+  "dataControllerName": "Club Booking Portal",
+  "retentionSummary": "Chat, booking, membership, and payment records are currently retained until manually deleted or a formal retention schedule is applied.",
+  "processorsSummary": "Google sign-in, Google Maps, Stripe, and AI chat providers may be used depending on deployment configuration.",
+  "authSessionTtlSeconds": 604800,
+  "streamSessionTtlSeconds": 86400
 }
 ```
 
 Notes:
 - `paymentProvider` is runtime-derived from backend payment mode and Stripe readiness
 - this response is the frontend-safe source of payment capability flags
+- privacy contact, controller name, retention summary, and processors summary are deployment-configurable public text intended for frontend notices
+- session TTL values describe the configured auth and stream cookie lifetimes used by the deployment

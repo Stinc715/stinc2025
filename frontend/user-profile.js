@@ -2,35 +2,31 @@
       const infoOverlay = document.getElementById('infoOverlay');
       const infoTitle = document.getElementById('infoTitle');
       const infoBody = document.getElementById('infoBody');
-      const infoMap = {
+      const getInfoMap = () => window.ClubPortalInfoContent?.createInfoMap?.() || {
         privacy: {
           title: 'Privacy',
           body: `
-            <p>We store the information needed to run Club Portal features such as sign-in, club setup, bookings, memberships, payments, chat, and community Q&amp;A.</p>
-            <p>Depending on how this project is deployed, data may be stored in your browser and on the backend server. Some features can also use configured third-party services such as Google sign-in or Maps, Stripe payments, and AI-assisted chat.</p>
-            <p>If you need your account or club data corrected or removed, please contact the platform admin.</p>
+            <p>Read the full privacy details for this deployment.</p>
+            <p class="info-link-row"><a href="privacy.html">Read full Privacy Notice</a></p>
           `
         },
         terms: {
           title: 'Terms',
           body: `
-            <p>Bookings are first-come, first-served and subject to club capacity.</p>
-            <p>Members must follow club rules and respect facility policies.</p>
-            <p>Repeated no-shows may result in booking restrictions.</p>
+            <p>Read the full terms for this deployment.</p>
+            <p class="info-link-row"><a href="terms.html">Read full Terms</a></p>
           `
         },
         help: {
           title: 'Help',
           body: `
-            <p>Need assistance? Start by searching for a club and selecting a time slot.</p>
-            <p>If you cannot log in, double-check your email and password.</p>
-            <p>Contact support at support@example.com for further help.</p>
+            <p>Contact the platform administrator or club staff if you need help with this deployment.</p>
           `
         }
       };
 
       const openInfo = (key) => {
-        const data = infoMap[key];
+        const data = getInfoMap()[key];
         if (!data || !infoOverlay) return;
         if (infoTitle) infoTitle.textContent = data.title;
         if (infoBody) infoBody.innerHTML = data.body;
@@ -158,6 +154,21 @@
         avatarPlaceholder.style.display = 'block';
       };
 
+      const MAX_AVATAR_BYTES = 4 * 1024 * 1024;
+      const ALLOWED_AVATAR_TYPES = new Set(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
+
+      const validateAvatarFile = (file) => {
+        if (!file) return 'No avatar file provided.';
+        const contentType = String(file.type || '').toLowerCase();
+        if (!ALLOWED_AVATAR_TYPES.has(contentType)) {
+          return 'Only JPG, PNG, GIF, and WEBP avatars are supported.';
+        }
+        if ((Number(file.size) || 0) > MAX_AVATAR_BYTES) {
+          return 'Avatar must be 4MB or smaller.';
+        }
+        return '';
+      };
+
       const fileToAvatarDataUrl = async (file) => {
         if (!file) return '';
         const rawDataUrl = await new Promise((resolve) => {
@@ -202,8 +213,29 @@
         });
       };
 
+      const showUserAlert = (message, title = 'Notice') => {
+        const text = String(message || '').trim();
+        if (!text) return Promise.resolve();
+        if (window.AppPrompt && typeof window.AppPrompt.alert === 'function') {
+          return window.AppPrompt.alert(text, { title, okText: 'OK' });
+        }
+        console.warn('[user-profile] AppPrompt.alert unavailable', { title, text });
+        return Promise.resolve();
+      };
+
+      const confirmUserAction = ({ title = 'Confirm', message = '', details = [], okText = 'Confirm', cancelText = 'Cancel' } = {}) => {
+        if (window.AppPrompt && typeof window.AppPrompt.confirm === 'function') {
+          return window.AppPrompt.confirm({ title, message, details, okText, cancelText });
+        }
+        console.warn('[user-profile] AppPrompt.confirm unavailable', { title, message, details });
+        return Promise.resolve(false);
+      };
+
       const readTextSafe = async (res) => {
         try {
+          if (res.status === 413) {
+            return 'Upload is too large. Keep avatars under 4MB.';
+          }
           const contentType = String(res.headers.get('content-type') || '').toLowerCase();
           if (contentType.includes('application/json')) {
             const data = await res.json();
@@ -309,10 +341,11 @@
         return `${y}-${m}-${d} ${hh}:${mm}`;
       };
 
+      const gbpCurrency = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
       const formatPrice = (price) => {
         const n = Number(price);
-        if (!Number.isFinite(n)) return 'GBP 0.00';
-        return `GBP ${n.toFixed(2)}`;
+        if (!Number.isFinite(n)) return gbpCurrency.format(0);
+        return gbpCurrency.format(n);
       };
 
       const profileApi = {
@@ -392,6 +425,33 @@
           });
           if (!res.ok) {
             throw new Error((await readTextSafe(res)) || 'Failed to update password.');
+          }
+          return await res.json();
+        },
+        async exportProfileData() {
+          const res = await authFetch('/api/profile/export');
+          if (!res.ok) {
+            throw new Error((await readTextSafe(res)) || 'Failed to export profile data.');
+          }
+          return await res.json();
+        },
+        async requestDeletion(reason) {
+          const res = await authFetch('/api/profile/deletion-request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason })
+          });
+          if (!res.ok) {
+            throw new Error((await readTextSafe(res)) || 'Failed to submit deletion request.');
+          }
+          return await res.json();
+        },
+        async rotateSession() {
+          const res = await authFetch('/api/profile/session/rotate', {
+            method: 'POST'
+          });
+          if (!res.ok) {
+            throw new Error((await readTextSafe(res)) || 'Failed to rotate session.');
           }
           return await res.json();
         }
@@ -691,6 +751,14 @@
       const passwordProviderCardEl = document.getElementById('passwordProviderCard');
       const passwordProviderCopyEl = document.getElementById('passwordProviderCopy');
       const updatePassBtn = document.getElementById('updatePassBtn');
+      const rotateSessionBtn = document.getElementById('rotateSessionBtn');
+      const rotateSessionStatusEl = document.getElementById('rotateSessionStatus');
+      const exportDataBtn = document.getElementById('exportDataBtn');
+      const requestDeletionBtn = document.getElementById('requestDeletionBtn');
+      const deletionReasonInput = document.getElementById('deletionReasonInput');
+      const dataRightsStatusEl = document.getElementById('dataRightsStatus');
+      const dataRightsRetentionSummaryEl = document.getElementById('dataRightsRetentionSummary');
+      const dataRightsPrivacyEmailEl = document.getElementById('dataRightsPrivacyEmail');
 
       let currentName = '';
       let currentEmail = '';
@@ -698,6 +766,91 @@
       let codeRemaining = 0;
       let emailVerifyInFlight = false;
       let passwordChangeAllowed = true;
+      let exportInFlight = false;
+      let deletionRequestInFlight = false;
+      let rotateSessionInFlight = false;
+
+      const defaultRetentionSummary = 'Account, booking, membership, payment, and chat records can be retained for service operation, dispute handling, security, and audit until a formal retention schedule is applied.';
+
+      const setDataRightsStatus = (text, type = '') => {
+        if (!dataRightsStatusEl) return;
+        const message = String(text || '').trim();
+        if (!message) {
+          dataRightsStatusEl.textContent = '';
+          dataRightsStatusEl.classList.remove('show', 'is-success', 'is-error', 'is-info');
+          return;
+        }
+        dataRightsStatusEl.textContent = message;
+        dataRightsStatusEl.classList.add('show');
+        dataRightsStatusEl.classList.toggle('is-success', type === 'success');
+        dataRightsStatusEl.classList.toggle('is-error', type === 'error');
+        dataRightsStatusEl.classList.toggle('is-info', type === 'info');
+      };
+
+      const setRotateSessionStatus = (text, type = '') => {
+        if (!rotateSessionStatusEl) return;
+        const message = String(text || '').trim();
+        if (!message) {
+          rotateSessionStatusEl.textContent = '';
+          rotateSessionStatusEl.classList.remove('show', 'is-success', 'is-error', 'is-info');
+          return;
+        }
+        rotateSessionStatusEl.textContent = message;
+        rotateSessionStatusEl.classList.add('show');
+        rotateSessionStatusEl.classList.toggle('is-success', type === 'success');
+        rotateSessionStatusEl.classList.toggle('is-error', type === 'error');
+        rotateSessionStatusEl.classList.toggle('is-info', type === 'info');
+      };
+
+      const applyDataRightsConfig = (rawConfig = {}) => {
+        const config = rawConfig && typeof rawConfig === 'object' ? rawConfig : {};
+        const retentionSummary = String(config.retentionSummary || '').trim() || defaultRetentionSummary;
+        const privacyEmail = String(config.privacyContactEmail || '').trim();
+
+        if (dataRightsRetentionSummaryEl) {
+          dataRightsRetentionSummaryEl.textContent = retentionSummary;
+        }
+        if (dataRightsPrivacyEmailEl) {
+          if (privacyEmail) {
+            dataRightsPrivacyEmailEl.textContent = privacyEmail;
+            dataRightsPrivacyEmailEl.href = `mailto:${privacyEmail}`;
+          } else {
+            dataRightsPrivacyEmailEl.textContent = 'Contact the platform administrator';
+            dataRightsPrivacyEmailEl.href = 'privacy.html';
+          }
+        }
+      };
+
+      const buildExportFilename = () => {
+        const dt = new Date();
+        const stamp = [
+          dt.getFullYear(),
+          String(dt.getMonth() + 1).padStart(2, '0'),
+          String(dt.getDate()).padStart(2, '0'),
+          '-',
+          String(dt.getHours()).padStart(2, '0'),
+          String(dt.getMinutes()).padStart(2, '0'),
+          String(dt.getSeconds()).padStart(2, '0')
+        ].join('');
+        const accountLabel = String(currentEmail || 'account')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .slice(0, 40) || 'account';
+        return `club-portal-profile-export-${accountLabel}-${stamp}.json`;
+      };
+
+      const downloadJsonFile = (payload, filename) => {
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const objectUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = objectUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+      };
 
       const setEmailVerifyMessage = (text, type = '') => {
         if (!emailUpdateErr) return;
@@ -926,6 +1079,91 @@
         confirmPassErr.style.display = 'none';
       };
 
+      const handleExportData = async () => {
+        if (exportInFlight || !exportDataBtn) return;
+        exportInFlight = true;
+        exportDataBtn.disabled = true;
+        exportDataBtn.textContent = 'Exporting...';
+        setDataRightsStatus('Preparing your account export...', 'info');
+        try {
+          const payload = await profileApi.exportProfileData();
+          downloadJsonFile(payload, buildExportFilename());
+          setDataRightsStatus('Your account export has been downloaded as a JSON file.', 'success');
+        } catch (err) {
+          console.error(err);
+          setDataRightsStatus((err && err.message) ? err.message : 'Failed to export your data.', 'error');
+        } finally {
+          exportInFlight = false;
+          exportDataBtn.disabled = false;
+          exportDataBtn.textContent = 'Export My Data';
+        }
+      };
+
+      const handleDeletionRequest = async () => {
+        if (deletionRequestInFlight || !requestDeletionBtn) return;
+        const reason = String(deletionReasonInput?.value || '').trim();
+        const confirmed = await confirmUserAction({
+          title: 'Request account deletion?',
+          message: 'Submit a manual account deletion request for this profile?',
+          details: reason ? [`Reason: ${reason}`] : [],
+          okText: 'Submit request',
+          cancelText: 'Keep account'
+        });
+        if (!confirmed) return;
+
+        deletionRequestInFlight = true;
+        requestDeletionBtn.disabled = true;
+        requestDeletionBtn.textContent = 'Submitting...';
+        setDataRightsStatus('Submitting your deletion request...', 'info');
+        try {
+          const payload = await profileApi.requestDeletion(reason);
+          const created = Boolean(payload?.created);
+          if (created && deletionReasonInput) {
+            deletionReasonInput.value = '';
+          }
+          const message = String(payload?.message || '').trim()
+            || (created
+              ? 'Your deletion request has been recorded for manual review.'
+              : 'A deletion request is already pending for this account.');
+          setDataRightsStatus(message, created ? 'success' : 'info');
+        } catch (err) {
+          console.error(err);
+          setDataRightsStatus((err && err.message) ? err.message : 'Failed to submit deletion request.', 'error');
+        } finally {
+          deletionRequestInFlight = false;
+          requestDeletionBtn.disabled = false;
+          requestDeletionBtn.textContent = 'Request Account Deletion';
+        }
+      };
+
+      const handleRotateSession = async () => {
+        if (rotateSessionInFlight || !rotateSessionBtn) return;
+        const confirmed = await confirmUserAction({
+          title: 'Sign out other sessions?',
+          message: 'Keep this device signed in and sign out other browsers and devices using this account?',
+          okText: 'Sign out others',
+          cancelText: 'Cancel'
+        });
+        if (!confirmed) return;
+
+        rotateSessionInFlight = true;
+        rotateSessionBtn.disabled = true;
+        rotateSessionBtn.textContent = 'Signing Out Others...';
+        setRotateSessionStatus('Rotating your session...', 'info');
+        try {
+          const payload = await profileApi.rotateSession();
+          persistSessionToken(payload?.token);
+          setRotateSessionStatus('Other sessions have been signed out. This device stays signed in.', 'success');
+        } catch (err) {
+          console.error(err);
+          setRotateSessionStatus((err && err.message) ? err.message : 'Failed to rotate session.', 'error');
+        } finally {
+          rotateSessionInFlight = false;
+          rotateSessionBtn.disabled = false;
+          rotateSessionBtn.textContent = 'Keep This Device, Sign Out Others';
+        }
+      };
+
       tabProfile?.addEventListener('click', () => {
         switchPanel('info');
         switchInfoTab('profile');
@@ -946,7 +1184,7 @@
           syncLocalProfileState(updated);
         } catch (err) {
           console.error(err);
-          window.alert((err && err.message) ? err.message : 'Failed to update name.');
+          await showUserAlert((err && err.message) ? err.message : 'Failed to update name.', 'Name update failed');
           return;
         }
 
@@ -1093,6 +1331,12 @@
       avatarInput?.addEventListener('change', async (event) => {
         const file = event.target.files && event.target.files[0];
         if (!file) return;
+        const validationError = validateAvatarFile(file);
+        if (validationError) {
+          event.target.value = '';
+          await showUserAlert(validationError, 'Avatar upload');
+          return;
+        }
         const previousAvatar = String(avatarImg?.getAttribute('src') || readStoredAvatar() || '').trim();
         const previewUrl = await fileToAvatarDataUrl(file);
         if (previewUrl) {
@@ -1113,7 +1357,9 @@
           } else {
             applyAvatarPreview('');
           }
-          window.alert((err && err.message) ? err.message : 'Failed to upload avatar.');
+          await showUserAlert((err && err.message) ? err.message : 'Failed to upload avatar.', 'Avatar upload failed');
+        } finally {
+          event.target.value = '';
         }
       });
 
@@ -1180,6 +1426,18 @@
             updateBtn.textContent = 'Update Password';
           }
         }
+      });
+
+      rotateSessionBtn?.addEventListener('click', handleRotateSession);
+      exportDataBtn?.addEventListener('click', handleExportData);
+      requestDeletionBtn?.addEventListener('click', handleDeletionRequest);
+
+      applyDataRightsConfig(window.ClubPortalInfoContent?.readPublicConfig?.() || {});
+      window.ClubPortalInfoContent?.loadPublicConfig?.().then((config) => {
+        applyDataRightsConfig(config);
+      }).catch(() => {});
+      window.addEventListener('clubportal:public-config-ready', (event) => {
+        applyDataRightsConfig(event?.detail || {});
       });
 
       loadAndDisplay();

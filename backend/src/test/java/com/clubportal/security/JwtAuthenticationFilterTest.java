@@ -2,6 +2,7 @@ package com.clubportal.security;
 
 import com.clubportal.model.User;
 import com.clubportal.repository.UserRepository;
+import com.clubportal.service.SecurityEventService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockFilterChain;
@@ -32,7 +33,8 @@ class JwtAuthenticationFilterTest {
     void authenticatesChatStreamUsingStreamCookie() throws Exception {
         JwtUtil jwtUtil = mock(JwtUtil.class);
         UserRepository userRepository = mock(UserRepository.class);
-        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtUtil, userRepository);
+        SecurityEventService securityEventService = mock(SecurityEventService.class);
+        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtUtil, userRepository, securityEventService);
 
         User user = new User();
         user.setEmail("member@example.com");
@@ -59,7 +61,8 @@ class JwtAuthenticationFilterTest {
     void authenticatesStandardApiUsingAuthCookie() throws Exception {
         JwtUtil jwtUtil = mock(JwtUtil.class);
         UserRepository userRepository = mock(UserRepository.class);
-        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtUtil, userRepository);
+        SecurityEventService securityEventService = mock(SecurityEventService.class);
+        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtUtil, userRepository, securityEventService);
 
         User user = new User();
         user.setEmail("member@example.com");
@@ -86,7 +89,8 @@ class JwtAuthenticationFilterTest {
     void ignoresStreamCookieOutsideRealtimeChatEndpoints() throws Exception {
         JwtUtil jwtUtil = mock(JwtUtil.class);
         UserRepository userRepository = mock(UserRepository.class);
-        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtUtil, userRepository);
+        SecurityEventService securityEventService = mock(SecurityEventService.class);
+        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtUtil, userRepository, securityEventService);
 
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/payments/checkout-sessions/test");
         request.setCookies(new MockCookie(StreamAuthCookieService.STREAM_TOKEN_COOKIE, "chat-token"));
@@ -102,7 +106,8 @@ class JwtAuthenticationFilterTest {
     void invalidCookieTokenDoesNotShortCircuitPublicRequests() throws Exception {
         JwtUtil jwtUtil = mock(JwtUtil.class);
         UserRepository userRepository = mock(UserRepository.class);
-        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtUtil, userRepository);
+        SecurityEventService securityEventService = mock(SecurityEventService.class);
+        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtUtil, userRepository, securityEventService);
 
         when(jwtUtil.extractEmail("bad-token")).thenThrow(new IllegalArgumentException("expired"));
 
@@ -123,7 +128,8 @@ class JwtAuthenticationFilterTest {
     void sessionVersionMismatchFallsBackToAnonymousInsteadOfWritingDirect401() throws Exception {
         JwtUtil jwtUtil = mock(JwtUtil.class);
         UserRepository userRepository = mock(UserRepository.class);
-        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtUtil, userRepository);
+        SecurityEventService securityEventService = mock(SecurityEventService.class);
+        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtUtil, userRepository, securityEventService);
 
         User user = new User();
         user.setEmail("member@example.com");

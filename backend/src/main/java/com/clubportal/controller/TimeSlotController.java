@@ -79,12 +79,6 @@ public class TimeSlotController {
 
         User viewer = currentUserService.findUserOrNull();
         Integer viewerUserId = viewer == null ? null : viewer.getUserId();
-        log.info("[CLUB_CHAT_DEBUG] PAGE_VISIBLE_SLOTS request: path={}, clubId={}, userId={}, from={}, to={}",
-                request == null ? "/api/clubs/" + clubId + "/timeslots" : request.getRequestURI(),
-                clubId,
-                viewerUserId,
-                from,
-                to);
         List<TimeSlotResponse> out = clubVisibleTimeslotService.listVisibleTimeslots(
                 clubId,
                 viewer,
@@ -92,25 +86,8 @@ public class TimeSlotController {
                 to,
                 "club-page"
         );
-        log.info("[CLUB_CHAT_DEBUG] PAGE_VISIBLE_SLOTS count: clubId={}, userId={}, count={}",
-                clubId,
-                viewerUserId,
-                out.size());
         for (int i = 0; i < out.size(); i++) {
             TimeSlotResponse slot = out.get(i);
-            log.info("[CLUB_CHAT_DEBUG] PAGE_VISIBLE_SLOTS[{}]: venueName={}, startTime={}, endTime={}, remaining={}, price={}, basePrice={}, membershipApplied={}, membershipPlanName={}, membershipBenefitType={}, membershipDiscountPercent={}, membershipRemainingBookings={}",
-                    i,
-                    slot == null ? null : slot.venueName(),
-                    slot == null ? null : slot.startTime(),
-                    slot == null ? null : slot.endTime(),
-                    slot == null ? null : slot.remaining(),
-                    slot == null ? null : slot.price(),
-                    slot == null ? null : slot.basePrice(),
-                    slot == null ? null : slot.membershipApplied(),
-                    slot == null ? null : slot.membershipPlanName(),
-                    slot == null ? null : slot.membershipBenefitType(),
-                    slot == null ? null : slot.membershipDiscountPercent(),
-                    slot == null ? null : slot.membershipRemainingBookings());
         }
 
         return ResponseEntity.ok(out);

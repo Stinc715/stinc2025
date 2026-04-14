@@ -10,6 +10,7 @@ import com.clubportal.security.StreamAuthCookieService;
 import com.clubportal.service.LoginThrottleService;
 import com.clubportal.service.PasswordPolicyService;
 import com.clubportal.service.RegistrationEmailVerificationService;
+import com.clubportal.service.SecurityEventService;
 import com.clubportal.util.PasswordEncryptionUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
@@ -58,6 +59,7 @@ class AuthControllerTest {
         PasswordEncryptionUtil passwordUtil = mock(PasswordEncryptionUtil.class);
         JwtUtil jwtUtil = mock(JwtUtil.class);
         RegistrationEmailVerificationService verificationService = mock(RegistrationEmailVerificationService.class);
+        SecurityEventService securityEventService = mock(SecurityEventService.class);
         StreamAuthCookieService streamAuthCookieService = new StreamAuthCookieService();
 
         AuthController controller = new AuthController(
@@ -67,7 +69,8 @@ class AuthControllerTest {
                 verificationService,
                 passwordPolicyService(),
                 streamAuthCookieService,
-                loginThrottleService()
+                loginThrottleService(),
+                securityEventService
         );
 
         RegisterRequest request = new RegisterRequest();
@@ -111,6 +114,7 @@ class AuthControllerTest {
         PasswordEncryptionUtil passwordUtil = mock(PasswordEncryptionUtil.class);
         JwtUtil jwtUtil = mock(JwtUtil.class);
         RegistrationEmailVerificationService verificationService = mock(RegistrationEmailVerificationService.class);
+        SecurityEventService securityEventService = mock(SecurityEventService.class);
         StreamAuthCookieService streamAuthCookieService = new StreamAuthCookieService();
 
         AuthController controller = new AuthController(
@@ -120,7 +124,8 @@ class AuthControllerTest {
                 verificationService,
                 passwordPolicyService(),
                 streamAuthCookieService,
-                loginThrottleService()
+                loginThrottleService(),
+                securityEventService
         );
 
         MockHttpServletRequest servletRequest = new MockHttpServletRequest("POST", "/api/auth/logout");
@@ -143,6 +148,7 @@ class AuthControllerTest {
         PasswordEncryptionUtil passwordUtil = mock(PasswordEncryptionUtil.class);
         JwtUtil jwtUtil = mock(JwtUtil.class);
         RegistrationEmailVerificationService verificationService = mock(RegistrationEmailVerificationService.class);
+        SecurityEventService securityEventService = mock(SecurityEventService.class);
         StreamAuthCookieService streamAuthCookieService = new StreamAuthCookieService();
 
         AuthController controller = new AuthController(
@@ -152,7 +158,8 @@ class AuthControllerTest {
                 verificationService,
                 passwordPolicyService(),
                 streamAuthCookieService,
-                loginThrottleService()
+                loginThrottleService(),
+                securityEventService
         );
 
         RegisterRequest request = new RegisterRequest();
@@ -182,6 +189,7 @@ class AuthControllerTest {
         PasswordEncryptionUtil passwordUtil = mock(PasswordEncryptionUtil.class);
         JwtUtil jwtUtil = mock(JwtUtil.class);
         RegistrationEmailVerificationService verificationService = mock(RegistrationEmailVerificationService.class);
+        SecurityEventService securityEventService = mock(SecurityEventService.class);
         StreamAuthCookieService streamAuthCookieService = new StreamAuthCookieService();
 
         AuthController controller = new AuthController(
@@ -191,7 +199,8 @@ class AuthControllerTest {
                 verificationService,
                 passwordPolicyService(),
                 streamAuthCookieService,
-                loginThrottleService()
+                loginThrottleService(),
+                securityEventService
         );
 
         RegisterRequest request = new RegisterRequest();
@@ -220,6 +229,7 @@ class AuthControllerTest {
         PasswordEncryptionUtil passwordUtil = mock(PasswordEncryptionUtil.class);
         JwtUtil jwtUtil = mock(JwtUtil.class);
         RegistrationEmailVerificationService verificationService = mock(RegistrationEmailVerificationService.class);
+        SecurityEventService securityEventService = mock(SecurityEventService.class);
         StreamAuthCookieService streamAuthCookieService = new StreamAuthCookieService();
 
         AuthController controller = new AuthController(
@@ -229,7 +239,8 @@ class AuthControllerTest {
                 verificationService,
                 passwordPolicyService(),
                 streamAuthCookieService,
-                loginThrottleService(2)
+                loginThrottleService(2),
+                securityEventService
         );
 
         when(userRepository.findAllByEmailIgnoreCase("member@example.com")).thenReturn(List.of());

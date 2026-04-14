@@ -2,6 +2,7 @@ package com.clubportal.security;
 
 import com.clubportal.model.User;
 import com.clubportal.repository.UserRepository;
+import com.clubportal.service.SecurityEventService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -28,10 +29,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final UserRepository userRepo;
+    private final SecurityEventService securityEventService;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, UserRepository userRepo) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil,
+                                   UserRepository userRepo,
+                                   SecurityEventService securityEventService) {
         this.jwtUtil = jwtUtil;
         this.userRepo = userRepo;
+        this.securityEventService = securityEventService;
     }
 
     @Override
@@ -50,6 +55,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 User user = userRepo.findByEmailIgnoreCase(email).orElse(null);
                 if (user == null || tokenSessionVersion == null
                         || user.getSessionVersionOrDefault() != tokenSessionVersion) {
+                    securityEventService.recordForEmail(request, "SESSION_REJECTED", "WARN", email, java.util.Map.of(
+                            "reason", user == null ? "user_not_found" : "session_version_mismatch"
+                    ));
                     SecurityContextHolder.clearContext();
                     request.setAttribute(AUTH_FAILURE_ATTRIBUTE, Boolean.TRUE);
                     filterChain.doFilter(request, response);
@@ -77,6 +85,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             } catch (Exception ex) {
                 log.debug("JWT rejected for uri={} reason={}", request.getRequestURI(), ex.getMessage());
+                securityEventService.recordForEmail(request, "INVALID_TOKEN", "WARN", "", java.util.Map.of(
+                        "reason", ex.getClass().getSimpleName()
+                ));
                 SecurityContextHolder.clearContext();
                 request.setAttribute(AUTH_FAILURE_ATTRIBUTE, Boolean.TRUE);
                 filterChain.doFilter(request, response);

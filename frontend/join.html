@@ -394,7 +394,7 @@
               <span>upcoming slots</span>
             </div>
             <div class="stat-card">
-              <strong id="bestPrice">GBP 0.00</strong>
+              <strong id="bestPrice">&pound;0.00</strong>
               <span>lowest visible slot price</span>
             </div>
             <div id="membershipStateCard" class="stat-card">
@@ -493,7 +493,7 @@
 
     const formatPrice = (value) => {
       const amount = Number(value);
-      return Number.isFinite(amount) ? currency.format(amount) : 'GBP 0.00';
+      return Number.isFinite(amount) ? currency.format(amount) : currency.format(0);
     };
 
     const formatDateTime = (value) => {
@@ -696,7 +696,7 @@
       }).join('');
 
       const prices = slots.map((slot) => Number(slot.price)).filter((value) => Number.isFinite(value));
-      bestPriceEl.textContent = prices.length ? formatPrice(Math.min(...prices)) : 'GBP 0.00';
+      bestPriceEl.textContent = prices.length ? formatPrice(Math.min(...prices)) : currency.format(0);
     };
 
     const loadMembershipStatus = async (clubId) => {

@@ -34,7 +34,7 @@ public class ClubChatKbSupport {
             if (rawValue == null || rawValue.isBlank()) {
                 continue;
             }
-            String[] pieces = rawValue.split("[\\r\\n,;，；]+");
+            String[] pieces = rawValue.split("[\\r\\n,;锛岋紱]+");
             for (String piece : pieces) {
                 String cleaned = safe(piece);
                 if (!cleaned.isBlank()) {
@@ -94,7 +94,7 @@ public class ClubChatKbSupport {
                     .toList();
         } catch (Exception ignored) {
             List<String> fallback = new ArrayList<>();
-            for (String piece : value.split("[\\r\\n,;，；]+")) {
+            for (String piece : value.split("[\\r\\n,;锛岋紱]+")) {
                 String cleaned = safe(piece);
                 if (!cleaned.isBlank()) {
                     fallback.add(cleaned);

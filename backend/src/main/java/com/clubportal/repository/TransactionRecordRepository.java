@@ -8,5 +8,6 @@ import java.util.List;
 
 public interface TransactionRecordRepository extends JpaRepository<TransactionRecord, Integer> {
     List<TransactionRecord> findByUserId(Integer userId);
+    List<TransactionRecord> findByUserIdOrderByTransactionTimeDesc(Integer userId);
     List<TransactionRecord> findByUserMembershipIdIn(Collection<Integer> userMembershipIds);
 }

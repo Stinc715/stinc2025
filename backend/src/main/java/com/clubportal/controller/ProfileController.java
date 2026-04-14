@@ -6,7 +6,9 @@ import com.clubportal.security.StreamAuthCookieService;
 import com.clubportal.security.JwtUtil;
 import com.clubportal.service.CurrentUserService;
 import com.clubportal.service.PasswordPolicyService;
+import com.clubportal.service.ProfileDataRightsService;
 import com.clubportal.service.ProfileEmailVerificationService;
+import com.clubportal.service.SecurityEventService;
 import com.clubportal.service.UserAvatarService;
 import com.clubportal.service.VerificationEmailSenderService;
 import com.clubportal.util.PasswordEncryptionUtil;
@@ -44,6 +46,8 @@ public class ProfileController {
     private final VerificationEmailSenderService emailSenderService;
     private final UserAvatarService userAvatarService;
     private final StreamAuthCookieService streamAuthCookieService;
+    private final ProfileDataRightsService profileDataRightsService;
+    private final SecurityEventService securityEventService;
 
     public ProfileController(CurrentUserService currentUserService,
                              UserRepository userRepo,
@@ -53,7 +57,9 @@ public class ProfileController {
                              ProfileEmailVerificationService profileEmailVerificationService,
                              VerificationEmailSenderService emailSenderService,
                              UserAvatarService userAvatarService,
-                             StreamAuthCookieService streamAuthCookieService) {
+                             StreamAuthCookieService streamAuthCookieService,
+                             ProfileDataRightsService profileDataRightsService,
+                             SecurityEventService securityEventService) {
         this.currentUserService = currentUserService;
         this.userRepo = userRepo;
         this.jwtUtil = jwtUtil;
@@ -63,6 +69,8 @@ public class ProfileController {
         this.emailSenderService = emailSenderService;
         this.userAvatarService = userAvatarService;
         this.streamAuthCookieService = streamAuthCookieService;
+        this.profileDataRightsService = profileDataRightsService;
+        this.securityEventService = securityEventService;
     }
 
     @GetMapping
@@ -73,6 +81,13 @@ public class ProfileController {
         String token = jwtUtil.generateToken(me.getEmail(), roleValue(me), me.getSessionVersionOrDefault(), authProvider);
         streamAuthCookieService.writeAuthCookies(request, response, token);
         return ResponseEntity.ok(toProfilePayload(me, null, authProvider));
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<?> exportProfileData(HttpServletRequest request) {
+        User me = currentUserService.requireUser();
+        securityEventService.record(request, "PROFILE_EXPORT_REQUESTED", "INFO", me, Map.of());
+        return ResponseEntity.ok(profileDataRightsService.buildExport(me));
     }
 
     @PatchMapping
@@ -185,6 +200,9 @@ public class ProfileController {
         String authProvider = resolveAuthProvider(request);
         String token = jwtUtil.generateToken(saved.getEmail(), roleValue(saved), nextSessionVersion, authProvider);
         streamAuthCookieService.writeAuthCookies(request, response, token);
+        securityEventService.record(request, "PROFILE_EMAIL_UPDATED", "INFO", saved, Map.of(
+                "authProvider", authProvider
+        ));
         return ResponseEntity.ok(toProfilePayload(saved, token, authProvider));
     }
 
@@ -226,6 +244,9 @@ public class ProfileController {
         String token = jwtUtil.generateToken(saved.getEmail(), roleValue(saved), nextSessionVersion, authProvider);
         profileEmailVerificationService.clearForUser(me.getUserId());
         streamAuthCookieService.writeAuthCookies(request, response, token);
+        securityEventService.record(request, "PROFILE_EMAIL_UPDATED", "INFO", saved, Map.of(
+                "authProvider", authProvider
+        ));
         return ResponseEntity.ok(toProfilePayload(saved, token, authProvider));
     }
 
@@ -263,6 +284,9 @@ public class ProfileController {
         User saved = userRepo.save(me);
         String token = jwtUtil.generateToken(saved.getEmail(), roleValue(saved), nextSessionVersion, authProvider);
         streamAuthCookieService.writeAuthCookies(request, response, token);
+        securityEventService.record(request, "PASSWORD_CHANGED", "INFO", saved, Map.of(
+                "authProvider", authProvider
+        ));
         return ResponseEntity.ok(Map.of(
                 "updated", true,
                 "token", token
@@ -279,6 +303,46 @@ public class ProfileController {
         return ResponseEntity.ok(Map.of(
                 "avatarUrl", uploaded.avatarUrl(),
                 "avatar", uploaded.avatarUrl()
+        ));
+    }
+
+    @PostMapping("/session/rotate")
+    public ResponseEntity<?> rotateSession(HttpServletRequest request,
+                                           HttpServletResponse response) {
+        User me = currentUserService.requireUser();
+        String authProvider = resolveAuthProvider(request);
+        int nextSessionVersion = me.bumpSessionVersion();
+        User saved = userRepo.save(me);
+        String token = jwtUtil.generateToken(saved.getEmail(), roleValue(saved), nextSessionVersion, authProvider);
+        streamAuthCookieService.writeAuthCookies(request, response, token);
+        securityEventService.record(request, "SESSION_ROTATED", "INFO", saved, Map.of(
+                "authProvider", authProvider
+        ));
+        return ResponseEntity.ok(Map.of(
+                "rotated", true,
+                "token", token,
+                "authTokenTtlSeconds", streamAuthCookieService.getAuthTokenTtlSeconds(),
+                "streamTokenTtlSeconds", streamAuthCookieService.getStreamTokenTtlSeconds()
+        ));
+    }
+
+    @PostMapping("/deletion-request")
+    public ResponseEntity<?> createDeletionRequest(@RequestBody(required = false) Map<String, Object> body,
+                                                   HttpServletRequest request) {
+        User me = currentUserService.requireUser();
+        String reason = body == null ? "" : safe(body.get("reason"));
+        ProfileDataRightsService.DeletionRequestSubmission submission =
+                profileDataRightsService.submitDeletionRequest(me, reason);
+        securityEventService.record(request, "PROFILE_DELETION_REQUESTED", "WARN", me, Map.of(
+                "created", submission.created()
+        ));
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(Map.of(
+                "submitted", true,
+                "created", submission.created(),
+                "message", submission.created()
+                        ? "Your deletion request has been recorded for manual review."
+                        : "A deletion request is already pending for this account.",
+                "deletionRequest", profileDataRightsService.toDeletionRequestPayload(submission.request())
         ));
     }
 

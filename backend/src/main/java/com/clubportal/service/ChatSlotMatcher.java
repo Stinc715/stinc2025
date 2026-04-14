@@ -1,8 +1,6 @@
 package com.clubportal.service;
 
 import com.clubportal.dto.ClubChatContextDto;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -20,10 +18,9 @@ import java.util.regex.Pattern;
 
 public class ChatSlotMatcher {
 
-    private static final Logger log = LoggerFactory.getLogger(ChatSlotMatcher.class);
     private static final Pattern AM_PM_TIME_PATTERN = Pattern.compile("(?i)\\b(\\d{1,2})(?::(\\d{2}))?\\s*(am|pm)\\b");
     private static final Pattern TWENTY_FOUR_HOUR_TIME_PATTERN = Pattern.compile("\\b(\\d{1,2}):(\\d{2})\\b");
-    private static final Pattern GBP_AMOUNT_PATTERN = Pattern.compile("(?i)(?:gbp|£|拢)\\s*(\\d+(?:\\.\\d{1,2})?)");
+    private static final Pattern GBP_AMOUNT_PATTERN = Pattern.compile("(?i)\\bgbp\\s*(\\d+(?:\\.\\d{1,2})?)");
     private static final Pattern DECIMAL_AMOUNT_PATTERN = Pattern.compile("(?<![:\\d])(\\d+\\.\\d{1,2})(?!\\d)");
 
     public ClubChatContextDto.VisibleTimeslot findMemberPriceSlot(String userMessage, ClubChatContextDto context) {
@@ -35,66 +32,47 @@ public class ChatSlotMatcher {
                 .toList();
 
         SlotHints hints = extractHints(userMessage, context, membershipCandidates);
-        log.info("[CLUB_CHAT_DEBUG] member-price hint: requestedPrice={}",
-                hints.amounts().isEmpty() ? null : formatAmount(hints.amounts().get(0)));
-        log.info("[CLUB_CHAT_DEBUG] member-price candidates: count={}", membershipCandidates.size());
-
         if (membershipCandidates.isEmpty()) {
-            log.info("[CLUB_CHAT_DEBUG] member-price matched slot: none");
             return null;
         }
 
-        ClubChatContextDto.VisibleTimeslot matchedSlot;
         if (!hints.amounts().isEmpty()) {
             List<ClubChatContextDto.VisibleTimeslot> amountMatched = membershipCandidates.stream()
                     .filter(slot -> matchesMentionedAmount(slot, hints.amounts()))
                     .toList();
-            matchedSlot = singleOrNull(disambiguate(amountMatched, hints));
-        } else {
-            matchedSlot = membershipCandidates.size() == 1 ? membershipCandidates.get(0) : null;
+            return singleOrNull(disambiguate(amountMatched, hints));
         }
 
-        logMemberPriceMatch(matchedSlot);
-        return matchedSlot;
+        return membershipCandidates.size() == 1 ? membershipCandidates.get(0) : null;
     }
 
     public ClubChatContextDto.VisibleTimeslot findBookingSlot(String userMessage, ClubChatContextDto context) {
         List<ClubChatContextDto.VisibleTimeslot> slots = visibleSlots(context);
         if (slots.isEmpty()) {
-            log.info("[CLUB_CHAT_DEBUG] booking hint: venueHint={}, hourHint={}", null, null);
-            log.info("[CLUB_CHAT_DEBUG] booking candidates: count=0");
-            log.info("[CLUB_CHAT_DEBUG] booking matched slot: none");
             return null;
         }
 
         SlotHints hints = extractHints(userMessage, context, slots);
         List<ClubChatContextDto.VisibleTimeslot> datedSlots = applyDateHint(slots, hints.targetDate());
-        log.info("[CLUB_CHAT_DEBUG] booking hint: venueHint={}, hourHint={}",
-                hints.venueName(),
-                hints.startTime() == null ? null : hints.startTime().getHour());
-        log.info("[CLUB_CHAT_DEBUG] booking candidates: count={}", datedSlots.size());
 
-        ClubChatContextDto.VisibleTimeslot matchedSlot = null;
         if (hints.venueName() != null && hints.startTime() != null) {
             ClubChatContextDto.VisibleTimeslot exact = singleOrNull(filterByVenueAndTime(datedSlots, hints.venueName(), hints.startTime(), true));
             if (exact != null) {
-                matchedSlot = exact;
-            } else {
-                matchedSlot = singleOrNull(filterByVenueAndTime(datedSlots, hints.venueName(), hints.startTime(), false));
+                return exact;
             }
-        } else if (hints.startTime() != null) {
+            return singleOrNull(filterByVenueAndTime(datedSlots, hints.venueName(), hints.startTime(), false));
+        }
+        if (hints.startTime() != null) {
             ClubChatContextDto.VisibleTimeslot exact = singleOrNull(filterByTime(datedSlots, hints.startTime(), true));
             if (exact != null) {
-                matchedSlot = exact;
-            } else {
-                matchedSlot = singleOrNull(filterByTime(datedSlots, hints.startTime(), false));
+                return exact;
             }
-        } else if (hints.venueName() != null) {
-            matchedSlot = singleOrNull(filterByVenue(datedSlots, hints.venueName()));
+            return singleOrNull(filterByTime(datedSlots, hints.startTime(), false));
         }
-
-        logBookingMatch(matchedSlot);
-        return matchedSlot;
+        if (hints.venueName() != null) {
+            return singleOrNull(filterByVenue(datedSlots, hints.venueName()));
+        }
+        return null;
     }
 
     public ClubChatContextDto.VisibleTimeslot findRelevantVisibleSlot(String userMessage, ClubChatContextDto context) {
@@ -276,6 +254,7 @@ public class ChatSlotMatcher {
     private List<BigDecimal> extractMentionedAmounts(String userMessage) {
         String message = userMessage == null ? "" : userMessage;
         Set<BigDecimal> amounts = new LinkedHashSet<>();
+
         Matcher gbpMatcher = GBP_AMOUNT_PATTERN.matcher(message);
         while (gbpMatcher.find()) {
             addAmount(amounts, gbpMatcher.group(1));
@@ -310,40 +289,6 @@ public class ChatSlotMatcher {
 
     private String normalize(String value) {
         return value == null ? "" : value.trim().toLowerCase(Locale.ROOT).replaceAll("\\s+", " ");
-    }
-
-    private void logMemberPriceMatch(ClubChatContextDto.VisibleTimeslot slot) {
-        if (slot == null) {
-            log.info("[CLUB_CHAT_DEBUG] member-price matched slot: none");
-            return;
-        }
-        log.info("[CLUB_CHAT_DEBUG] member-price matched slot: venueName={}, startTime={}, endTime={}, price={}, basePrice={}, membershipApplied={}, membershipPlanName={}, membershipDiscountPercent={}",
-                slot.venueName(),
-                slot.startTime(),
-                slot.endTime(),
-                slot.price(),
-                slot.basePrice(),
-                slot.membershipApplied(),
-                slot.membershipPlanName(),
-                slot.membershipDiscountPercent());
-    }
-
-    private void logBookingMatch(ClubChatContextDto.VisibleTimeslot slot) {
-        if (slot == null) {
-            log.info("[CLUB_CHAT_DEBUG] booking matched slot: none");
-            return;
-        }
-        log.info("[CLUB_CHAT_DEBUG] booking matched slot: venueName={}, startTime={}, endTime={}, price={}, basePrice={}, membershipApplied={}",
-                slot.venueName(),
-                slot.startTime(),
-                slot.endTime(),
-                slot.price(),
-                slot.basePrice(),
-                slot.membershipApplied());
-    }
-
-    private String formatAmount(BigDecimal amount) {
-        return amount == null ? null : amount.setScale(2, RoundingMode.HALF_UP).toPlainString();
     }
 
     private record SlotHints(

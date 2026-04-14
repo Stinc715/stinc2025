@@ -25,7 +25,9 @@ public class ClubChatKbEmbeddingTextNormalizer {
 
         normalized = normalized.trim().toLowerCase(Locale.ROOT);
         normalized = normalized.replaceAll("\\s+", " ");
-        normalized = normalized.replaceAll("[?.!]{2,}$", "");
+        normalized = normalized.replaceAll("\\s*([,.:;!?])\\s*", "$1 ");
+        normalized = normalized.replaceAll("\\s+", " ").trim();
+        normalized = normalized.replaceAll("([?.!])(\\s*\\1)+$", "$1");
         return normalized.trim();
     }
 }

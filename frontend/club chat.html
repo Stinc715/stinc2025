@@ -635,6 +635,12 @@
       gap: 8px;
       overflow: hidden;
     }
+    .reply-disclosure {
+      margin: 0;
+      color: var(--chat-ink-soft);
+      font-size: 12px;
+      line-height: 1.5;
+    }
     .reply-input {
       width: 100%;
       min-height: 74px;
@@ -794,6 +800,7 @@
           <div id="clubQaReplyHost" class="qa-thread-reply-host"></div>
         </div>
         <form id="replyForm" class="reply-form">
+          <p class="reply-disclosure">Member chats may be reviewed by club staff and, when enabled, may have been processed by AI before handoff. Users can request a human handoff, after which club staff can continue the conversation here.</p>
           <textarea id="replyInput" class="reply-input" placeholder="Type a reply as club staff..." maxlength="500"></textarea>
           <div class="reply-actions">
             <button id="replySendBtn" class="reply-send" type="submit">Send reply</button>
@@ -1055,7 +1062,7 @@
       window.AppPrompt.alert(text, { title, okText: 'OK' });
       return;
     }
-    alert(text);
+    console.warn('[club chat] AppPrompt.alert unavailable', { title, text });
   };
 
   const openClubQaDeleteConfirm = ({ title, message, okText = 'Delete' }) => {
@@ -1069,7 +1076,8 @@
         cancelText: 'Keep'
       });
     }
-    return Promise.resolve(window.confirm(`${heading}\n\n${body}`));
+    console.warn('[club chat] AppPrompt.confirm unavailable', { title: heading, message: body });
+    return Promise.resolve(false);
   };
 
   const formatTime = (raw) => {
@@ -1740,13 +1748,13 @@
       return '<span class="chat-tag">Sending…</span>';
     }
     if (msg.sender === 'assistant' && msg.answerSource === 'CLUB_FAQ') {
-      return '<span class=\"chat-tag verified\">俱乐部认证回复</span>';
+      return '<span class=\"chat-tag verified\">Verified club reply</span>';
     }
     if (msg.sender === 'assistant') {
-      return '<span class=\"chat-tag robot\">机器人</span>';
+      return '<span class=\"chat-tag robot\">Bot</span>';
     }
     if (msg.sender === 'system' && threadNeedsHumanBadge(activeThread)) {
-      return '<span class=\"chat-tag handoff\">人工待接入</span>';
+      return '<span class=\"chat-tag handoff\">Human support pending</span>';
     }
     return '';
   };
@@ -1810,7 +1818,7 @@
       const timeLabel = formatTime(thread.lastMessageAt) || 'No timestamp';
       const activeClass = Number(activeUserId) === Number(thread.userId) ? ' active' : '';
       const unreadBadge = Math.max(0, Number(thread.unreadCount) || 0);
-      const handoffBadge = threadNeedsHumanBadge(thread) ? '<span class="thread-flag handoff desktop-badge">人工待接入</span>' : '';
+      const handoffBadge = threadNeedsHumanBadge(thread) ? '<span class="thread-flag handoff desktop-badge">Human support pending</span>' : '';
       return `
         <button class="thread-card${activeClass}" type="button" data-user-id="${thread.userId}">
           <div class="thread-top">
@@ -1862,7 +1870,7 @@
     if (!qaMode) {
       activeTitleEl.textContent = activeThread.userName || `User #${activeThread.userId}`;
       if (threadNeedsHumanBadge(activeThread)) {
-        activeTitleEl.textContent += ' · 人工待接入';
+        activeTitleEl.textContent += ' · Human support pending';
       }
     }
     setReplySendingState(replySendInFlight);

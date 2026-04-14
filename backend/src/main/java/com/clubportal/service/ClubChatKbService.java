@@ -46,32 +46,18 @@ public class ClubChatKbService {
 
     @Transactional
     public ClubChatKbEntryResponse createEntry(Integer clubId, ClubChatKbEntryUpsertRequest request) {
-        log.info("[CLUB_CHAT_DEBUG] KB_SAVE start: action=create, clubId={}, entryId=null", clubId);
         ClubChatKbEntry entry = new ClubChatKbEntry();
         applyRequest(entry, clubId, request);
         ClubChatKbEntry saved = clubChatKbEntryRepository.save(entry);
-        log.info("[CLUB_CHAT_DEBUG] KB_SAVE finish: action=create, clubId={}, entryId={}, embeddingPresent={}, embeddingModel={}, embeddingDim={}",
-                clubId,
-                saved.getId(),
-                !clubChatKbSupport.safe(saved.getQuestionEmbedding()).isBlank(),
-                clubChatKbSupport.safe(saved.getEmbeddingModel()),
-                saved.getEmbeddingDim());
         return toResponse(saved);
     }
 
     @Transactional
     public ClubChatKbEntryResponse updateEntry(Integer clubId, Integer entryId, ClubChatKbEntryUpsertRequest request) {
-        log.info("[CLUB_CHAT_DEBUG] KB_SAVE start: action=update, clubId={}, entryId={}", clubId, entryId);
         ClubChatKbEntry entry = clubChatKbEntryRepository.findByIdAndClubId(entryId, clubId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Chat KB entry not found"));
         applyRequest(entry, clubId, request);
         ClubChatKbEntry saved = clubChatKbEntryRepository.save(entry);
-        log.info("[CLUB_CHAT_DEBUG] KB_SAVE finish: action=update, clubId={}, entryId={}, embeddingPresent={}, embeddingModel={}, embeddingDim={}",
-                clubId,
-                saved.getId(),
-                !clubChatKbSupport.safe(saved.getQuestionEmbedding()).isBlank(),
-                clubChatKbSupport.safe(saved.getEmbeddingModel()),
-                saved.getEmbeddingDim());
         return toResponse(saved);
     }
 
@@ -118,21 +104,10 @@ public class ClubChatKbService {
 
         entry.setClubId(clubId);
         boolean refreshEmbedding = shouldRefreshEmbedding(entry, questionChanged);
-        log.info("[CLUB_CHAT_DEBUG] KB_SAVE embedding_check: clubId={}, entryId={}, questionChanged={}, refreshEmbedding={}, embeddingPresent={}, embeddingModelPresent={}, embeddingDim={}",
-                clubId,
-                entry.getId(),
-                questionChanged,
-                refreshEmbedding,
-                !clubChatKbSupport.safe(entry.getQuestionEmbedding()).isBlank(),
-                !clubChatKbSupport.safe(entry.getEmbeddingModel()).isBlank(),
-                entry.getEmbeddingDim());
 
         if (refreshEmbedding) {
             refreshEmbedding(entry, normalizedQuestionForEmbedding);
         } else {
-            log.info("[CLUB_CHAT_DEBUG] KB_SAVE embedding_skip: clubId={}, entryId={}, reason=existing_embedding_current",
-                    clubId,
-                    entry.getId());
         }
 
         entry.setQuestionTitle(questionTitle);
@@ -191,24 +166,10 @@ public class ClubChatKbService {
     private void refreshEmbedding(ClubChatKbEntry entry, String normalizedQuestionForEmbedding) {
         Integer clubId = entry == null ? null : entry.getClubId();
         Integer entryId = entry == null ? null : entry.getId();
-        log.info("[CLUB_CHAT_DEBUG] KB_SAVE embedding_start: clubId={}, entryId={}, question=\"{}\"",
-                clubId,
-                entryId,
-                normalizedQuestionForEmbedding);
         try {
             EmbeddingSnapshot snapshot = generateEmbeddingSnapshot(normalizedQuestionForEmbedding);
             applyEmbeddingSnapshot(entry, snapshot);
-            log.info("[CLUB_CHAT_DEBUG] KB_SAVE embedding_success: clubId={}, entryId={}, embeddingModel={}, embeddingDim={}",
-                    clubId,
-                    entryId,
-                    clubChatKbSupport.safe(snapshot.embeddingModel()),
-                    snapshot.embeddingDim());
         } catch (EmbeddingGenerationException | IllegalArgumentException ex) {
-            log.warn("[CLUB_CHAT_DEBUG] KB_SAVE embedding_failed: clubId={}, entryId={}, exceptionType={}, message={}",
-                    clubId,
-                    entryId,
-                    ex.getClass().getSimpleName(),
-                    ex.getMessage());
             throw ClubChatKbOperationException.embeddingFailed(clubId, entryId, ex.getMessage(), ex);
         }
     }

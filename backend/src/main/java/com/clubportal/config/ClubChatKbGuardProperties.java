@@ -11,19 +11,6 @@ import java.util.List;
 public class ClubChatKbGuardProperties {
 
     private List<String> highRiskKeywords = new ArrayList<>(List.of(
-            "退款",
-            "退钱",
-            "退费",
-            "投诉",
-            "赔偿",
-            "争议",
-            "法律",
-            "律师",
-            "报警",
-            "起诉",
-            "人工客服",
-            "人工处理",
-            "特殊情况",
             "refund",
             "complaint",
             "dispute",
@@ -34,18 +21,6 @@ public class ClubChatKbGuardProperties {
     ));
 
     private List<String> realtimeKeywords = new ArrayList<>(List.of(
-            "今天",
-            "现在",
-            "目前",
-            "当前",
-            "此刻",
-            "临时",
-            "刚刚",
-            "还剩",
-            "还有位置",
-            "名额",
-            "空位",
-            "现在还能",
             "today",
             "now",
             "currently",

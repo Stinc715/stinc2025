@@ -52,6 +52,9 @@
         <p id="cardDesc" class="muted" style="margin:8px 0 0;" hidden></p>
         <div id="summary" class="summary"></div>
         <div id="statusBox" class="status-box">Loading checkout session...</div>
+        <p id="paymentDisclosure" class="muted" style="margin:12px 0 0; line-height:1.6;">
+          The portal stores a checkout session for this payment.
+        </p>
         <div class="actions">
           <button id="continueBtn" class="btn blue" type="button" hidden>Continue to Stripe</button>
           <button id="confirmBtn" class="btn blue" type="button" hidden>Confirm payment</button>
@@ -107,10 +110,17 @@
       "'": '&#39;'
     }[ch]));
 
+    const gbpCurrency = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
     const formatPrice = (value, currency = 'GBP') => {
       const num = Number(value);
-      if (!Number.isFinite(num)) return `${currency} 0.00`;
-      return `${currency} ${num.toFixed(2)}`;
+      const normalizedCurrency = String(currency || 'GBP').trim().toUpperCase() || 'GBP';
+      const safeAmount = Number.isFinite(num) ? num : 0;
+      if (normalizedCurrency === 'GBP') return gbpCurrency.format(safeAmount);
+      try {
+        return new Intl.NumberFormat('en', { style: 'currency', currency: normalizedCurrency }).format(safeAmount);
+      } catch {
+        return `${normalizedCurrency} ${safeAmount.toFixed(2)}`;
+      }
     };
 
     const formatDateTime = (raw) => {

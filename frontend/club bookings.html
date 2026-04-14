@@ -355,6 +355,8 @@
     </div>
   </div>
 
+  <script src="info-content.js?v=20260413b"></script>
+  <script type="module" src="ui-prompt.js?v=20260309b"></script>
   <script>
     const groupedView = document.getElementById('groupedView');
     const emptyEl = document.getElementById('empty');
@@ -422,10 +424,11 @@
       return `${y}-${m}-${day} ${hh}:${mm}`;
     };
 
+    const gbpCurrency = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
     const formatPrice = (raw) => {
       const n = Number(raw);
-      if (!Number.isFinite(n)) return 'GBP 0.00';
-      return `GBP ${n.toFixed(2)}`;
+      if (!Number.isFinite(n)) return gbpCurrency.format(0);
+      return gbpCurrency.format(n);
     };
 
     const bookingStatusKey = (status) => {
@@ -706,7 +709,12 @@
         renderGroupedView(slotBookings);
       } catch (err) {
         console.error(err);
-        window.alert((err && err.message) ? err.message : 'Failed to update booking status.');
+        const message = (err && err.message) ? err.message : 'Failed to update booking status.';
+        if (window.AppPrompt && typeof window.AppPrompt.alert === 'function') {
+          window.AppPrompt.alert(message, { title: 'Booking update failed', okText: 'OK' });
+        } else {
+          console.warn('[club bookings] AppPrompt.alert unavailable', { message });
+        }
       } finally {
         if (buttonEl) {
           buttonEl.disabled = false;
@@ -744,35 +752,39 @@
     const infoOverlay = document.getElementById('infoOverlay');
     const infoTitle = document.getElementById('infoTitle');
     const infoBody = document.getElementById('infoBody');
-    const infoMap = {
+    const getInfoMap = () => window.ClubPortalInfoContent?.createInfoMap?.({
+      helpBody: `
+        <p>This page shows live booking records for your club slots.</p>
+        <p>Use Refresh to fetch the latest members and booked counts.</p>
+        <p>Contact the platform administrator or relevant club staff if you need further help.</p>
+      `
+    }) || {
       privacy: {
         title: 'Privacy',
         body: `
-          <p>We store the information needed to run Club Portal features such as sign-in, club setup, bookings, memberships, payments, chat, and community Q&amp;A.</p>
-          <p>Depending on how this project is deployed, data may be stored in your browser and on the backend server. Some features can also use configured third-party services such as Google sign-in or Maps, Stripe payments, and AI-assisted chat.</p>
-          <p>If you need your account or club data corrected or removed, please contact the platform admin.</p>
+          <p>Read the full privacy details for this deployment.</p>
+          <p class="info-link-row"><a href="privacy.html">Read full Privacy Notice</a></p>
         `
       },
       terms: {
         title: 'Terms',
         body: `
-          <p>Bookings are first-come, first-served and subject to club capacity.</p>
-          <p>Members must follow club rules and respect facility policies.</p>
-          <p>Repeated no-shows may result in booking restrictions.</p>
+          <p>Read the full terms for this deployment.</p>
+          <p class="info-link-row"><a href="terms.html">Read full Terms</a></p>
         `
       },
       help: {
         title: 'Help',
         body: `
-          <p>This page shows real booking records from your club slots.</p>
+          <p>This page shows live booking records for your club slots.</p>
           <p>Use Refresh to fetch the latest members and booked counts.</p>
-          <p>Contact support at support@example.com for further help.</p>
+          <p>Contact the platform administrator or relevant club staff if you need further help.</p>
         `
       }
     };
 
     const openInfo = (key) => {
-      const data = infoMap[key];
+      const data = getInfoMap()[key];
       if (!data || !infoOverlay) return;
       if (infoTitle) infoTitle.textContent = data.title;
       if (infoBody) infoBody.innerHTML = data.body;

@@ -2,8 +2,7 @@ package com.clubportal.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -11,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Profile("!dev")
 @ConditionalOnProperty(name = "app.seed.production-community-qa.enabled", havingValue = "true")
-public class ProductionClubCommunityQaInitializer implements ApplicationRunner {
+public class ProductionClubCommunityQaInitializer implements SmartInitializingSingleton {
 
     private static final Logger log = LoggerFactory.getLogger(ProductionClubCommunityQaInitializer.class);
 
@@ -22,7 +21,7 @@ public class ProductionClubCommunityQaInitializer implements ApplicationRunner {
     }
 
     @Override
-    public void run(ApplicationArguments args) {
+    public void afterSingletonsInstantiated() {
         ClubDatasetSeeder.CommunityQaSeedResult result = clubDatasetSeeder.backfillCommunityQaIfMissing();
         if (result.questionsCreated() == 0 && result.answersCreated() == 0) {
             log.info("PROD_COMMUNITY_QA_SEED skipped because every club already has community content.");

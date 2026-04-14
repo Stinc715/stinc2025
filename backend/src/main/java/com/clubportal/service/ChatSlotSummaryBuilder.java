@@ -17,13 +17,11 @@ import java.util.regex.Pattern;
 public class ChatSlotSummaryBuilder {
 
     private static final DateTimeFormatter EN_TIME_FORMATTER = DateTimeFormatter.ofPattern("h:mm a", Locale.UK);
-    private static final DateTimeFormatter ZH_MINUTE_FORMATTER = DateTimeFormatter.ofPattern("mm", Locale.CHINA);
     private static final Pattern GBP_PRICE_PATTERN = Pattern.compile("(?i)gbp\\s*(\\d+(?:\\.\\d{1,2})?)");
     private static final Pattern PLAIN_PRICE_PATTERN = Pattern.compile("(?<!\\d)(\\d{1,3}(?:\\.\\d{1,2})?)(?!\\d)");
     private static final Pattern HOUR_24_PATTERN = Pattern.compile("(?<!\\d)([01]?\\d|2[0-3]):(?:[0-5]\\d)(?!\\d)");
     private static final Pattern HOUR_PM_PATTERN = Pattern.compile("(?i)(?<!\\d)(1[0-2]|0?[1-9])\\s*(?:pm|p\\.m\\.)");
     private static final Pattern HOUR_AM_PATTERN = Pattern.compile("(?i)(?<!\\d)(1[0-2]|0?[1-9])\\s*(?:am|a\\.m\\.)");
-    private static final Pattern HOUR_ZH_PATTERN = Pattern.compile("(上午|下午|晚上|中午|凌晨)?\\s*([0-2]?\\d)\\s*点?");
 
     public List<ClubChatContextDto.VisibleTimeslot> selectRelevantSlots(ClubChatContextDto context,
                                                                         String userMessage,
@@ -49,8 +47,8 @@ public class ChatSlotSummaryBuilder {
             return "";
         }
         return slots.stream()
-                .map(slot -> summarizeSlot(context, slot, language))
-                .collect(java.util.stream.Collectors.joining(language == ChatLanguage.ZH ? "；" : "; "));
+                .map(slot -> summarizeSlot(context, slot))
+                .collect(java.util.stream.Collectors.joining("; "));
     }
 
     public String summarizeVisiblePrice(ClubChatContextDto context,
@@ -60,11 +58,8 @@ public class ChatSlotSummaryBuilder {
         if (slot == null) {
             return "";
         }
-        if (language == ChatLanguage.ZH) {
-            return formatVenueName(slot) + " " + formatTime(slot.startTime(), language) + " 的显示价格为 " + money(context, slot.price()) + "。";
-        }
         return "the visible price is " + money(context, slot.price()) + " for "
-                + formatVenueName(slot) + " at " + formatTime(slot.startTime(), language) + ".";
+                + formatVenueName(slot) + " at " + formatTime(slot.startTime()) + ".";
     }
 
     public boolean hasTimeOfDayHint(String userMessage) {
@@ -138,9 +133,7 @@ public class ChatSlotSummaryBuilder {
                 .toList();
 
         boolean hasRelevantMatch = scored.stream().anyMatch(item -> item.score() > 0);
-        return (hasRelevantMatch
-                ? scored.stream().filter(item -> item.score() > 0)
-                : scored.stream())
+        return (hasRelevantMatch ? scored.stream().filter(item -> item.score() > 0) : scored.stream())
                 .map(ScoredSlot::slot)
                 .limit(limit)
                 .toList();
@@ -225,42 +218,22 @@ public class ChatSlotSummaryBuilder {
         return score;
     }
 
-    private String summarizeSlot(ClubChatContextDto context,
-                                 ClubChatContextDto.VisibleTimeslot slot,
-                                 ChatLanguage language) {
-        if (language == ChatLanguage.ZH) {
-            return formatVenueName(slot) + " " + formatTime(slot.startTime(), language) + "，" + money(context, slot.price());
-        }
-        return formatVenueName(slot) + " at " + formatTime(slot.startTime(), language) + ", " + money(context, slot.price());
+    private String summarizeSlot(ClubChatContextDto context, ClubChatContextDto.VisibleTimeslot slot) {
+        return formatVenueName(slot) + " at " + formatTime(slot.startTime()) + ", " + money(context, slot.price());
     }
 
-    private String formatTime(LocalDateTime time, ChatLanguage language) {
+    private String formatTime(LocalDateTime time) {
         if (time == null) {
-            return language == ChatLanguage.ZH ? "时间未提供" : "time unavailable";
-        }
-        if (language == ChatLanguage.ZH) {
-            int hour = time.getHour();
-            String prefix;
-            if (hour < 6) {
-                prefix = "凌晨";
-            } else if (hour < 12) {
-                prefix = "上午";
-            } else if (hour < 18) {
-                prefix = "下午";
-            } else {
-                prefix = "晚上";
-            }
-            int displayHour = hour % 12 == 0 ? 12 : hour % 12;
-            String minute = time.format(ZH_MINUTE_FORMATTER);
-            return prefix + displayHour + ":" + minute;
+            return "time unavailable";
         }
         return time.format(EN_TIME_FORMATTER).toLowerCase(Locale.UK);
     }
 
     private String formatVenueName(ClubChatContextDto.VisibleTimeslot slot) {
-        return slot == null || slot.venueName() == null || slot.venueName().isBlank()
-                ? "slot"
-                : slot.venueName();
+        if (slot == null || slot.venueName() == null || slot.venueName().isBlank()) {
+            return "slot";
+        }
+        return slot.venueName();
     }
 
     private String money(ClubChatContextDto context, BigDecimal amount) {
@@ -363,10 +336,10 @@ public class ChatSlotSummaryBuilder {
             return new SlotHints(
                     resolveTargetDate(context, normalized),
                     extractHourHint(normalized),
-                    containsAny(normalized, "evening", "tonight", "晚上", "傍晚"),
-                    containsAny(normalized, "morning", "上午", "早上"),
-                    containsAny(normalized, "afternoon", "noon", "下午", "中午"),
-                    containsAny(normalized, "night", "late night", "凌晨", "深夜", "夜间"),
+                    containsAny(normalized, "evening", "tonight"),
+                    containsAny(normalized, "morning"),
+                    containsAny(normalized, "afternoon", "noon"),
+                    containsAny(normalized, "night", "late night"),
                     detectVenueHint(normalized, slots),
                     extractPriceHint(normalized)
             );
@@ -374,10 +347,10 @@ public class ChatSlotSummaryBuilder {
 
         private static LocalDate resolveTargetDate(ClubChatContextDto context, String normalized) {
             LocalDate today = LocalDate.now(resolveZoneId(context));
-            if (containsAny(normalized, "tomorrow", "明天")) {
+            if (containsAny(normalized, "tomorrow")) {
                 return today.plusDays(1);
             }
-            if (containsAny(normalized, "today", "今天")) {
+            if (containsAny(normalized, "today")) {
                 return today;
             }
             return null;
@@ -413,18 +386,6 @@ public class ChatSlotSummaryBuilder {
                 return raw == 12 ? 0 : raw;
             }
 
-            Matcher zh = HOUR_ZH_PATTERN.matcher(normalized);
-            if (zh.find()) {
-                String prefix = safe(zh.group(1));
-                int hour = Integer.parseInt(zh.group(2));
-                if ("下午".equals(prefix) || "晚上".equals(prefix)) {
-                    return hour == 12 ? 12 : Math.min(23, hour + 12);
-                }
-                if ("凌晨".equals(prefix)) {
-                    return hour == 12 ? 0 : hour;
-                }
-                return Math.min(23, hour);
-            }
             return null;
         }
 

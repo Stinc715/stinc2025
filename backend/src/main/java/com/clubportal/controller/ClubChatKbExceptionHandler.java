@@ -35,13 +35,6 @@ public class ClubChatKbExceptionHandler {
                 ex.getClubId(),
                 ex.getEntryId()
         );
-        log.warn("[CLUB_CHAT_DEBUG] KB_SAVE response_error: path={}, clubId={}, entryId={}, status={}, code={}, message={}",
-                body.path(),
-                body.clubId(),
-                body.entryId(),
-                body.status(),
-                body.code(),
-                body.message());
         return ResponseEntity.status(status).body(body);
     }
 
@@ -59,11 +52,6 @@ public class ClubChatKbExceptionHandler {
                 null,
                 null
         );
-        log.warn("[CLUB_CHAT_DEBUG] KB_SAVE response_error: path={}, clubId=null, entryId=null, status={}, code={}, message={}",
-                body.path(),
-                body.status(),
-                body.code(),
-                body.message());
         return ResponseEntity.status(status).body(body);
     }
 

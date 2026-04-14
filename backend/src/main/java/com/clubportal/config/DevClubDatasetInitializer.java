@@ -2,14 +2,13 @@ package com.clubportal.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
 @Profile("dev")
-public class DevClubDatasetInitializer implements ApplicationRunner {
+public class DevClubDatasetInitializer implements SmartInitializingSingleton {
 
     private static final Logger log = LoggerFactory.getLogger(DevClubDatasetInitializer.class);
 
@@ -20,7 +19,7 @@ public class DevClubDatasetInitializer implements ApplicationRunner {
     }
 
     @Override
-    public void run(ApplicationArguments args) {
+    public void afterSingletonsInstantiated() {
         ClubDatasetSeeder.SeedExecutionResult result = clubDatasetSeeder.reseedForCurrentWindow();
         log.info("DEV_CLUB_SEED rebuilt {} clubs and {} club accounts for {} to {}",
                 result.clubCount(),

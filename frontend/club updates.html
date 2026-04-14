@@ -844,9 +844,10 @@
       });
     };
 
+    const gbpCurrency = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
     const formatPrice = (raw) => {
       const num = Number(raw);
-      return Number.isFinite(num) ? `GBP ${num.toFixed(2)}` : 'GBP 0.00';
+      return Number.isFinite(num) ? gbpCurrency.format(num) : gbpCurrency.format(0);
     };
 
     const formatDate = (raw) => {

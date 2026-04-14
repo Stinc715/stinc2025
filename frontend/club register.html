@@ -221,6 +221,20 @@
       font-size: 12px;
       color: #64748b;
     }
+    .privacy-short-note {
+      margin: 12px 0 0;
+      color: #6b7280;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+    .privacy-short-note a {
+      color: #2563eb;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .privacy-short-note a:hover {
+      text-decoration: underline;
+    }
     .verify-row {
       display: flex;
       align-items: center;
@@ -435,6 +449,10 @@
           <div class="btn-row">
             <button id="clubRegisterBtn" class="btn form-btn" type="button">Next</button>
           </div>
+          <p class="privacy-short-note">
+            We collect your club contact email and password to create and secure your club account, and we store club profile, booking, membership, and member communication records needed to run the service.
+            <a href="privacy.html">Read the Privacy Notice.</a>
+          </p>
         </div>
       </section>
     </main>
@@ -459,6 +477,7 @@
     </div>
   </div>
 
+  <script src="info-content.js?v=20260413b"></script>
   <script>
     const API_BASE = "/api";
     // Register club accounts into the shared user_account table (role=club).
@@ -974,35 +993,31 @@
       }
     });
 
-    const infoMap = {
+    const getInfoMap = () => window.ClubPortalInfoContent?.createInfoMap?.() || {
       privacy: {
         title: 'Privacy',
         body: `
-          <p>We store the information needed to run Club Portal features such as sign-in, club setup, bookings, memberships, payments, chat, and community Q&amp;A.</p>
-          <p>Depending on how this project is deployed, data may be stored in your browser and on the backend server. Some features can also use configured third-party services such as Google sign-in or Maps, Stripe payments, and AI-assisted chat.</p>
-          <p>If you need your account or club data corrected or removed, please contact the platform admin.</p>
+          <p>Read the full privacy details for this deployment.</p>
+          <p class="info-link-row"><a href="privacy.html">Read full Privacy Notice</a></p>
         `
       },
       terms: {
         title: 'Terms',
         body: `
-          <p>Bookings are first-come, first-served and subject to club capacity.</p>
-          <p>Members must follow club rules and respect facility policies.</p>
-          <p>Repeated no-shows may result in booking restrictions.</p>
+          <p>Read the full terms for this deployment.</p>
+          <p class="info-link-row"><a href="terms.html">Read full Terms</a></p>
         `
       },
       help: {
         title: 'Help',
         body: `
-          <p>Need assistance? Start by searching for a club and selecting a time slot.</p>
-          <p>If you cannot log in, double-check your email and password.</p>
-          <p>Contact support at support@example.com for further help.</p>
+          <p>Contact the platform administrator or club staff if you need help with this deployment.</p>
         `
       }
     };
 
     const openInfo = (key) => {
-      const data = infoMap[key];
+      const data = getInfoMap()[key];
       if (!data || !infoOverlay) return;
       if (infoTitle) infoTitle.textContent = data.title;
       if (infoBody) infoBody.innerHTML = data.body;
@@ -1021,7 +1036,7 @@
     });
     infoOverlay?.addEventListener('click', (evt) => { if (evt.target === infoOverlay) closeInfo(); });
     infoOverlay?.querySelector('.info-close')?.addEventListener('click', closeInfo);
-  </script>
+</script>
 </body>
 </html>
 

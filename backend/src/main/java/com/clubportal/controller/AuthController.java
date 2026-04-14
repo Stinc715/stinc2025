@@ -8,6 +8,7 @@ import com.clubportal.security.StreamAuthCookieService;
 import com.clubportal.service.LoginThrottleService;
 import com.clubportal.service.PasswordPolicyService;
 import com.clubportal.service.RegistrationEmailVerificationService;
+import com.clubportal.service.SecurityEventService;
 import com.clubportal.util.PasswordEncryptionUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -33,6 +35,7 @@ public class AuthController {
     private final PasswordPolicyService passwordPolicyService;
     private final StreamAuthCookieService streamAuthCookieService;
     private final LoginThrottleService loginThrottleService;
+    private final SecurityEventService securityEventService;
 
     public AuthController(UserRepository userRepo,
                           PasswordEncryptionUtil passwordUtil,
@@ -40,7 +43,8 @@ public class AuthController {
                           RegistrationEmailVerificationService verificationService,
                           PasswordPolicyService passwordPolicyService,
                           StreamAuthCookieService streamAuthCookieService,
-                          LoginThrottleService loginThrottleService) {
+                          LoginThrottleService loginThrottleService,
+                          SecurityEventService securityEventService) {
         this.userRepo = userRepo;
         this.passwordUtil = passwordUtil;
         this.jwtUtil = jwtUtil;
@@ -48,6 +52,7 @@ public class AuthController {
         this.passwordPolicyService = passwordPolicyService;
         this.streamAuthCookieService = streamAuthCookieService;
         this.loginThrottleService = loginThrottleService;
+        this.securityEventService = securityEventService;
     }
 
     private static User.Role resolveRoleForRegistration(String role) {
@@ -104,6 +109,10 @@ public class AuthController {
             String role = saved.getRole() == null ? "user" : saved.getRole().toAccountType();
             String token = jwtUtil.generateToken(saved.getEmail(), role, nextSessionVersion, JwtUtil.AUTH_PROVIDER_PASSWORD);
             streamAuthCookieService.writeAuthCookies(request, response, token);
+            securityEventService.record(request, "ACCOUNT_REGISTERED", "INFO", saved, Map.of(
+                    "role", role,
+                    "authProvider", JwtUtil.AUTH_PROVIDER_PASSWORD
+            ));
             return ResponseEntity.ok(authPayload(saved, role, token, JwtUtil.AUTH_PROVIDER_PASSWORD));
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.status(409).body("Email already exists");
@@ -122,6 +131,10 @@ public class AuthController {
         String clientIp = resolveClientIp(request);
         String blockedMessage = loginThrottleService.getBlockMessage(email, clientIp).orElse(null);
         if (blockedMessage != null) {
+            securityEventService.recordForEmail(request, "LOGIN_BLOCKED", "HIGH", email, Map.of(
+                    "clientIp", clientIp,
+                    "reason", "throttle_limit_reached"
+            ));
             return ResponseEntity.status(429).body(blockedMessage);
         }
         if (email.isBlank() || password == null || password.isBlank()) {
@@ -139,6 +152,10 @@ public class AuthController {
         if (user == null) {
             loginThrottleService.recordFailure(email, clientIp);
             log.warn("Login failed for email={} candidates={}", email, candidates.size());
+            securityEventService.recordForEmail(request, "LOGIN_FAILED", "WARN", email, Map.of(
+                    "clientIp", clientIp,
+                    "candidateCount", candidates.size()
+            ));
             return ResponseEntity.status(401).body("Invalid email or password");
         }
 
@@ -148,12 +165,17 @@ public class AuthController {
         loginThrottleService.recordSuccess(email, clientIp);
         String token = jwtUtil.generateToken(savedUser.getEmail(), role, nextSessionVersion, JwtUtil.AUTH_PROVIDER_PASSWORD);
         streamAuthCookieService.writeAuthCookies(request, response, token);
+        securityEventService.record(request, "LOGIN_SUCCESS", "INFO", savedUser, Map.of(
+                "role", role,
+                "authProvider", JwtUtil.AUTH_PROVIDER_PASSWORD
+        ));
 
         return ResponseEntity.ok(authPayload(savedUser, role, token, JwtUtil.AUTH_PROVIDER_PASSWORD));
     }
 
     @PostMapping("/auth/logout")
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+        securityEventService.recordForEmail(request, "LOGOUT", "INFO", resolveEmailFromToken(request), Map.of());
         streamAuthCookieService.clearAuthCookies(request, response);
         return ResponseEntity.ok(java.util.Map.of("logout", true));
     }
@@ -202,6 +224,38 @@ public class AuthController {
         }
         String remoteAddr = request.getRemoteAddr();
         return remoteAddr == null ? "" : remoteAddr.trim();
+    }
+
+    private String resolveEmailFromToken(HttpServletRequest request) {
+        if (request == null) {
+            return "";
+        }
+        String header = request.getHeader("Authorization");
+        String token = "";
+        if (header != null && header.startsWith("Bearer ")) {
+            token = header.substring(7).trim();
+        }
+        if (token.isBlank() && request.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                if (cookie == null) continue;
+                if (!StreamAuthCookieService.AUTH_TOKEN_COOKIE.equals(cookie.getName())
+                        && !StreamAuthCookieService.STREAM_TOKEN_COOKIE.equals(cookie.getName())) {
+                    continue;
+                }
+                token = cookie.getValue() == null ? "" : cookie.getValue().trim();
+                if (!token.isBlank()) {
+                    break;
+                }
+            }
+        }
+        if (token.isBlank()) {
+            return "";
+        }
+        try {
+            return normalizeEmail(jwtUtil.extractEmail(token));
+        } catch (Exception ignored) {
+            return "";
+        }
     }
 
     private static Comparator<User> byRolePriority() {

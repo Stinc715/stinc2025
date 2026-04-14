@@ -853,10 +853,11 @@
       dt.setDate(dt.getDate() + Number(days || 0));
       return localDateISO(dt);
     };
+    const gbpCurrency = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
     const formatPrice = (raw) => {
       const n = Number(raw);
-      if (!Number.isFinite(n) || n < 0) return '$0.00';
-      return `$${n.toFixed(2)}`;
+      if (!Number.isFinite(n) || n < 0) return gbpCurrency.format(0);
+      return gbpCurrency.format(n);
     };
 
     const clearSlotFormInputs = () => {

@@ -38,6 +38,10 @@ app:
   public:
     base-url: ${APP_PUBLIC_BASE_URL:}
     google-maps-api-key: ${GOOGLE_MAPS_JS_API_KEY:}
+    privacy-contact-email: ${APP_PUBLIC_PRIVACY_CONTACT_EMAIL:${APP_MAIL_FROM:${MAIL_FROM:}}}
+    data-controller-name: ${APP_PUBLIC_DATA_CONTROLLER_NAME:Club Booking Portal}
+    retention-summary: ${APP_PUBLIC_RETENTION_SUMMARY:Chat, booking, membership, and payment records are currently retained until manually deleted or a formal retention schedule is applied.}
+    processors-summary: ${APP_PUBLIC_PROCESSORS_SUMMARY:Google sign-in, Google Maps, Stripe, and AI chat providers may be used depending on deployment configuration.}
   email:
     from: ${APP_MAIL_FROM:${MAIL_FROM:no-reply@example.test}}
   auth:
@@ -79,5 +83,13 @@ app:
         high-risk-keywords: ${APP_CHAT_KB_GUARD_HIGH_RISK_KEYWORDS:退款,退钱,退费,投诉,赔偿,争议,法律,律师,报警,起诉,人工客服,人工处理,特殊情况,refund,complaint,dispute,legal,lawyer,human agent,special case}
         realtime-keywords: ${APP_CHAT_KB_GUARD_REALTIME_KEYWORDS:今天,现在,目前,当前,此刻,临时,刚刚,还剩,还有位置,名额,空位,现在还能,today,now,currently,available now,remaining,left,available today}
   security:
+    audit:
+      enabled: ${APP_SECURITY_AUDIT_ENABLED:true}
+    alerts:
+      enabled: ${APP_SECURITY_ALERTS_ENABLED:true}
+      email-to: ${APP_SECURITY_ALERT_EMAIL_TO:${APP_PUBLIC_PRIVACY_CONTACT_EMAIL:}}
+    session:
+      auth-token-ttl-days: ${APP_SECURITY_SESSION_AUTH_TOKEN_TTL_DAYS:7}
+      stream-token-ttl-days: ${APP_SECURITY_SESSION_STREAM_TOKEN_TTL_DAYS:1}
     cors:
-      allowed-origin-patterns: ${APP_SECURITY_CORS_ALLOWED_ORIGIN_PATTERNS:https://club-portal.xyz,https://www.club-portal.xyz}
+      allowed-origin-patterns: ${APP_SECURITY_CORS_ALLOWED_ORIGIN_PATTERNS:https://example.invalid,https://www.example.invalid}

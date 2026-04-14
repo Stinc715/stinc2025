@@ -95,7 +95,7 @@ test('desktop consistency layer is opt-in on key desktop pages', () => {
   assert.match(clubHomeHtml, /if \(logoutInFlight\) return;/);
   assert.match(clubHomeHtml, /const liveToken = getAuthToken\(\);/);
   assert.match(clubHomeHtml, /const PUBLIC_HOME_TARGET = 'home\.html';/);
-  assert.match(clubHomeHtml, /if \(!liveToken\) \{\s*forceLogout\(PUBLIC_HOME_TARGET\);/);
+  assert.match(clubHomeHtml, /if \(!liveToken\) \{\s*(?:renderChatsUnreadBadge\(0\);\s*)?forceLogout\(PUBLIC_HOME_TARGET\);/);
   assert.match(clubHomeHtml, /window\.AuthSession\.logout\(PUBLIC_HOME_TARGET, \{ replace: true \}\);/);
   assert.match(desktopCss, /body\.desktop-page--club-home\.page-with-footer \{[\s\S]*padding-bottom:\s*0\s*!important;[\s\S]*overflow:\s*hidden;/);
   assert.match(desktopCss, /body\.desktop-page--club-home \.wrap \{[\s\S]*width:\s*min\(var\(--desktop-shell-max\), calc\(100vw - 24px\)\);[\s\S]*padding:\s*14px 10px;/);
@@ -619,7 +619,7 @@ test('chat UIs label FAQ answers, robot answers, and human handoff prompts', () 
   assert.match(clubHtml, /--booking-side-rail-stack-width:\s*320px/);
   assert.doesNotMatch(clubHtml, /id="bookingSideRailBackBtn"/);
   assert.doesNotMatch(clubHtml, /\.booking-side-rail:not\(\.is-collapsed\)\s+\.booking-side-rail-toggle\s*\{/);
-  assert.match(clubChatHtml, /人工待接入/);
+  assert.match(clubChatHtml, /Human support pending/);
   assert.match(clubChatHtml, /answerSource/);
   assert.match(clubChatHtml, /clubUnreadCount/);
   assert.match(clubChatHtml, /const conversationNeedsAttention = \(item\) => \{/);
@@ -1292,7 +1292,7 @@ test('user profile email update uses six verification slots with automatic submi
   assert.equal(codeSlotMatches.length, 6);
   assert.match(userHtml, /id="emailCodeInput" type="hidden"/);
   assert.match(userHtml, /Verification will start automatically/i);
-  assert.match(userHtml, /<script type="module" src="user-profile\.js\?v=20260402c"><\/script>/);
+  assert.match(userHtml, /<script type="module" src="user-profile\.js\?v=20\d{6}[a-z]"><\/script>/);
   assert.match(userProfileJs, /const emailCodeSlots = Array\.from\(document\.querySelectorAll\('#emailOverlay \.code-slot'\)\)/);
   assert.match(userProfileJs, /const syncEmailCodeSlots =/);
   assert.match(userProfileJs, /const clearEmailCodeEntry =/);

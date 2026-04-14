@@ -45,33 +45,11 @@ public class ClubChatAiService {
             ClubChatKbMatchResult kbMatchResult = clubChatKbMatcherService.matchClubFaq(clubId, userMessage);
             ClubChatKbSafetyGuard.Decision safePathDecision = clubChatKbSafetyGuard.evaluate(userMessage, route).orElse(null);
 
-            log.info("[CLUB_CHAT_DEBUG] FAQ semantic result: clubId={}, userId={}, hit={}, matchedEntryId={}, bestScore={}, secondBestScore={}, rejectReason={}",
-                    clubId,
-                    userId,
-                    kbMatchResult.hit(),
-                    kbMatchResult.matchedEntryId(),
-                    scoreText(kbMatchResult.bestScore()),
-                    scoreText(kbMatchResult.secondBestScore()),
-                    kbMatchResult.rejectReason());
 
             if (kbMatchResult.hit()) {
                 ClubChatKbResponseGuard.Decision thirdLayerDecision = clubChatKbResponseGuard.evaluate(userMessage, kbMatchResult);
                 if (!thirdLayerDecision.allow()) {
-                    log.info("[CLUB_CHAT_DEBUG] FAQ third-layer reject: clubId={}, userId={}, matchedEntryId={}, bestScore={}, secondBestScore={}, reason={}, detail={}",
-                            clubId,
-                            userId,
-                            kbMatchResult.matchedEntryId(),
-                            scoreText(kbMatchResult.bestScore()),
-                            scoreText(kbMatchResult.secondBestScore()),
-                            thirdLayerDecision.rejectReason(),
-                            safe(thirdLayerDecision.detail()));
                 } else if (safePathDecision != null) {
-                    log.info("[CLUB_CHAT_DEBUG] FAQ bypass existing safe-path: clubId={}, userId={}, matchedEntryId={}, intent={}, reason={}",
-                            clubId,
-                            userId,
-                            kbMatchResult.matchedEntryId(),
-                            route == null ? ChatIntentType.FALLBACK : route.intentType(),
-                            safePathDecision.reason());
                 } else {
                     ClubChatAiReplyDecision decision = ClubChatAiReplyDecision.clubFaq(
                             kbMatchResult.matchedReply(),
@@ -86,7 +64,6 @@ public class ClubChatAiService {
             }
 
             if (safePathDecision != null) {
-                log.info("[CLUB_CHAT_DEBUG] KB_MATCH bypass: clubId={}, userId={}, reason={}", clubId, userId, safePathDecision.reason());
             }
 
             String answerSkeleton = chatResponseBuilder.buildReply(route, context, userMessage);
@@ -125,16 +102,6 @@ public class ClubChatAiService {
                                   ChatIntentRoute route,
                                   ClubChatAiReplyDecision decision,
                                   String replyType) {
-        log.info("[CLUB_CHAT_DEBUG] final reply: clubId={}, userId={}, intent={}, answerSource={}, matchedFaqId={}, similarityScore={}, secondBestScore={}, replyType={}, text=\"{}\"",
-                clubId,
-                userId,
-                route == null ? ChatIntentType.FALLBACK : route.intentType(),
-                decision.answerSource(),
-                decision.matchedFaqId(),
-                scoreText(decision.similarityScore()),
-                scoreText(decision.secondBestScore()),
-                replyType,
-                safe(decision.replyText()));
     }
 
     private String scoreText(Double value) {

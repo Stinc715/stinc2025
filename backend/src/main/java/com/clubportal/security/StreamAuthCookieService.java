@@ -12,8 +12,12 @@ public class StreamAuthCookieService {
 
     public static final String AUTH_TOKEN_COOKIE = "club_portal_auth_token";
     public static final String STREAM_TOKEN_COOKIE = "club_portal_stream_token";
-    private static final Duration AUTH_TOKEN_TTL = Duration.ofDays(7);
-    private static final Duration STREAM_TOKEN_TTL = Duration.ofDays(1);
+
+    @org.springframework.beans.factory.annotation.Value("${app.security.session.auth-token-ttl-days:7}")
+    private long authTokenTtlDays = 7;
+
+    @org.springframework.beans.factory.annotation.Value("${app.security.session.stream-token-ttl-days:1}")
+    private long streamTokenTtlDays = 1;
 
     public void writeAuthCookies(HttpServletRequest request, HttpServletResponse response, String token) {
         writeAuthToken(request, response, token);
@@ -24,14 +28,14 @@ public class StreamAuthCookieService {
         if (response == null || token == null || token.isBlank()) {
             return;
         }
-        response.addHeader("Set-Cookie", buildCookie(AUTH_TOKEN_COOKIE, token.trim(), request, AUTH_TOKEN_TTL).toString());
+        response.addHeader("Set-Cookie", buildCookie(AUTH_TOKEN_COOKIE, token.trim(), request, authTokenTtl()).toString());
     }
 
     public void writeStreamToken(HttpServletRequest request, HttpServletResponse response, String token) {
         if (response == null || token == null || token.isBlank()) {
             return;
         }
-        response.addHeader("Set-Cookie", buildCookie(STREAM_TOKEN_COOKIE, token.trim(), request, STREAM_TOKEN_TTL).toString());
+        response.addHeader("Set-Cookie", buildCookie(STREAM_TOKEN_COOKIE, token.trim(), request, streamTokenTtl()).toString());
     }
 
     public void clearAuthCookies(HttpServletRequest request, HttpServletResponse response) {
@@ -64,5 +68,21 @@ public class StreamAuthCookieService {
             return true;
         }
         return request.isSecure();
+    }
+
+    public long getAuthTokenTtlSeconds() {
+        return authTokenTtl().getSeconds();
+    }
+
+    public long getStreamTokenTtlSeconds() {
+        return streamTokenTtl().getSeconds();
+    }
+
+    private Duration authTokenTtl() {
+        return Duration.ofDays(Math.max(1, authTokenTtlDays));
+    }
+
+    private Duration streamTokenTtl() {
+        return Duration.ofDays(Math.max(1, streamTokenTtlDays));
     }
 }

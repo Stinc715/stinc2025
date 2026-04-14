@@ -451,6 +451,126 @@
       background: rgba(248, 250, 252, 0.82);
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
     }
+    .data-rights-card {
+      display: grid;
+      gap: 18px;
+      padding: 24px;
+      border-radius: 26px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(248, 250, 252, 0.82);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+    .data-rights-header {
+      display: grid;
+      gap: 8px;
+    }
+    .data-rights-title {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      color: var(--ink);
+    }
+    .data-rights-copy,
+    .data-rights-summary-text,
+    .data-rights-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .data-rights-summary {
+      display: grid;
+      gap: 10px;
+      padding: 16px 18px;
+      border-radius: 20px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      background: rgba(255, 255, 255, 0.9);
+    }
+    .data-rights-summary a {
+      color: var(--accent-strong);
+    }
+    .data-rights-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .data-rights-actions .btn {
+      min-height: 46px;
+      border-radius: 16px;
+      padding: 0 18px;
+    }
+    .data-rights-delete {
+      display: grid;
+      gap: 10px;
+      padding-top: 4px;
+    }
+    .data-rights-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      color: #475569;
+      text-transform: uppercase;
+    }
+    .data-rights-textarea {
+      width: 100%;
+      min-height: 118px;
+      resize: vertical;
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.26);
+      background: rgba(255, 255, 255, 0.96);
+      padding: 14px 16px;
+      font: inherit;
+      color: var(--ink);
+      transition: border-color .2s var(--anim-base), box-shadow .2s var(--anim-base), background .2s var(--anim-base);
+    }
+    .data-rights-textarea:focus {
+      outline: none;
+      border-color: rgba(47, 93, 255, 0.5);
+      box-shadow: 0 0 0 4px rgba(47, 93, 255, 0.12);
+      background: #fff;
+    }
+    .data-rights-delete-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .data-rights-delete-row .btn {
+      min-height: 46px;
+      border-radius: 16px;
+      padding: 0 18px;
+    }
+    .data-rights-status {
+      display: none;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: rgba(255, 255, 255, 0.94);
+      font-size: 13px;
+      line-height: 1.55;
+      color: #334155;
+    }
+    .data-rights-status.show {
+      display: block;
+    }
+    .data-rights-status.is-success {
+      border-color: rgba(34, 197, 94, 0.3);
+      background: rgba(34, 197, 94, 0.1);
+      color: #166534;
+    }
+    .data-rights-status.is-error {
+      border-color: rgba(239, 68, 68, 0.3);
+      background: rgba(239, 68, 68, 0.08);
+      color: #b91c1c;
+    }
+    .data-rights-status.is-info {
+      border-color: rgba(59, 130, 246, 0.28);
+      background: rgba(59, 130, 246, 0.08);
+      color: #1d4ed8;
+    }
     .row-field {
       display: flex;
       align-items: center;
@@ -618,6 +738,25 @@
       font-size: 14px;
       line-height: 1.6;
       max-width: 48ch;
+    }
+    .security-session-card {
+      display: grid;
+      gap: 10px;
+      padding: 18px 20px;
+      border-radius: 20px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: rgba(255, 255, 255, 0.94);
+    }
+    .security-session-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .security-session-actions .btn {
+      min-height: 46px;
+      border-radius: 16px;
+      padding: 0 18px;
     }
 
     .security-grid {
@@ -867,6 +1006,9 @@
       .profile-form {
         padding: 20px;
       }
+      .data-rights-card {
+        padding: 20px;
+      }
       .security-grid {
         grid-template-columns: 1fr;
       }
@@ -895,11 +1037,19 @@
       .site-title { grid-column: auto; font-size: clamp(22px, 6vw, 28px); text-align: left; }
       .link-back { padding: 7px 10px; font-size: 12px; }
       .profile-form { padding: 18px; border-radius: 22px; }
+      .data-rights-card { padding: 18px; border-radius: 22px; }
       .security-title { font-size: 24px; }
       .security-form { padding: 18px; border-radius: 22px; }
       .security-foot { align-items: stretch; }
       .security-actions,
       .security-actions .btn { width: 100%; }
+      .data-rights-delete-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .data-rights-delete-row .btn {
+        width: 100%;
+      }
     }
   </style>
 <link rel="stylesheet" href="desktop-consistency.css?v=20260403a">
@@ -1004,6 +1154,34 @@
                     </div>
                   </div>
                 </div>
+
+                <div class="data-rights-card">
+                  <div class="data-rights-header">
+                    <span class="profile-eyebrow desktop-badge">Privacy &amp; Data</span>
+                    <h4 class="data-rights-title">Export or request deletion</h4>
+                    <p class="data-rights-copy">Download a copy of the account data currently linked to this profile, or send a deletion request for manual review.</p>
+                  </div>
+
+                  <div class="data-rights-summary">
+                    <p id="dataRightsRetentionSummary" class="data-rights-summary-text">Loading deployment retention summary...</p>
+                    <p class="data-rights-summary-text">Privacy contact: <a id="dataRightsPrivacyEmail" href="privacy.html">Contact the platform administrator</a></p>
+                  </div>
+
+                  <div class="data-rights-actions">
+                    <button id="exportDataBtn" class="btn blue" type="button">Export My Data</button>
+                  </div>
+
+                  <div class="data-rights-delete">
+                    <label class="data-rights-label" for="deletionReasonInput">Deletion request reason (optional)</label>
+                    <textarea id="deletionReasonInput" class="data-rights-textarea" maxlength="500" placeholder="Add any context for manual review, such as what data should be removed or why you are requesting account deletion."></textarea>
+                    <div class="data-rights-delete-row">
+                      <p class="data-rights-note">Submitting this request does not erase the account immediately. It creates a pending request for manual review.</p>
+                      <button id="requestDeletionBtn" class="btn ghost" type="button">Request Account Deletion</button>
+                    </div>
+                  </div>
+
+                  <div id="dataRightsStatus" class="data-rights-status" aria-live="polite"></div>
+                </div>
               </div>
 
             </div>
@@ -1044,6 +1222,15 @@
                     <div class="security-actions">
                       <button id="updatePassBtn" class="btn blue" type="button">Update Password</button>
                     </div>
+                  </div>
+
+                  <div class="security-session-card">
+                    <p class="security-provider-title">Session management</p>
+                    <p class="security-provider-copy">Keep this device signed in while signing out other browsers and devices that are still using your account.</p>
+                    <div class="security-session-actions">
+                      <button id="rotateSessionBtn" class="btn ghost" type="button">Keep This Device, Sign Out Others</button>
+                    </div>
+                    <div id="rotateSessionStatus" class="data-rights-status" aria-live="polite"></div>
                   </div>
                 </div>
               </div>
@@ -1116,7 +1303,9 @@
     </div>
   </div>
 
-  <script type="module" src="user-profile.js?v=20260402c"></script>
+  <script src="info-content.js?v=20260413b"></script>
+  <script type="module" src="ui-prompt.js?v=20260309b"></script>
+  <script type="module" src="user-profile.js?v=20260413b"></script>
   <script type="module" src="auth-modal.js?v=20260324a"></script>
 </body>
 </html>

@@ -1,6 +1,4 @@
 package com.clubportal.service;
-
-import com.clubportal.config.ChatDebugVersion;
 import com.clubportal.model.ChatMessage;
 import com.clubportal.model.ChatMode;
 import com.clubportal.model.ChatSession;
@@ -8,14 +6,9 @@ import com.clubportal.model.MessageSenderType;
 import com.clubportal.repository.ChatMessageRepository;
 import com.clubportal.repository.ChatSessionRepository;
 import com.clubportal.util.KeyedLockService;
-import jakarta.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
@@ -27,7 +20,6 @@ import java.util.Objects;
 @Service
 public class ChatMessageService {
 
-    private static final Logger log = LoggerFactory.getLogger(ChatMessageService.class);
     private static final Duration AI_DUPLICATE_RETRY_WINDOW = Duration.ofSeconds(20);
     private static final Duration HUMAN_DUPLICATE_RETRY_WINDOW = Duration.ofSeconds(8);
 
@@ -79,15 +71,6 @@ public class ChatMessageService {
             return duplicateRetry;
         }
 
-        log.info("[CLUB_CHAT_DEBUG] AI request start: version={}, thread={}, requestUri={}, sessionId={}, clubId={}, userId={}, chatMode={}, message=\"{}\"",
-                ChatDebugVersion.VERSION_MARKER,
-                Thread.currentThread().getName(),
-                currentRequestUri(),
-                session == null ? null : session.getSessionId(),
-                session == null ? null : session.getClubId(),
-                session == null ? null : session.getUserId(),
-                normalizeMode(session),
-                safe(content));
 
         ChatMessage userMessage = saveMessage(
                 session.getClubId(),
@@ -119,15 +102,6 @@ public class ChatMessageService {
                 true
         );
 
-        log.info("[CLUB_CHAT_DEBUG] AI request resolved: sessionId={}, clubId={}, userId={}, answerSource={}, matchedFaqId={}, similarityScore={}, secondBestScore={}, assistantMessageId={}",
-                session.getSessionId(),
-                session.getClubId(),
-                session.getUserId(),
-                replyDecision.answerSource(),
-                replyDecision.matchedFaqId(),
-                scoreText(replyDecision.similarityScore()),
-                scoreText(replyDecision.secondBestScore()),
-                assistantMessage.getMessageId());
 
         touchSession(session);
         return new ChatSendResult(
@@ -157,10 +131,6 @@ public class ChatMessageService {
             session.setChatMode(ChatMode.HUMAN);
             session.setHandoffRequestedAt(null);
             session.setHandoffReason(null);
-            log.info("[CLUB_CHAT_DEBUG] human handoff accepted by club reply: sessionId={}, clubId={}, userId={}",
-                    session.getSessionId(),
-                    session.getClubId(),
-                    session.getUserId());
         }
 
         ChatMessage savedMessage = saveMessage(
@@ -239,10 +209,6 @@ public class ChatMessageService {
         return session == null || session.getChatMode() == null ? ChatMode.AI : session.getChatMode();
     }
 
-    private static String safe(String value) {
-        return value == null ? "" : value.replace("\"", "\\\"").trim();
-    }
-
     private ChatSendResult trySuppressDuplicateRetry(ChatSession session,
                                                      MessageSenderType senderType,
                                                      String content) {
@@ -257,13 +223,6 @@ public class ChatMessageService {
         if (!isLikelyDuplicateRetry(session, senderType, latestSameSender, content)) {
             return null;
         }
-        log.info("[CLUB_CHAT_DEBUG] duplicate chat retry suppressed: sessionId={}, clubId={}, userId={}, sender={}, messageId={}, createdAt={}",
-                session.getSessionId(),
-                session.getClubId(),
-                session.getUserId(),
-                senderType.name(),
-                latestSameSender.getMessageId(),
-                latestSameSender.getCreatedAt());
         List<ChatMessage> retryMessages = buildDuplicateRetryMessages(session, senderType, latestSameSender);
         ChatMessage latestVisibleMessage = retryMessages.isEmpty()
                 ? latestSameSender
@@ -345,16 +304,6 @@ public class ChatMessageService {
 
     private static String chatLockKey(Integer clubId, Integer userId) {
         return "chat-send:" + clubId + ":" + userId;
-    }
-
-    private static String currentRequestUri() {
-        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = attributes == null ? null : attributes.getRequest();
-        return request == null ? null : request.getRequestURI();
-    }
-
-    private static String scoreText(Double value) {
-        return value == null ? "null" : String.format(java.util.Locale.ROOT, "%.4f", value);
     }
 
     public record ChatSendResult(

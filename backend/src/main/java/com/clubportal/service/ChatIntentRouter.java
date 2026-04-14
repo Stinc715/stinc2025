@@ -1,8 +1,6 @@
 package com.clubportal.service;
 
 import com.clubportal.dto.ClubChatContextDto;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Locale;
@@ -10,32 +8,19 @@ import java.util.Locale;
 @Service
 public class ChatIntentRouter {
 
-    private static final Logger log = LoggerFactory.getLogger(ChatIntentRouter.class);
-
     private final ChatSlotMatcher chatSlotMatcher;
-    private final ChatLanguageDetector chatLanguageDetector;
 
     public ChatIntentRouter() {
-        this(new ChatSlotMatcher(), new ChatLanguageDetector());
+        this(new ChatSlotMatcher());
     }
 
     public ChatIntentRouter(ChatSlotMatcher chatSlotMatcher) {
-        this(chatSlotMatcher, new ChatLanguageDetector());
-    }
-
-    public ChatIntentRouter(ChatSlotMatcher chatSlotMatcher, ChatLanguageDetector chatLanguageDetector) {
         this.chatSlotMatcher = chatSlotMatcher;
-        this.chatLanguageDetector = chatLanguageDetector;
     }
 
     public ChatIntentRoute route(String userMessage, ClubChatContextDto context) {
         String normalized = normalize(userMessage);
-        ChatLanguage language = chatLanguageDetector.detect(userMessage);
         ClubChatContextDto.VisibleTimeslot relevantVisibleSlot = chatSlotMatcher.findRelevantVisibleSlot(userMessage, context);
-
-        log.info("[CLUB_CHAT_DEBUG] language detected: {}, message=\"{}\"",
-                language,
-                safe(userMessage));
 
         if (containsAny(normalized,
                 "speak to a human",
@@ -43,12 +28,9 @@ public class ChatIntentRouter {
                 "real person",
                 "human chat",
                 "staff member",
-                "真人",
-                "人工",
-                "人工客服",
-                "真人聊天",
-                "工作人员")) {
-            return routed(ChatIntentType.HUMAN_HANDOFF, null, userMessage);
+                "human reply",
+                "switch to staff")) {
+            return routed(ChatIntentType.HUMAN_HANDOFF, null);
         }
 
         if (containsAny(normalized,
@@ -58,11 +40,8 @@ public class ChatIntentRouter {
                 "special policy",
                 "policy",
                 "parking",
-                "dress code",
-                "政策",
-                "停车",
-                "规定")) {
-            return routed(ChatIntentType.MISSING_POLICY, null, userMessage);
+                "dress code")) {
+            return routed(ChatIntentType.MISSING_POLICY, null);
         }
 
         if (containsAny(normalized,
@@ -74,17 +53,12 @@ public class ChatIntentRouter {
                 "charge dispute",
                 "billing issue",
                 "billing problem",
-                "dispute",
-                "退款",
-                "支付失败",
-                "扣费",
-                "账单",
-                "支付问题")) {
-            return routed(ChatIntentType.REFUND_OR_PAYMENT_ISSUE, null, userMessage);
+                "dispute")) {
+            return routed(ChatIntentType.REFUND_OR_PAYMENT_ISSUE, null);
         }
 
         if (isVisibleSlotDiscoveryRequest(normalized, context, relevantVisibleSlot)) {
-            return routed(ChatIntentType.VISIBLE_SLOT_DISCOVERY, relevantVisibleSlot, userMessage);
+            return routed(ChatIntentType.VISIBLE_SLOT_DISCOVERY, relevantVisibleSlot);
         }
 
         if (containsAny(normalized,
@@ -94,17 +68,13 @@ public class ChatIntentRouter {
                 "complete booking",
                 "book this slot",
                 "book it for me",
-                "reserve it for me",
-                "预约",
-                "预订",
-                "帮我订",
-                "帮我预订")) {
-            return routed(ChatIntentType.BOOKING_IN_CHAT, chatSlotMatcher.findBookingSlot(userMessage, context), userMessage);
+                "reserve it for me")) {
+            return routed(ChatIntentType.BOOKING_IN_CHAT, chatSlotMatcher.findBookingSlot(userMessage, context));
         }
 
         ClubChatContextDto.VisibleTimeslot memberPriceSlot = chatSlotMatcher.findMemberPriceSlot(userMessage, context);
         if (isMemberPriceExplanation(normalized, memberPriceSlot)) {
-            return routed(ChatIntentType.MEMBER_PRICE_EXPLANATION, memberPriceSlot, userMessage);
+            return routed(ChatIntentType.MEMBER_PRICE_EXPLANATION, memberPriceSlot);
         }
 
         if (containsAny(normalized,
@@ -116,13 +86,8 @@ public class ChatIntentRouter {
                 "half-year",
                 "yearly",
                 "duration",
-                "discount percent",
-                "会员",
-                "套餐",
-                "月卡",
-                "年卡",
-                "折扣")) {
-            return routed(ChatIntentType.MEMBERSHIP_PLAN_INFO, null, userMessage);
+                "discount percent")) {
+            return routed(ChatIntentType.MEMBERSHIP_PLAN_INFO, null);
         }
 
         if (containsAny(normalized,
@@ -138,14 +103,8 @@ public class ChatIntentRouter {
                 "call",
                 "beginner",
                 "category",
-                "tags",
-                "地址",
-                "营业时间",
-                "联系方式",
-                "电话",
-                "邮箱",
-                "新手")) {
-            return routed(ChatIntentType.CLUB_BASIC_INFO, null, userMessage);
+                "tags")) {
+            return routed(ChatIntentType.CLUB_BASIC_INFO, null);
         }
 
         if (containsAny(normalized,
@@ -158,17 +117,11 @@ public class ChatIntentRouter {
                 "places remain",
                 "published schedule",
                 "visible price",
-                "what time",
-                "时段",
-                "场地",
-                "可用",
-                "还有位置")) {
-            return routed(ChatIntentType.VISIBLE_SLOT_INFO, relevantVisibleSlot, userMessage);
+                "what time")) {
+            return routed(ChatIntentType.VISIBLE_SLOT_INFO, relevantVisibleSlot);
         }
 
-        log.info("[CLUB_CHAT_DEBUG] generic fallback chosen: reason=no intent keywords matched, message=\"{}\"",
-                safe(userMessage));
-        return routed(ChatIntentType.FALLBACK, null, userMessage);
+        return routed(ChatIntentType.FALLBACK, null);
     }
 
     private boolean isMemberPriceExplanation(String normalized, ClubChatContextDto.VisibleTimeslot matchedTimeslot) {
@@ -181,18 +134,14 @@ public class ChatIntentRouter {
                 "already the",
                 "instead of",
                 "why is this",
-                "why is it",
-                "会员价",
-                "会员价格",
-                "折扣",
-                "已经是我的会员价");
+                "why is it");
         if (directMemberPriceQuestion) {
             return true;
         }
-        if (!containsAny(normalized, "discount", "折扣", "优惠")) {
+        if (!containsAny(normalized, "discount")) {
             return false;
         }
-        return matchedTimeslot != null || containsAny(normalized, "slot", "court", "price", "gbp", "时段", "场地", "价格");
+        return matchedTimeslot != null || containsAny(normalized, "slot", "court", "price", "gbp");
     }
 
     private boolean isVisibleSlotDiscoveryRequest(String normalized,
@@ -215,23 +164,8 @@ public class ChatIntentRouter {
                 "today",
                 "evening",
                 "morning",
-                "tonight",
-                "明天",
-                "今天",
-                "晚上",
-                "下午",
-                "上午",
-                "场地",
-                "场次",
-                "时段",
-                "空位",
-                "还有位置",
-                "预定",
-                "预约",
-                "可订",
-                "可预订",
-                "有没有",
-                "有什么时段");
+                "afternoon",
+                "tonight");
         if (!asksDiscovery) {
             return false;
         }
@@ -242,21 +176,12 @@ public class ChatIntentRouter {
                 "for me here",
                 "book it for me",
                 "reserve it for me",
-                "sign me up",
-                "帮我直接订",
-                "帮我预约这个");
+                "sign me up");
         if (directBookingAction) {
             return false;
         }
 
-        boolean genericBookingSearch = containsAny(normalized,
-                "book",
-                "reserve",
-                "booking",
-                "订",
-                "预定",
-                "预约",
-                "预订");
+        boolean genericBookingSearch = containsAny(normalized, "book", "reserve", "booking");
         if (!genericBookingSearch) {
             return true;
         }
@@ -276,16 +201,7 @@ public class ChatIntentRouter {
         return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
     }
 
-    private ChatIntentRoute routed(ChatIntentType intentType,
-                                   ClubChatContextDto.VisibleTimeslot matchedTimeslot,
-                                   String userMessage) {
-        log.info("[CLUB_CHAT_DEBUG] intent routed: intent={}, message=\"{}\"",
-                intentType,
-                safe(userMessage));
+    private ChatIntentRoute routed(ChatIntentType intentType, ClubChatContextDto.VisibleTimeslot matchedTimeslot) {
         return new ChatIntentRoute(intentType, matchedTimeslot);
-    }
-
-    private static String safe(String value) {
-        return value == null ? "" : value.replace("\"", "\\\"").trim();
     }
 }

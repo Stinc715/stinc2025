@@ -92,11 +92,6 @@ public class ClubChatContextService {
     private List<ClubChatContextDto.VisibleTimeslot> buildVisibleTimeslots(Integer clubId, User viewerUser, LocalDate today) {
         LocalDate from = today;
         LocalDate to = today.plusDays(VISIBLE_SLOT_HORIZON_DAYS);
-        log.info("[CLUB_CHAT_DEBUG] visible-timeslot source call: source=club-chat-context, method=ClubChatContextService.buildVisibleTimeslots, clubId={}, userId={}, from={}, to={}",
-                clubId,
-                viewerUser == null ? null : viewerUser.getUserId(),
-                from,
-                to);
         List<TimeSlotResponse> slots = clubVisibleTimeslotService.listVisibleTimeslots(
                 clubId,
                 viewerUser,
@@ -217,41 +212,9 @@ public class ClubChatContextService {
                 : context.membershipPlans();
         ClubChatContextDto.ViewerInfo viewer = context == null ? null : context.viewer();
 
-        log.info("[CLUB_CHAT_DEBUG] context built: clubId={}, userId={}, visibleTimeslots={}, membershipPlans={}, viewer.loggedIn={}, viewer.role={}",
-                clubId,
-                userId,
-                slots.size(),
-                plans.size(),
-                viewer == null ? null : viewer.loggedIn(),
-                viewer == null ? null : viewer.role());
-        log.info("[CLUB_CHAT_DEBUG] AI_CONTEXT_VISIBLE_SLOTS count: clubId={}, userId={}, count={}",
-                clubId,
-                userId,
-                slots.size());
 
         for (int i = 0; i < slots.size(); i++) {
             ClubChatContextDto.VisibleTimeslot slot = slots.get(i);
-            log.info("[CLUB_CHAT_DEBUG] visibleTimeslot[{}]: venueName={}, startTime={}, endTime={}, price={}, basePrice={}, membershipApplied={}, membershipPlanName={}, membershipDiscountPercent={}",
-                    i,
-                    slot == null ? null : slot.venueName(),
-                    slot == null ? null : slot.startTime(),
-                    slot == null ? null : slot.endTime(),
-                    slot == null ? null : slot.price(),
-                    slot == null ? null : slot.basePrice(),
-                    slot == null ? null : slot.membershipApplied(),
-                    slot == null ? null : slot.membershipPlanName(),
-                    slot == null ? null : slot.membershipDiscountPercent());
-            log.info("[CLUB_CHAT_DEBUG] AI_CONTEXT_VISIBLE_SLOTS[{}]: venueName={}, startTime={}, endTime={}, remaining={}, price={}, basePrice={}, membershipApplied={}, membershipPlanName={}, membershipDiscountPercent={}",
-                    i,
-                    slot == null ? null : slot.venueName(),
-                    slot == null ? null : slot.startTime(),
-                    slot == null ? null : slot.endTime(),
-                    slot == null ? null : slot.remaining(),
-                    slot == null ? null : slot.price(),
-                    slot == null ? null : slot.basePrice(),
-                    slot == null ? null : slot.membershipApplied(),
-                    slot == null ? null : slot.membershipPlanName(),
-                    slot == null ? null : slot.membershipDiscountPercent());
         }
     }
 }

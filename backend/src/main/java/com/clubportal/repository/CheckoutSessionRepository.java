@@ -15,6 +15,7 @@ import java.util.Optional;
 public interface CheckoutSessionRepository extends JpaRepository<CheckoutSession, Integer> {
     Optional<CheckoutSession> findBySessionId(String sessionId);
     Optional<CheckoutSession> findByProviderSessionId(String providerSessionId);
+    List<CheckoutSession> findByUserIdOrderByCreatedAtDesc(Integer userId);
     boolean existsByOrderNo(String orderNo);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

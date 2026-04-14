@@ -54,10 +54,6 @@ public class ClubChatKbController {
             return denied;
         }
         var response = clubChatKbService.createEntry(clubId, request);
-        log.info("[CLUB_CHAT_DEBUG] KB_SAVE http_complete: action=create, clubId={}, entryId={}, status={}",
-                clubId,
-                response.id(),
-                HttpStatus.CREATED.value());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -70,10 +66,6 @@ public class ClubChatKbController {
             return denied;
         }
         var response = clubChatKbService.updateEntry(clubId, entryId, request);
-        log.info("[CLUB_CHAT_DEBUG] KB_SAVE http_complete: action=update, clubId={}, entryId={}, status={}",
-                clubId,
-                response.id(),
-                HttpStatus.OK.value());
         return ResponseEntity.ok(response);
     }
 

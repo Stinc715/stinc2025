@@ -62,7 +62,7 @@ class ClubChatKbResponseGuardTest {
     }
 
     @Test
-    void chineseHighRiskKeywordIsRejected() {
+    void refundKeywordIsRejected() {
         ClubChatKbResponseGuard guard = new ClubChatKbResponseGuard(
                 new ClubChatKbGuardProperties(),
                 new ClubChatKbMatcherProperties(),
@@ -71,21 +71,21 @@ class ClubChatKbResponseGuardTest {
 
         ClubChatKbMatchResult matchResult = ClubChatKbMatchResult.hit(
                 18,
-                "预约后可以取消吗？",
-                "请联系工作人员。",
+                "What is your refund policy?",
+                "Please contact the club directly for refund support.",
                 0.93d,
                 0.41d,
-                "预约后可以取消吗"
+                "what is your refund policy?"
         );
 
-        ClubChatKbResponseGuard.Decision decision = guard.evaluate("我想退款", matchResult);
+        ClubChatKbResponseGuard.Decision decision = guard.evaluate("Can I get a refund after booking?", matchResult);
 
         assertFalse(decision.allow());
         assertEquals(ClubChatKbGuardRejectReason.HIGH_RISK_KEYWORD, decision.rejectReason());
     }
 
     @Test
-    void chineseRealtimeKeywordIsRejected() {
+    void realtimeKeywordIsRejected() {
         ClubChatKbResponseGuard guard = new ClubChatKbResponseGuard(
                 new ClubChatKbGuardProperties(),
                 new ClubChatKbMatcherProperties(),
@@ -94,14 +94,14 @@ class ClubChatKbResponseGuardTest {
 
         ClubChatKbMatchResult matchResult = ClubChatKbMatchResult.hit(
                 19,
-                "你们什么时候营业？",
-                "周一到周五 10:00-22:00。",
+                "What are your opening hours today?",
+                "We are open from 10:00 to 22:00.",
                 0.91d,
                 0.40d,
-                "你们什么时候营业"
+                "what are your opening hours today?"
         );
 
-        ClubChatKbResponseGuard.Decision decision = guard.evaluate("今天现在营业吗？", matchResult);
+        ClubChatKbResponseGuard.Decision decision = guard.evaluate("What slots are available today?", matchResult);
 
         assertFalse(decision.allow());
         assertEquals(ClubChatKbGuardRejectReason.REALTIME_KEYWORD, decision.rejectReason());

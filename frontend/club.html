@@ -845,6 +845,80 @@
     gap: 10px;
   }
 
+  .club-chat-disclosure {
+    grid-column: 1 / -1;
+    margin: 0;
+    border: 1px solid #dbeafe;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%);
+    padding: 12px 12px 10px;
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  .club-chat-disclosure[hidden] {
+    display: none;
+  }
+
+  .club-chat-disclosure-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .club-chat-disclosure-text {
+    margin: 0;
+    flex: 1;
+  }
+
+  .club-chat-disclosure-close {
+    border: none;
+    background: transparent;
+    color: #64748b;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .club-chat-disclosure-close:hover {
+    background: rgba(148, 163, 184, 0.16);
+  }
+
+  .club-chat-disclosure-close:focus-visible,
+  .club-chat-disclosure-link:focus-visible {
+    outline: 2px solid rgba(29, 78, 216, 0.28);
+    outline-offset: 2px;
+  }
+
+  .club-chat-disclosure-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+  }
+
+  .club-chat-disclosure-link {
+    border: none;
+    background: transparent;
+    padding: 0;
+    color: #1d4ed8;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .club-chat-disclosure-link:hover {
+    color: #1e40af;
+    text-decoration: underline;
+  }
+
   .club-chat-input {
     width: 100%;
     border: 1px solid var(--line);
@@ -1606,7 +1680,7 @@
     position: absolute;
     top: 12px;
     right: calc(100% + 16px);
-    width: min(380px, calc(100vw - 96px));
+    width: min(412px, calc(100vw - 88px));
     z-index: 24;
   }
 
@@ -1619,9 +1693,9 @@
     border-radius: 28px;
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(248, 250, 255, 0.97));
     box-shadow: 0 32px 90px rgba(15, 23, 42, 0.18);
-    padding: 16px;
+    padding: 18px;
     display: grid;
-    gap: 14px;
+    gap: 16px;
   }
 
   .membership-popover-head {
@@ -1634,21 +1708,18 @@
   .membership-popover-copy {
     min-width: 0;
     display: grid;
-    gap: 6px;
+    gap: 4px;
   }
 
-  .membership-popover-copy h4 {
+  .membership-popover-copy h3 {
     margin: 0;
-    font-size: 20px;
-    line-height: 1;
-    letter-spacing: -0.03em;
-    font-family: "Fraunces", Georgia, serif;
-    color: #22223e;
+    font-size: 16px;
+    line-height: 1.3;
   }
 
   .membership-popover-copy p {
     margin: 0;
-    color: #6d7388;
+    color: var(--muted);
     font-size: 12px;
     line-height: 1.45;
   }
@@ -1668,51 +1739,73 @@
   }
 
   .membership-plan-card {
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    padding: 14px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 22px;
+    padding: 16px 18px 18px;
     display: grid;
-    gap: 8px;
-    background: #fff;
+    gap: 14px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.86),
+      0 10px 24px rgba(15, 23, 42, 0.04);
   }
 
   .membership-plan-card.active {
-    border-color: #bbf7d0;
-    background: #f8fff9;
+    border-color: rgba(59, 130, 246, 0.18);
+    background:
+      linear-gradient(180deg, rgba(239, 246, 255, 0.92), rgba(255, 255, 255, 0.98));
   }
 
   .membership-plan-top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 10px;
+    display: grid;
+    gap: 12px;
   }
 
-  .membership-plan-heading {
-    display: grid;
-    gap: 4px;
+  .membership-plan-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
     min-width: 0;
   }
 
   .membership-plan-name {
-    font-size: 15px;
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    color: #111827;
+  }
+
+  .membership-plan-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .membership-plan-fact {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: #f8fafc;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    color: #475569;
+    font-size: 12px;
     font-weight: 700;
-    line-height: 1.25;
+    line-height: 1;
+    white-space: nowrap;
   }
 
   .membership-plan-duration {
-    color: var(--muted);
+    color: #667085;
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: .04em;
-  }
-
-  .membership-plan-supplement {
-    color: #4f46e5;
-    font-size: 11px;
-    font-weight: 700;
-    line-height: 1.25;
+    letter-spacing: 0.12em;
   }
 
   .membership-plan-discount {
@@ -1720,13 +1813,13 @@
     align-items: center;
     justify-content: center;
     min-width: fit-content;
-    max-width: 132px;
-    padding: 0 12px;
-    min-height: 30px;
+    max-width: 148px;
+    padding: 0 14px;
+    min-height: 36px;
     border-radius: 999px;
     background: #eef2ff;
     color: #3730a3;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 800;
     line-height: 1;
     white-space: nowrap;
@@ -1739,15 +1832,64 @@
   }
 
   .membership-plan-price {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 800;
     line-height: 1.1;
+    letter-spacing: -0.03em;
+    color: #111827;
   }
 
   .membership-plan-copy {
     color: var(--muted);
+    font-size: 13px;
+    line-height: 1.52;
+  }
+
+  .membership-plan-details {
+    border-top: 1px solid rgba(148, 163, 184, 0.18);
+    padding-top: 10px;
+  }
+
+  .membership-plan-details summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    cursor: pointer;
+    color: #4f46e5;
     font-size: 12px;
-    line-height: 1.45;
+    font-weight: 700;
+    line-height: 1.2;
+    user-select: none;
+  }
+
+  .membership-plan-details summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .membership-plan-details summary::after {
+    content: '+';
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    border: 1px solid rgba(79, 70, 229, 0.18);
+    background: rgba(238, 242, 255, 0.9);
+    color: #4338ca;
+    font-size: 15px;
+    font-weight: 600;
+    flex: 0 0 auto;
+  }
+
+  .membership-plan-details[open] summary::after {
+    content: '−';
+  }
+
+  .membership-plan-details-body {
+    padding-top: 9px;
   }
 
   .membership-plan-btn {
@@ -1755,10 +1897,10 @@
     background: #fff;
     color: #111827;
     border-radius: 999px;
-    min-height: 36px;
-    padding: 0 14px;
+    min-height: 44px;
+    padding: 0 16px;
     font: inherit;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
     cursor: pointer;
   }
@@ -2457,6 +2599,15 @@
             </div>
             <div id="clubChatThread" class="club-chat-thread" aria-live="polite"></div>
             <form id="clubChatForm" class="club-chat-form">
+              <div id="clubChatDisclosure" class="club-chat-disclosure" role="note">
+                <div class="club-chat-disclosure-head">
+                  <p class="club-chat-disclosure-text">Messages may be viewed by club staff. When enabled, AI may help process or answer chat before a human takes over. You can ask to switch this conversation to club staff for a human reply.</p>
+                  <button id="dismissClubChatDisclosureBtn" class="club-chat-disclosure-close" type="button" aria-label="Hide chat notice">&times;</button>
+                </div>
+                <div class="club-chat-disclosure-actions">
+                  <button id="hideClubChatDisclosureForeverBtn" class="club-chat-disclosure-link" type="button">Don't show again on this device</button>
+                </div>
+              </div>
               <textarea id="clubChatInput" class="club-chat-input" placeholder="Type your message..." maxlength="500"></textarea>
               <button class="club-chat-send" type="submit">Send</button>
             </form>
@@ -2473,11 +2624,11 @@
           <div id="clubMembershipStatus" class="membership-status" style="display:none;"></div>
         </div>
           <div id="membershipPlansPopover" class="membership-popover" hidden aria-hidden="true">
-            <div class="membership-popover-shell" role="dialog" aria-modal="false" aria-labelledby="membershipPlansTitle">
+            <div class="membership-popover-shell" role="dialog" aria-modal="false" aria-label="Member pricing">
               <div class="membership-popover-head">
                 <div class="membership-popover-copy">
                   <span class="membership-copy-eyebrow desktop-badge">Member pricing</span>
-                  <h4 id="membershipPlansTitle">Member plans</h4>
+                  <h3 id="membershipPlansTitle">Membership plans</h3>
                   <p id="membershipPlansMeta">Review current passes and booking discounts.</p>
                 </div>
                 <button id="closeMembershipPlansBtn" class="rail-panel-close" type="button" aria-label="Close plans and return to side rail">&times;</button>
@@ -2548,6 +2699,7 @@
   </div>
 
   <script type="module" src="ui-prompt.js?v=20260220b"></script>
+  <script src="info-content.js?v=20260413b"></script>
   <script>
     // 1. 鐢ㄦ埛浼氳瘽绠＄悊
     // 璐熻矗妫€鏌ユ湰鍦板瓨鍌ㄤ腑鐨勭櫥褰曠姸鎬侊紝骞舵牴鎹敤鎴风被鍨嬶紙鏅€氱敤鎴锋垨淇变箰閮ㄧ鐞嗗憳锛夋覆鏌撻《閮ㄥ鑸爮鐨勭敤鎴峰尯鍩熴€?
@@ -2764,10 +2916,11 @@
       if (!Number.isFinite(n) || n < 0) return null;
       return n;
     };
-        const formatPrice = (raw) => {
+    const currency = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
+    const formatPrice = (raw) => {
       const price = parsePrice(raw);
       if (price === null) return '';
-      return `GBP ${price.toFixed(2)}`;
+      return currency.format(price);
     };
 
     const isNumericId = (id) => /^[0-9]+$/.test(String(id || ''));
@@ -2842,6 +2995,9 @@
     const clubChatInputEl = document.getElementById('clubChatInput');
     const clubChatSendBtnEl = clubChatFormEl?.querySelector('.club-chat-send');
     const clubChatTitleEl = document.getElementById('clubChatTitle');
+    const clubChatDisclosureEl = document.getElementById('clubChatDisclosure');
+    const dismissClubChatDisclosureBtnEl = document.getElementById('dismissClubChatDisclosureBtn');
+    const hideClubChatDisclosureForeverBtnEl = document.getElementById('hideClubChatDisclosureForeverBtn');
 
     let heroImageUrls = [];
     let heroActiveIndex = 0;
@@ -2902,11 +3058,44 @@
       }
     };
 
+    const CHAT_DISCLOSURE_HIDE_STORAGE_KEY = 'clubPortal.hideClubChatDisclosure';
+
+    const readPersistentFlag = (key) => {
+      try {
+        return String(localStorage.getItem(key) || '').trim() === 'true';
+      } catch {
+        return false;
+      }
+    };
+
+    const writePersistentFlag = (key, value) => {
+      try {
+        if (value) {
+          localStorage.setItem(key, 'true');
+        } else {
+          localStorage.removeItem(key);
+        }
+      } catch {
+        // Ignore storage errors in privacy mode or restricted browsers.
+      }
+    };
+
     const stopHeroAutoPlay = () => {
       if (heroAutoTimer) {
         clearInterval(heroAutoTimer);
         heroAutoTimer = null;
       }
+    };
+
+    const setClubChatDisclosureVisible = (visible) => {
+      if (!clubChatDisclosureEl) return;
+      clubChatDisclosureEl.hidden = !visible;
+      clubChatDisclosureEl.setAttribute('aria-hidden', visible ? 'false' : 'true');
+    };
+
+    const initializeClubChatDisclosure = () => {
+      const permanentlyHidden = readPersistentFlag(CHAT_DISCLOSURE_HIDE_STORAGE_KEY);
+      setClubChatDisclosureVisible(!permanentlyHidden);
     };
 
     const syncHeroDots = () => {
@@ -3087,8 +3276,7 @@
         window.AppPrompt.toast(text, { type });
         return;
       }
-      const prefix = type === 'error' ? 'Error' : (type === 'warn' ? 'Notice' : 'Info');
-      window.alert(`${prefix}: ${text}`);
+      console.warn('[club] AppPrompt.toast unavailable', { type, text });
     };
 
     const openBookingConfirm = ({ venue, when, priceLabel }) => {
@@ -3111,7 +3299,8 @@
         '',
         'Continue booking?'
       ].join('\n');
-      return Promise.resolve(window.confirm(text));
+      console.warn('[club] AppPrompt.confirm unavailable', { title: 'Confirm booking?', text });
+      return Promise.resolve(false);
     };
 
     const openCancelBookingConfirm = ({ venue, when, priceLabel }) => {
@@ -3135,7 +3324,8 @@
         '',
         'Cancel this booking?'
       ].join('\n');
-      return Promise.resolve(window.confirm(text));
+      console.warn('[club] AppPrompt.confirm unavailable', { title: 'Cancel booking?', text });
+      return Promise.resolve(false);
     };
 
     const openCommunityDeleteConfirm = ({ title, message, okText = 'Delete' }) => {
@@ -3149,7 +3339,8 @@
           cancelText: 'Keep'
         });
       }
-      return Promise.resolve(window.confirm(`${heading}\n\n${body}`));
+      console.warn('[club] AppPrompt.confirm unavailable', { title: heading, message: body });
+      return Promise.resolve(false);
     };
 
     const resolveAccountType = (raw) => {
@@ -3292,10 +3483,38 @@
       return discount >= 100 ? 'Free booking' : `${discount}% off`;
     };
 
-    const membershipBenefitSupplement = (row) => {
-      if (!isBookingPackMembership(row)) return '';
-      const included = Math.max(0, Number(row?.includedBookings || 0));
-      return `${included} session credit${included === 1 ? '' : 's'}`;
+    const membershipPlanFacts = (row) => {
+      const facts = [];
+      const durationDays = Math.max(0, Number(row?.durationDays || 0));
+      if (isBookingPackMembership(row)) {
+        const includedBookings = Math.max(0, Number(row?.includedBookings || 0));
+        if (includedBookings > 0) {
+          facts.push(`${includedBookings} ${includedBookings === 1 ? 'booking' : 'bookings'} included`);
+        }
+        if (durationDays > 0) {
+          facts.push(`Use within ${durationDays} days`);
+        }
+        return facts.length ? facts : ['Flexible booking credit'];
+      }
+      const discount = Math.max(0, Number(row?.discountPercent || 0));
+      if (discount > 0) {
+        facts.push(`${discount}% off bookings`);
+      }
+      if (durationDays > 0) {
+        facts.push(`Valid for ${durationDays} days`);
+      }
+      return facts.length ? facts : ['Member pricing'];
+    };
+
+    const formatMembershipPlansSummary = (count, lowestPrice) => {
+      const total = Math.max(0, Number(count) || 0);
+      if (!total) return 'No plans available.';
+      if (total === 1) {
+        return lowestPrice === null ? '1 plan available.' : `1 plan · ${formatPrice(lowestPrice)}`;
+      }
+      return lowestPrice === null
+        ? `${total} plans available.`
+        : `${total} plans · from ${formatPrice(lowestPrice)}`;
     };
 
     const hasMembershipPlans = () => Array.isArray(clubMembershipPlans) && clubMembershipPlans.length > 0;
@@ -3309,6 +3528,14 @@
       }
       if (clubMembershipToggleEl) {
         clubMembershipToggleEl.setAttribute('aria-expanded', next ? 'true' : 'false');
+      }
+      if (clubMembershipSummaryEl) {
+        const hasSummary = String(clubMembershipSummaryEl.textContent || '').trim().length > 0;
+        clubMembershipSummaryEl.style.display = hasSummary && !next ? 'block' : 'none';
+      }
+      if (membershipPlansMetaEl) {
+        const hasMeta = String(membershipPlansMetaEl.textContent || '').trim().length > 0;
+        membershipPlansMetaEl.style.display = hasMeta && !next ? 'block' : 'none';
       }
       updateBookingSideRail();
       if (next) {
@@ -3333,7 +3560,6 @@
             : '--';
           const activePackPlan = isBookingPackMembership(myClubMembership || activePlan);
           const activeBenefitBadge = membershipBenefitBadge(myClubMembership || activePlan);
-          const activeBenefitSupplement = membershipBenefitSupplement(myClubMembership || activePlan);
           const activePriceLabel = formatPrice(activePlan?.price);
           const activeUntilLabel = formatDateLabel(myClubMembership.endDate);
           const remainingBookings = Math.max(0, Number(myClubMembership?.remainingBookings || 0));
@@ -3345,12 +3571,11 @@
           clubMembershipStatusEl.innerHTML = `
             <div class="membership-status-card">
               <div class="membership-plan-top">
-                <div class="membership-plan-heading">
+                <div class="membership-plan-meta">
                   <div class="membership-plan-duration">${escapeHtml(activeDurationLabel)}</div>
-                  ${activeBenefitSupplement ? `<div class="membership-plan-supplement">${escapeHtml(activeBenefitSupplement)}</div>` : ''}
-                  <div class="membership-plan-name">${escapeHtml(activePlanName)}</div>
+                  <div class="membership-plan-discount ${activePackPlan ? 'membership-plan-discount--pack' : ''}">${escapeHtml(activeBenefitBadge)}</div>
                 </div>
-                <div class="membership-plan-discount ${activePackPlan ? 'membership-plan-discount--pack' : ''}">${escapeHtml(activeBenefitBadge)}</div>
+                <div class="membership-plan-name">${escapeHtml(activePlanName)}</div>
               </div>
               ${activePriceLabel ? `<div class="membership-plan-price">${escapeHtml(activePriceLabel)}</div>` : ''}
               <div class="membership-plan-copy">${escapeHtml(activeCopy)}</div>
@@ -3398,7 +3623,7 @@
         } else {
           const count = availablePlans.length;
           clubMembershipSummaryEl.style.display = 'block';
-          clubMembershipSummaryEl.textContent = `${count} member pass${count === 1 ? '' : 'es'} available${lowestPrice === null ? '' : ` from ${formatPrice(lowestPrice)}`}.`;
+          clubMembershipSummaryEl.textContent = formatMembershipPlansSummary(count, lowestPrice);
         }
       }
 
@@ -3409,35 +3634,32 @@
       if (membershipPlansMetaEl) {
         const count = availablePlans.length;
         membershipPlansMetaEl.textContent = hasActiveMembership
-          ? `${count} plan${count === 1 ? '' : 's'} listed. Your active pass is highlighted below.`
-          : `${count} member pass${count === 1 ? '' : 'es'} available${lowestPrice === null ? '' : ` from ${formatPrice(lowestPrice)}`}.`;
+          ? 'Current plan highlighted below.'
+          : formatMembershipPlansSummary(count, lowestPrice);
       }
 
       clubMembershipSectionEl.style.display = '';
       membershipPlansEl.innerHTML = availablePlans.map((plan) => {
         const isCurrentPlan = hasActiveMembership && Number(plan?.planId) === Number(myClubMembership?.planId);
-        const priceLabel = formatPrice(plan?.price) || 'GBP 0.00';
-        const durationLabel = Number.isFinite(Number(plan?.durationDays)) ? `${plan.durationDays} days` : '--';
+        const priceLabel = formatPrice(plan?.price) || currency.format(0);
         const planName = String(plan?.planName || 'Membership').trim() || 'Membership';
-        const packPlan = isBookingPackMembership(plan);
-        const benefitSupplement = membershipBenefitSupplement(plan);
-        const description = String(plan?.description || '').trim() || (isBookingPackMembership(plan)
-          ? `Includes ${Math.max(0, Number(plan?.includedBookings || 0))} prepaid session credits.`
-          : `Save ${Math.max(0, Number(plan?.discountPercent || 0))}% on eligible bookings.`);
+        const planFacts = membershipPlanFacts(plan);
+        const description = String(plan?.description || '').trim();
         const buttonLabel = isCurrentPlan ? 'Current plan' : (hasActiveMembership ? 'Already active' : 'Buy membership');
         const buttonDisabled = isCurrentPlan || hasActiveMembership;
         return `
           <article class="membership-plan-card ${isCurrentPlan ? 'active' : ''}">
             <div class="membership-plan-top">
-              <div class="membership-plan-heading">
-                <div class="membership-plan-duration">${escapeHtml(durationLabel)}</div>
-                ${benefitSupplement ? `<div class="membership-plan-supplement">${escapeHtml(benefitSupplement)}</div>` : ''}
-                <div class="membership-plan-name">${escapeHtml(planName)}</div>
-              </div>
-              <div class="membership-plan-discount ${packPlan ? 'membership-plan-discount--pack' : ''}">${escapeHtml(membershipBenefitBadge(plan))}</div>
+              <div class="membership-plan-name">${escapeHtml(planName)}</div>
+              <div class="membership-plan-facts">${planFacts.map((fact) => `<span class="membership-plan-fact">${escapeHtml(fact)}</span>`).join('')}</div>
             </div>
             <div class="membership-plan-price">${escapeHtml(priceLabel)}</div>
-            <div class="membership-plan-copy">${escapeHtml(description)}</div>
+            ${description ? `<details class="membership-plan-details">
+              <summary>Plan details</summary>
+              <div class="membership-plan-details-body">
+                <div class="membership-plan-copy">${escapeHtml(description)}</div>
+              </div>
+            </details>` : ''}
             <button class="membership-plan-btn ${buttonDisabled ? 'ghost' : 'buy'}" type="button" data-membership-plan-id="${escapeHtml(plan.planId)}" ${buttonDisabled ? 'disabled' : ''}>${escapeHtml(buttonLabel)}</button>
           </article>
         `;
@@ -4157,7 +4379,7 @@
       );
     };
 
-    const goToMockPayment = async (slot) => {
+    const goToBookingCheckout = async (slot) => {
       await startCheckoutSession(
         {
           type: 'BOOKING',
@@ -4448,7 +4670,7 @@
             }
             const priceLabel = normalizeMembershipBenefitType(slot.membershipBenefitType) === 'BOOKING_PACK' && Boolean(slot.membershipApplied)
               ? 'Included with pass'
-              : (formatPrice(slot.price) || 'GBP 0.00');
+              : (formatPrice(slot.price) || currency.format(0));
             const when = `${parseDateISO(slot.startTime)} ${parseTimeHHMM(slot.startTime)} - ${parseTimeHHMM(slot.endTime)}`;
             const venue = String(slot.venueName || 'Venue');
             const okCancel = await openCancelBookingConfirm({ venue, when, priceLabel });
@@ -4475,13 +4697,13 @@
             return;
           }
 
-          const priceLabel = `${formatPrice(slot.price) || 'GBP 0.00'}${slot.membershipApplied ? ` (${String(slot.membershipPlanName || 'Membership')})` : ''}`;
+          const priceLabel = `${formatPrice(slot.price) || currency.format(0)}${slot.membershipApplied ? ` (${String(slot.membershipPlanName || 'Membership')})` : ''}`;
           const when = `${parseDateISO(slot.startTime)} ${parseTimeHHMM(slot.startTime)} - ${parseTimeHHMM(slot.endTime)}`;
           const venue = String(slot.venueName || 'Venue');
           const ok = await openBookingConfirm({ venue, when, priceLabel });
           if (!ok) return;
 
-          goToMockPayment(slot);
+          goToBookingCheckout(slot);
         });
       });
     };
@@ -4694,12 +4916,59 @@
       return String(clubId);
     };
 
-    const readErrorText = async (res) => {
+    const clearExpiredSessionToken = () => {
+      try {
+        window.AuthSession?.clearToken?.();
+      } catch {
+        // Ignore client-side session cleanup failures.
+      }
+    };
+
+    const normalizeBackendErrorText = (raw, status, fallback = '') => {
+      const responseStatus = Number(status) || 0;
+      const trimmed = String(raw || '').trim();
+      const fallbackText = String(fallback || '').trim() || `Request failed (${responseStatus || 'unknown'})`;
+
+      if (responseStatus === 401) {
+        return 'Your session has expired. Please log in again.';
+      }
+      if (responseStatus === 403) {
+        return 'You do not have permission to do that with this account.';
+      }
+
+      if (!trimmed) return fallbackText;
+
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          const candidate = [
+            parsed.message,
+            parsed.detail,
+            parsed.error_description,
+            parsed.error,
+            parsed.title
+          ].map((value) => String(value || '').trim()).find(Boolean);
+          if (candidate && !/^(unauthorized|forbidden)$/i.test(candidate)) {
+            return candidate;
+          }
+          return fallbackText;
+        }
+      } catch {
+        // Fall back to raw text handling below.
+      }
+
+      if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+        return fallbackText;
+      }
+      return trimmed;
+    };
+
+    const readErrorText = async (res, fallback = '') => {
       try {
         const text = await res.text();
-        return String(text || '').trim() || `Request failed (${res.status})`;
+        return normalizeBackendErrorText(text, res.status, fallback);
       } catch {
-        return `Request failed (${res.status})`;
+        return normalizeBackendErrorText('', res.status, fallback);
       }
     };
 
@@ -4933,6 +5202,7 @@
         });
         if (!res.ok) {
           const msg = await readErrorText(res);
+          if (res.status === 401) clearExpiredSessionToken();
           showPageToast(msg, 'error');
           return false;
         }
@@ -5124,6 +5394,9 @@
         if (!res.ok) {
           const msg = await readErrorText(res);
           chatLoadError = msg;
+          if (res.status === 401) {
+            clearExpiredSessionToken();
+          }
           if (res.status === 401 || res.status === 403) {
             chatMessages = [];
             chatUnreadCount = 0;
@@ -5262,7 +5535,7 @@
       pageMainEl?.classList.toggle('rail-open', !collapsed);
       bookingSideRailToggleEl?.toggleAttribute('hidden', !collapsible || overlayPanelOpen);
       if (bookingSideRailToggleEl) {
-        bookingSideRailToggleEl.disabled = overlayPanelOpen;
+        bookingSideRailToggleEl.disabled = !collapsible;
       }
       bookingSideRailToggleEl?.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
       bookingSideRailToggleEl?.setAttribute('aria-label', collapsed ? 'Open chat, Q&A, and member pricing' : 'Back to booking details');
@@ -5320,22 +5593,29 @@
         setCommunityDialogOpen(false);
       }
     });
-    document.addEventListener('click', (evt) => {
-      if (!clubMembershipExpanded) return;
-      if (evt.target.closest('#clubMembershipSection')) return;
-      setMembershipPlansOpen(false);
-    });
     closeMembershipPlansBtnEl?.addEventListener('click', () => {
       setMembershipPlansOpen(false);
       bookingSideRailCollapsed = false;
       updateBookingSideRail();
       window.setTimeout(() => clubMembershipToggleEl?.focus(), 60);
     });
+    document.addEventListener('click', (evt) => {
+      if (!clubMembershipExpanded) return;
+      if (evt.target.closest('#clubMembershipSection')) return;
+      setMembershipPlansOpen(false);
+    });
     clubChatToastActionEl?.addEventListener('click', () => {
       hideChatToast();
       setClubChatOpen(true);
     });
     dismissClubChatToastBtnEl?.addEventListener('click', () => hideChatToast());
+    dismissClubChatDisclosureBtnEl?.addEventListener('click', () => {
+      setClubChatDisclosureVisible(false);
+    });
+    hideClubChatDisclosureForeverBtnEl?.addEventListener('click', () => {
+      writePersistentFlag(CHAT_DISCLOSURE_HIDE_STORAGE_KEY, true);
+      setClubChatDisclosureVisible(false);
+    });
 
     document.addEventListener('keydown', (evt) => {
       if (evt.key === 'Escape' && communityDialogOpen) {
@@ -5430,6 +5710,7 @@
         if (!res.ok) {
           const msg = await readErrorText(res);
           if (res.status === 401 || res.status === 403) {
+            if (res.status === 401) clearExpiredSessionToken();
             chatLoadError = 'Your current session cannot send member messages. Please sign in with a user account.';
             renderClubChatThread(false);
           }
@@ -5521,6 +5802,7 @@
       evt.preventDefault();
       clubChatFormEl?.requestSubmit?.();
     });
+    initializeClubChatDisclosure();
     resizeClubChatInput();
 
     clubCommunityAskFormEl?.addEventListener('submit', async (evt) => {
@@ -5667,35 +5949,31 @@
     const infoOverlay = document.getElementById('infoOverlay');
     const infoTitle = document.getElementById('infoTitle');
     const infoBody = document.getElementById('infoBody');
-    const infoMap = {
+    const getInfoMap = () => window.ClubPortalInfoContent?.createInfoMap?.() || {
       privacy: {
         title: 'Privacy',
         body: `
-          <p>We store the information needed to run Club Portal features such as sign-in, club setup, bookings, memberships, payments, chat, and community Q&amp;A.</p>
-          <p>Depending on how this project is deployed, data may be stored in your browser and on the backend server. Some features can also use configured third-party services such as Google sign-in or Maps, Stripe payments, and AI-assisted chat.</p>
-          <p>If you need your account or club data corrected or removed, please contact the platform admin.</p>
+          <p>Read the full privacy details for this deployment.</p>
+          <p class="info-link-row"><a href="privacy.html">Read full Privacy Notice</a></p>
         `
       },
       terms: {
         title: 'Terms',
         body: `
-          <p>Bookings are first-come, first-served and subject to club capacity.</p>
-          <p>Members must follow club rules and respect facility policies.</p>
-          <p>Repeated no-shows may result in booking restrictions.</p>
+          <p>Read the full terms for this deployment.</p>
+          <p class="info-link-row"><a href="terms.html">Read full Terms</a></p>
         `
       },
       help: {
         title: 'Help',
         body: `
-          <p>Need assistance? Start by searching for a club and selecting a time slot.</p>
-          <p>If you cannot log in, double-check your email and password.</p>
-          <p>Contact support at support@example.com for further help.</p>
+          <p>Contact the platform administrator or club staff if you need help with this deployment.</p>
         `
       }
     };
 
     const openInfo = (key) => {
-      const data = infoMap[key];
+      const data = getInfoMap()[key];
       if (!data || !infoOverlay) return;
       if (infoTitle) infoTitle.textContent = data.title;
       if (infoBody) infoBody.innerHTML = data.body;

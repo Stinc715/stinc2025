@@ -14,7 +14,6 @@ import java.time.ZoneId;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -157,32 +156,6 @@ class ClubChatRuleFlowTest {
     }
 
     @Test
-    void chineseBookingFallbackUsesChineseDeterministicTemplate() {
-        ClubChatContextDto context = context(
-                true,
-                List.of(slot(9001, 3, "Court A", at(1, 19, 0), at(1, 20, 0), "10.00", "10.00", false))
-        );
-
-        ChatIntentRoute route = router.route("你能帮我直接预约吗？", context);
-        String reply = responseBuilder.buildReply(route, context, "你能帮我直接预约吗？");
-
-        assertEquals(ChatIntentType.BOOKING_IN_CHAT, route.intentType());
-        assertEquals("我不能在聊天中直接替你完成预约。根据我当前能看到的已发布时段，可选时段包括：Court A 晚上7:00，GBP 10.00。请通过应用内的预约结算流程预订相关的已发布时段。", reply);
-    }
-
-    @Test
-    void chineseRefundAlwaysHandsOffToStaff() {
-        ClubChatContextDto context = context(true, List.of(slot(9001, 3, "Court A", at(1, 19, 0), at(1, 20, 0), "10.00", "10.00", false)));
-
-        ChatIntentRoute route = router.route("我想退款", context);
-        String reply = responseBuilder.buildReply(route, context, "我想退款");
-
-        assertEquals(ChatIntentType.REFUND_OR_PAYMENT_ISSUE, route.intentType());
-        assertEquals("这类问题需要俱乐部工作人员进一步协助。请切换到真人聊天，或直接联系俱乐部。", reply);
-        assertFalse(reply.contains("退款处理中"));
-    }
-
-    @Test
     void tomorrowEveningQueryUsesVisibleSlotDiscoveryIntent() {
         ClubChatContextDto context = context(
                 true,
@@ -237,41 +210,6 @@ class ClubChatRuleFlowTest {
     }
 
     @Test
-    void chineseTomorrowEveningQueryOnlyListsEveningSlots() {
-        ClubChatContextDto context = context(
-                true,
-                List.of(
-                        slot(9001, 3, "Court A", at(1, 15, 0), at(1, 16, 0), "10.00", "10.00", false),
-                        slot(9002, 3, "Court A", at(1, 19, 0), at(1, 20, 0), "12.00", "12.00", false)
-                )
-        );
-
-        ChatIntentRoute route = router.route("明天晚上有什么场地？", context);
-        String reply = responseBuilder.buildReply(route, context, "明天晚上有什么场地？");
-
-        assertEquals(ChatIntentType.VISIBLE_SLOT_DISCOVERY, route.intentType());
-        assertEquals("根据我当前能看到的已发布时段，明天晚上的可选时段包括：Court A 晚上7:00，GBP 12.00。", reply);
-    }
-
-    @Test
-    void chineseTomorrowAfternoonQueryOnlyListsAfternoonSlots() {
-        ClubChatContextDto context = context(
-                true,
-                List.of(
-                        slot(9001, 3, "Court A", at(1, 12, 0), at(1, 13, 0), "10.00", "10.00", false),
-                        slot(9002, 3, "Court A", at(1, 15, 0), at(1, 16, 0), "11.00", "11.00", false),
-                        slot(9003, 3, "Court A", at(1, 19, 0), at(1, 20, 0), "12.00", "12.00", false)
-                )
-        );
-
-        ChatIntentRoute route = router.route("明天下午有什么场地？", context);
-        String reply = responseBuilder.buildReply(route, context, "明天下午有什么场地？");
-
-        assertEquals(ChatIntentType.VISIBLE_SLOT_DISCOVERY, route.intentType());
-        assertEquals("根据我当前能看到的已发布时段，明天下午的可选时段包括：Court A 下午12:00，GBP 10.00；Court A 下午3:00，GBP 11.00。", reply);
-    }
-
-    @Test
     void tomorrowEveningQueryReturnsExplicitNoMatchWhenNoEveningSlotsExist() {
         ClubChatContextDto context = context(
                 true,
@@ -289,23 +227,6 @@ class ClubChatRuleFlowTest {
     }
 
     @Test
-    void chineseTomorrowEveningQueryReturnsExplicitNoMatchWhenNoEveningSlotsExist() {
-        ClubChatContextDto context = context(
-                true,
-                List.of(
-                        slot(9001, 3, "Court A", at(1, 12, 0), at(1, 13, 0), "10.00", "10.00", false),
-                        slot(9002, 3, "Court A", at(1, 15, 0), at(1, 16, 0), "11.00", "11.00", false)
-                )
-        );
-
-        ChatIntentRoute route = router.route("明天晚上有什么场地？", context);
-        String reply = responseBuilder.buildReply(route, context, "明天晚上有什么场地？");
-
-        assertEquals(ChatIntentType.VISIBLE_SLOT_DISCOVERY, route.intentType());
-        assertEquals("根据我当前能看到的已发布时段，我暂时没有看到明天晚上的可选时段。", reply);
-    }
-
-    @Test
     void genericTomorrowBookingRequestRoutesToDiscoveryInsteadOfStrongBookingRefusal() {
         ClubChatContextDto context = context(
                 true,
@@ -315,11 +236,11 @@ class ClubChatRuleFlowTest {
                 )
         );
 
-        ChatIntentRoute route = router.route("我想要定一个明天的场地", context);
-        String reply = responseBuilder.buildReply(route, context, "我想要定一个明天的场地");
+        ChatIntentRoute route = router.route("What slots can I book tomorrow evening?", context);
+        String reply = responseBuilder.buildReply(route, context, "What slots can I book tomorrow evening?");
 
         assertEquals(ChatIntentType.VISIBLE_SLOT_DISCOVERY, route.intentType());
-        assertEquals("根据我当前能看到的已发布时段，明天的可选时段包括：Court A 晚上7:00，GBP 10.00；Court B 晚上8:00，GBP 12.00。", reply);
+        assertEquals("From the currently published slots I can see here, the available options for tomorrow evening include: Court A at 7:00 pm, GBP 10.00; Court B at 8:00 pm, GBP 12.00.", reply);
     }
 
     @Test

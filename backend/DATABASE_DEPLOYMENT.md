@@ -15,7 +15,7 @@ Important detail:
 - `DB_PASSWORD`
 - `JWT_SECRET` (recommended)
 - `GOOGLE_OAUTH_CLIENT_ID` (optional; defaults to the value in `application.yml`)
-- `APP_SECURITY_CORS_ALLOWED_ORIGIN_PATTERNS` (optional; defaults to `https://club-portal.xyz,https://www.club-portal.xyz`)
+- `APP_SECURITY_CORS_ALLOWED_ORIGIN_PATTERNS` (optional; defaults to `https://example.invalid,https://www.example.invalid`)
 
 Example (PowerShell):
 

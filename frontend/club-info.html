@@ -406,6 +406,9 @@
     const clubStatusEl = document.getElementById('clubStatus');
     const GOOGLE_MAPS_API_KEY_STORAGE_KEY = 'clubPortal.googleMapsApiKey';
     const DEFAULT_MAP_CENTER = Object.freeze({ lat: 51.5074, lng: -0.1278 });
+    const MAX_CLUB_IMAGE_BYTES = 8 * 1024 * 1024;
+    const MAX_CLUB_IMAGE_REQUEST_BYTES = 50 * 1024 * 1024;
+    const ALLOWED_CLUB_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
     let selectedClubId = null;
     let mapApiLoadPromise = null;
     let mapInstance = null;
@@ -441,6 +444,23 @@
       if (!clubImageStatusEl) return;
       clubImageStatusEl.textContent = text || '';
       clubImageStatusEl.className = `status ${kind}`.trim();
+    };
+
+    const clubImageUploadValidationError = (files) => {
+      const list = Array.isArray(files) ? files : [];
+      const invalidType = list.find((file) => !ALLOWED_CLUB_IMAGE_TYPES.has(String(file?.type || '').toLowerCase()));
+      if (invalidType) {
+        return 'Only JPG, PNG, GIF, and WEBP images are supported.';
+      }
+      const oversizeFile = list.find((file) => (Number(file?.size) || 0) > MAX_CLUB_IMAGE_BYTES);
+      if (oversizeFile) {
+        return 'Each image must be 8MB or smaller.';
+      }
+      const totalBytes = list.reduce((sum, file) => sum + Math.max(0, Number(file?.size) || 0), 0);
+      if (totalBytes > MAX_CLUB_IMAGE_REQUEST_BYTES) {
+        return 'Please keep each image upload under 50MB total.';
+      }
+      return '';
     };
 
     const setClubMapStatus = (text, kind = '') => {
@@ -910,6 +930,11 @@
         setClubImageStatus('Please choose at least one image file.', 'err');
         return;
       }
+      const validationError = clubImageUploadValidationError(files);
+      if (validationError) {
+        setClubImageStatus(validationError, 'err');
+        return;
+      }
 
       if (uploadClubImagesBtn) uploadClubImagesBtn.disabled = true;
       setClubImageStatus('Uploading images...', '');
@@ -924,6 +949,10 @@
         });
 
         if (!res.ok) {
+          if (res.status === 413) {
+            setClubImageStatus('Upload is too large. Keep each image under 8MB and each upload under 50MB total.', 'err');
+            return;
+          }
           const text = await res.text().catch(() => '');
           setClubImageStatus(text || 'Upload failed.', 'err');
           return;

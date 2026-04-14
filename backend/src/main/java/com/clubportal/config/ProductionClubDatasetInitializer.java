@@ -3,8 +3,7 @@ package com.clubportal.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -12,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Profile("!dev")
 @ConditionalOnProperty(name = "app.seed.production-clubs.enabled", havingValue = "true")
-public class ProductionClubDatasetInitializer implements ApplicationRunner {
+public class ProductionClubDatasetInitializer implements SmartInitializingSingleton {
 
     private static final Logger log = LoggerFactory.getLogger(ProductionClubDatasetInitializer.class);
 
@@ -33,7 +32,7 @@ public class ProductionClubDatasetInitializer implements ApplicationRunner {
     }
 
     @Override
-    public void run(ApplicationArguments args) {
+    public void afterSingletonsInstantiated() {
         if (clubDatasetSeeder.isCanonicalSeedPresent()) {
             log.info("PROD_CLUB_SEED skipped because the canonical 20-club dataset is already present.");
             return;

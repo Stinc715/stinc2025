@@ -57,32 +57,16 @@ public class ClubChatKbEmbeddingBackfillService {
         int skippedCount = 0;
         int failedCount = 0;
 
-        log.info("[CLUB_CHAT_DEBUG] KB_EMBED_BACKFILL start: scope={}, clubId={}, totalFound={}, forceRebuild={}, dryRun={}",
-                scope,
-                clubId,
-                entries == null ? 0 : entries.size(),
-                forceRebuild,
-                dryRun);
 
         for (ClubChatKbEntry entry : entries == null ? List.<ClubChatKbEntry>of() : entries) {
             Eligibility eligibility = assessEligibility(entry, forceRebuild);
             if (!eligibility.eligible()) {
                 skippedCount++;
-                log.info("[CLUB_CHAT_DEBUG] KB_EMBED_BACKFILL skip: scope={}, clubId={}, entryId={}, reason={}",
-                        scope,
-                        clubIdForLog(entry, clubId),
-                        entryId(entry),
-                        eligibility.reason());
                 continue;
             }
 
             eligibleCount++;
             if (dryRun) {
-                log.info("[CLUB_CHAT_DEBUG] KB_EMBED_BACKFILL dry-run eligible: scope={}, clubId={}, entryId={}, reason={}",
-                        scope,
-                        clubIdForLog(entry, clubId),
-                        entryId(entry),
-                        eligibility.reason());
                 continue;
             }
 
@@ -92,20 +76,9 @@ public class ClubChatKbEmbeddingBackfillService {
                 clubChatKbService.applyEmbeddingSnapshot(entry, snapshot);
                 clubChatKbEntryRepository.save(entry);
                 rebuiltCount++;
-                log.info("[CLUB_CHAT_DEBUG] KB_EMBED_BACKFILL rebuilt: scope={}, clubId={}, entryId={}, embeddingModel={}, embeddingDim={}",
-                        scope,
-                        clubIdForLog(entry, clubId),
-                        entryId(entry),
-                        safe(entry.getEmbeddingModel()),
-                        entry.getEmbeddingDim());
             } catch (Exception ex) {
                 failedCount++;
                 failureEntryIds.add(entryId(entry));
-                log.warn("[CLUB_CHAT_DEBUG] KB_EMBED_BACKFILL failed: scope={}, clubId={}, entryId={}, reason={}",
-                        scope,
-                        clubIdForLog(entry, clubId),
-                        entryId(entry),
-                        ex.getMessage());
             }
         }
 
@@ -122,17 +95,6 @@ public class ClubChatKbEmbeddingBackfillService {
                 List.copyOf(failureEntryIds)
         );
 
-        log.info("[CLUB_CHAT_DEBUG] KB_EMBED_BACKFILL result: scope={}, clubId={}, totalFound={}, eligibleCount={}, rebuiltCount={}, skippedCount={}, failedCount={}, dryRun={}, forceRebuild={}, failureEntryIds={}",
-                summary.scope(),
-                summary.clubId(),
-                summary.totalFound(),
-                summary.eligibleCount(),
-                summary.rebuiltCount(),
-                summary.skippedCount(),
-                summary.failedCount(),
-                summary.dryRun(),
-                summary.forceRebuild(),
-                summary.failureEntryIds());
         return summary;
     }
 

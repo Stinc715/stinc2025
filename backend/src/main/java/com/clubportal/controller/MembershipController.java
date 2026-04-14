@@ -3,7 +3,6 @@ package com.clubportal.controller;
 import com.clubportal.dto.ClubMembershipMemberResponse;
 import com.clubportal.dto.MembershipPlanResponse;
 import com.clubportal.dto.MembershipPlanUpsertRequest;
-import com.clubportal.dto.MembershipPurchaseResponse;
 import com.clubportal.dto.MyMembershipResponse;
 import com.clubportal.model.Club;
 import com.clubportal.model.CheckoutSession;

@@ -27,11 +27,7 @@ public class ClubChatKbSafetyGuard {
                 "purchase membership for me",
                 "pay for the membership for me",
                 "sign me up for the yearly pass",
-                "buy the pass for me",
-                "帮我买会员",
-                "帮我开会员",
-                "代我购买会员",
-                "直接帮我开通会员")) {
+                "buy the pass for me")) {
             return Optional.of(new Decision("membership purchase in chat request", true, false));
         }
         if (containsAny(normalized,
@@ -40,11 +36,7 @@ public class ClubChatKbSafetyGuard {
                 "special exception",
                 "waive the rule",
                 "override the policy",
-                "bend the rules",
-                "破例",
-                "特殊处理",
-                "通融一下",
-                "例外申请")) {
+                "bend the rules")) {
             return Optional.of(new Decision("exception request", true, true));
         }
         if (containsAny(normalized,
@@ -54,12 +46,7 @@ public class ClubChatKbSafetyGuard {
                 "unsafe",
                 "threat",
                 "bully",
-                "discrimination",
-                "骚扰",
-                "辱骂",
-                "威胁",
-                "歧视",
-                "不安全")) {
+                "discrimination")) {
             return Optional.of(new Decision("harassment or safety escalation", true, true));
         }
         return Optional.empty();

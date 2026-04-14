@@ -66,23 +66,13 @@ public class ClubChatKbMatcherService {
             try {
                 entryVector = embeddingVectorCodec.decode(entry.getQuestionEmbedding());
             } catch (RuntimeException ex) {
-                log.warn("[CLUB_CHAT_DEBUG] KB_EMBED_MATCH invalid_embedding_json: clubId={}, entryId={}, reason={}",
-                        clubId,
-                        entry.getId(),
-                        ex.getMessage());
                 continue;
             }
 
             if (entryVector.isEmpty()) {
-                log.warn("[CLUB_CHAT_DEBUG] KB_EMBED_MATCH empty_embedding: clubId={}, entryId={}", clubId, entry.getId());
                 continue;
             }
             if (entry.getEmbeddingDim() != null && entry.getEmbeddingDim() > 0 && entryVector.size() != entry.getEmbeddingDim()) {
-                log.warn("[CLUB_CHAT_DEBUG] KB_EMBED_MATCH invalid_embedding_dim: clubId={}, entryId={}, storedDim={}, actualDim={}",
-                        clubId,
-                        entry.getId(),
-                        entry.getEmbeddingDim(),
-                        entryVector.size());
                 continue;
             }
             decodedEntries.add(new DecodedEntry(entry, entryVector));
@@ -103,7 +93,6 @@ public class ClubChatKbMatcherService {
         try {
             userVector = embeddingService.generateQuestionEmbedding(normalizedQuestion).vector();
         } catch (EmbeddingGenerationException ex) {
-            log.warn("[CLUB_CHAT_DEBUG] KB_EMBED_MATCH embedding_failed: clubId={}, reason={}", clubId, ex.getMessage());
             ClubChatKbMatchResult result = ClubChatKbMatchResult.miss(
                     ClubChatKbMatchRejectReason.EMBEDDING_FAILED,
                     null,
@@ -119,21 +108,11 @@ public class ClubChatKbMatcherService {
             ClubChatKbEntry entry = decodedEntry.entry();
             List<Double> entryVector = decodedEntry.vector();
             if (entryVector.size() != userVector.size()) {
-                log.warn("[CLUB_CHAT_DEBUG] KB_EMBED_MATCH dimension_mismatch: clubId={}, entryId={}, userDim={}, faqDim={}",
-                        clubId,
-                        entry.getId(),
-                        userVector.size(),
-                        entryVector.size());
                 continue;
             }
 
             double score = cosineSimilarity(userVector, entryVector);
             if (!Double.isFinite(score)) {
-                log.warn("[CLUB_CHAT_DEBUG] KB_EMBED_MATCH invalid_similarity: clubId={}, entryId={}, userDim={}, faqDim={}",
-                        clubId,
-                        entry.getId(),
-                        userVector.size(),
-                        entryVector.size());
                 continue;
             }
             scoredEntries.add(new ScoredEntry(entry, score));
@@ -220,14 +199,6 @@ public class ClubChatKbMatcherService {
                            Double bestScore,
                            Double secondBestScore,
                            ClubChatKbMatchRejectReason rejectReason) {
-        log.info("[CLUB_CHAT_DEBUG] KB_EMBED_MATCH result: clubId={}, faqCount={}, validEmbeddingCount={}, top1EntryId={}, bestScore={}, secondBestScore={}, rejectReason={}",
-                clubId,
-                faqCount,
-                validEmbeddingCount,
-                top1EntryId,
-                scoreText(bestScore),
-                scoreText(secondBestScore),
-                rejectReason == null ? ClubChatKbMatchRejectReason.NONE : rejectReason);
     }
 
     private String scoreText(Double value) {

@@ -47,9 +47,6 @@ public class OpenAiEmbeddingService implements EmbeddingService {
         }
 
         try {
-            log.info("[CLUB_CHAT_DEBUG] KB_EMBED_PROVIDER start: model={}, inputLength={}",
-                    appLlmProperties.getEmbeddingModel(),
-                    input.length());
             Map<String, Object> payload = new LinkedHashMap<>();
             payload.put("model", appLlmProperties.getEmbeddingModel());
             payload.put("input", input);
@@ -89,17 +86,10 @@ public class OpenAiEmbeddingService implements EmbeddingService {
             if (model.isBlank()) {
                 model = appLlmProperties.getEmbeddingModel();
             }
-            log.info("[CLUB_CHAT_DEBUG] KB_EMBED_PROVIDER success: model={}, dimension={}", model, vector.size());
             return new EmbeddingResult(vector, model, vector.size());
         } catch (EmbeddingGenerationException ex) {
-            log.warn("[CLUB_CHAT_DEBUG] KB_EMBED_PROVIDER failed: exceptionType={}, message={}",
-                    ex.getClass().getSimpleName(),
-                    ex.getMessage());
             throw ex;
         } catch (Exception ex) {
-            log.warn("[CLUB_CHAT_DEBUG] KB_EMBED_PROVIDER failed: exceptionType={}, message={}",
-                    ex.getClass().getSimpleName(),
-                    ex.getMessage());
             throw new EmbeddingGenerationException("Failed to generate question embedding", ex);
         }
     }
