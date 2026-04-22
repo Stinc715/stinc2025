@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -514,7 +514,6 @@
         } catch {}
         return Number(id);
       } catch (err) {
-        console.error(err);
         return null;
       }
     };
@@ -668,7 +667,6 @@
         if (groupedView) groupedView.style.display = 'grid';
         renderGroupedView(slotBookings);
       } catch (err) {
-        console.error(err);
         if (emptyEl) {
           emptyEl.style.display = 'block';
           emptyEl.textContent = (err && err.message) ? err.message : 'Failed to load bookings.';
@@ -708,12 +706,9 @@
         renderStats(slotBookings);
         renderGroupedView(slotBookings);
       } catch (err) {
-        console.error(err);
         const message = (err && err.message) ? err.message : 'Failed to update booking status.';
         if (window.AppPrompt && typeof window.AppPrompt.alert === 'function') {
           window.AppPrompt.alert(message, { title: 'Booking update failed', okText: 'OK' });
-        } else {
-          console.warn('[club bookings] AppPrompt.alert unavailable', { message });
         }
       } finally {
         if (buttonEl) {

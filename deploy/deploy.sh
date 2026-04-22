@@ -1,38 +1,38 @@
 #!/bin/bash
 
-# 部署脚本 - Club Portal
-# 使用方法: chmod +x deploy.sh && ./deploy.sh
+# Deployment script for Club Portal
+# Usage: chmod +x deploy.sh && ./deploy.sh
 
-set -e  # 遇到错误立即退出
+set -e  # Exit immediately if any command fails
 
 echo "========================================="
 echo "  Club Portal 部署脚本"
 echo "========================================="
 
-# 配置变量
+# Configuration
 FRONTEND_DIR="/var/www/club-portal"
 BACKEND_DIR="/opt/club-portal-backend"
 BACKEND_JAR="club-portal-backend-1.0-SNAPSHOT.jar"
 NGINX_CONF="/etc/nginx/sites-available/club-portal"
 NGINX_ENABLED="/etc/nginx/sites-enabled/club-portal"
 
-# 1. 更新系统
+# 1. Update system packages
 echo ""
 echo "步骤 1: 更新系统包..."
 sudo apt-get update
 
-# 2. 安装必要软件
+# 2. Install required software
 echo ""
 echo "步骤 2: 安装必要软件..."
 sudo apt-get install -y nginx openjdk-17-jdk
 
-# 3. 创建目录
+# 3. Create deployment directories
 echo ""
 echo "步骤 3: 创建部署目录..."
 sudo mkdir -p $FRONTEND_DIR
 sudo mkdir -p $BACKEND_DIR
 
-# 4. 部署前端
+# 4. Deploy frontend assets
 echo ""
 echo "步骤 4: 部署前端静态文件..."
 if [ -d "dist" ]; then
@@ -49,7 +49,7 @@ sudo chown -R www-data:www-data $FRONTEND_DIR
 sudo chmod -R 755 $FRONTEND_DIR
 echo "前端文件已复制到: $FRONTEND_DIR"
 
-# 5. 部署后端
+# 5. Deploy backend
 echo ""
 echo "步骤 5: 部署后端JAR文件..."
 JAR_SRC=""
@@ -69,7 +69,7 @@ fi
 sudo cp "$JAR_SRC" "$BACKEND_DIR/$BACKEND_JAR"
 echo "后端JAR已复制到: $BACKEND_DIR/$BACKEND_JAR"
 
-# 6. 配置Nginx
+# 6. Configure Nginx
 echo ""
 echo "步骤 6: 配置Nginx..."
 NGINX_SRC=""
@@ -86,23 +86,23 @@ fi
 
 sudo cp "$NGINX_SRC" "$NGINX_CONF"
 
-# 创建软链接
+# Create the site symlink
 if [ ! -L $NGINX_ENABLED ]; then
     sudo ln -s $NGINX_CONF $NGINX_ENABLED
 fi
 
-# 删除默认配置
+# Remove the default site configuration
 sudo rm -f /etc/nginx/sites-enabled/default
 
-# 测试Nginx配置
+# Test the Nginx configuration
 sudo nginx -t
 
-# 重启Nginx
+# Restart Nginx
 sudo systemctl restart nginx
 sudo systemctl enable nginx
 echo "Nginx已配置并重启"
 
-# 7. 创建后端systemd服务
+# 7. Create the backend systemd service
 echo ""
 echo "步骤 7: 配置后端服务..."
 sudo tee /etc/systemd/system/club-portal-backend.service > /dev/null <<EOF
@@ -126,17 +126,17 @@ SyslogIdentifier=club-portal
 WantedBy=multi-user.target
 EOF
 
-# 8. 启动后端服务
+# 8. Start the backend service
 echo ""
 echo "步骤 8: 启动后端服务..."
 sudo systemctl daemon-reload
 sudo systemctl enable club-portal-backend
 sudo systemctl restart club-portal-backend
 
-# 等待服务启动
+# Wait for the service to start
 sleep 5
 
-# 检查服务状态
+# Check the service status
 if sudo systemctl is-active --quiet club-portal-backend; then
     echo "✅ 后端服务启动成功"
 else
@@ -145,14 +145,14 @@ else
     exit 1
 fi
 
-# 9. 配置防火墙
+# 9. Configure the firewall
 echo ""
 echo "步骤 9: 配置防火墙..."
 sudo ufw allow 'Nginx Full'
 sudo ufw allow 22
 sudo ufw --force enable
 
-# 10. 显示部署信息
+# 10. Show deployment details
 echo ""
 echo "========================================="
 echo "  部署完成！"

@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -289,7 +289,6 @@
         sessionDetail = await res.json();
         renderDetail();
       } catch (err) {
-        console.error(err);
         setStatusChip('Unavailable', 'error');
         setStatusBox('Network error while loading checkout state. Try again in a moment.', 'error');
       }
@@ -314,7 +313,6 @@
         sessionDetail = await res.json();
         renderDetail();
       } catch (err) {
-        console.error(err);
         setStatusBox('Network error while confirming virtual payment.', 'error');
       } finally {
         confirmBtn.disabled = false;
@@ -334,7 +332,6 @@
         sessionDetail = await res.json();
         renderDetail();
       } catch (err) {
-        console.error(err);
         setStatusBox('Network error while cancelling checkout.', 'error');
       } finally {
         cancelBtn.disabled = false;

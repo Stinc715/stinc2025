@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -570,7 +570,6 @@
         renderVenueCards(clubId, Array.isArray(venues) ? venues : [], Array.isArray(slots) ? slots : []);
         showState('ready');
       } catch (err) {
-        console.error(err);
         showState('error', 'Failed to load this club. Try opening it again from the directory.');
       }
     };

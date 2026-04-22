@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -824,7 +824,6 @@
         }
         return clubs;
       } catch (err) {
-        console.error(err);
         return null;
       }
     };
@@ -939,7 +938,6 @@
         style.textContent = embeddedRules.join('\n');
         doc.head.appendChild(style);
       } catch (err) {
-        console.warn('Unable to style embedded section:', err);
       }
     };
     const syncFrameHeight = (frame) => {
@@ -1276,7 +1274,6 @@
         const raw = await res.json().catch(() => []);
         renderChatsUnreadBadge(getConversationUnreadTotal(raw));
       } catch (err) {
-        console.warn('Failed to refresh club chat unread badge:', err);
       } finally {
         chatUnreadPollInFlight = false;
       }
@@ -1417,7 +1414,6 @@
       try {
         clubs = await ensureClubProfileReady();
       } catch (err) {
-        console.error('Failed to initialize club workspace:', err);
       } finally {
         syncSelectedClubMeta(clubs);
         activateSection(getInitialSection(), { updateUrl: true });

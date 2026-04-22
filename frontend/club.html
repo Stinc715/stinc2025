@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -2510,9 +2510,9 @@
 <script src="auth-session.js?v=20260331b"></script>
 </head>
 <body class="page-with-footer desktop-consistency desktop-shell--wide desktop-page--club">
-  <!-- 棰勮鐘舵€佹彁绀猴細鏄剧ず杩欐槸涓婃灦鍓嶇殑棰勮鐗堟湰 -->
+  <!-- Public club preview page -->
 
-  <!-- 椤堕儴瀵艰埅鏍忥細鍖呭惈缃戠珯鏍囬銆佽繑鍥為椤甸摼鎺ュ拰鐢ㄦ埛鐧诲綍/娉ㄥ唽鍏ュ彛 -->
+  <!-- Top navigation with the back action and side-rail shortcut -->
   <header>
     <div class="wrap preview-topbar desktop-shell-header">
       <div class="top-back-wrap">
@@ -2559,10 +2559,10 @@
     </div></div>
 
 
-    <!-- 淇变箰閮ㄦ鍐靛崱鐗囷細灞曠ず灏侀潰銆佹弿杩般€佹爣绛惧拰鍏抽敭鎸囨爣 (KPI) -->
+    <!-- Club overview card with hero media, description, and summary chips -->
     
 
-    <!-- 鎺掔▼绠＄悊鍗＄墖锛氬寘鍚惀涓氭椂闂磋缃€佸満鍦扮鐞嗗拰鎺掔▼缃戞牸 -->
+    <!-- Booking schedule area for the next seven days -->
     <section class="club-booking-layout" aria-label="Booking schedule">
       <div class="card booking-stage-card"><div class="pad">
         <div id="weekTabs" class="week-tabs" aria-label="Next 7 days"></div>
@@ -2672,12 +2672,10 @@
         </div>
       </div>
 
-    <!-- 鎴愬憳鍒楄〃鍗＄墖锛氬睍绀轰勘涔愰儴鎴愬憳鍙婄鐞嗘搷浣?-->
-<!-- 椋庨櫓鎿嶄綔鍖猴細鍒犻櫎淇变箰閮ㄦ垨閲嶇疆鏁版嵁 -->
     </div>
   </main>
 
-  <!-- 椤佃剼锛氬寘鍚増鏉冧俊鎭拰杈呭姪閾炬帴 -->
+  <!-- Footer with copyright text and helper links -->
   <footer class="site-footer">
     <div class="site-footer__wrap desktop-shell-wrap">
       <span class="site-footer__text">&copy; <span id="y"></span> Club Booking Portal</span>
@@ -2689,7 +2687,7 @@
     </div>
   </footer>
 
-  <!-- 淇℃伅寮圭獥锛氱敤浜庢樉绀洪殣绉佹斂绛栥€佹湇鍔℃潯娆剧瓑闈欐€佸唴瀹?-->
+  <!-- Info modal for Privacy, Terms, and Help content -->
   <div id="infoOverlay" class="info-overlay" aria-hidden="true">
     <div class="info-card" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
       <button class="info-close" type="button" aria-label="Close">x</button>
@@ -2701,9 +2699,9 @@
   <script type="module" src="ui-prompt.js?v=20260220b"></script>
   <script src="info-content.js?v=20260413b"></script>
   <script>
-    // 1. 鐢ㄦ埛浼氳瘽绠＄悊
-    // 璐熻矗妫€鏌ユ湰鍦板瓨鍌ㄤ腑鐨勭櫥褰曠姸鎬侊紝骞舵牴鎹敤鎴风被鍨嬶紙鏅€氱敤鎴锋垨淇变箰閮ㄧ鐞嗗憳锛夋覆鏌撻《閮ㄥ鑸爮鐨勭敤鎴峰尯鍩熴€?
-    // 濡傛灉宸茬櫥褰曪紝鏄剧ず涓嬫媺鑿滃崟锛涘鏋滄湭鐧诲綍锛屾樉绀虹櫥褰?娉ㄥ唽鎸夐挳銆?
+    // 1. User session management
+    // Read login state from local storage and render the header controls for guests, members, or club managers.
+    // If a session exists, show the profile menu; otherwise keep the login/register entry points.
     // Back always returns to the proper home page (not browser history).
     const CLUB_LIST_RETURN_STATE_KEY = 'clubPortal.publicClubListReturn';
     const normalizePageName = (value, fallback = 'home.html') => {
@@ -2787,7 +2785,7 @@
       document.title = `${label} - Public preview`;
     };
 
-    // 浠?localStorage 濉厖鍩烘湰淇变箰閮ㄦ憳瑕侊紙鍦ㄩ椤电偣鍑烩€滅珛鍗冲姞鍏モ€濇椂璁剧疆锛夈€?
+    // Preload the basic club summary from localStorage when arriving from the home-page Join flow.
     (() => {
       const params = new URLSearchParams(window.location.search);
       const q = params.get('club');
@@ -2812,12 +2810,12 @@
       setPageTitle(name || clubTitleEl?.textContent || '');
     })();
 
-    // 2. 婕旂ず鏁版嵁涓庣姸鎬佺鐞?
-    // 棰勭暀鍚庣鎺ュ彛锛氬綋鎺ュ叆鐪熷疄鏁版嵁鏃讹紝灏?DB_API_BASE 鎸囧悜鍚庣鍦板潃銆?
+    // 2. Display data and state management
+    // Live club, venue, and schedule data is loaded from the backend below.
     
 
-    // ---- 鐪熷疄棰勮鐪嬫澘 (鍩轰簬鏁版嵁搴? ----
-    // 鍏紑棰勮锛氭樉绀轰勘涔愰儴绠＄悊鍛樺彂甯冪殑鐩稿悓鏃堕棿娈碉紙鏈潵7澶╋級銆?
+    // ---- Live booking board backed by backend data ----
+    // The public preview shows the club's published time slots for the next seven days.
     const getAuthToken = () => {
       try {
         return String(
@@ -3238,7 +3236,6 @@
           : [];
         renderHeroCarousel(urls);
       } catch (err) {
-        console.warn('[club] images error', err);
       }
     };
 
@@ -3274,9 +3271,7 @@
       if (!text) return;
       if (window.AppPrompt && typeof window.AppPrompt.toast === 'function') {
         window.AppPrompt.toast(text, { type });
-        return;
       }
-      console.warn('[club] AppPrompt.toast unavailable', { type, text });
     };
 
     const openBookingConfirm = ({ venue, when, priceLabel }) => {
@@ -3292,14 +3287,6 @@
           cancelText: 'Cancel'
         });
       }
-      const text = [
-        `Venue: ${String(venue || 'Venue')}`,
-        `Time: ${String(when || '-')}`,
-        `Price: ${String(priceLabel || '-')}`,
-        '',
-        'Continue booking?'
-      ].join('\n');
-      console.warn('[club] AppPrompt.confirm unavailable', { title: 'Confirm booking?', text });
       return Promise.resolve(false);
     };
 
@@ -3317,14 +3304,6 @@
           cancelText: 'Keep'
         });
       }
-      const text = [
-        `Venue: ${String(venue || 'Venue')}`,
-        `Time: ${String(when || '-')}`,
-        `Price: ${String(priceLabel || '-')}`,
-        '',
-        'Cancel this booking?'
-      ].join('\n');
-      console.warn('[club] AppPrompt.confirm unavailable', { title: 'Cancel booking?', text });
       return Promise.resolve(false);
     };
 
@@ -3339,7 +3318,6 @@
           cancelText: 'Keep'
         });
       }
-      console.warn('[club] AppPrompt.confirm unavailable', { title: heading, message: body });
       return Promise.resolve(false);
     };
 
@@ -3416,7 +3394,6 @@
           if (id !== undefined && id !== null) myBookedTimeslotIds.add(String(id));
         });
       } catch (err) {
-        console.warn('[club] my bookings error', err);
       }
     };
 
@@ -3456,7 +3433,6 @@
         renderScheduleForSelectedDay();
         return true;
       } catch (err) {
-        console.warn('[club] cancel booking error', err);
         showPageToast('Failed to cancel booking. Please try again.', 'error');
         return false;
       }
@@ -3979,7 +3955,6 @@
         expandedCommunityQuestionId = previousExpanded;
         syncCommunityEditingState();
       } catch (err) {
-        console.warn('[club] community questions error', err);
         communityBoard = { canAsk: false, canAnswer: false, canReplyAsClub: false, questionCount: 0, questions: [] };
         resetCommunityEditors();
       }
@@ -4056,11 +4031,9 @@
           renderCommunitySection();
         }
         loadCommunityQuestions({ preserveExpanded: false }).catch((err) => {
-          console.warn('[club] refresh community questions after ask error', err);
         });
         showCommunityToast('Question posted.', 'success');
       } catch (err) {
-        console.warn('[club] ask community question error', err);
         showCommunityToast('Failed to post question.', 'error');
       } finally {
         setCommunityAskState(false);
@@ -4096,7 +4069,6 @@
         await loadCommunityQuestions({ preserveExpanded: true });
         showCommunityToast('Answer posted.', 'success');
       } catch (err) {
-        console.warn('[club] answer community question error', err);
         showCommunityToast('Failed to post answer.', 'error');
       } finally {
         communityAnswerInFlightQuestionId = null;
@@ -4139,7 +4111,6 @@
         showCommunityToast('Question updated.', 'success');
         return true;
       } catch (err) {
-        console.warn('[club] update community question error', err);
         showCommunityToast('Failed to save question.', 'error');
         return false;
       } finally {
@@ -4185,7 +4156,6 @@
         showCommunityToast('Question deleted.', 'success');
         return true;
       } catch (err) {
-        console.warn('[club] delete community question error', err);
         showCommunityToast('Failed to delete question.', 'error');
         return false;
       } finally {
@@ -4225,7 +4195,6 @@
         showCommunityToast('Answer updated.', 'success');
         return true;
       } catch (err) {
-        console.warn('[club] update community answer error', err);
         showCommunityToast('Failed to save answer.', 'error');
         return false;
       } finally {
@@ -4268,7 +4237,6 @@
         showCommunityToast('Answer deleted.', 'success');
         return true;
       } catch (err) {
-        console.warn('[club] delete community answer error', err);
         showCommunityToast('Failed to delete answer.', 'error');
         return false;
       } finally {
@@ -4295,7 +4263,6 @@
         const data = await res.json();
         clubMembershipPlans = Array.isArray(data) ? data : [];
       } catch (err) {
-        console.warn('[club] membership plans error', err);
         clubMembershipPlans = [];
       }
       renderMembershipSection();
@@ -4317,7 +4284,6 @@
           myClubMembership = await res.json();
         }
       } catch (err) {
-        console.warn('[club] my membership error', err);
       }
       renderMembershipSection();
     };
@@ -4354,7 +4320,6 @@
         }
         window.location.href = target;
       } catch (err) {
-        console.warn('[club] checkout error', err);
         showPageToast(failureMessage || 'Unable to start checkout right now.', 'error');
       }
     };
@@ -4720,7 +4685,7 @@
       initWeek();
       scheduleEl.innerHTML = '<div class="muted" style="padding:12px">Loading...</div>';
 
-      // 鏄剧ず淇变箰閮ㄨ鎯?
+      // Load and display club details.
       try {
         const res = await authFetch(`/api/clubs/${encodeURIComponent(clubId)}`);
         if (res.ok) {
@@ -4748,7 +4713,6 @@
           setPageTitle(club?.name || clubTitleEl?.textContent || '');
         }
       } catch (err) {
-        console.warn('[club] club details error', err);
       }
 
       await syncAuthenticatedProfile().catch(() => null);
@@ -4761,7 +4725,7 @@
 
       await loadClubImages(clubId);
 
-      // 鏄剧ず鍦哄湴
+      // Load and display venues.
       try {
         const res = await authFetch(`/api/clubs/${encodeURIComponent(clubId)}/venues`);
         if (res.ok) {
@@ -4770,10 +4734,9 @@
           venues.sort((a, b) => String(a?.name || '').localeCompare(String(b?.name || '')));
         }
       } catch (err) {
-        console.warn('[club] venues error', err);
       }
 
-      // 鏄剧ず鏈潵7澶╃殑鏃堕棿娈?
+      // Load time slots for the next seven days.
       try {
         const res = await authFetch(`/api/clubs/${encodeURIComponent(clubId)}/timeslots?from=${encodeURIComponent(weekFrom)}&to=${encodeURIComponent(weekTo)}`);
         if (res.ok) {
@@ -4784,14 +4747,13 @@
           throw new Error(text || `Failed to load time slots (${res.status})`);
         }
       } catch (err) {
-        console.warn('[club] timeslots error', err);
         scheduleEl.innerHTML = '<div class="muted" style="padding:12px">Failed to load time slots.</div>';
         return;
       }
 
       await refreshMyBookedTimeslotIds();
 
-      // 鑻ユ湭杩斿洖鍦哄湴鏁版嵁锛屽垯浣跨敤鏃堕棿娈典腑鐨勫満鍦板悕绉般€?
+      // If the venue list is empty, derive venue names from the returned time-slot data.
       if (!venues.length && weekSlots.length) {
         const map = new Map();
         weekSlots.forEach((s) => {
@@ -4804,7 +4766,7 @@
 
       updateVenueChips();
 
-      // 浼樺厛鏄剧ず鏈夋椂闂存鐨勬棩鏈熴€?
+      // Prefer the first day that actually has published slots.
       const daysWithSlots = new Set(weekSlots.map(s => parseDateISO(s?.startTime)).filter(Boolean));
       const firstDay = weekDays.find(d => daysWithSlots.has(d.iso))?.iso || weekFrom;
       if (firstDay) selectedDayISO = firstDay;
@@ -5212,7 +5174,6 @@
         showPageToast('The club has been notified to continue this conversation with a human staff member.', 'ok');
         return true;
       } catch (err) {
-        console.warn('[club] handoff request error', err);
         showPageToast('Failed to request human support. Please try again.', 'error');
         return false;
       }
@@ -5369,7 +5330,6 @@
         chatUnreadCount = 0;
         renderClubChatThread();
       } catch (err) {
-        console.warn('[club] chat read error', err);
       }
     };
 
@@ -5420,7 +5380,6 @@
         }
         await maybePromptHumanSupportFromReply();
       } catch (err) {
-        console.warn('[club] chat load error', err);
         chatLoadError = 'Failed to load messages. Please try again.';
       } finally {
         chatLoading = false;
@@ -5651,7 +5610,6 @@
       scheduleChatPolling();
       runUserChatSync({ scrollBottom: chatWidgetOpen, markRead: chatWidgetOpen });
       loadCommunityQuestions({ preserveExpanded: true }).catch((err) => {
-        console.warn('[club] community refresh on focus error', err);
       });
     });
 
@@ -5773,11 +5731,9 @@
         renderClubChatThread(true);
         window.setTimeout(() => {
           fetchUserChatThread({ scrollBottom: true, markRead: false }).catch((err) => {
-            console.warn('[club] post-send refresh error', err);
           });
         }, 0);
       } catch (err) {
-        console.warn('[club] chat send error', err);
         pendingUserChatMessage = null;
         setClubChatSendingState(false);
         lastChatSubmitFingerprint = '';
@@ -5843,7 +5799,6 @@
         const questionId = Number(questionDelete.getAttribute('data-community-question-delete'));
         if (!Number.isFinite(questionId)) return;
         deleteCommunityQuestion(questionId).catch((err) => {
-          console.warn('[club] delete community question click error', err);
         });
         return;
       }
@@ -5869,7 +5824,6 @@
         const answerId = Number(answerDelete.getAttribute('data-community-answer-id'));
         if (!Number.isFinite(questionId) || !Number.isFinite(answerId)) return;
         deleteCommunityAnswer(questionId, answerId).catch((err) => {
-          console.warn('[club] delete community answer click error', err);
         });
         return;
       }
@@ -5933,7 +5887,6 @@
           startChatPolling();
         }
         loadCommunityQuestions({ preserveExpanded: true }).catch((err) => {
-          console.warn('[club] community refresh on storage error', err);
         });
       }
     });
@@ -5944,8 +5897,8 @@
     }, 1200);
     renderClubChatThread();
 
-    // 7. 淇℃伅寮圭獥閫昏緫 (Privacy, Terms, Help)
-    // 澶勭悊椤佃剼閾炬帴鐐瑰嚮浜嬩欢锛屾樉绀哄搴旂殑淇℃伅寮圭獥
+    // 7. Info modal logic (Privacy, Terms, Help)
+    // Handle footer link clicks and open the matching info modal.
     const infoOverlay = document.getElementById('infoOverlay');
     const infoTitle = document.getElementById('infoTitle');
     const infoBody = document.getElementById('infoBody');

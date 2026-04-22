@@ -12,11 +12,6 @@ spring:
       ddl-auto: update
     database-platform: org.hibernate.dialect.H2Dialect
     open-in-view: false
-  h2:
-    console:
-      enabled: true
-  security:
-    debug: true
 
 app:
   public:
@@ -24,11 +19,6 @@ app:
   security:
     cors:
       allowed-origin-patterns: ${APP_SECURITY_CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:*,http://127.0.0.1:*}
-
-logging:
-  level:
-    org.springframework.security: DEBUG
-    org.springframework.security.web.FilterChainProxy: DEBUG
 
 jwt:
   secret: ${JWT_SECRET:dev-local-jwt-secret-12345678901234567890}

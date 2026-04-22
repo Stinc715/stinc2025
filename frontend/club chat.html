@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -989,7 +989,6 @@
       const list = Array.isArray(raw) ? raw.map(normalizeClubMeta).filter(Boolean) : [];
       myClubs = list;
     } catch (err) {
-      console.warn('[club chat] load my clubs error', err);
       myClubs = [];
     }
   };
@@ -1060,9 +1059,7 @@
     if (!text) return;
     if (window.AppPrompt && typeof window.AppPrompt.alert === 'function') {
       window.AppPrompt.alert(text, { title, okText: 'OK' });
-      return;
     }
-    console.warn('[club chat] AppPrompt.alert unavailable', { title, text });
   };
 
   const openClubQaDeleteConfirm = ({ title, message, okText = 'Delete' }) => {
@@ -1076,7 +1073,6 @@
         cancelText: 'Keep'
       });
     }
-    console.warn('[club chat] AppPrompt.confirm unavailable', { title: heading, message: body });
     return Promise.resolve(false);
   };
 
@@ -1491,7 +1487,6 @@
       activeClubQaQuestionId = previousSelection;
       syncClubQaEditingState();
     } catch (err) {
-      console.warn('[club chat] community board error', err);
       clubQaBoard = { canAsk: false, canAnswer: false, canReplyAsClub: false, questionCount: 0, questions: [] };
       resetClubQaEditingState();
       if (!quiet) {
@@ -1531,7 +1526,6 @@
       await loadClubQaBoard({ preserveSelection: true, quiet: true });
       return true;
     } catch (err) {
-      console.warn('[club chat] post community answer error', err);
       showModalAlert('Failed to post community answer.', 'Community Q&A');
       return false;
     } finally {
@@ -1571,7 +1565,6 @@
       await loadClubQaBoard({ preserveSelection: true, quiet: true });
       return true;
     } catch (err) {
-      console.warn('[club chat] update community question error', err);
       showModalAlert('Failed to save community question.', 'Community Q&A');
       return false;
     } finally {
@@ -1610,7 +1603,6 @@
       await loadClubQaBoard({ preserveSelection: true, quiet: true });
       return true;
     } catch (err) {
-      console.warn('[club chat] delete community question error', err);
       showModalAlert('Failed to delete community question.', 'Community Q&A');
       return false;
     } finally {
@@ -1646,7 +1638,6 @@
       await loadClubQaBoard({ preserveSelection: true, quiet: true });
       return true;
     } catch (err) {
-      console.warn('[club chat] update community answer error', err);
       showModalAlert('Failed to save community answer.', 'Community Q&A');
       return false;
     } finally {
@@ -1685,7 +1676,6 @@
       await loadClubQaBoard({ preserveSelection: true, quiet: true });
       return true;
     } catch (err) {
-      console.warn('[club chat] delete community answer error', err);
       showModalAlert('Failed to delete community answer.', 'Community Q&A');
       return false;
     } finally {
@@ -1942,7 +1932,6 @@
       applyActiveThreadReadState();
       return true;
     } catch (err) {
-      console.warn('[club chat] mark read error', err);
       return false;
     }
   };
@@ -1986,7 +1975,6 @@
             hasTriedClubFallback = false;
             break;
           } catch (err) {
-            console.warn('[club chat] fallback conversations error', err);
           }
         }
       }
@@ -2004,7 +1992,6 @@
 
       renderThreadList();
     } catch (err) {
-      console.warn('[club chat] load conversations error', err);
       if (!quiet) {
         conversations = [];
         setActiveUserThread(null);
@@ -2073,7 +2060,6 @@
         pendingExplicitReadUserId = null;
       }
     } catch (err) {
-      console.warn('[club chat] load messages error', err);
       if (!quiet) {
         activeThread = {
           userId: activeUserId,
@@ -2178,7 +2164,6 @@
     runClubChatPoll();
     if (clubQaExpanded) {
       loadClubQaBoard({ preserveSelection: true, quiet: true }).catch((err) => {
-        console.warn('[club chat] focus community refresh error', err);
       });
     }
   });
@@ -2248,7 +2233,6 @@
       const questionId = Number(questionDelete.getAttribute('data-club-qa-question-delete'));
       if (!Number.isFinite(questionId)) return;
       deleteClubQaQuestion(questionId).catch((err) => {
-        console.warn('[club chat] delete question click error', err);
       });
       return;
     }
@@ -2272,7 +2256,6 @@
       const answerId = Number(answerDelete.getAttribute('data-club-qa-answer-id'));
       if (!Number.isFinite(questionId) || !Number.isFinite(answerId)) return;
       deleteClubQaAnswer(questionId, answerId).catch((err) => {
-        console.warn('[club chat] delete answer click error', err);
       });
     }
   });
@@ -2376,15 +2359,12 @@
       resizeReplyInput();
       window.setTimeout(() => {
         loadActiveThread({ markRead: false, scrollBottom: true, quiet: false }).catch((err) => {
-          console.warn('[club chat] background thread refresh error', err);
         });
         loadConversations({ keepActive: true, quiet: false }).catch((err) => {
-          console.warn('[club chat] background conversation refresh error', err);
         });
       }, 0);
       replyInputEl?.focus();
     } catch (err) {
-      console.warn('[club chat] send reply error', err);
       pendingClubReply = null;
       setReplySendingState(false);
       if (replyInputEl) {

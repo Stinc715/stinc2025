@@ -98,6 +98,11 @@ const excludedContent = [
 
 const verificationCommandSummary = [
   {
+    id: 'check_prompts',
+    label: 'prompt policy',
+    command: 'npm run check:prompts',
+  },
+  {
     id: 'build',
     label: 'build',
     command: 'npm run build',

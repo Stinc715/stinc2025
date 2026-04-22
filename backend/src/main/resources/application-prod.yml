@@ -12,8 +12,3 @@ spring:
       ddl-auto: validate
     database-platform: org.hibernate.dialect.MySQLDialect
     open-in-view: false
-  h2:
-    console:
-      enabled: false
-  security:
-    debug: false

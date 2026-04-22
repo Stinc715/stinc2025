@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -986,7 +986,6 @@
             });
         }
       } catch (err) {
-        console.warn('load existing recurring slots failed', err);
       }
 
       let created = 0;
@@ -1024,7 +1023,6 @@
           } else {
             skipped++;
             const body = await apiJson(resCreate);
-            console.warn('recurring slot create failed', body);
           }
         }
 

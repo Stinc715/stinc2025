@@ -162,7 +162,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       return key;
     } catch (err) {
-      console.warn('[onboarding-location] public config load failed', err);
       return '';
     }
   };
@@ -368,7 +367,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       setMapStatus('', '');
     } catch (err) {
-      console.error(err);
       setMapStatus('Failed to initialize Google Maps picker.', 'err');
     }
   };

@@ -438,7 +438,6 @@
       saveProfileToStorage(next);
       buildGrid();
     } catch (e) {
-      console.error(e);
     } finally {
       if (statusEl) statusEl.textContent = '';
     }
@@ -697,7 +696,6 @@
       window.location.href = 'onboarding-location.html';
     } catch (e){
       if (statusEl) statusEl.textContent = e?.message || 'Failed to save. Please try again.';
-      console.error(e);
     } finally {
       updateSaveState();
     }

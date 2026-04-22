@@ -56,7 +56,6 @@ public class GoogleAuthController {
             }
             String credential = req.getCredential().trim();
             int segments = credential.split("\\.").length;
-            log.info("Google credential received: len={}, segments={}", credential.length(), segments);
             if (segments != 3) {
                 return ResponseEntity.status(401).body("Invalid Google credential format");
             }

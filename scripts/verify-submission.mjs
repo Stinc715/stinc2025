@@ -37,6 +37,12 @@ const forbiddenPaths = [
 
 const verificationCommands = [
   {
+    id: 'check_prompts',
+    label: 'prompt policy',
+    displayCommand: 'npm run check:prompts',
+    args: ['run', 'check:prompts'],
+  },
+  {
     id: 'npm_ci',
     label: 'npm ci',
     displayCommand: 'npm ci',
@@ -174,6 +180,7 @@ function writeReports(report) {
     '- `npm run test:acceptance` reruns the frontend/backend/build chain inside the submission tree by design.',
     '- A PASS result assumes first-run network access was available for Playwright Chromium and the Maven distribution used by the Maven Wrapper, or that those caches already existed.',
     '- After those first-run downloads complete, later runs can reuse the local Playwright and Maven caches.',
+    '- `npm run check:prompts` enforces the repository rule that pages must use the shared prompt layer instead of native browser prompts.',
     '- The `auth-session.js` classic-script build warning remains a known non-blocking warning during build and visual verification.',
     '',
   ].join('\n');

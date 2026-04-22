@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -540,7 +540,6 @@
         }
         return key;
       } catch (err) {
-        console.warn('[club-info] public config load failed', err);
         return '';
       }
     };
@@ -757,7 +756,6 @@
         }
         setClubMapStatus('', '');
       } catch (err) {
-        console.error(err);
         setClubMapStatus('Failed to initialize Google Maps picker.', 'err');
       }
     };
@@ -895,7 +893,6 @@
         renderClubImageList(data);
         setClubImageStatus('', '');
       } catch (err) {
-        console.error(err);
         setClubImageStatus('Failed to load images.', 'err');
       }
     };
@@ -915,7 +912,6 @@
         await loadClubImages();
         setClubImageStatus('Main image updated. It will be shown on the Home page.', 'ok');
       } catch (err) {
-        console.error(err);
         setClubImageStatus('Failed to set main image.', 'err');
       }
     };
@@ -963,7 +959,6 @@
         await loadClubImages();
         setClubImageStatus('Images uploaded.', 'ok');
       } catch (err) {
-        console.error(err);
         setClubImageStatus('Upload failed.', 'err');
       } finally {
         if (uploadClubImagesBtn) uploadClubImagesBtn.disabled = false;
@@ -985,7 +980,6 @@
         await loadClubImages();
         setClubImageStatus('Image deleted.', 'ok');
       } catch (err) {
-        console.error(err);
         setClubImageStatus('Delete failed.', 'err');
       }
     };
@@ -1200,7 +1194,6 @@
         await loadClubImages();
         setClubStatus(isEdit ? 'Club profile saved.' : 'Club created.', 'ok');
       } catch (err) {
-        console.error(err);
         setClubStatus(isEdit ? 'Save failed.' : 'Create failed.', 'err');
       } finally {
         if (saveClubBtn) saveClubBtn.disabled = false;

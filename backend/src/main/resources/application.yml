@@ -34,7 +34,7 @@ jwt:
 
 app:
   mail:
-    from: ${APP_MAIL_FROM:${MAIL_FROM:}}
+    from: ${APP_MAIL_FROM:${MAIL_FROM:no-reply@example.test}}
   public:
     base-url: ${APP_PUBLIC_BASE_URL:}
     google-maps-api-key: ${GOOGLE_MAPS_JS_API_KEY:}
@@ -42,8 +42,6 @@ app:
     data-controller-name: ${APP_PUBLIC_DATA_CONTROLLER_NAME:Club Booking Portal}
     retention-summary: ${APP_PUBLIC_RETENTION_SUMMARY:Chat, booking, membership, and payment records are currently retained until manually deleted or a formal retention schedule is applied.}
     processors-summary: ${APP_PUBLIC_PROCESSORS_SUMMARY:Google sign-in, Google Maps, Stripe, and AI chat providers may be used depending on deployment configuration.}
-  email:
-    from: ${APP_MAIL_FROM:${MAIL_FROM:no-reply@example.test}}
   auth:
     password:
       min-length: ${APP_AUTH_PASSWORD_MIN_LENGTH:8}

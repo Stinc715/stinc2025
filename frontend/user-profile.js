@@ -125,7 +125,6 @@
           localStorage.setItem(getAvatarStorageKey(), JSON.stringify(normalized));
           localStorage.removeItem(AVATAR_STORAGE_KEY_LEGACY);
         } catch (err) {
-          console.error(err);
         }
         try {
           const profile = safeParse('profile') || {};
@@ -133,7 +132,6 @@
           profile.avatar = normalized;
           localStorage.setItem('profile', JSON.stringify(profile));
         } catch (err) {
-          console.error(err);
         }
         if (emit) {
           window.dispatchEvent(new CustomEvent('profile-avatar-updated', { detail: { avatarUrl: normalized } }));
@@ -219,7 +217,6 @@
         if (window.AppPrompt && typeof window.AppPrompt.alert === 'function') {
           return window.AppPrompt.alert(text, { title, okText: 'OK' });
         }
-        console.warn('[user-profile] AppPrompt.alert unavailable', { title, text });
         return Promise.resolve();
       };
 
@@ -227,7 +224,6 @@
         if (window.AppPrompt && typeof window.AppPrompt.confirm === 'function') {
           return window.AppPrompt.confirm({ title, message, details, okText, cancelText });
         }
-        console.warn('[user-profile] AppPrompt.confirm unavailable', { title, message, details });
         return Promise.resolve(false);
       };
 
@@ -260,7 +256,6 @@
           }
           localStorage.setItem('token', normalized);
         } catch (err) {
-          console.error(err);
         }
       };
 
@@ -314,7 +309,6 @@
           localStorage.setItem('loggedUser', JSON.stringify(loggedUser));
           localStorage.setItem('user', JSON.stringify(userObj));
         } catch (err) {
-          console.error(err);
         }
 
         if (avatarUrl) {
@@ -592,7 +586,6 @@
           const items = await profileApi.getMyBookings();
           renderBookings(items);
         } catch (err) {
-          console.error(err);
           bookingListEl.innerHTML = '<div class="muted">Unable to load bookings right now.</div>';
           if (bookingErrorEl) {
             bookingErrorEl.textContent = (err && err.message) ? err.message : 'Failed to load bookings.';
@@ -693,7 +686,6 @@
           const items = await profileApi.getMyMemberships();
           renderMemberships(items);
         } catch (err) {
-          console.error(err);
           membershipListEl.innerHTML = '<div class="booking-empty">Unable to load memberships right now.</div>';
           if (membershipErrorEl) {
             membershipErrorEl.textContent = (err && err.message) ? err.message : 'Failed to load memberships.';
@@ -933,7 +925,6 @@
             setEmailVerifyMessage('', '');
           }, 280);
         } catch (err) {
-          console.error(err);
           setEmailVerifyMessage((err && err.message) ? err.message : 'Verification failed. Please check the code and try again.', 'error');
           clearEmailCodeEntry(true);
         } finally {
@@ -985,7 +976,6 @@
           profile = await profileApi.getProfile();
           if (profile) syncLocalProfileState(profile);
         } catch (err) {
-          console.error(err);
         }
         const localProfile = safeParse('profile');
         const loggedUser = safeParse('loggedUser');
@@ -1090,7 +1080,6 @@
           downloadJsonFile(payload, buildExportFilename());
           setDataRightsStatus('Your account export has been downloaded as a JSON file.', 'success');
         } catch (err) {
-          console.error(err);
           setDataRightsStatus((err && err.message) ? err.message : 'Failed to export your data.', 'error');
         } finally {
           exportInFlight = false;
@@ -1127,7 +1116,6 @@
               : 'A deletion request is already pending for this account.');
           setDataRightsStatus(message, created ? 'success' : 'info');
         } catch (err) {
-          console.error(err);
           setDataRightsStatus((err && err.message) ? err.message : 'Failed to submit deletion request.', 'error');
         } finally {
           deletionRequestInFlight = false;
@@ -1155,7 +1143,6 @@
           persistSessionToken(payload?.token);
           setRotateSessionStatus('Other sessions have been signed out. This device stays signed in.', 'success');
         } catch (err) {
-          console.error(err);
           setRotateSessionStatus((err && err.message) ? err.message : 'Failed to rotate session.', 'error');
         } finally {
           rotateSessionInFlight = false;
@@ -1183,7 +1170,6 @@
           const updated = await profileApi.updateName(newName);
           syncLocalProfileState(updated);
         } catch (err) {
-          console.error(err);
           await showUserAlert((err && err.message) ? err.message : 'Failed to update name.', 'Name update failed');
           return;
         }
@@ -1251,7 +1237,6 @@
             sendEmailCodeBtn.textContent = `Resend in ${codeRemaining}s`;
           }, 1000);
         } catch (err) {
-          console.error(err);
           sendEmailCodeBtn.disabled = false;
           sendEmailCodeBtn.textContent = 'Send code';
           setEmailVerifyMessage((err && err.message) ? err.message : 'Failed to send verification code.', 'error');
@@ -1351,7 +1336,6 @@
             applyAvatarPreview(serverAvatar);
           }
         } catch (err) {
-          console.error(err);
           if (previousAvatar) {
             applyAvatarPreview(previousAvatar);
           } else {
@@ -1412,7 +1396,6 @@
             resetSecurity();
           }, 900);
         } catch (err) {
-          console.error(err);
           const message = (err && err.message) ? err.message : 'Failed to update password.';
           if (/current password/i.test(message)) {
             currentPassErr.textContent = message;

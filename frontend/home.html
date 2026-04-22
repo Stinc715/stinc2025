@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -734,7 +734,7 @@
   <script src="auth-session.js?v=20260331b"></script>
 </head>
 <body class="page-with-footer desktop-consistency desktop-shell--standard desktop-page--home">
-  <!-- 顶部导航栏：包含网站标题和用户登�?注册入口 -->
+  <!-- Top navigation with the site title and login/register entry points -->
   <header id="top">
     <div class="wrap desktop-shell-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
       <h1 class="site-title" style="display:flex;align-items:center;">
@@ -748,7 +748,7 @@
   </header>
 
   <main class="wrap page-main desktop-shell-main">
-    <!-- 搜索与筛选区域：包含搜索框、清除按钮和筛选折叠面�?-->
+    <!-- Search and filter area with the search box, clear button, and collapsible filters -->
     <section id="p1" class="page">
       <div class="card search-card"><div class="pad">
         <div class="search-row">
@@ -770,13 +770,13 @@
         </div>
       </div></div>
 
-      <!-- 俱乐部卡片列表容器：动态渲染搜索结�?-->
+      <!-- Club card container populated from the current search and filter results -->
       <div id="cards" class="cards"></div>
       <div id="loading" class="empty" style="display:none">Loading clubs...</div>
       <div id="empty" class="empty" style="display:none">No clubs found.</div>
     </section>
   </main>
-  <!-- 页脚：包含版权信息和辅助链接（隐私、条款、帮助） -->
+  <!-- Footer with copyright text and helper links -->
   <footer class="site-footer">
     <div class="site-footer__wrap desktop-shell-wrap">
       <span class="site-footer__text">&copy; 2026 Club Booking Portal</span>
@@ -788,7 +788,7 @@
     </div>
   </footer>
 
-  <!-- 信息弹窗：用于显示隐私政策、服务条款等静态内�?-->
+  <!-- Info modal used for Privacy, Terms, and Help content -->
   <div id="infoOverlay" class="info-overlay" aria-hidden="true">
     <div class="info-card" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
       <button class="info-close" type="button" aria-label="Close">×</button>
@@ -800,9 +800,9 @@
   <script src="info-content.js?v=20260413b"></script>
   <script>
 document.addEventListener('DOMContentLoaded', () => {
-  // 1. 布局计算：头部高�?
-  // 计算 header 的实际高度，并设�?CSS 变量 --header-height
-  // 这确保了 sticky 定位的搜索栏能够正确地吸附在 header 下方，不会被遮挡
+  // 1. Layout measurements
+  // Compute the actual header height and store it in the --header-height CSS variable.
+  // This keeps the sticky search card aligned directly beneath the header.
   const rootEl = document.documentElement;
   const headerEl = document.querySelector('header');
   const topLink = document.querySelector('.site-title-link');
@@ -816,8 +816,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  // 2. 用户会话管理
-  // �?localStorage 读取用户信息，判断当前是未登录、普通用户还是俱乐部管理�?
+  // 2. User session management
+  // Read the saved user from localStorage to determine guest, member, or club manager state.
   const userArea = document.getElementById('userArea');
   let savedUser = null;
   try {
@@ -924,12 +924,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await authFetch('/api/profile');
       if (res.ok) return await res.json();
     } catch (err) {
-      console.error(err);
     }
     return null;
   };
 
-  // 如果用户已登录，渲染包含“我�?俱乐部”按钮和下拉菜单的用户区�?
+  // If a session exists, render the avatar button and dropdown menu in the header.
   if (savedUser && userArea) {
     const isClub = savedUser.type === 'club';
     const targetHref = isClub ? LOCKED_LOGIN_TARGET.club : 'user.html';
@@ -987,7 +986,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setHeaderAvatar(readStoredAvatar(), fallback);
     });
 
-    // 绑定下拉菜单中的按钮事件
+    // Bind the dropdown menu actions.
     document.getElementById('btnDetails')?.addEventListener('click', () => { window.location.href = targetHref; });
     document.getElementById('btnLogout')?.addEventListener('click', () => {
       if (window.AuthSession?.logout) {
@@ -1000,7 +999,7 @@ document.addEventListener('DOMContentLoaded', () => {
       location.reload();
     });
 
-    // 控制下拉菜单的显示与隐藏（支持点击和鼠标悬停�?
+    // Control dropdown open/close behavior for click and hover interactions.
     const toggleMenu = (open) => {
       const wantOpen = open ?? !menuEl.classList.contains('open');
       menuEl.classList.toggle('open', wantOpen);
@@ -1033,7 +1032,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }));
   } else {
     const openAuth = (mode) => {
-      // 等待 auth-modal.js 加载完成
+      // Wait for auth-modal.js to finish loading.
       if (window.openAuthModal && typeof window.openAuthModal === 'function') {
         window.openAuthModal(mode);
       } else {
@@ -1044,12 +1043,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnRegister')?.addEventListener('click', () => openAuth('register'));
   }
 
-  // 3. 数据源定�?
-  // 首页俱乐部列表只从后端 /api/clubs 读取，不再在前端写死兜底数据。
-  const LOCAL_CLUBS = [];
+  // 3. Club data source
+  // The home page loads clubs only from /api/clubs.
   let CLUBS = [];
 
-  // 4. ҳ���߼�����Ⱦ
+  // 4. Page logic and rendering
   const cardsEl = document.getElementById('cards');
   const loadingEl = document.getElementById('loading');
   const emptyEl = document.getElementById('empty');
@@ -1064,7 +1062,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const infoTitle = document.getElementById('infoTitle');
   const infoBody = document.getElementById('infoBody');
   
-  // 静态信息内容映射（隐私、条款、帮助）
+  // Static content map for Privacy, Terms, and Help.
   const getInfoMap = () => window.ClubPortalInfoContent?.createInfoMap?.() || {
     privacy: {
       title: 'Privacy',
@@ -1089,7 +1087,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
 
-  // 统一 clubId 为字符串，避�?number/string 混用导致点击无响应或 join 页面识别失败
+  // Normalize club IDs to strings to avoid number/string mismatches across page flows.
   const normalizeClubId = (value) => {
     if (value === undefined || value === null) return '';
     return String(value);
@@ -1247,8 +1245,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // ������������¼δ��¼�û��ļ�����ͼ
-  // ���û�δ��¼��� Join ʱ����¼Ŀ����ֲ� ID���Ա��¼���Զ��ض���
+  // Store the selected club for guests so the login flow can return to the right club.
   const storeJoinIntent = (clubId) => {
     const key = normalizeClubId(clubId);
     if (!key) return;
@@ -1288,8 +1285,7 @@ document.addEventListener('DOMContentLoaded', () => {
       : 'login.html#login';
   };
 
-  // ȫ���¼���������� ��Join Now�� ���
-  // ������ֲ�����Ԥ��ҳ��ʵ��Ԥ��ʱ��У���¼״̬
+  // Global join handler for Join Now buttons, including login gating for guests.
   window.handleJoinClick = function(clubId, event) {
     event?.preventDefault?.();
     event?.stopPropagation?.();
@@ -1303,7 +1299,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return false;
   };
 
-  // 模板函数：生成单个俱乐部卡片�?HTML 结构
+  // Build the HTML for a single club card.
   const clubCard = (club, idx = 0) => {
     const tags = Array.isArray(club.tags) && club.tags.length ? club.tags : ['sport'];
     const chipHtml = tags.map((tag) => (
@@ -1326,7 +1322,7 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>`;
   };
 
-  // 导航函数：跳转到俱乐部公开预览�?(club.html)
+  // Navigate to the public club preview page (club.html).
   const goToJoinPage = (clubIdOrClub) => {
     const clubObj = (typeof clubIdOrClub === 'object' && clubIdOrClub) ? clubIdOrClub : null;
     const clubId = normalizeClubId(clubObj?.id ?? clubIdOrClub);
@@ -1340,13 +1336,13 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       localStorage.setItem('selectedClub', JSON.stringify(club));
     } catch {
-      // 忽略存储配额问题
+      // Ignore storage quota issues.
     }
     rememberClubListReturnState(clubId);
     window.location.href = `club.html?club=${encodeURIComponent(clubId)}`;
   };
 
-  // ��Ⱦ�����������ֲ��б���Ⱦ��ҳ�沢�����״̬
+  // Render the club list and handle the empty state.
   const render = (list) => {
     if (!list.length) {
       cardsEl.innerHTML = '';
@@ -1361,7 +1357,7 @@ document.addEventListener('DOMContentLoaded', () => {
     restoreClubListReturnState();
   };
 
-  // 弹窗控制：打开信息弹窗
+  // Modal controls: open the info modal.
   const openInfo = (key) => {
     if (!infoOverlay) return;
     const data = getInfoMap()[key];
@@ -1372,7 +1368,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.classList.add('no-scroll');
   };
 
-  // 弹窗控制：关闭信息弹�?
+  // Modal controls: close the info modal.
   const closeInfo = () => {
     if (!infoOverlay) return;
     infoOverlay.classList.remove('open');
@@ -1385,18 +1381,18 @@ document.addEventListener('DOMContentLoaded', () => {
   infoOverlay?.addEventListener('click', (evt) => { if (evt.target === infoOverlay) closeInfo(); });
   infoOverlay?.querySelector('.info-close')?.addEventListener('click', closeInfo);
 
-  // 筛选面板控制：切换筛选面板的显示/隐藏
+  // Filter panel controls: toggle the filter surface.
   filterToggle?.addEventListener('click', () => {
     if (!filterSurface) return;
     const open = filterSurface.classList.toggle('open');
     filterToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
   });
 
-  // 5. 搜索与筛选逻辑
+  // 5. Search and filter logic
   const norm = (s) => (s || '').toLowerCase().replace(/\s+/g,'').trim();
   const tagKey = (tag) => norm(tag);
 
-  // 更新筛�?UI 状态（高亮选中标签，更新计数器�?
+  // Update filter UI state, including active chips and the counter badge.
   const updateFilterUI = () => {
     if (filterPanel) {
       filterPanel.querySelectorAll('.filter-chip').forEach((btn) => {
@@ -1414,7 +1410,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // 渲染筛选标签（Chips）：从所有俱乐部中提取标签，去重并排�?
+  // Render filter chips by collecting and deduplicating tags from all clubs.
   const renderFilterChips = () => {
     if (!filterPanel) return;
     const seen = new Set();
@@ -1450,7 +1446,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateFilterUI();
   };
 
-  // 核心过滤函数：结合关键字搜索和标签筛�?
+  // Core filter function combining keyword search and tag filters.
   const filter = () => {
     const q = norm(kwEl?.value);
     const list = CLUBS.filter(c => {
@@ -1514,7 +1510,7 @@ document.addEventListener('DOMContentLoaded', () => {
     filter();
   };
 
-  // 事件委托：处理卡片上的标签点击，快速筛�?
+  // Delegate tag clicks on cards so users can quick-filter from card content.
   cardsEl?.addEventListener('click', (event) => {
     const chip = event.target.closest('.chip-link');
     if (!chip || !cardsEl.contains(chip)) return;
@@ -1530,12 +1526,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 绑定搜索框事�?
+  // Bind search box events.
   document.getElementById('btnClear')?.addEventListener('click', () => { if (kwEl){ kwEl.value = ''; kwEl.focus(); } filter(); });
   kwEl?.addEventListener('input', filter);
   kwEl?.addEventListener('keydown', (e) => { if (e.key === 'Enter') filter(); });
 
-  // 页面加载完成后执行一次初始筛选渲�?
+  // Run the initial filter render after page load.
   initData();
   recalcSearchCardDockThreshold();
 });

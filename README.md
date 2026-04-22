@@ -12,7 +12,6 @@ This README is the repo entry point, local run entry point, and acceptance entry
 - `docs/`: implementation notes and desktop acceptance rules
 - `tests/`: frontend regression tests and Playwright visual baselines
 - `scripts/`: repo utility scripts
-- `server/`: legacy fallback static server, not the main workflow
 
 ## Tech stack
 
@@ -137,6 +136,7 @@ Common entry pages:
 npm run dev
 npm run dev:backend
 npm run build
+npm run check:prompts
 npm test
 npm run test:frontend
 npm run test:frontend:fast
@@ -151,6 +151,7 @@ Meaning:
 
 - daily fast regression: `npm test`
 - quick frontend static regression: `npm run test:frontend` / `npm run test:frontend:fast`
+- prompt policy regression: `npm run check:prompts`
 - desktop visual regression: `npm run test:frontend:visual`
 - backend regression: `npm run test:backend`
 - full acceptance before submission or demo: `npm run test:acceptance`
@@ -217,6 +218,7 @@ Detailed rules and acceptance notes:
 
 A change is submission-ready when all of the following pass:
 
+- `npm run check:prompts`
 - `npm test`
 - `npm run test:frontend:visual`
 - `npm run build`
@@ -333,4 +335,3 @@ More detail:
 ## Notes
 
 - `dist/` is build output and should not be edited directly.
-- `server/` is a legacy fallback server and is not part of the main npm workflow or deployment path.

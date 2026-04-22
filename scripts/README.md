@@ -2,19 +2,14 @@
 
 ## `check-prompts.mjs`
 
-This script scans the frontend source and build output for native browser dialogs:
-
-- `window.alert`
-- `window.confirm`
-- `window.prompt`
+This script guards the repository rule that frontend flows must not rely on native
+browser `alert`, `confirm`, or `prompt` calls outside the dedicated custom prompt layer.
 
 Run it with:
 
 ```bash
 npm run check:prompts
 ```
-
-The intended standard is to use the app prompt layer instead of native browser dialogs.
 
 ## `prepare-submission.mjs`
 

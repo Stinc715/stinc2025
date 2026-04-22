@@ -716,7 +716,6 @@ document.addEventListener('DOMContentLoaded', () => {
       clearOnboardingDraft();
       window.location.replace('onboarding-complete.html');
     } catch (e) {
-      console.warn('Failed to finalize club setup', e);
       if (window.AppPrompt && typeof window.AppPrompt.toast === 'function') {
         window.AppPrompt.toast(e?.message || 'Failed to finish setup. Please try again.', { type: 'error', duration: 3200 });
       }

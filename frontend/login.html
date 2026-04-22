@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -303,7 +303,7 @@
     </div>
 
     <div class="panels-container">
-    <!-- 鐧诲綍闈㈡澘 -->
+    <!-- Login panel -->
     <div id="panel-login" class="active">
       <div class="login-form-section">
       <div id="login-success" class="success" role="status" aria-live="polite">
@@ -347,7 +347,7 @@
       </div><!-- end login-form-section -->
 
       <div class="login-social-section">
-      <!-- Google 登录 -->
+      <!-- Google sign-in -->
       <div class="divider"><span>or</span></div>
       <div class="google-signin-shell" aria-label="Sign in with Google">
         <div class="google-signin-shell__visual" aria-hidden="true">
@@ -364,7 +364,7 @@
       </div><!-- end login-social-section -->
     </div>
 
-    <!-- 娉ㄥ唽闈㈡澘 -->
+    <!-- Registration panel -->
     <div id="panel-register">
       <div id="reg-success" class="success" role="status" aria-live="polite">
         <div class="success-body">
@@ -433,7 +433,7 @@
   </main>
 
 
-  <!-- 閲嶇疆瀵嗙爜寮瑰眰 -->
+  <!-- Reset password modal -->
   <div id="reset-panel">
     <div id="reset-box">
       <h3>Reset password</h3>
@@ -1182,7 +1182,6 @@
 
       redirectAfterLogin(role);
     } catch (e) {
-      console.error(e);
       showLoginError('Google login failed. Please try again.');
     }
   };
